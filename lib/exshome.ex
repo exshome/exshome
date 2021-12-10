@@ -4,6 +4,8 @@ defmodule Exshome do
   """
   use GenServer
 
+  defstruct socket: nil, counter: 1, requests: %{}
+
   # Client
   def start_link(socket_location \\ "/tmp/mpvsocket") do
     GenServer.start_link(__MODULE__, socket_location)
@@ -13,16 +15,21 @@ defmodule Exshome do
     GenServer.call(pid, {:send, data})
   end
 
+  def send!(pid, data) do
+    {:ok, result} = __MODULE__.send(pid, data)
+    result
+  end
+
   # Server (callbacks)
   @impl GenServer
   def init(socket_location) do
     {:ok, socket} = :gen_tcp.connect({:local, socket_location}, 0, [:binary, packet: :line])
-    state = %{socket: socket, counter: 0, requests: %{}}
+    state = %__MODULE__{socket: socket}
     {:ok, state}
   end
 
   @impl GenServer
-  def handle_call({:send, data}, from, state) do
+  def handle_call({:send, data}, from, %__MODULE__{} = state) do
     string_data =
       data
       |> Map.put(:request_id, state.counter)
@@ -40,7 +47,7 @@ defmodule Exshome do
   end
 
   @impl GenServer
-  def handle_info({:tcp, _socket, message}, state) do
+  def handle_info({:tcp, _socket, message}, %__MODULE__{} = state) do
     new_state =
       message
       |> Jason.decode!()
@@ -49,12 +56,12 @@ defmodule Exshome do
     {:noreply, new_state}
   end
 
-  def handle_message(%{"event" => _event} = message, state) do
+  def handle_message(%{"event" => _event} = message, %__MODULE__{} = state) do
     IO.inspect(message)
     state
   end
 
-  def handle_message(message, %{requests: requests} = state) do
+  def handle_message(message, %__MODULE__{requests: requests} = state) do
     {request_id, response} = Map.pop!(message, "request_id")
 
     :ok =
