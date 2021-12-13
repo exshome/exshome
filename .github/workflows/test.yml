@@ -6,7 +6,7 @@ env:
   MIX_ENV: test
 
 jobs:
-  build:
+  test:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout sources
@@ -55,10 +55,10 @@ jobs:
       run: mix deps.audit
 
     - name: Elixir run tests
-      run: mix test --cover --warnings-as-errors
+      run: mix coveralls.json
 
-    - name: Store coverage data
-      uses: actions/upload-artifact@v2
-      with:
-        name: coverage_report
-        path: cover
+    - name: Upload coverage report to Codecov
+      run: |
+        curl -Os https://uploader.codecov.io/latest/linux/codecov
+        chmod +x codecov
+        ./codecov
