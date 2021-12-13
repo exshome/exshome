@@ -1,0 +1,30 @@
+name: Build and test the project
+
+on: [push]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Github Checkout
+      uses: actions/checkout@v2
+      with:
+        fetch-depth: 1
+
+    - name: Cache dependencies
+      uses: actions/cache@v2
+      with:
+        path: |
+          deps
+          _build
+        key: ${{ runner.os }}-mix-${{ hashFiles('**/mix.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-mix-
+
+    - name: Build project
+      run: |
+        mix local.rebar --force
+        mix local.hex --force
+        mix deps.get
+        mix deps.compile
+        mix compile --warnings-as-errors
