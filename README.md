@@ -1,6 +1,8 @@
 # Exshome
 elixir-based smart home
 
+[![codecov](https://codecov.io/gh/exshome/exshome/branch/main/graph/badge.svg?token=N0HBNURO8P)](https://codecov.io/gh/exshome/exshome)
+
 ## Installation
 
 If [available in Hex](https://hex.pm/docs/publish), the package can be installed
