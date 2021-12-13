@@ -55,9 +55,9 @@ jobs:
       run: mix deps.audit
 
     - name: Elixir run tests
-      run: mix test --cover
+      run: mix test --cover --warnings-as-errors
 
-    - name: Archive production artifacts
+    - name: Store coverage data
       uses: actions/upload-artifact@v2
       with:
         name: coverage_report
