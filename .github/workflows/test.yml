@@ -2,6 +2,9 @@ name: Build and test the project
 
 on: [push]
 
+env:
+  MIX_ENV: test
+
 jobs:
   build:
     runs-on: ubuntu-latest
