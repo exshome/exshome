@@ -47,3 +47,9 @@ jobs:
 
     - name: Elixir Linter
       run: mix credo list --strict
+
+    - name: Elixir check retired packages
+      run: mix hex.audit
+
+    - name: Elixir check for security issues in dependencies
+      run: mix deps.audit
