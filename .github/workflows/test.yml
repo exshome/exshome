@@ -21,16 +21,20 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-mix-
 
-    - name: Setup Elixir 
+    - name: Setup Elixir
       uses: erlef/setup-beam@v1
       with:
         otp-version: 24
         elixir-version: 1.13
-  
+
     - name: Build project
       run: |
         mix local.rebar --force
         mix local.hex --force
         mix deps.get
         mix deps.compile
+        mix dialyzer.build
         mix compile --warnings-as-errors
+
+    - name: Static analysis
+      run: mix dialyzer
