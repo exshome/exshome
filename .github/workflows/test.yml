@@ -6,7 +6,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-    - name: Github Checkout
+    - name: Checkout sources
       uses: actions/checkout@v2
       with:
         fetch-depth: 1
