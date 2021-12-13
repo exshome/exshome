@@ -1,4 +1,8 @@
 defmodule ExshomeTest.Fixtures do
+  @moduledoc """
+  This module helps to setup tests.
+  """
+
   alias ExUnit.Callbacks
   import ExUnit.Assertions
 
@@ -57,7 +61,7 @@ defmodule ExshomeTest.Fixtures do
     end
   end
 
-  def received_messages() do
+  def received_messages do
     received_messages([])
   end
 

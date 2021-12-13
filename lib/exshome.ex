@@ -2,6 +2,7 @@ defmodule Exshome do
   @moduledoc """
   Documentation for `Exshome`.
   """
+  require Logger
   use GenServer
 
   defstruct socket: nil, counter: 1, requests: %{}
@@ -57,7 +58,7 @@ defmodule Exshome do
   end
 
   def handle_message(%{"event" => _event} = message, %__MODULE__{} = state) do
-    IO.inspect(message)
+    Logger.info(message)
     state
   end
 
