@@ -21,8 +21,13 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-mix-
 
+    - name: Setup Elixir 
+      uses: erlef/setup-beam@v1
+      with:
+        otp-version: 24
+        elixir-version: 1.13
+  
     - name: Build project
-      uses: docker://elixir:latest
       run: |
         mix local.rebar --force
         mix local.hex --force
