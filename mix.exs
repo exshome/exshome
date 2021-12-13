@@ -4,11 +4,15 @@ defmodule Exshome.MixProject do
   def project do
     [
       app: :exshome,
-      version: "0.1.0",
+      deps: deps(),
+      dialyzer: [
+        check_plt: true,
+        plt_add_apps: [:mix, :ex_unit]
+      ],
       elixir: "~> 1.13",
       elixirc_paths: elixirc_paths(Mix.env()),
       start_permanent: Mix.env() == :prod,
-      deps: deps()
+      version: "0.1.0"
     ]
   end
 
