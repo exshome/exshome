@@ -4,7 +4,7 @@ defmodule ExshomeTest do
 
   setup do
     socket_location = unique_socket_location()
-    server = server_fixture(socket_location, self())
+    server_fixture(socket_location, self())
     client = start_supervised!({Exshome, socket_location})
 
     %{client: client}
