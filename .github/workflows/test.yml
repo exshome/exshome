@@ -53,3 +53,6 @@ jobs:
 
     - name: Elixir check for security issues in dependencies
       run: mix deps.audit
+
+    - name: Elixir run tests
+      run: mix test --cover
