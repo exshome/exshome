@@ -39,5 +39,8 @@ jobs:
     - name: Elixir Static analysis
       run: mix dialyzer
 
+    - name: Elixir check format
+      run: mix format --check-formatted
+
     - name: Elixir Linter
       run: mix credo list --strict
