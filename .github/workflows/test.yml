@@ -22,6 +22,7 @@ jobs:
           ${{ runner.os }}-mix-
 
     - name: Build project
+      uses: elixir:latest
       run: |
         mix local.rebar --force
         mix local.hex --force
