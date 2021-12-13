@@ -10,6 +10,7 @@ defmodule Exshome.MixProject do
         plt_add_apps: [:mix, :ex_unit]
       ],
       elixir: "~> 1.13",
+      test_coverage: [summary: [threshold: 80]],
       elixirc_paths: elixirc_paths(Mix.env()),
       start_permanent: Mix.env() == :prod,
       version: "0.1.0"

@@ -55,9 +55,6 @@ defmodule ExshomeTest.Fixtures do
         )
 
         handle_message(connection, test_pid)
-
-      _ ->
-        nil
     end
   end
 

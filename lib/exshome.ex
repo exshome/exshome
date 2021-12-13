@@ -8,7 +8,7 @@ defmodule Exshome do
   defstruct socket: nil, counter: 1, requests: %{}
 
   # Client
-  def start_link(socket_location \\ "/tmp/mpvsocket") do
+  def start_link(socket_location) do
     GenServer.start_link(__MODULE__, socket_location)
   end
 
