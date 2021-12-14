@@ -5,7 +5,10 @@ defmodule ExshomeTest do
   setup do
     socket_location = unique_socket_location()
     server_fixture(socket_location, self())
-    client = start_supervised!({Exshome, socket_location})
+
+    client_data = %{socket_location: socket_location, handle_event: event_handler(self())}
+
+    client = start_supervised!({Exshome, client_data})
 
     %{client: client}
   end
@@ -28,5 +31,11 @@ defmodule ExshomeTest do
     message_2 = last_received_message()
 
     assert message_1["request_id"] < message_2["request_id"]
+  end
+
+  test "client can receive event", %{client: _client} do
+    event = %{"event" => "some event", "data" => unique_integer()}
+    send_event(event)
+    assert received_event() == event
   end
 end

@@ -14,6 +14,10 @@ defmodule ExshomeTest.TestMpvServer do
     GenServer.call(server, :messages)
   end
 
+  def send_event(server, event) do
+    GenServer.call(server, {:event, event})
+  end
+
   @impl GenServer
   def init(%{socket_path: socket_path, test_pid: test_pid}) do
     File.rm(socket_path)
@@ -42,9 +46,9 @@ defmodule ExshomeTest.TestMpvServer do
     decoded = Jason.decode!(message)
     send(state.test_pid, {__MODULE__, decoded})
 
-    :gen_tcp.send(
-      state.connection,
-      ~s/{"test": 123, "request_id": #{decoded["request_id"]}, "error": "success"}\n/
+    send_data(
+      state,
+      %{test: 123, request_id: decoded["request_id"], error: "success"}
     )
 
     new_state = Map.update!(state, :received_messages, &[decoded | &1])
@@ -55,5 +59,16 @@ defmodule ExshomeTest.TestMpvServer do
   @impl GenServer
   def handle_call(:messages, _from, %__MODULE__{} = state) do
     {:reply, state.received_messages, state}
+  end
+
+  @impl GenServer
+  def handle_call({:event, event}, _from, %__MODULE__{} = state) do
+    send_data(state, event)
+    {:reply, :ok, state}
+  end
+
+  defp send_data(%__MODULE__{} = state, data) do
+    json_data = Jason.encode!(data)
+    :gen_tcp.send(state.connection, "#{json_data}\n")
   end
 end

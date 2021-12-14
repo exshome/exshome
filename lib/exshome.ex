@@ -5,11 +5,10 @@ defmodule Exshome do
   require Logger
   use GenServer
 
-  defstruct socket: nil, counter: 1, requests: %{}
+  defstruct socket: nil, counter: 1, requests: %{}, handle_event: nil
 
-  # Client
-  def start_link(socket_location) do
-    GenServer.start_link(__MODULE__, socket_location)
+  def start_link(%{socket_location: _socket_location, handle_event: _handle_event} = data) do
+    GenServer.start_link(__MODULE__, data)
   end
 
   def send(pid, data) when is_map(data) do
@@ -23,9 +22,9 @@ defmodule Exshome do
 
   # Server (callbacks)
   @impl GenServer
-  def init(socket_location) do
+  def init(%{socket_location: socket_location, handle_event: handle_event}) do
     {:ok, socket} = :gen_tcp.connect({:local, socket_location}, 0, [:binary, packet: :line])
-    state = %__MODULE__{socket: socket}
+    state = %__MODULE__{socket: socket, handle_event: handle_event}
     {:ok, state}
   end
 
@@ -58,7 +57,7 @@ defmodule Exshome do
   end
 
   def handle_message(%{"event" => _event} = message, %__MODULE__{} = state) do
-    Logger.info(message)
+    state.handle_event.(message)
     state
   end
 
