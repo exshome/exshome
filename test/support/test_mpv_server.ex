@@ -1,4 +1,7 @@
 defmodule ExshomeTest.TestMpvServer do
+  @moduledoc """
+  Test MPV server. You can use it to emulate an MPV server.
+  """
   use GenServer
 
   defstruct [:socket_path, :server, :connection, :test_pid, received_messages: []]
@@ -13,7 +16,6 @@ defmodule ExshomeTest.TestMpvServer do
 
   @impl GenServer
   def init(%{socket_path: socket_path, test_pid: test_pid}) do
-
     File.rm(socket_path)
 
     {:ok, server} =
@@ -23,6 +25,7 @@ defmodule ExshomeTest.TestMpvServer do
         {:packet, :line},
         reuseaddr: true
       ])
+
     state = %__MODULE__{socket_path: socket_path, test_pid: test_pid, server: server}
     {:ok, state, {:continue, :accept_connection}}
   end

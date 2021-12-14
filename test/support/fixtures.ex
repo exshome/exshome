@@ -3,10 +3,8 @@ defmodule ExshomeTest.Fixtures do
   This module helps to setup tests.
   """
 
-  alias ExUnit.Callbacks
   alias ExshomeTest.TestMpvServer
-
-  import ExUnit.Assertions
+  alias ExUnit.Callbacks
 
   def unique_socket_location do
     System.tmp_dir!()
@@ -27,6 +25,7 @@ defmodule ExshomeTest.Fixtures do
     Process.put(TestMpvServer, server)
   end
 
+  @spec received_messages() :: [%{}]
   def received_messages do
     TestMpvServer
     |> Process.get()
@@ -34,7 +33,7 @@ defmodule ExshomeTest.Fixtures do
   end
 
   def last_received_message do
-    assert [message | _] = received_messages()
+    [message | _] = received_messages()
     message
   end
 end
