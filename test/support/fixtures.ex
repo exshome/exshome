@@ -4,6 +4,8 @@ defmodule ExshomeTest.Fixtures do
   """
 
   alias ExUnit.Callbacks
+  alias ExshomeTest.TestMpvServer
+
   import ExUnit.Assertions
 
   def unique_socket_location do
@@ -15,64 +17,24 @@ defmodule ExshomeTest.Fixtures do
     System.unique_integer([:positive, :monotonic])
   end
 
-  def server_fixture(path, test_pid) do
-    File.rm(path)
+  def server_fixture(socket_path, test_pid) do
+    server =
+      Callbacks.start_supervised!({
+        TestMpvServer,
+        %{socket_path: socket_path, test_pid: test_pid}
+      })
 
-    {:ok, server} =
-      :gen_tcp.listen(0, [
-        {:ip, {:local, path}},
-        :binary,
-        {:packet, :line},
-        active: false,
-        reuseaddr: true
-      ])
-
-    Callbacks.start_supervised!({Task, fn -> accept_connection(server, test_pid) end})
-
-    Callbacks.on_exit(fn ->
-      :ok = :gen_tcp.close(server)
-    end)
-
-    server
-  end
-
-  def accept_connection(server, test_pid) do
-    {:ok, connection} = :gen_tcp.accept(server)
-
-    handle_message(connection, test_pid)
-  end
-
-  def handle_message(connection, test_pid) do
-    case :gen_tcp.recv(connection, 0) do
-      {:ok, message} ->
-        decoded = Jason.decode!(message)
-
-        send(test_pid, {__MODULE__, decoded})
-
-        :gen_tcp.send(
-          connection,
-          ~s/{"test": 123, "request_id": #{decoded["request_id"]}, "error": "success"}\n/
-        )
-
-        handle_message(connection, test_pid)
-    end
+    Process.put(TestMpvServer, server)
   end
 
   def received_messages do
-    received_messages([])
+    TestMpvServer
+    |> Process.get()
+    |> TestMpvServer.received_messages()
   end
 
-  defp received_messages(messages) do
-    receive do
-      {__MODULE__, message} ->
-        received_messages([message | messages])
-    after
-      0 -> messages
-    end
-  end
-
-  def received_message do
-    assert_received({__MODULE__, message})
+  def last_received_message do
+    assert [message | _] = received_messages()
     message
   end
 end

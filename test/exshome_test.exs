@@ -12,7 +12,7 @@ defmodule ExshomeTest do
 
   test "simple connection", %{client: client} do
     assert %{"test" => 123} == Exshome.send!(client, %{data: "test"})
-    assert received_message() == %{"data" => "test", "request_id" => 1}
+    assert last_received_message() == %{"data" => "test", "request_id" => 1}
   end
 
   test "received all messages", %{client: client} do
@@ -23,9 +23,9 @@ defmodule ExshomeTest do
 
   test "request_id differs", %{client: client} do
     Exshome.send!(client, %{data: "test"})
-    message_1 = received_message()
+    message_1 = last_received_message()
     Exshome.send!(client, %{data: "test"})
-    message_2 = received_message()
+    message_2 = last_received_message()
 
     assert message_1["request_id"] < message_2["request_id"]
   end
