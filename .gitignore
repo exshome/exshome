@@ -1,4 +1,12 @@
+# IDE integrations
+.idea/
+.vscode/
+.elixir_ls/
+.log/
+
+# auto-generated files
 _build/
 deps/
-.elixir_ls/
+
+# coverage report
 cover/

@@ -11,7 +11,6 @@ defmodule Exshome.MixProject do
       ],
       elixir: "~> 1.13",
       test_coverage: [
-        summary: [threshold: 80],
         tool: ExCoveralls
       ],
       preferred_cli_env: [
