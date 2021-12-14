@@ -55,10 +55,7 @@ jobs:
       run: mix deps.audit
 
     - name: Elixir run tests
-      run: mix coveralls.json
+      run: mix coveralls.json --warnings-as-errors
 
     - name: Upload coverage report to Codecov
-      run: |
-        curl -Os https://uploader.codecov.io/latest/linux/codecov
-        chmod +x codecov
-        ./codecov
+      uses: codecov/codecov-action@v2
