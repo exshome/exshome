@@ -6,16 +6,17 @@ defmodule ExshomeTest.MpvSocketTest do
 
   setup do
     socket_location = unique_socket_location()
-    server_fixture(socket_location, self())
+    server_fixture(socket_location)
 
     socket_data = %MpvSocket.Arguments{
       socket_location: socket_location,
-      handle_event: event_handler(self())
+      handle_event: event_handler(self()),
+      reconnect_interval: 1
     }
 
     socket = start_supervised!({MpvSocket, socket_data})
 
-    %{socket: socket}
+    %{socket: socket, socket_location: socket_location}
   end
 
   test "simple connection", %{socket: socket} do
@@ -47,5 +48,22 @@ defmodule ExshomeTest.MpvSocketTest do
     event = %{"event" => "some event", "data" => unique_integer()}
     send_event(event)
     assert received_event() == event
+  end
+
+  test "client reconnects to the server", %{
+    socket: socket,
+    socket_location: socket_location
+  } do
+    MpvSocket.send!(socket, %{data: "test"})
+    assert last_received_message()
+
+    stop_supervised!(ExshomeTest.TestMpvServer)
+    wait_until_socket_disconnects(socket)
+    {:error, :not_connected} = MpvSocket.send(socket, %{data: "test"})
+
+    server_fixture(socket_location)
+    wait_until_socket_connects(socket)
+    MpvSocket.send(socket, %{data: "test"})
+    assert last_received_message()
   end
 end

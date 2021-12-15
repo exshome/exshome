@@ -3,6 +3,7 @@ defmodule ExshomeTest.Fixtures do
   This module helps to setup tests.
   """
 
+  alias Exshome.MpvSocket
   alias ExshomeTest.TestMpvServer
   alias ExUnit.Callbacks
   import ExUnit.Assertions
@@ -20,16 +21,17 @@ defmodule ExshomeTest.Fixtures do
     System.unique_integer([:positive, :monotonic])
   end
 
-  @spec server_fixture(socket_path :: String.t(), test_pid :: pid()) :: term()
-  def server_fixture(socket_path, test_pid) do
+  @spec server_fixture(socket_path :: String.t()) :: term()
+  def server_fixture(socket_path) do
     server =
       Callbacks.start_supervised!({
         TestMpvServer,
-        %TestMpvServer.Arguments{socket_path: socket_path, test_pid: test_pid}
+        %TestMpvServer.Arguments{socket_path: socket_path, test_pid: self()}
       })
 
     set_events([])
     set_test_server(server)
+    server
   end
 
   @spec event_handler(pid()) :: fun()
@@ -76,9 +78,33 @@ defmodule ExshomeTest.Fixtures do
     Process.put(:events, events)
   end
 
-  def respond_with_errors() do
+  def respond_with_errors do
     TestMpvServer.set_response_fn(test_server(), fn request_id, _ ->
       %{request_id: request_id, error: "some error #{unique_integer()}"}
     end)
+  end
+
+  @spec wait_until_socket_disconnects(socket :: pid()) :: term()
+  def wait_until_socket_disconnects(socket), do: wait_until_socket_connection(socket, false)
+
+  @spec wait_until_socket_connects(socket :: pid()) :: term()
+  def wait_until_socket_connects(socket), do: wait_until_socket_connection(socket, true)
+
+  @spec wait_until_socket_connection(
+          socket :: pid(),
+          connected? :: boolean(),
+          timeout :: integer()
+        ) :: term()
+  defp wait_until_socket_connection(socket, connected?, timeout \\ 100)
+
+  defp wait_until_socket_connection(_socket, _connected?, timeout) when timeout <= 0 do
+    ExUnit.Assertions.flunk("unable to wait until socket state changes")
+  end
+
+  defp wait_until_socket_connection(socket, connected?, timeout) do
+    if MpvSocket.connected?(socket) != connected? do
+      :timer.sleep(1)
+      wait_until_socket_connection(socket, connected?, timeout - 1)
+    end
   end
 end
