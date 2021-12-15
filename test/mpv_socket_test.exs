@@ -38,6 +38,11 @@ defmodule ExshomeTest.MpvSocketTest do
     assert message_1["request_id"] < message_2["request_id"]
   end
 
+  test "request fails", %{socket: socket} do
+    respond_with_errors()
+    assert {:error, _message} = MpvSocket.send(socket, %{data: "test"})
+  end
+
   test "socket can receive event" do
     event = %{"event" => "some event", "data" => unique_integer()}
     send_event(event)

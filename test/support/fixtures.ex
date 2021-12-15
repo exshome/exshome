@@ -75,4 +75,10 @@ defmodule ExshomeTest.Fixtures do
   defp set_events(events) do
     Process.put(:events, events)
   end
+
+  def respond_with_errors() do
+    TestMpvServer.set_response_fn(test_server(), fn request_id, _ ->
+      %{request_id: request_id, error: "some error #{unique_integer()}"}
+    end)
+  end
 end
