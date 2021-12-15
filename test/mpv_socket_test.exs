@@ -8,7 +8,10 @@ defmodule ExshomeTest.MpvSocketTest do
     socket_location = unique_socket_location()
     server_fixture(socket_location, self())
 
-    socket_data = %MpvSocket.Arguments{socket_location: socket_location, handle_event: event_handler(self())}
+    socket_data = %MpvSocket.Arguments{
+      socket_location: socket_location,
+      handle_event: event_handler(self())
+    }
 
     socket = start_supervised!({MpvSocket, socket_data})
 

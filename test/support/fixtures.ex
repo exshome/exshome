@@ -20,7 +20,7 @@ defmodule ExshomeTest.Fixtures do
     System.unique_integer([:positive, :monotonic])
   end
 
-  @spec server_fixture(socket_path:: String.t(), test_pid :: pid()) :: term()
+  @spec server_fixture(socket_path :: String.t(), test_pid :: pid()) :: term()
   def server_fixture(socket_path, test_pid) do
     server =
       Callbacks.start_supervised!({

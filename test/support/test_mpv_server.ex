@@ -8,14 +8,22 @@ defmodule ExshomeTest.TestMpvServer do
     @moduledoc """
     A structure to represent internal state of test MPV server.
     """
-    defstruct [:socket_path, :server, :connection, :test_pid, received_messages: []]
+    defstruct [
+      :socket_path,
+      :server,
+      :connection,
+      response_fn: &ExshomeTest.TestMpvServer.default_response_handler/2,
+      test_pid: nil,
+      received_messages: []
+    ]
 
     @type t() :: %__MODULE__{
-            socket_path: String.t() | nil,
-            server: :gen_tcp.socket() | nil,
             connection: :gen_tcp.socket() | nil,
+            received_messages: [term()],
+            server: :gen_tcp.socket() | nil,
+            socket_path: String.t() | nil,
             test_pid: pid(),
-            received_messages: [term()]
+            response_fn: (request_id :: String.t(), request_data :: %{} -> %{})
           }
   end
 
@@ -35,6 +43,11 @@ defmodule ExshomeTest.TestMpvServer do
   @spec start_link(Arguments.t()) :: GenServer.on_start()
   def start_link(%Arguments{} = init_arguments) do
     GenServer.start_link(__MODULE__, init_arguments)
+  end
+
+  @spec set_response_fn(server :: pid(), response_fn :: (String.t(), map() -> map())) :: term()
+  def set_response_fn(server, response_fn) do
+    GenServer.call(server, {:set_response_fn, response_fn})
   end
 
   @spec received_messages(pid()) :: [%{}]
@@ -75,10 +88,8 @@ defmodule ExshomeTest.TestMpvServer do
     decoded = Jason.decode!(message)
     send(state.test_pid, {__MODULE__, decoded})
 
-    send_data(
-      state,
-      %{test: 123, request_id: decoded["request_id"], error: "success"}
-    )
+    response = state.response_fn.(decoded["request_id"], decoded)
+    send_data(state, response)
 
     new_state = Map.update!(state, :received_messages, &[decoded | &1])
 
@@ -96,8 +107,19 @@ defmodule ExshomeTest.TestMpvServer do
     {:reply, :ok, state}
   end
 
+  @impl GenServer
+  def handle_call({:set_response_fn, response_fn}, _from, %State{} = state) do
+    new_state = %State{state | response_fn: response_fn}
+    {:reply, :ok, new_state}
+  end
+
   defp send_data(%State{} = state, data) do
     json_data = Jason.encode!(data)
     :gen_tcp.send(state.connection, "#{json_data}\n")
+  end
+
+  @spec default_response_handler(request_id :: String.t(), request_data :: %{}) :: map()
+  def default_response_handler(request_id, _request_data) do
+    %{test: 123, request_id: request_id, error: "success"}
   end
 end
