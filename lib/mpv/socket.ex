@@ -3,8 +3,10 @@ defmodule Exshome.Mpv.Socket do
   Implementation for MPV socket. It allows to send you some commands to the MPV server.
   """
   use GenServer
-  @reconnect_key :reconnect
+  @connected_key :connected?
   @connect_to_socket_key :connect_to_socket
+  @reconnect_key :reconnect
+  @send_command_key :send_command
 
   defmodule State do
     @moduledoc """
@@ -50,12 +52,12 @@ defmodule Exshome.Mpv.Socket do
 
   @spec send(pid :: pid(), data :: map()) :: term()
   def send(pid, data) when is_map(data) do
-    GenServer.call(pid, {:send, data})
+    GenServer.call(pid, {@send_command_key, data})
   end
 
   @spec connected?(pid :: pid()) :: boolean()
   def connected?(pid) do
-    GenServer.call(pid, :connected?)
+    GenServer.call(pid, @connected_key)
   end
 
   @spec send!(pid :: pid(), data :: map()) :: term()
@@ -87,12 +89,12 @@ defmodule Exshome.Mpv.Socket do
   end
 
   @impl GenServer
-  def handle_call({:send, _data}, _from, %State{socket: nil} = state) do
+  def handle_call({@send_command_key, _data}, _from, %State{socket: nil} = state) do
     {:reply, {:error, :not_connected}, state}
   end
 
   @impl GenServer
-  def handle_call({:send, data}, from, %State{} = state) do
+  def handle_call({@send_command_key, data}, from, %State{} = state) do
     string_data =
       data
       |> Map.put(:request_id, state.counter)
@@ -110,14 +112,14 @@ defmodule Exshome.Mpv.Socket do
   end
 
   @impl GenServer
-  def handle_call(:connected?, _from, %State{socket: socket} = state) do
+  def handle_call(@connected_key, _from, %State{socket: socket} = state) do
     {:reply, socket != nil, state}
   end
 
   @impl GenServer
   def handle_info({:tcp_closed, _socket}, %State{} = state) do
     new_state = %State{state | socket: nil}
-    {:noreply, new_state, {:continue, :connect_to_socket}}
+    {:noreply, new_state, {:continue, @connect_to_socket_key}}
   end
 
   @impl GenServer

@@ -34,6 +34,11 @@ defmodule ExshomeTest.Fixtures do
     server
   end
 
+  @spec stop_server() :: :ok
+  def stop_server do
+    :ok = Callbacks.stop_supervised!(ExshomeTest.TestMpvServer)
+  end
+
   @spec event_handler(pid()) :: fun()
   def event_handler(test_pid) do
     fn event ->

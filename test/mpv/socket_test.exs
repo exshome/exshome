@@ -57,7 +57,7 @@ defmodule ExshomeTest.Mpv.SocketTest do
     Socket.send!(socket, %{data: "test"})
     assert last_received_message()
 
-    stop_supervised!(ExshomeTest.TestMpvServer)
+    stop_server()
     wait_until_socket_disconnects(socket)
     {:error, :not_connected} = Socket.send(socket, %{data: "test"})
 
