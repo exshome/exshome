@@ -1,4 +1,4 @@
-defmodule Exshome.MpvSocket do
+defmodule Exshome.Mpv.Socket do
   @moduledoc """
   Implementation for MPV socket. It allows to send you some commands to the MPV server.
   """

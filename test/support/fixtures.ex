@@ -3,7 +3,7 @@ defmodule ExshomeTest.Fixtures do
   This module helps to setup tests.
   """
 
-  alias Exshome.MpvSocket
+  alias Exshome.Mpv.Socket
   alias ExshomeTest.TestMpvServer
   alias ExUnit.Callbacks
   import ExUnit.Assertions
@@ -102,7 +102,7 @@ defmodule ExshomeTest.Fixtures do
   end
 
   defp wait_until_socket_connection(socket, connected?, timeout) do
-    if MpvSocket.connected?(socket) != connected? do
+    if Socket.connected?(socket) != connected? do
       :timer.sleep(1)
       wait_until_socket_connection(socket, connected?, timeout - 1)
     end
