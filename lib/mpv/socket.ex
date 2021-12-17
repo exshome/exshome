@@ -90,7 +90,7 @@ defmodule Exshome.Mpv.Socket do
 
   @impl GenServer
   def handle_call({@send_command_key, _data}, _from, %State{socket: nil} = state) do
-    {:reply, {:error, :not_connected}, state}
+    {:reply, not_connected_error(), state}
   end
 
   @impl GenServer
@@ -117,14 +117,18 @@ defmodule Exshome.Mpv.Socket do
   end
 
   @impl GenServer
-  def handle_info({:tcp_closed, _socket}, %State{} = state) do
-    new_state = %State{state | socket: nil}
-    {:noreply, new_state, {:continue, @connect_to_socket_key}}
+  def handle_info(@reconnect_key, %State{} = state) do
+    {:noreply, state, {:continue, @connect_to_socket_key}}
   end
 
   @impl GenServer
-  def handle_info(@reconnect_key, %State{} = state) do
-    {:noreply, state, {:continue, @connect_to_socket_key}}
+  def handle_info({:tcp_closed, _socket}, %State{} = state) do
+    for pending_request <- Map.values(state.requests) do
+      GenServer.reply(pending_request, not_connected_error())
+    end
+
+    new_state = %State{state | socket: nil, requests: %{}}
+    {:noreply, new_state, {:continue, @connect_to_socket_key}}
   end
 
   @impl GenServer
@@ -161,4 +165,6 @@ defmodule Exshome.Mpv.Socket do
   defp process_response(%{"error" => error}) do
     {:error, error}
   end
+
+  defp not_connected_error, do: {:error, :not_connected}
 end
