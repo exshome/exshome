@@ -20,20 +20,20 @@ defmodule ExshomeTest.Mpv.SocketTest do
   end
 
   test "simple connection", %{socket: socket} do
-    assert %{"test" => 123} == Socket.send!(socket, %{data: "test"})
+    assert %{"test" => 123} == Socket.request!(socket, %{data: "test"})
     assert last_received_message() == %{"data" => "test", "request_id" => 1}
   end
 
   test "received all messages", %{socket: socket} do
-    Socket.send!(socket, %{data: "test"})
-    Socket.send!(socket, %{data: "test"})
+    Socket.request!(socket, %{data: "test"})
+    Socket.request!(socket, %{data: "test"})
     assert length(received_messages()) == 2
   end
 
   test "request_id differs", %{socket: socket} do
-    Socket.send!(socket, %{data: "test"})
+    Socket.request!(socket, %{data: "test"})
     message_1 = last_received_message()
-    Socket.send!(socket, %{data: "test"})
+    Socket.request!(socket, %{data: "test"})
     message_2 = last_received_message()
 
     assert message_1["request_id"] < message_2["request_id"]
@@ -41,10 +41,12 @@ defmodule ExshomeTest.Mpv.SocketTest do
 
   test "request fails", %{socket: socket} do
     respond_with_errors()
-    assert {:error, _message} = Socket.send(socket, %{data: "test"})
+    assert {:error, _message} = Socket.request(socket, %{data: "test"})
   end
 
-  test "socket can receive event" do
+  test "socket can receive event", %{socket: socket} do
+    wait_until_socket_connects(socket)
+    assert length(received_events()) > 0
     event = %{"event" => "some event", "data" => unique_integer()}
     send_event(event)
     assert received_event() == event
@@ -54,16 +56,16 @@ defmodule ExshomeTest.Mpv.SocketTest do
     socket: socket,
     socket_location: socket_location
   } do
-    Socket.send!(socket, %{data: "test"})
+    Socket.request!(socket, %{data: "test"})
     assert last_received_message()
 
     stop_server()
     wait_until_socket_disconnects(socket)
-    {:error, :not_connected} = Socket.send(socket, %{data: "test"})
+    {:error, :not_connected} = Socket.request(socket, %{data: "test"})
 
     server_fixture(socket_location)
     wait_until_socket_connects(socket)
-    Socket.send(socket, %{data: "test"})
+    Socket.request!(socket, %{data: "test"})
     assert last_received_message()
   end
 end

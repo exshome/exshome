@@ -21,14 +21,15 @@ defmodule Exshome.Mpv.Client do
     defstruct [:socket, :socket_location]
 
     @type t() :: %__MODULE__{
-            socket: :gen_tcp.socket() | nil,
+            socket: pid() | nil,
             socket_location: String.t() | nil
           }
   end
 
+
   @connect_to_socket_key :connect_to_socket
   @handle_event_key :handle_event
-  @send_command_key :send_command_key
+  @send_command_key :send_command
 
   @spec start_link(Arguments.t()) :: GenServer.on_start()
   def start_link(%Arguments{} = args) do
@@ -120,7 +121,7 @@ defmodule Exshome.Mpv.Client do
 
   @impl GenServer
   def handle_call({@send_command_key, payload}, _from, %State{} = state) do
-    result = Socket.send(state.socket, %{command: payload})
+    result = Socket.request!(state.socket, %{command: payload})
 
     {:reply, result, state}
   end

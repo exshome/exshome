@@ -57,7 +57,20 @@ defmodule ExshomeTest.Fixtures do
     message
   end
 
-  @spec received_event() :: %{}
+  @spec received_events() :: [Socket.event_t()]
+  def received_events do
+    received_events([])
+  end
+
+  defp received_events(events) when is_list(events) do
+    receive do
+      {@received_event_tag, event} -> received_events([event | events])
+    after
+      0 -> events
+    end
+  end
+
+  @spec received_event() :: map()
   def received_event do
     assert_receive({@received_event_tag, event})
     event

@@ -8,10 +8,14 @@ defmodule Exshome.Mpv.Socket do
   @reconnect_key :reconnect
   @send_command_key :send_command
 
+  @type event_t() :: %{String.t() => term()} | :connected | :dicsonnected
+
   defmodule State do
     @moduledoc """
     A structure for storing internal state for the MPV socket.
     """
+    alias Exshome.Mpv.Socket
+
     defstruct [
       :socket,
       :handle_event,
@@ -27,7 +31,7 @@ defmodule Exshome.Mpv.Socket do
             reconnect_interval: integer(),
             socket_location: String.t() | nil,
             requests: %{integer() => GenServer.from()},
-            handle_event: (%{String.t() => term()} -> any()) | nil
+            handle_event: (Socket.event_t() -> any()) | nil
           }
   end
 
@@ -50,8 +54,8 @@ defmodule Exshome.Mpv.Socket do
     GenServer.start_link(__MODULE__, data)
   end
 
-  @spec send(pid :: pid(), data :: map()) :: term()
-  def send(pid, data) when is_map(data) do
+  @spec request(pid :: pid(), data :: map()) :: term()
+  def request(pid, data) when is_map(data) do
     GenServer.call(pid, {@send_command_key, data})
   end
 
@@ -60,9 +64,9 @@ defmodule Exshome.Mpv.Socket do
     GenServer.call(pid, @connected_key)
   end
 
-  @spec send!(pid :: pid(), data :: map()) :: term()
-  def send!(pid, data) do
-    {:ok, result} = __MODULE__.send(pid, data)
+  @spec request!(pid :: pid(), data :: map()) :: term()
+  def request!(pid, data) do
+    {:ok, result} = __MODULE__.request(pid, data)
     result
   end
 
@@ -75,16 +79,25 @@ defmodule Exshome.Mpv.Socket do
   @impl GenServer
   def handle_continue(@connect_to_socket_key, %State{} = state) do
     connect_result =
-      :gen_tcp.connect({:local, state.socket_location}, 0, [:binary, packet: :line])
+      :gen_tcp.connect(
+        {:local, state.socket_location},
+        0,
+        [:binary, packet: :line]
+      )
 
     case connect_result do
       {:ok, socket} ->
-        new_state = %State{state | socket: socket}
-        {:noreply, new_state}
+        receive do
+          {:tcp_closed, ^socket} -> reconnect(state)
+        after
+          state.reconnect_interval ->
+            new_state = %State{state | socket: socket}
+            state.handle_event.(:connected)
+            {:noreply, new_state}
+        end
 
       {:error, _reason} ->
-        Process.send_after(self(), @reconnect_key, state.reconnect_interval)
-        {:noreply, state}
+        reconnect(state)
     end
   end
 
@@ -127,6 +140,7 @@ defmodule Exshome.Mpv.Socket do
       GenServer.reply(pending_request, not_connected_error())
     end
 
+    state.handle_event.(:disconnected)
     new_state = %State{state | socket: nil, requests: %{}}
     {:noreply, new_state, {:continue, @connect_to_socket_key}}
   end
@@ -167,4 +181,10 @@ defmodule Exshome.Mpv.Socket do
   end
 
   defp not_connected_error, do: {:error, :not_connected}
+
+  @spec reconnect(State.t()) :: State.t()
+  defp reconnect(%State{} = state) do
+    Process.send_after(self(), @reconnect_key, state.reconnect_interval)
+    {:noreply, state}
+  end
 end
