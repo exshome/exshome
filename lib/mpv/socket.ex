@@ -87,14 +87,9 @@ defmodule Exshome.Mpv.Socket do
 
     case connect_result do
       {:ok, socket} ->
-        receive do
-          {:tcp_closed, ^socket} -> reconnect(state)
-        after
-          state.reconnect_interval ->
-            new_state = %State{state | socket: socket}
-            state.handle_event.(:connected)
-            {:noreply, new_state}
-        end
+        new_state = %State{state | socket: socket}
+        state.handle_event.(:connected)
+        {:noreply, new_state}
 
       {:error, _reason} ->
         reconnect(state)
@@ -142,7 +137,7 @@ defmodule Exshome.Mpv.Socket do
 
     state.handle_event.(:disconnected)
     new_state = %State{state | socket: nil, requests: %{}}
-    {:noreply, new_state, {:continue, @connect_to_socket_key}}
+    reconnect(new_state)
   end
 
   @impl GenServer
@@ -182,7 +177,7 @@ defmodule Exshome.Mpv.Socket do
 
   defp not_connected_error, do: {:error, :not_connected}
 
-  @spec reconnect(State.t()) :: State.t()
+  @spec reconnect(State.t()) :: {:noreply, State.t()}
   defp reconnect(%State{} = state) do
     Process.send_after(self(), @reconnect_key, state.reconnect_interval)
     {:noreply, state}
