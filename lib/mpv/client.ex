@@ -1,5 +1,6 @@
 defmodule Exshome.Mpv.Client do
   use GenServer
+  require Logger
   alias Exshome.Mpv.Socket
 
   defmodule PlayerState do
@@ -24,7 +25,7 @@ defmodule Exshome.Mpv.Client do
             metadata: map() | nil
           }
 
-    def subscribe_data() do
+    def property_mapping do
       for key <- @keys, into: %{} do
         property_key = key |> Atom.to_string() |> String.replace(~r/_/, "-")
         {property_key, key}
@@ -144,7 +145,7 @@ defmodule Exshome.Mpv.Client do
     new_player_state =
       Map.put(
         state.player_state,
-        PlayerState.subscribe_data()[name],
+        PlayerState.property_mapping()[name],
         event["data"]
       )
 
@@ -155,13 +156,13 @@ defmodule Exshome.Mpv.Client do
   end
 
   def handle_event(event, state) do
-    IO.inspect(event)
+    Logger.info(event)
     state
   end
 
   @spec subscribe_to_player_state(State.t()) :: term()
   def subscribe_to_player_state(%State{} = state) do
-    PlayerState.subscribe_data()
+    PlayerState.property_mapping()
     |> Map.keys()
     |> Enum.each(&observe_property(&1, state))
   end

@@ -8,17 +8,17 @@ defmodule ExshomeTest.Mpv.SocketTest do
 
   setup do
     socket_location = unique_socket_location()
-    server_fixture(socket_location)
+    server = server_fixture(socket_location)
 
     socket_data = %Socket.Arguments{
       socket_location: socket_location,
       handle_event: event_handler(self()),
-      reconnect_interval: @reconnect_interval,
+      reconnect_interval: @reconnect_interval
     }
 
     socket = start_supervised!({Socket, socket_data})
 
-    %{socket: socket, socket_location: socket_location}
+    %{socket: socket, socket_location: socket_location, server: server}
   end
 
   test "simple connection", %{socket: socket} do
@@ -71,5 +71,27 @@ defmodule ExshomeTest.Mpv.SocketTest do
     wait_until_socket_connects(socket)
     Socket.request!(socket, %{data: "test"})
     assert last_received_message()
+  end
+
+  test "client receives error when server disconnects", %{
+    socket: socket,
+    server: server
+  } do
+    very_slow_fn = fn _, _ ->
+      :timer.sleep(:infinity)
+      %{}
+    end
+
+    set_response_fn(very_slow_fn)
+
+    kill_server_after_some_time = fn ->
+      sleep_timeout = 10
+      :timer.sleep(sleep_timeout)
+      Process.exit(server, :kill)
+    end
+
+    Task.async(kill_server_after_some_time)
+
+    {:error, :not_connected} = Socket.request(socket, %{data: "test"})
   end
 end

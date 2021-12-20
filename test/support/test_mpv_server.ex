@@ -40,12 +40,14 @@ defmodule ExshomeTest.TestMpvServer do
           }
   end
 
+  @type response_fn() :: (request_id :: String.t(), data :: map() -> map())
+
   @spec start_link(Arguments.t()) :: GenServer.on_start()
   def start_link(%Arguments{} = init_arguments) do
     GenServer.start_link(__MODULE__, init_arguments)
   end
 
-  @spec set_response_fn(server :: pid(), response_fn :: (String.t(), map() -> map())) :: term()
+  @spec set_response_fn(server :: pid(), response_fn :: response_fn()) :: term()
   def set_response_fn(server, response_fn) do
     GenServer.call(server, {:set_response_fn, response_fn})
   end

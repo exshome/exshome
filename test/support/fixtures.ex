@@ -97,9 +97,14 @@ defmodule ExshomeTest.Fixtures do
   end
 
   def respond_with_errors do
-    TestMpvServer.set_response_fn(test_server(), fn request_id, _ ->
+    set_response_fn(fn request_id, _ ->
       %{request_id: request_id, error: "some error #{unique_integer()}"}
     end)
+  end
+
+  @spec set_response_fn(function :: TestMpvServer.response_fn()) :: term()
+  def set_response_fn(function) do
+    TestMpvServer.set_response_fn(test_server(), function)
   end
 
   @spec wait_until_socket_disconnects(socket :: pid()) :: term()
