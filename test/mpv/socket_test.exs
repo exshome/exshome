@@ -4,6 +4,8 @@ defmodule ExshomeTest.Mpv.SocketTest do
 
   alias Exshome.Mpv.Socket
 
+  @reconnect_interval 0
+
   setup do
     socket_location = unique_socket_location()
     server_fixture(socket_location)
@@ -11,7 +13,7 @@ defmodule ExshomeTest.Mpv.SocketTest do
     socket_data = %Socket.Arguments{
       socket_location: socket_location,
       handle_event: event_handler(self()),
-      reconnect_interval: 1
+      reconnect_interval: @reconnect_interval,
     }
 
     socket = start_supervised!({Socket, socket_data})
@@ -62,6 +64,8 @@ defmodule ExshomeTest.Mpv.SocketTest do
     stop_server()
     wait_until_socket_disconnects(socket)
     {:error, :not_connected} = Socket.request(socket, %{data: "test"})
+
+    :timer.sleep(@reconnect_interval + 1)
 
     server_fixture(socket_location)
     wait_until_socket_connects(socket)
