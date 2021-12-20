@@ -2,6 +2,36 @@ defmodule Exshome.Mpv.Client do
   use GenServer
   alias Exshome.Mpv.Socket
 
+  defmodule PlayerState do
+    @moduledoc """
+    A structure for storing a playback state for the MPV client.
+    """
+    @keys [
+      :pause,
+      :volume,
+      :duration,
+      :time_pos,
+      :metadata
+    ]
+
+    defstruct @keys
+
+    @type t() :: %__MODULE__{
+            pause: boolean() | nil,
+            volume: float() | nil,
+            duration: float() | nil,
+            time_pos: float() | nil,
+            metadata: map() | nil
+          }
+
+    def subscribe_data() do
+      for key <- @keys, into: %{} do
+        property_key = key |> Atom.to_string() |> String.replace(~r/_/, "-")
+        {property_key, key}
+      end
+    end
+  end
+
   defmodule Arguments do
     @moduledoc """
     Initial arguments for MPV client.
@@ -18,14 +48,14 @@ defmodule Exshome.Mpv.Client do
     @moduledoc """
     A structure for storing internal state for the MPV client.
     """
-    defstruct [:socket, :socket_location]
+    defstruct [:socket, :socket_location, :player_state]
 
     @type t() :: %__MODULE__{
             socket: pid() | nil,
-            socket_location: String.t() | nil
+            socket_location: String.t() | nil,
+            player_state: PlayerState.t() | nil
           }
   end
-
 
   @connect_to_socket_key :connect_to_socket
   @handle_event_key :handle_event
@@ -53,11 +83,6 @@ defmodule Exshome.Mpv.Client do
     set_property(pid, "pause", true)
   end
 
-  @spec get_volume(pid :: pid()) :: command_response()
-  def get_volume(pid) do
-    get_property(pid, "volume")
-  end
-
   @spec set_volume(pid :: pid(), level :: integer()) :: command_response()
   def set_volume(pid, level) when is_integer(level) do
     set_property(pid, "volume", level)
@@ -65,7 +90,7 @@ defmodule Exshome.Mpv.Client do
 
   @spec seek(pid :: pid(), duration :: integer()) :: command_response()
   def seek(pid, duration) when is_integer(duration) do
-    send_command(pid, ["seek", duration])
+    send_command(pid, ["seek", duration, "absolute"])
   end
 
   @spec clear_playlist(pid()) :: command_response()
@@ -73,19 +98,9 @@ defmodule Exshome.Mpv.Client do
     send_command(pid, ["playlist-clear"])
   end
 
-  @spec get_property(pid :: pid(), property :: String.t()) :: command_response()
-  def get_property(pid, property) do
-    send_command(pid, ["get_property", property])
-  end
-
   @spec set_property(pid :: pid(), property :: String.t(), value :: term()) :: command_response()
   def set_property(pid, property, value) do
     send_command(pid, ["set_property", property, value])
-  end
-
-  @spec observe_property(pid :: pid(), property :: String.t()) :: command_response()
-  def observe_property(pid, property) do
-    send_command(pid, ["observe_property", 1, property])
   end
 
   @spec send_command(pid :: pid(), payload :: [term()]) :: command_response()
@@ -115,14 +130,54 @@ defmodule Exshome.Mpv.Client do
 
   @impl GenServer
   def handle_info({@handle_event_key, event}, state) do
+    new_state = handle_event(event, state)
+    {:noreply, new_state}
+  end
+
+  @spec handle_event(event :: Socket.event_t(), state :: State.t()) :: State.t()
+  def handle_event(:connected, state) do
+    subscribe_to_player_state(state)
+    %State{state | player_state: %PlayerState{}}
+  end
+
+  def handle_event(%{"event" => "property-change", "name" => name} = event, %State{} = state) do
+    new_player_state =
+      Map.put(
+        state.player_state,
+        PlayerState.subscribe_data()[name],
+        event["data"]
+      )
+
+    %State{
+      state
+      | player_state: new_player_state
+    }
+  end
+
+  def handle_event(event, state) do
     IO.inspect(event)
-    {:noreply, state}
+    state
+  end
+
+  @spec subscribe_to_player_state(State.t()) :: term()
+  def subscribe_to_player_state(%State{} = state) do
+    PlayerState.subscribe_data()
+    |> Map.keys()
+    |> Enum.each(&observe_property(&1, state))
   end
 
   @impl GenServer
   def handle_call({@send_command_key, payload}, _from, %State{} = state) do
-    result = Socket.request!(state.socket, %{command: payload})
+    result = socket_command(payload, state)
 
     {:reply, result, state}
+  end
+
+  defp observe_property(property, state) do
+    %{} = socket_command(["observe_property", 1, property], state)
+  end
+
+  defp socket_command(payload, %State{} = state) do
+    Socket.request!(state.socket, %{command: payload})
   end
 end
