@@ -73,24 +73,15 @@ defmodule ExshomeTest.Mpv.SocketTest do
     assert last_received_message()
   end
 
-  test "client receives error when server disconnects", %{
+  test "client receives error when server goes down", %{
     socket: socket,
     server: server
   } do
-    very_slow_fn = fn _, _ ->
-      :timer.sleep(:infinity)
-      %{}
-    end
-
-    set_response_fn(very_slow_fn)
-
-    kill_server_after_some_time = fn ->
-      sleep_timeout = 10
-      :timer.sleep(sleep_timeout)
+    fatal_request_fn = fn _, _ ->
       Process.exit(server, :kill)
     end
 
-    Task.async(kill_server_after_some_time)
+    set_response_fn(fatal_request_fn)
 
     {:error, :not_connected} = Socket.request(socket, %{data: "test"})
   end
