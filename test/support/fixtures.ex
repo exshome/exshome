@@ -57,10 +57,16 @@ defmodule ExshomeTest.Fixtures do
     message
   end
 
-  @spec received_event() :: map()
+  @spec received_event() :: term()
   def received_event do
     assert_receive({@received_event_tag, event})
     event
+  end
+
+  @spec received_event(event :: term()) :: term()
+  def received_event(event) do
+    {@received_event_tag, result} = assert_receive({@received_event_tag, ^event})
+    result
   end
 
   @spec send_event(%{}) :: %{}

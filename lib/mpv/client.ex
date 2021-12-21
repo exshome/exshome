@@ -65,6 +65,7 @@ defmodule Exshome.Mpv.Client do
   @connect_to_socket_key :connect_to_socket
   @handle_event_key :handle_event
   @send_command_key :send_command
+  @get_player_state_key :get_player_state
 
   @spec start_link(Arguments.t()) :: GenServer.on_start()
   def start_link(%Arguments{} = args) do
@@ -109,6 +110,11 @@ defmodule Exshome.Mpv.Client do
   @spec send_command(pid :: pid(), payload :: [term()]) :: command_response()
   def send_command(pid, payload) do
     GenServer.call(pid, {@send_command_key, payload})
+  end
+
+  @spec player_state(pid :: pid()) :: player_state_t()
+  def player_state(pid) do
+    GenServer.call(pid, @get_player_state_key)
   end
 
   @impl GenServer
@@ -179,6 +185,11 @@ defmodule Exshome.Mpv.Client do
     result = socket_command(payload, state)
 
     {:reply, result, state}
+  end
+
+  @impl GenServer
+  def handle_call(@get_player_state_key, _from, %State{} = state) do
+    {:reply, state.player_state, state}
   end
 
   defp observe_property(property, state) do

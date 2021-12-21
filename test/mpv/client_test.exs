@@ -8,15 +8,22 @@ defmodule ExshomeTest.Mpv.ClientTest do
     socket_location = unique_socket_location()
     server_fixture(socket_location)
 
-    client_data = %Client.Arguments{socket_location: socket_location}
+    client_data = %Client.Arguments{
+      socket_location: socket_location,
+      player_state_change_fn: event_handler(self())
+    }
 
     client = start_supervised!({Client, client_data})
 
     %{client: client, socket_location: socket_location}
   end
 
-  test "simple connection", %{client: client} do
-    :timer.sleep(100)
-    assert Process.alive?(client)
+  test "client can reconnect to a server", %{client: client} do
+    assert received_event(%Client.PlayerState{})
+    assert Client.player_state(client) != :disconnected
+    stop_server()
+
+    assert received_event(:disconnected)
+    assert Client.player_state(client) == :disconnected
   end
 end
