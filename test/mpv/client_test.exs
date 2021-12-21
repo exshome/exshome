@@ -3,6 +3,7 @@ defmodule ExshomeTest.Mpv.ClientTest do
   import ExshomeTest.Fixtures
 
   alias Exshome.Mpv.Client
+  alias Exshome.Mpv.Client.PlayerState
 
   setup do
     socket_location = unique_socket_location()
@@ -31,11 +32,12 @@ defmodule ExshomeTest.Mpv.ClientTest do
     assert Client.player_state(client) != :disconnected
   end
 
-  test "client can load a track", %{client: client} do
+  test "client can listen to a track", %{client: client} do
     file_location = "test_file_#{unique_integer()}"
-    assert %{} = Client.load_file(client, file_location)
-    assert new_state = updated_player_state()
-    assert new_state.path == file_location
+    Client.load_file(client, file_location)
+    assert %PlayerState{path: ^file_location, pause: false} = Client.player_state(client)
+    Client.pause(client)
+    assert %PlayerState{pause: true} = Client.player_state(client)
   end
 
   defp assert_client_connected do

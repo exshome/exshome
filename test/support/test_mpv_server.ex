@@ -153,6 +153,18 @@ defmodule ExshomeTest.TestMpvServer do
     {:noreply, state}
   end
 
+  def default_response_handler(
+        request_id,
+        %{
+          "command" => ["set_property", property, value]
+        },
+        %State{} = state
+      ) do
+    update_property(state, property, value)
+    send_data(state, %{request_id: request_id, error: "success"})
+    {:noreply, state}
+  end
+
   def default_response_handler(request_id, _request_data, %State{} = state) do
     send_data(state, %{test: 123, request_id: request_id, error: "success"})
     {:noreply, state}
