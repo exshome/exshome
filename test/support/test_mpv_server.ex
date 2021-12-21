@@ -12,7 +12,7 @@ defmodule ExshomeTest.TestMpvServer do
       :socket_path,
       :server,
       :connection,
-      response_fn: &ExshomeTest.TestMpvServer.default_response_handler/2,
+      :response_fn,
       test_pid: nil,
       received_messages: []
     ]
@@ -23,7 +23,7 @@ defmodule ExshomeTest.TestMpvServer do
             server: :gen_tcp.socket() | nil,
             socket_path: String.t() | nil,
             test_pid: pid(),
-            response_fn: (request_id :: String.t(), request_data :: %{} -> %{})
+            response_fn: ExshomeTest.TestMpvServer.response_fn() | nil
           }
   end
 
@@ -90,12 +90,16 @@ defmodule ExshomeTest.TestMpvServer do
     decoded = Jason.decode!(message)
     send(state.test_pid, {__MODULE__, decoded})
 
-    response = state.response_fn.(decoded["request_id"], decoded)
-    send_data(state, response)
-
     new_state = Map.update!(state, :received_messages, &[decoded | &1])
 
-    {:noreply, new_state}
+    request_id = decoded["request_id"]
+    if new_state.response_fn do
+      response = state.response_fn.(request_id, decoded)
+      send_data(state, response)
+      {:noreply, new_state}
+    else
+      default_response_handler(request_id, decoded, new_state)
+    end
   end
 
   @impl GenServer
@@ -120,8 +124,9 @@ defmodule ExshomeTest.TestMpvServer do
     :gen_tcp.send(state.connection, "#{json_data}\n")
   end
 
-  @spec default_response_handler(request_id :: String.t(), request_data :: %{}) :: map()
-  def default_response_handler(request_id, _request_data) do
-    %{test: 123, request_id: request_id, error: "success"}
+  @spec default_response_handler(request_id :: String.t(), request_data :: map(), state :: State.t()) :: {:noreply, State.t()}
+  def default_response_handler(request_id, _request_data, %State{} = state) do
+    send_data(state, %{test: 123, request_id: request_id, error: "success"})
+    {:noreply, state}
   end
 end
