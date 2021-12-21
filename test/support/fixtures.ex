@@ -3,7 +3,6 @@ defmodule ExshomeTest.Fixtures do
   This module helps to setup tests.
   """
 
-  alias Exshome.Mpv.Socket
   alias ExshomeTest.TestMpvServer
   alias ExUnit.Callbacks
   import ExUnit.Assertions
@@ -63,9 +62,16 @@ defmodule ExshomeTest.Fixtures do
     event
   end
 
-  @spec received_event(event :: term()) :: term()
-  def received_event(event) do
-    {@received_event_tag, result} = assert_receive({@received_event_tag, ^event})
+  @spec received_event(event :: term(), timeout :: timeout() | nil) :: term()
+  def received_event(event, timeout \\ nil) do
+    {@received_event_tag, result} = assert_receive({@received_event_tag, ^event}, timeout)
+    result
+  end
+
+  def updated_player_state do
+    {@received_event_tag, result} =
+      assert_receive({@received_event_tag, %{__struct__: Exshome.Mpv.Client.PlayerState}})
+
     result
   end
 
@@ -101,12 +107,12 @@ defmodule ExshomeTest.Fixtures do
   end
 
   @spec wait_until_socket_disconnects() :: term()
-  def wait_until_socket_disconnects() do
+  def wait_until_socket_disconnects do
     assert_receive({@received_event_tag, :disconnected})
   end
 
   @spec wait_until_socket_connects() :: term()
-  def wait_until_socket_connects() do
+  def wait_until_socket_connects do
     assert_receive({@received_event_tag, :connected})
   end
 end

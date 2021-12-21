@@ -6,6 +6,7 @@ defmodule Exshome.Mpv.Socket do
   @connect_to_socket_key :connect_to_socket
   @reconnect_key :reconnect
   @send_command_key :send_command
+  @default_reconnect_interval 100
 
   @type event_t() :: %{String.t() => term()} | :connected | :dicsonnected
 
@@ -18,16 +19,16 @@ defmodule Exshome.Mpv.Socket do
     defstruct [
       :socket,
       :handle_event,
+      :reconnect_interval,
       :socket_location,
       requests: %{},
-      counter: 1,
-      reconnect_interval: 100
+      counter: 1
     ]
 
     @type t() :: %__MODULE__{
             socket: :gen_tcp.socket() | nil,
             counter: integer(),
-            reconnect_interval: integer(),
+            reconnect_interval: non_neg_integer(),
             socket_location: String.t() | nil,
             requests: %{integer() => GenServer.from()},
             handle_event: (Socket.event_t() -> any()) | nil
@@ -39,7 +40,7 @@ defmodule Exshome.Mpv.Socket do
     Initial arguments for MPV socket.
     """
     @enforce_keys [:socket_location, :handle_event]
-    defstruct [:socket_location, :handle_event, reconnect_interval: 100]
+    defstruct [:socket_location, :handle_event, :reconnect_interval]
 
     @type t() :: %__MODULE__{
             handle_event: (%{String.t() => term()} -> any()),
@@ -168,7 +169,12 @@ defmodule Exshome.Mpv.Socket do
 
   @spec reconnect(State.t()) :: {:noreply, State.t()}
   defp reconnect(%State{} = state) do
-    Process.send_after(self(), @reconnect_key, state.reconnect_interval)
+    Process.send_after(
+      self(),
+      @reconnect_key,
+      state.reconnect_interval || @default_reconnect_interval
+    )
+
     {:noreply, state}
   end
 end

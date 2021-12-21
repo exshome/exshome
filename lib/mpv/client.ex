@@ -40,10 +40,11 @@ defmodule Exshome.Mpv.Client do
     Initial arguments for MPV client.
     """
     @enforce_keys [:socket_location]
-    defstruct [:socket_location, :player_state_change_fn]
+    defstruct [:socket_location, :player_state_change_fn, :reconnect_interval]
 
     @type t() :: %__MODULE__{
             socket_location: String.t(),
+            reconnect_interval: non_neg_integer() | nil,
             player_state_change_fn: (Exshome.Mpv.Client.player_state_t() -> term()) | nil
           }
   end
@@ -52,11 +53,18 @@ defmodule Exshome.Mpv.Client do
     @moduledoc """
     A structure for storing internal state for the MPV client.
     """
-    defstruct [:socket, :socket_location, :player_state_change_fn, player_state: :disconnected]
+    defstruct [
+      :socket,
+      :socket_location,
+      :player_state_change_fn,
+      :reconnect_interval,
+      player_state: :disconnected
+    ]
 
     @type t() :: %__MODULE__{
             socket: pid() | nil,
             socket_location: String.t() | nil,
+            reconnect_interval: non_neg_integer() | nil,
             player_state: Exshome.Mpv.Client.player_state_t(),
             player_state_change_fn: (PlayerState.t() -> term()) | nil
           }
@@ -121,6 +129,7 @@ defmodule Exshome.Mpv.Client do
   def init(%Arguments{} = args) do
     state = %State{
       socket_location: args.socket_location,
+      reconnect_interval: args.reconnect_interval,
       player_state_change_fn: args.player_state_change_fn
     }
 
@@ -134,6 +143,7 @@ defmodule Exshome.Mpv.Client do
     {:ok, socket} =
       Socket.start_link(%Socket.Arguments{
         socket_location: state.socket_location,
+        reconnect_interval: state.reconnect_interval,
         handle_event: fn event -> send(my_pid, {@handle_event_key, event}) end
       })
 
@@ -200,7 +210,7 @@ defmodule Exshome.Mpv.Client do
     Socket.request!(state.socket, %{command: payload})
   end
 
-  @spec update_player_state(State.player_state_t(), State.t()) :: State.t()
+  @spec update_player_state(player_state_t(), State.t()) :: State.t()
   def update_player_state(player_state, %State{} = state) do
     state.player_state_change_fn && state.player_state_change_fn.(player_state)
 

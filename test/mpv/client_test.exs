@@ -10,20 +10,35 @@ defmodule ExshomeTest.Mpv.ClientTest do
 
     client_data = %Client.Arguments{
       socket_location: socket_location,
-      player_state_change_fn: event_handler(self())
+      player_state_change_fn: event_handler(self()),
+      reconnect_interval: 0
     }
 
     client = start_supervised!({Client, client_data})
-
+    assert_client_connected()
     %{client: client, socket_location: socket_location}
   end
 
-  test "client can reconnect to a server", %{client: client} do
-    assert received_event(%Client.PlayerState{})
+  test "client can reconnect to a server", %{client: client, socket_location: socket_location} do
     assert Client.player_state(client) != :disconnected
     stop_server()
 
     assert received_event(:disconnected)
     assert Client.player_state(client) == :disconnected
+
+    server_fixture(socket_location)
+    assert_client_connected()
+    assert Client.player_state(client) != :disconnected
+  end
+
+  test "client can load a track", %{client: client} do
+    file_location = "test_file_#{unique_integer()}"
+    assert %{} = Client.load_file(client, file_location)
+    assert new_state = updated_player_state()
+    assert new_state.path == file_location
+  end
+
+  defp assert_client_connected do
+    updated_player_state()
   end
 end

@@ -13,6 +13,7 @@ defmodule ExshomeTest.TestMpvServer do
       :server,
       :connection,
       :response_fn,
+      observed_properties: MapSet.new(),
       test_pid: nil,
       received_messages: []
     ]
@@ -23,6 +24,7 @@ defmodule ExshomeTest.TestMpvServer do
             server: :gen_tcp.socket() | nil,
             socket_path: String.t() | nil,
             test_pid: pid(),
+            observed_properties: MapSet.t(),
             response_fn: ExshomeTest.TestMpvServer.response_fn() | nil
           }
   end
@@ -88,12 +90,12 @@ defmodule ExshomeTest.TestMpvServer do
   @impl GenServer
   def handle_info({:tcp, port, message}, %State{} = state) when port == state.connection do
     decoded = Jason.decode!(message)
-    send(state.test_pid, {__MODULE__, decoded})
-
     new_state = Map.update!(state, :received_messages, &[decoded | &1])
 
     request_id = decoded["request_id"]
+
     if new_state.response_fn do
+      send(state.test_pid, {__MODULE__, decoded})
       response = state.response_fn.(request_id, decoded)
       send_data(state, response)
       {:noreply, new_state}
@@ -109,7 +111,7 @@ defmodule ExshomeTest.TestMpvServer do
 
   @impl GenServer
   def handle_call({:event, event}, _from, %State{} = state) do
-    send_data(state, event)
+    send_client_event(state, event)
     {:reply, :ok, state}
   end
 
@@ -119,14 +121,55 @@ defmodule ExshomeTest.TestMpvServer do
     {:reply, :ok, new_state}
   end
 
-  defp send_data(%State{} = state, data) do
-    json_data = Jason.encode!(data)
-    :gen_tcp.send(state.connection, "#{json_data}\n")
+  @spec default_response_handler(
+          request_id :: String.t(),
+          request_data :: map(),
+          state :: State.t()
+        ) :: {:noreply, State.t()}
+  def default_response_handler(
+        request_id,
+        %{"command" => ["observe_property", 1, property_name]},
+        %State{} = state
+      ) do
+    new_state = %State{
+      state
+      | observed_properties: MapSet.put(state.observed_properties, property_name)
+    }
+
+    send_data(new_state, %{request_id: request_id, error: "success"})
+    update_property(state, property_name, nil)
+    {:noreply, new_state}
   end
 
-  @spec default_response_handler(request_id :: String.t(), request_data :: map(), state :: State.t()) :: {:noreply, State.t()}
+  def default_response_handler(
+        request_id,
+        %{
+          "command" => ["loadfile", path]
+        },
+        %State{} = state
+      ) do
+    update_property(state, "path", path)
+    send_data(state, %{request_id: request_id, error: "success"})
+    {:noreply, state}
+  end
+
   def default_response_handler(request_id, _request_data, %State{} = state) do
     send_data(state, %{test: 123, request_id: request_id, error: "success"})
     {:noreply, state}
+  end
+
+  defp update_property(%State{} = state, property_name, value) do
+    if MapSet.member?(state.observed_properties, property_name) do
+      send_client_event(state, %{event: "property-change", name: property_name, data: value})
+    end
+  end
+
+  defp send_client_event(%State{} = state, event) do
+    send_data(state, event)
+  end
+
+  defp send_data(%State{} = state, data) do
+    json_data = Jason.encode!(data)
+    :gen_tcp.send(state.connection, "#{json_data}\n")
   end
 end
