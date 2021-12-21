@@ -3,7 +3,6 @@ defmodule Exshome.Mpv.Socket do
   Implementation for MPV socket. It allows to send you some commands to the MPV server.
   """
   use GenServer
-  @connected_key :connected?
   @connect_to_socket_key :connect_to_socket
   @reconnect_key :reconnect
   @send_command_key :send_command
@@ -59,11 +58,6 @@ defmodule Exshome.Mpv.Socket do
     GenServer.call(pid, {@send_command_key, data})
   end
 
-  @spec connected?(pid :: pid()) :: boolean()
-  def connected?(pid) do
-    GenServer.call(pid, @connected_key)
-  end
-
   @spec request!(pid :: pid(), data :: map()) :: term()
   def request!(pid, data) do
     {:ok, result} = __MODULE__.request(pid, data)
@@ -117,11 +111,6 @@ defmodule Exshome.Mpv.Socket do
     }
 
     {:noreply, new_state}
-  end
-
-  @impl GenServer
-  def handle_call(@connected_key, _from, %State{socket: socket} = state) do
-    {:reply, socket != nil, state}
   end
 
   @impl GenServer

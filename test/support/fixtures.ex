@@ -57,19 +57,6 @@ defmodule ExshomeTest.Fixtures do
     message
   end
 
-  @spec received_events() :: [Socket.event_t()]
-  def received_events do
-    received_events([])
-  end
-
-  defp received_events(events) when is_list(events) do
-    receive do
-      {@received_event_tag, event} -> received_events([event | events])
-    after
-      0 -> events
-    end
-  end
-
   @spec received_event() :: map()
   def received_event do
     assert_receive({@received_event_tag, event})
@@ -107,27 +94,13 @@ defmodule ExshomeTest.Fixtures do
     TestMpvServer.set_response_fn(test_server(), function)
   end
 
-  @spec wait_until_socket_disconnects(socket :: pid()) :: term()
-  def wait_until_socket_disconnects(socket), do: wait_until_socket_connection(socket, false)
-
-  @spec wait_until_socket_connects(socket :: pid()) :: term()
-  def wait_until_socket_connects(socket), do: wait_until_socket_connection(socket, true)
-
-  @spec wait_until_socket_connection(
-          socket :: pid(),
-          connected? :: boolean(),
-          timeout :: integer()
-        ) :: term()
-  defp wait_until_socket_connection(socket, connected?, timeout \\ 100)
-
-  defp wait_until_socket_connection(_socket, _connected?, timeout) when timeout <= 0 do
-    ExUnit.Assertions.flunk("unable to wait until socket state changes")
+  @spec wait_until_socket_disconnects() :: term()
+  def wait_until_socket_disconnects() do
+    assert_receive({@received_event_tag, :disconnected})
   end
 
-  defp wait_until_socket_connection(socket, connected?, timeout) do
-    if Socket.connected?(socket) != connected? do
-      :timer.sleep(1)
-      wait_until_socket_connection(socket, connected?, timeout - 1)
-    end
+  @spec wait_until_socket_connects() :: term()
+  def wait_until_socket_connects() do
+    assert_receive({@received_event_tag, :connected})
   end
 end

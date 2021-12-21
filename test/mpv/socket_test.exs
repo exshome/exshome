@@ -18,6 +18,8 @@ defmodule ExshomeTest.Mpv.SocketTest do
 
     socket = start_supervised!({Socket, socket_data})
 
+    wait_until_socket_connects()
+
     %{socket: socket, socket_location: socket_location, server: server}
   end
 
@@ -47,8 +49,6 @@ defmodule ExshomeTest.Mpv.SocketTest do
   end
 
   test "socket can receive event", %{socket: socket} do
-    wait_until_socket_connects(socket)
-    assert length(received_events()) > 0
     event = %{"event" => "some event", "data" => unique_integer()}
     send_event(event)
     assert received_event() == event
@@ -62,13 +62,13 @@ defmodule ExshomeTest.Mpv.SocketTest do
     assert last_received_message()
 
     stop_server()
-    wait_until_socket_disconnects(socket)
+    wait_until_socket_disconnects()
     {:error, :not_connected} = Socket.request(socket, %{data: "test"})
 
     :timer.sleep(@reconnect_interval + 1)
 
     server_fixture(socket_location)
-    wait_until_socket_connects(socket)
+    wait_until_socket_connects()
     Socket.request!(socket, %{data: "test"})
     assert last_received_message()
   end
