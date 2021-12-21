@@ -48,7 +48,7 @@ defmodule ExshomeTest.Mpv.SocketTest do
     assert {:error, _message} = Socket.request(socket, %{data: "test"})
   end
 
-  test "socket can receive event", %{socket: socket} do
+  test "socket can receive event" do
     event = %{"event" => "some event", "data" => unique_integer()}
     send_event(event)
     assert received_event() == event
