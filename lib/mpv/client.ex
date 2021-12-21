@@ -8,6 +8,7 @@ defmodule Exshome.Mpv.Client do
     A structure for storing a playback state for the MPV client.
     """
     @keys [
+      :path,
       :pause,
       :volume,
       :duration,
@@ -18,6 +19,7 @@ defmodule Exshome.Mpv.Client do
     defstruct @keys
 
     @type t() :: %__MODULE__{
+            path: String.t() | nil,
             pause: boolean() | nil,
             volume: float() | nil,
             duration: float() | nil,
@@ -38,10 +40,11 @@ defmodule Exshome.Mpv.Client do
     Initial arguments for MPV client.
     """
     @enforce_keys [:socket_location]
-    defstruct [:socket_location]
+    defstruct [:socket_location, :player_state_change_fn]
 
     @type t() :: %__MODULE__{
-            socket_location: String.t()
+            socket_location: String.t(),
+            player_state_change_fn: (Exshome.Mpv.Client.player_state_t() -> term()) | nil
           }
   end
 
@@ -49,12 +52,13 @@ defmodule Exshome.Mpv.Client do
     @moduledoc """
     A structure for storing internal state for the MPV client.
     """
-    defstruct [:socket, :socket_location, :player_state]
+    defstruct [:socket, :socket_location, :player_state_change_fn, player_state: :disconnected]
 
     @type t() :: %__MODULE__{
             socket: pid() | nil,
             socket_location: String.t() | nil,
-            player_state: PlayerState.t() | nil
+            player_state: Exshome.Mpv.Client.player_state_t(),
+            player_state_change_fn: (PlayerState.t() -> term()) | nil
           }
   end
 
@@ -67,12 +71,14 @@ defmodule Exshome.Mpv.Client do
     GenServer.start_link(__MODULE__, args, [])
   end
 
+  @type player_state_t() :: PlayerState.t() | :disconnected
   @type command_response :: {:ok, %{String.t() => term()}} | {:error, atom() | String.t()}
 
   @spec load_file(pid(), url :: String.t()) :: command_response()
   def load_file(pid, url) when is_binary(url) do
     send_command(pid, ["playlist-clear"])
     send_command(pid, ["loadfile", url])
+    play(pid)
   end
 
   @spec play(pid()) :: command_response()
@@ -106,8 +112,12 @@ defmodule Exshome.Mpv.Client do
   end
 
   @impl GenServer
-  def init(%Arguments{socket_location: socket_location}) do
-    state = %State{socket_location: socket_location}
+  def init(%Arguments{} = args) do
+    state = %State{
+      socket_location: args.socket_location,
+      player_state_change_fn: args.player_state_change_fn
+    }
+
     {:ok, state, {:continue, @connect_to_socket_key}}
   end
 
@@ -134,7 +144,11 @@ defmodule Exshome.Mpv.Client do
   @spec handle_event(event :: Socket.event_t(), state :: State.t()) :: State.t()
   def handle_event(:connected, state) do
     subscribe_to_player_state(state)
-    %State{state | player_state: %PlayerState{}}
+    update_player_state(%PlayerState{}, state)
+  end
+
+  def handle_event(:disconnected, state) do
+    update_player_state(:disconnected, state)
   end
 
   def handle_event(%{"event" => "property-change", "name" => name} = event, %State{} = state) do
@@ -145,10 +159,7 @@ defmodule Exshome.Mpv.Client do
         event["data"]
       )
 
-    %State{
-      state
-      | player_state: new_player_state
-    }
+    update_player_state(new_player_state, state)
   end
 
   def handle_event(event, state) do
@@ -176,5 +187,12 @@ defmodule Exshome.Mpv.Client do
 
   defp socket_command(payload, %State{} = state) do
     Socket.request!(state.socket, %{command: payload})
+  end
+
+  @spec update_player_state(State.player_state_t(), State.t()) :: State.t()
+  def update_player_state(player_state, %State{} = state) do
+    state.player_state_change_fn && state.player_state_change_fn.(player_state)
+
+    %State{state | player_state: player_state}
   end
 end
