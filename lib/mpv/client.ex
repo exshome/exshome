@@ -71,6 +71,7 @@ defmodule Exshome.Mpv.Client do
 
   @spec load_file(pid(), url :: String.t()) :: command_response()
   def load_file(pid, url) when is_binary(url) do
+    send_command(pid, ["playlist-clear"])
     send_command(pid, ["loadfile", url])
   end
 
@@ -92,11 +93,6 @@ defmodule Exshome.Mpv.Client do
   @spec seek(pid :: pid(), duration :: integer()) :: command_response()
   def seek(pid, duration) when is_integer(duration) do
     send_command(pid, ["seek", duration, "absolute"])
-  end
-
-  @spec clear_playlist(pid()) :: command_response()
-  def clear_playlist(pid) do
-    send_command(pid, ["playlist-clear"])
   end
 
   @spec set_property(pid :: pid(), property :: String.t(), value :: term()) :: command_response()
