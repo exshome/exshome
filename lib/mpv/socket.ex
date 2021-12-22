@@ -16,6 +16,8 @@ defmodule Exshome.Mpv.Socket do
     """
     alias Exshome.Mpv.Socket
 
+    @enforce_keys [:handle_event]
+
     defstruct [
       :socket,
       :handle_event,
@@ -31,7 +33,7 @@ defmodule Exshome.Mpv.Socket do
             reconnect_interval: non_neg_integer(),
             socket_location: String.t() | nil,
             requests: %{integer() => GenServer.from()},
-            handle_event: (Socket.event_t() -> any()) | nil
+            handle_event: (Socket.event_t() -> any())
           }
   end
 
@@ -67,6 +69,11 @@ defmodule Exshome.Mpv.Socket do
 
   @impl GenServer
   def init(%Arguments{} = args) do
+    args = %Arguments{
+      args
+      | handle_event: args.handle_event || fn event -> event end
+    }
+
     state = struct(State, Map.from_struct(args))
     {:ok, state, {:continue, @connect_to_socket_key}}
   end
@@ -82,9 +89,8 @@ defmodule Exshome.Mpv.Socket do
 
     case connect_result do
       {:ok, socket} ->
-        new_state =
-          %State{state | socket: socket}
-          |> handle_event(:connected)
+        new_state = %State{state | socket: socket}
+        new_state.handle_event.(:connected)
 
         {:noreply, new_state}
 
@@ -127,9 +133,8 @@ defmodule Exshome.Mpv.Socket do
       GenServer.reply(pending_request, not_connected_error())
     end
 
-    new_state =
-      %State{state | socket: nil, requests: %{}}
-      |> handle_event(:disconnected)
+    new_state = %State{state | socket: nil, requests: %{}}
+    new_state.handle_event.(:disconnected)
 
     reconnect(new_state)
   end
@@ -145,7 +150,8 @@ defmodule Exshome.Mpv.Socket do
   end
 
   def handle_message(%{"event" => _event} = message, %State{} = state) do
-    handle_event(state, message)
+    state.handle_event.(message)
+    state
   end
 
   def handle_message(message, %State{requests: requests} = state) do
@@ -179,11 +185,5 @@ defmodule Exshome.Mpv.Socket do
     )
 
     {:noreply, state}
-  end
-
-  @spec handle_event(state :: State.t(), event :: term()) :: State.t()
-  defp handle_event(%State{} = state, event) do
-    state.handle_event && state.handle_event.(event)
-    state
   end
 end

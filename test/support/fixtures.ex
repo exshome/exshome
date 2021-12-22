@@ -41,9 +41,9 @@ defmodule ExshomeTest.Fixtures do
   end
 
   @spec event_handler(pid()) :: fun()
-  def event_handler(test_pid) do
+  def event_handler(test_pid, key \\ @received_event_tag) do
     fn event ->
-      send(test_pid, {@received_event_tag, event})
+      send(test_pid, {key, event})
     end
   end
 
@@ -64,9 +64,9 @@ defmodule ExshomeTest.Fixtures do
     event
   end
 
-  @spec received_event(event :: term(), timeout :: timeout() | nil) :: term()
-  def received_event(event, timeout \\ nil) do
-    {@received_event_tag, result} = assert_receive({@received_event_tag, ^event}, timeout)
+  @spec received_event(event :: term()) :: term()
+  def received_event(event) do
+    {@received_event_tag, result} = assert_receive({@received_event_tag, ^event})
     result
   end
 

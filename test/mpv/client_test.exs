@@ -6,6 +6,8 @@ defmodule ExshomeTest.Mpv.ClientTest do
   alias Exshome.Mpv.Client.PlayerState
   alias ExshomeTest.TestMpvServer
 
+  @unknown_event :unknown_event
+
   setup do
     socket_location = unique_socket_location()
     server = server_fixture(socket_location)
@@ -15,7 +17,8 @@ defmodule ExshomeTest.Mpv.ClientTest do
         socket_location: socket_location,
         reconnect_interval: 0
       },
-      player_state_change_fn: event_handler(self())
+      player_state_change_fn: event_handler(self()),
+      unknown_event_handler: event_handler(self(), @unknown_event)
     }
 
     client = start_supervised!({Client, client_data})
@@ -49,7 +52,30 @@ defmodule ExshomeTest.Mpv.ClientTest do
     assert [another_file] == TestMpvServer.playlist(server)
   end
 
+  test "client can set volume", %{client: client} do
+    volume_level = unique_integer()
+    Client.set_volume(client, volume_level)
+    assert %PlayerState{volume: ^volume_level} = Client.player_state(client)
+  end
+
+  test "client can seek a file", %{client: client} do
+    time_pos = unique_integer()
+    Client.seek(client, time_pos)
+    assert %PlayerState{time_pos: ^time_pos} = Client.player_state(client)
+  end
+
+  test "client can handle unexpected event", %{server: server} do
+    event = "unexpected_event_#{unique_integer()}"
+    TestMpvServer.send_event(server, %{event: event})
+    assert received_unknown_event() == %{"event" => event}
+  end
+
   defp assert_client_connected do
     updated_player_state()
+  end
+
+  defp received_unknown_event do
+    assert_receive({@unknown_event, event})
+    event
   end
 end

@@ -173,6 +173,10 @@ defmodule ExshomeTest.TestMpvServer do
     update_property(state, property_name, value)
   end
 
+  defp handle_command("seek", [value, "absolute"], %State{} = state) do
+    update_property(state, "time-pos", value)
+  end
+
   @spec update_property(state :: State.t(), property_name :: String.t(), value :: term()) ::
           State.t()
   defp update_property(%State{} = state, property_name, value) do

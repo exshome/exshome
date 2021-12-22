@@ -39,11 +39,12 @@ defmodule Exshome.Mpv.Client do
     @moduledoc """
     Initial arguments for MPV client.
     """
-    defstruct [:player_state_change_fn, :socket_args]
+    defstruct [:player_state_change_fn, :socket_args, :unknown_event_handler]
 
     @type t() :: %__MODULE__{
             socket_args: Socket.Arguments.t(),
-            player_state_change_fn: (Exshome.Mpv.Client.player_state_t() -> term()) | nil
+            player_state_change_fn: (Exshome.Mpv.Client.player_state_t() -> term()) | nil,
+            unknown_event_handler: (term() -> term()) | nil
           }
   end
 
@@ -55,6 +56,7 @@ defmodule Exshome.Mpv.Client do
       :socket,
       :socket_args,
       :player_state_change_fn,
+      :unknown_event_handler,
       player_state: :disconnected
     ]
 
@@ -62,7 +64,8 @@ defmodule Exshome.Mpv.Client do
             socket: pid() | nil,
             socket_args: Socket.Arguments.t(),
             player_state: Exshome.Mpv.Client.player_state_t(),
-            player_state_change_fn: (PlayerState.t() -> term()) | nil
+            player_state_change_fn: (PlayerState.t() -> term()) | nil,
+            unknown_event_handler: (term() -> term())
           }
   end
 
@@ -97,13 +100,13 @@ defmodule Exshome.Mpv.Client do
   end
 
   @spec set_volume(pid :: pid(), level :: integer()) :: command_response()
-  def set_volume(pid, level) when is_integer(level) do
+  def set_volume(pid, level) when is_number(level) do
     set_property(pid, "volume", level)
   end
 
   @spec seek(pid :: pid(), duration :: integer()) :: command_response()
-  def seek(pid, duration) when is_integer(duration) do
-    send_command(pid, ["seek", duration, "absolute"])
+  def seek(pid, time_pos) when is_number(time_pos) do
+    send_command(pid, ["seek", time_pos, "absolute"])
   end
 
   @spec set_property(pid :: pid(), property :: String.t(), value :: term()) :: command_response()
@@ -125,6 +128,7 @@ defmodule Exshome.Mpv.Client do
   def init(%Arguments{} = args) do
     state = %State{
       socket_args: args.socket_args,
+      unknown_event_handler: args.unknown_event_handler || (&Logger.warn/1),
       player_state_change_fn: args.player_state_change_fn
     }
 
@@ -177,8 +181,8 @@ defmodule Exshome.Mpv.Client do
     update_player_state(new_player_state, state)
   end
 
-  def handle_event(event, state) do
-    Logger.info(event)
+  def handle_event(event, %State{} = state) do
+    state.unknown_event_handler.(event)
     state
   end
 
