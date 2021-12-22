@@ -14,7 +14,6 @@ defmodule ExshomeTest.TestMpvServer do
       :connection,
       :response_fn,
       observed_properties: MapSet.new(),
-      test_pid: nil,
       received_messages: []
     ]
 
@@ -23,7 +22,6 @@ defmodule ExshomeTest.TestMpvServer do
             received_messages: [term()],
             server: :gen_tcp.socket() | nil,
             socket_path: String.t() | nil,
-            test_pid: pid(),
             observed_properties: MapSet.t(),
             response_fn: ExshomeTest.TestMpvServer.response_fn() | nil
           }
@@ -33,12 +31,11 @@ defmodule ExshomeTest.TestMpvServer do
     @moduledoc """
     Arguments to start a test MPV server.
     """
-    @enforce_keys [:socket_path, :test_pid]
-    defstruct [:socket_path, :test_pid]
+    @enforce_keys [:socket_path]
+    defstruct [:socket_path]
 
     @type t() :: %__MODULE__{
-            socket_path: String.t(),
-            test_pid: pid()
+            socket_path: String.t()
           }
   end
 
@@ -65,7 +62,7 @@ defmodule ExshomeTest.TestMpvServer do
   end
 
   @impl GenServer
-  def init(%{socket_path: socket_path, test_pid: test_pid}) do
+  def init(%Arguments{socket_path: socket_path}) do
     File.rm(socket_path)
 
     {:ok, server} =
@@ -76,7 +73,7 @@ defmodule ExshomeTest.TestMpvServer do
         reuseaddr: true
       ])
 
-    state = %State{socket_path: socket_path, test_pid: test_pid, server: server}
+    state = %State{socket_path: socket_path, server: server}
     {:ok, state, {:continue, :accept_connection}}
   end
 
@@ -95,7 +92,6 @@ defmodule ExshomeTest.TestMpvServer do
     request_id = decoded["request_id"]
 
     if new_state.response_fn do
-      send(state.test_pid, {__MODULE__, decoded})
       response = state.response_fn.(request_id, decoded)
       send_data(state, response)
       {:noreply, new_state}

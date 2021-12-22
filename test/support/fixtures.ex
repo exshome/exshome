@@ -25,7 +25,7 @@ defmodule ExshomeTest.Fixtures do
     server =
       Callbacks.start_supervised!({
         TestMpvServer,
-        %TestMpvServer.Arguments{socket_path: socket_path, test_pid: self()}
+        %TestMpvServer.Arguments{socket_path: socket_path}
       })
 
     set_events([])
