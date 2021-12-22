@@ -39,11 +39,11 @@ defmodule Exshome.Mpv.Socket do
     @moduledoc """
     Initial arguments for MPV socket.
     """
-    @enforce_keys [:socket_location, :handle_event]
-    defstruct [:socket_location, :handle_event, :reconnect_interval]
+    @enforce_keys [:socket_location]
+    defstruct [:socket_location, :reconnect_interval, :handle_event]
 
     @type t() :: %__MODULE__{
-            handle_event: (%{String.t() => term()} -> any()),
+            handle_event: (%{String.t() => term()} -> any()) | nil,
             reconnect_interval: integer(),
             socket_location: String.t()
           }
@@ -82,8 +82,10 @@ defmodule Exshome.Mpv.Socket do
 
     case connect_result do
       {:ok, socket} ->
-        new_state = %State{state | socket: socket}
-        state.handle_event.(:connected)
+        new_state =
+          %State{state | socket: socket}
+          |> handle_event(:connected)
+
         {:noreply, new_state}
 
       {:error, _reason} ->
@@ -125,8 +127,10 @@ defmodule Exshome.Mpv.Socket do
       GenServer.reply(pending_request, not_connected_error())
     end
 
-    state.handle_event.(:disconnected)
-    new_state = %State{state | socket: nil, requests: %{}}
+    new_state =
+      %State{state | socket: nil, requests: %{}}
+      |> handle_event(:disconnected)
+
     reconnect(new_state)
   end
 
@@ -141,8 +145,7 @@ defmodule Exshome.Mpv.Socket do
   end
 
   def handle_message(%{"event" => _event} = message, %State{} = state) do
-    state.handle_event.(message)
-    state
+    handle_event(state, message)
   end
 
   def handle_message(message, %State{requests: requests} = state) do
@@ -176,5 +179,11 @@ defmodule Exshome.Mpv.Socket do
     )
 
     {:noreply, state}
+  end
+
+  @spec handle_event(state :: State.t(), event :: term()) :: State.t()
+  defp handle_event(%State{} = state, event) do
+    state.handle_event && state.handle_event.(event)
+    state
   end
 end

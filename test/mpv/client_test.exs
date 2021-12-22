@@ -2,7 +2,7 @@ defmodule ExshomeTest.Mpv.ClientTest do
   use ExUnit.Case, async: true
   import ExshomeTest.Fixtures
 
-  alias Exshome.Mpv.Client
+  alias Exshome.Mpv.{Client, Socket}
   alias Exshome.Mpv.Client.PlayerState
 
   setup do
@@ -10,9 +10,11 @@ defmodule ExshomeTest.Mpv.ClientTest do
     server_fixture(socket_location)
 
     client_data = %Client.Arguments{
-      socket_location: socket_location,
-      player_state_change_fn: event_handler(self()),
-      reconnect_interval: 0
+      socket_args: %Socket.Arguments{
+        socket_location: socket_location,
+        reconnect_interval: 0
+      },
+      player_state_change_fn: event_handler(self())
     }
 
     client = start_supervised!({Client, client_data})

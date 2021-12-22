@@ -39,12 +39,10 @@ defmodule Exshome.Mpv.Client do
     @moduledoc """
     Initial arguments for MPV client.
     """
-    @enforce_keys [:socket_location]
-    defstruct [:socket_location, :player_state_change_fn, :reconnect_interval]
+    defstruct [:player_state_change_fn, :socket_args]
 
     @type t() :: %__MODULE__{
-            socket_location: String.t(),
-            reconnect_interval: non_neg_integer() | nil,
+            socket_args: Socket.Arguments.t(),
             player_state_change_fn: (Exshome.Mpv.Client.player_state_t() -> term()) | nil
           }
   end
@@ -55,16 +53,14 @@ defmodule Exshome.Mpv.Client do
     """
     defstruct [
       :socket,
-      :socket_location,
+      :socket_args,
       :player_state_change_fn,
-      :reconnect_interval,
       player_state: :disconnected
     ]
 
     @type t() :: %__MODULE__{
             socket: pid() | nil,
-            socket_location: String.t() | nil,
-            reconnect_interval: non_neg_integer() | nil,
+            socket_args: Socket.Arguments.t(),
             player_state: Exshome.Mpv.Client.player_state_t(),
             player_state_change_fn: (PlayerState.t() -> term()) | nil
           }
@@ -128,8 +124,7 @@ defmodule Exshome.Mpv.Client do
   @impl GenServer
   def init(%Arguments{} = args) do
     state = %State{
-      socket_location: args.socket_location,
-      reconnect_interval: args.reconnect_interval,
+      socket_args: args.socket_args,
       player_state_change_fn: args.player_state_change_fn
     }
 
@@ -140,12 +135,16 @@ defmodule Exshome.Mpv.Client do
   def handle_continue(@connect_to_socket_key, %State{} = state) do
     my_pid = self()
 
-    {:ok, socket} =
-      Socket.start_link(%Socket.Arguments{
-        socket_location: state.socket_location,
-        reconnect_interval: state.reconnect_interval,
-        handle_event: fn event -> send(my_pid, {@handle_event_key, event}) end
-      })
+    socket_args = %Socket.Arguments{
+      state.socket_args
+      | handle_event: fn event ->
+          handler = state.socket_args.handle_event
+          handler && handler.(event)
+          send(my_pid, {@handle_event_key, event})
+        end
+    }
+
+    {:ok, socket} = Socket.start_link(socket_args)
 
     new_state = %State{state | socket: socket}
     {:noreply, new_state}
