@@ -22,6 +22,8 @@ defmodule ExshomeTest.Fixtures do
 
   @spec server_fixture(socket_path :: String.t()) :: term()
   def server_fixture(socket_path) do
+    clear_received_events()
+
     server =
       Callbacks.start_supervised!({
         TestMpvServer,
@@ -114,5 +116,16 @@ defmodule ExshomeTest.Fixtures do
   @spec wait_until_socket_connects() :: term()
   def wait_until_socket_connects do
     assert_receive({@received_event_tag, :connected})
+  end
+
+  @spec clear_received_events() :: list(term())
+  def clear_received_events, do: clear_received_events([])
+
+  defp clear_received_events(acc) do
+    receive do
+      {@received_event_tag, event} -> clear_received_events([event | acc])
+    after
+      0 -> Enum.reverse(acc)
+    end
   end
 end

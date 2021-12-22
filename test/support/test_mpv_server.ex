@@ -14,7 +14,8 @@ defmodule ExshomeTest.TestMpvServer do
       :connection,
       :response_fn,
       observed_properties: MapSet.new(),
-      received_messages: []
+      received_messages: [],
+      playlist: []
     ]
 
     @type t() :: %__MODULE__{
@@ -23,7 +24,8 @@ defmodule ExshomeTest.TestMpvServer do
             server: :gen_tcp.socket() | nil,
             socket_path: String.t() | nil,
             observed_properties: MapSet.t(),
-            response_fn: ExshomeTest.TestMpvServer.response_fn() | nil
+            response_fn: ExshomeTest.TestMpvServer.response_fn() | nil,
+            playlist: [String.t()]
           }
   end
 
@@ -34,9 +36,7 @@ defmodule ExshomeTest.TestMpvServer do
     @enforce_keys [:socket_path]
     defstruct [:socket_path]
 
-    @type t() :: %__MODULE__{
-            socket_path: String.t()
-          }
+    @type t() :: %__MODULE__{socket_path: String.t()}
   end
 
   @type response_fn() :: (request_id :: String.t(), data :: map() -> map())
@@ -59,6 +59,11 @@ defmodule ExshomeTest.TestMpvServer do
   @spec send_event(server :: pid(), event :: %{}) :: term()
   def send_event(server, event) do
     GenServer.call(server, {:event, event})
+  end
+
+  @spec playlist(server :: pid()) :: list(String.t())
+  def playlist(server) do
+    GenServer.call(server, :get_playlist)
   end
 
   @impl GenServer
@@ -106,6 +111,11 @@ defmodule ExshomeTest.TestMpvServer do
   end
 
   @impl GenServer
+  def handle_call(:get_playlist, _from, %State{} = state) do
+    {:reply, state.playlist, state}
+  end
+
+  @impl GenServer
   def handle_call({:event, event}, _from, %State{} = state) do
     send_client_event(state, event)
     {:reply, :ok, state}
@@ -124,41 +134,12 @@ defmodule ExshomeTest.TestMpvServer do
         ) :: {:noreply, State.t()}
   def default_response_handler(
         request_id,
-        %{"command" => ["observe_property", 1, property_name]},
+        %{"command" => [command_name | args]},
         %State{} = state
       ) do
-    new_state = %State{
-      state
-      | observed_properties: MapSet.put(state.observed_properties, property_name)
-    }
-
+    new_state = handle_command(command_name, args, state)
     send_data(new_state, %{request_id: request_id, error: "success"})
-    update_property(state, property_name, nil)
     {:noreply, new_state}
-  end
-
-  def default_response_handler(
-        request_id,
-        %{
-          "command" => ["loadfile", path]
-        },
-        %State{} = state
-      ) do
-    update_property(state, "path", path)
-    send_data(state, %{request_id: request_id, error: "success"})
-    {:noreply, state}
-  end
-
-  def default_response_handler(
-        request_id,
-        %{
-          "command" => ["set_property", property, value]
-        },
-        %State{} = state
-      ) do
-    update_property(state, property, value)
-    send_data(state, %{request_id: request_id, error: "success"})
-    {:noreply, state}
   end
 
   def default_response_handler(request_id, _request_data, %State{} = state) do
@@ -166,10 +147,40 @@ defmodule ExshomeTest.TestMpvServer do
     {:noreply, state}
   end
 
+  @spec handle_command(command_name :: String.t(), args :: list(), state :: State.t()) ::
+          State.t()
+  defp handle_command("observe_property", [_subscription_id, property_name], %State{} = state) do
+    %State{
+      state
+      | observed_properties: MapSet.put(state.observed_properties, property_name)
+    }
+    |> update_property(property_name, nil)
+  end
+
+  defp handle_command("loadfile", [path], %State{} = state) do
+    %State{
+      state
+      | playlist: [path | state.playlist]
+    }
+    |> update_property("path", path)
+  end
+
+  defp handle_command("playlist-clear", [], %State{} = state) do
+    %State{state | playlist: []}
+  end
+
+  defp handle_command("set_property", [property_name, value], %State{} = state) do
+    update_property(state, property_name, value)
+  end
+
+  @spec update_property(state :: State.t(), property_name :: String.t(), value :: term()) ::
+          State.t()
   defp update_property(%State{} = state, property_name, value) do
     if MapSet.member?(state.observed_properties, property_name) do
       send_client_event(state, %{event: "property-change", name: property_name, data: value})
     end
+
+    state
   end
 
   defp send_client_event(%State{} = state, event) do
