@@ -1,3 +1,7 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 /* Alerts and form errors used by phx.new */
 .alert {
   padding: 15px;
