@@ -5,20 +5,19 @@
 
 elixir-based smart home
 
-## Installation
+To start your Phoenix server:
 
-If [available in Hex](https://hex.pm/docs/publish), the package can be installed
-by adding `exshome` to your list of dependencies in `mix.exs`:
+  * Install dependencies with `mix deps.get`
+  * Start Phoenix endpoint with `mix phx.server` or inside IEx with `iex -S mix phx.server`
 
-```elixir
-def deps do
-  [
-    {:exshome, "~> 0.1.0"}
-  ]
-end
-```
+Now you can visit [`localhost:4000`](http://localhost:4000) from your browser.
 
-Documentation can be generated with [ExDoc](https://github.com/elixir-lang/ex_doc)
-and published on [HexDocs](https://hexdocs.pm). Once published, the docs can
-be found at <https://hexdocs.pm/exshome>.
+Ready to run in production? Please [check our deployment guides](https://hexdocs.pm/phoenix/deployment.html).
 
+## Learn more
+
+  * Official website: https://www.phoenixframework.org/
+  * Guides: https://hexdocs.pm/phoenix/overview.html
+  * Docs: https://hexdocs.pm/phoenix
+  * Forum: https://elixirforum.com/c/phoenix-forum
+  * Source: https://github.com/phoenixframework/phoenix
