@@ -7,7 +7,6 @@
     <%= csrf_meta_tag() %>
     <%= live_title_tag assigns[:page_title] || "Exshome", suffix: " · Exshome" %>
     <link phx-track-static rel="stylesheet" href={Routes.static_path(@conn, "/assets/app.css")}/>
-    <%= render "_dark_mode.html" %>
     <script defer phx-track-static type="text/javascript" src={Routes.static_path(@conn, "/assets/app.js")}></script>
   </head>
   <body class="bg-white dark:bg-black">

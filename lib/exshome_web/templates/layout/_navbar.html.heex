@@ -1,19 +1,50 @@
 <header class="py-4 mx-4">
   <section>
-    <nav class="flex">
-      <ul>
-        <%= if function_exported?(Routes, :live_dashboard_path, 2) do %>
-        <li><%= link "LiveDashboard", to: Routes.live_dashboard_path(@conn, :home) %></li>
-        <% end %>
-      </ul>
-      <div>
-        Switch theme
-        <select onchange="Theme.useTheme(this.options[this.selectedIndex].value)">
-          <option value="light">Light</option>
-          <option value="dark">Dark</option>
-          <option value="system">System</option>
-        </select>
-      </div>
+    <nav class="flex justify-end items-center">
+      <select
+        id="themeSelector"
+        class="rounded-lg bg-transparent"
+        onchange="Theme.useTheme(this.options[this.selectedIndex].value)"
+      >
+        <option value="light">&#127774;</option>
+        <option value="dark">&#127771;</option>
+        <option value="system">&#x1F4BB;</option>
+      </select>
     </nav>
   </section>
 </header>
+
+<script>
+  const THEME_KEY = 'theme';
+  window.Theme = {
+    useTheme(value) {
+        let selected = 'system';
+        switch (value) {
+        case 'light':
+        case 'dark':
+            localStorage.setItem(THEME_KEY, value);
+            selected = value;
+            break;
+        default:
+            localStorage.removeItem(THEME_KEY);
+            break;
+        }
+        [...document.getElementById('themeSelector').options].forEach(
+            option => {
+                option.selected = option.value === selected;
+            }
+        );
+        this.refreshTheme();
+    },
+    refreshTheme() {
+      const theme = localStorage.getItem(THEME_KEY);
+      if (theme === 'dark' || (!Boolean(theme) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+        document.documentElement.classList.add('dark')
+      } else {
+        document.documentElement.classList.remove('dark')
+      }
+    }
+  }
+
+  window.Theme.useTheme(localStorage.theme);
+</script>
