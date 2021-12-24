@@ -1,0 +1,19 @@
+<header class="py-4 mx-4">
+  <section>
+    <nav class="flex">
+      <ul>
+        <%= if function_exported?(Routes, :live_dashboard_path, 2) do %>
+        <li><%= link "LiveDashboard", to: Routes.live_dashboard_path(@conn, :home) %></li>
+        <% end %>
+      </ul>
+      <div>
+        Switch theme
+        <select onchange="Theme.useTheme(this.options[this.selectedIndex].value)">
+          <option value="light">Light</option>
+          <option value="dark">Dark</option>
+          <option value="system">System</option>
+        </select>
+      </div>
+    </nav>
+  </section>
+</header>
