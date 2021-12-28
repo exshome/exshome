@@ -1,14 +1,15 @@
 <header class="py-4 mx-4">
   <section>
-    <nav class="flex justify-end items-center">
+    <nav class="flex justify-end items-center dark:text-gray-200">
+      <span class="mx-2 hidden md:block">Theme:</span>
       <select
         id="themeSelector"
         class="rounded-lg bg-transparent"
         onchange="Theme.useTheme(this.options[this.selectedIndex].value)"
       >
-        <option value="light">&#127774;</option>
-        <option value="dark">&#127771;</option>
-        <option value="system">&#x1F4BB;</option>
+        <option value="light">Light &#127774;</option>
+        <option value="dark">Dark &#127771;</option>
+        <option value="system">System &#x1F4BB;</option>
       </select>
     </nav>
   </section>
