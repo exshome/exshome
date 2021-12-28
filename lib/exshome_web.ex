@@ -45,6 +45,7 @@ defmodule ExshomeWeb do
   def live_view do
     quote do
       use Phoenix.LiveView,
+        container: {:div, [class: "grow"]},
         layout: {ExshomeWeb.LayoutView, "live.html"}
 
       unquote(view_helpers())

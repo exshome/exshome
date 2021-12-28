@@ -18,6 +18,7 @@ defmodule ExshomeWeb.Router do
     pipe_through :browser
 
     get "/", PageController, :index
+    live "/clock", Live.Clock.Index
   end
 
   # Other scopes may use custom stacks.
