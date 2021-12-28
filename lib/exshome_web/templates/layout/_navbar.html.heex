@@ -18,23 +18,23 @@
   const THEME_KEY = 'theme';
   window.Theme = {
     useTheme(value) {
-        let selected = 'system';
-        switch (value) {
+      let selected = 'system';
+      switch (value) {
         case 'light':
         case 'dark':
-            localStorage.setItem(THEME_KEY, value);
-            selected = value;
-            break;
+          localStorage.setItem(THEME_KEY, value);
+          selected = value;
+          break;
         default:
-            localStorage.removeItem(THEME_KEY);
-            break;
-        }
-        [...document.getElementById('themeSelector').options].forEach(
-            option => {
-                option.selected = option.value === selected;
-            }
-        );
-        this.refreshTheme();
+          localStorage.removeItem(THEME_KEY);
+          break;
+      }
+      [...document.getElementById('themeSelector').options].forEach(
+          option => {
+            option.selected = option.value === selected;
+          }
+      );
+      this.refreshTheme();
     },
     refreshTheme() {
       const theme = localStorage.getItem(THEME_KEY);
