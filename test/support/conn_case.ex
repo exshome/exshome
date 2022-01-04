@@ -32,6 +32,16 @@ defmodule ExshomeWeb.ConnCase do
   end
 
   setup _tags do
-    {:ok, conn: Phoenix.ConnTest.build_conn()}
+    ExshomeTest.TestRegistry.allow(self(), self())
+    conn = Phoenix.ConnTest.build_conn()
+    key = :live_view_connect_info
+
+    connect_info =
+      (conn.private[key] || %{})
+      |> Map.put(:owner_pid, self())
+
+    conn = Plug.Conn.put_private(conn, key, connect_info)
+
+    {:ok, conn: conn}
   end
 end

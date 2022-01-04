@@ -48,6 +48,10 @@ defmodule ExshomeWeb do
         container: {:div, [class: "grow"]},
         layout: {ExshomeWeb.LayoutView, "live.html"}
 
+      for module <- Application.compile_env(:exshome, :live_view_hooks, []) do
+        on_mount module
+      end
+
       unquote(view_helpers())
     end
   end

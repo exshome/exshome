@@ -7,21 +7,30 @@ defmodule Exshome.Application do
 
   @impl true
   def start(_type, _args) do
-    children = [
-      # Start the Telemetry supervisor
-      ExshomeWeb.Telemetry,
-      # Start the PubSub system
-      {Phoenix.PubSub, name: Exshome.PubSub},
-      # Start the Endpoint (http/https)
-      ExshomeWeb.Endpoint
-      # Start a worker by calling: Exshome.Worker.start_link(arg)
-      # {Exshome.Worker, arg}
-    ]
+    children =
+      [
+        # Start the Telemetry supervisor
+        ExshomeWeb.Telemetry,
+        # Start the PubSub system
+        {Phoenix.PubSub, name: Exshome.PubSub},
+        # Start the Endpoint (http/https)
+        ExshomeWeb.Endpoint
+        # Start a worker by calling: Exshome.Worker.start_link(arg)
+        # {Exshome.Worker, arg}
+      ] ++ extra_children(Application.get_env(:exshome, :environment))
 
     # See https://hexdocs.pm/elixir/Supervisor.html
     # for other strategies and supported options
     opts = [strategy: :one_for_one, name: Exshome.Supervisor]
     Supervisor.start_link(children, opts)
+  end
+
+  def extra_children(:test) do
+    [ExshomeTest.TestRegistry.child_spec()]
+  end
+
+  def extra_children(_) do
+    [Exshome.Clock]
   end
 
   # Tell Phoenix to update the endpoint configuration

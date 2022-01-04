@@ -7,6 +7,11 @@ config :exshome, ExshomeWeb.Endpoint,
   secret_key_base: "McB+GRVaMaeC1KOJLkJLw7XbjJCuCJn9lwIWVdh3orgUOdLMhtohdySqbKg2ddi3",
   server: false
 
+config :exshome, :environment, :test
+config :exshome, :clock_refresh_interval, 1_000_000
+config :exshome, Exshome.PubSub, &ExshomeTest.Fixtures.test_topic_name/1
+config :exshome, :live_view_hooks, [ExshomeTest.TestLiveHooks]
+
 # Print only warnings and errors during test
 config :logger, level: :warn
 
