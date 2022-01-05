@@ -8,9 +8,14 @@ config :exshome, ExshomeWeb.Endpoint,
   server: false
 
 config :exshome, :environment, :test
-config :exshome, :clock_refresh_interval, 1_000_000
-config :exshome, Exshome.PubSub, &ExshomeTest.Fixtures.test_topic_name/1
-config :exshome, :live_view_hooks, [ExshomeTest.TestLiveHooks]
+config :exshome, Exshome.PubSub, ExshomeTest.TestHooks
+config :exshome, :service_pid_getter, ExshomeTest.TestHooks
+config :exshome, :service_init_hook_module, ExshomeTest.TestHooks
+config :exshome, :live_view_hooks, [ExshomeTest.TestHooks]
+
+config :exshome, :application_children, [
+  ExshomeTest.TestRegistry
+]
 
 # Print only warnings and errors during test
 config :logger, level: :warn

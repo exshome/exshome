@@ -3,32 +3,46 @@ defmodule Exshome.Clock do
   Application clock server.
   """
 
-  use Exshome.PubSub, pubsub_key: "clock", fields: [time: DateTime.t()]
+  defmodule Opts do
+    @moduledoc """
+    Clock options.
+    """
 
-  @update_interval Application.compile_env(:exshome, :clock_refresh_interval, 200)
+    defstruct [:refresh_interval, :precision]
 
-  use GenServer
-
-  def start_link(_) do
-    GenServer.start_link(__MODULE__, %{}, [])
+    @type t() :: %__MODULE__{
+            refresh_interval: non_neg_integer(),
+            precision: :microsecond | :millisecond | :second
+          }
   end
 
-  @impl GenServer
-  def init(%{}) do
-    schedule_next_tick()
-    {:ok, %{}}
+  alias Exshome.Service.State
+  use Exshome.Service, pubsub_key: "clock"
+
+  def on_init(state) do
+    schedule_next_tick(state)
+  end
+
+  def parse_opts(opts) do
+    %Opts{
+      refresh_interval: opts[:refresh_interval] || 200,
+      precision: opts[:precision] || :second
+    }
   end
 
   @impl GenServer
   def handle_info(:tick, state) do
-    schedule_next_tick()
-    {:noreply, state}
+    new_state = schedule_next_tick(state)
+    {:noreply, new_state}
   end
 
-  def schedule_next_tick do
-    broadcast(get_state())
-    Process.send_after(self(), :tick, @update_interval)
+  def schedule_next_tick(%State{opts: %Opts{} = opts} = state) do
+    update_interval = opts.refresh_interval
+    Process.send_after(self(), :tick, update_interval)
+    update_value(state, prepare_value(opts))
   end
 
-  def get_state, do: %__MODULE__{time: DateTime.utc_now()}
+  def prepare_value(%Opts{precision: precision}) do
+    DateTime.truncate(DateTime.utc_now(), precision)
+  end
 end

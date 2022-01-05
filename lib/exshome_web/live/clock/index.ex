@@ -8,7 +8,7 @@ defmodule ExshomeWeb.Live.Clock.Index do
 
   @impl Phoenix.LiveView
   def mount(_params, _session, %Socket{} = socket) do
-    %Clock{time: time} = Clock.subscribe()
+    time = Clock.subscribe()
     {:ok, assign(socket, time: time)}
   end
 
@@ -18,7 +18,7 @@ defmodule ExshomeWeb.Live.Clock.Index do
   end
 
   @impl Phoenix.LiveView
-  def handle_info(%Clock{time: time}, %Socket{} = socket) do
+  def handle_info({Clock, time}, %Socket{} = socket) do
     {:noreply, assign(socket, time: time)}
   end
 

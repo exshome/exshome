@@ -3,8 +3,8 @@ defmodule ExshomeTest.TestRegistry do
   Registry for async tests.
   """
 
-  @spec child_spec() :: Supervisor.child_spec()
-  def child_spec do
+  @spec child_spec(opts :: any()) :: Supervisor.child_spec()
+  def child_spec(_opts) do
     Registry.child_spec(keys: :unique, name: __MODULE__)
   end
 
@@ -21,6 +21,21 @@ defmodule ExshomeTest.TestRegistry do
     :ok
   end
 
+  @spec start_service(module :: module(), opts :: map()) :: :ok
+  def start_service(module, opts) do
+    current_pid = self()
+
+    opts =
+      Map.put(
+        opts,
+        :custom_init_hook,
+        fn -> allow(current_pid, self()) end
+      )
+
+    pid = ExUnit.Callbacks.start_supervised!({module, opts})
+    put({:service, module}, pid)
+  end
+
   @spec get(key :: any()) :: any()
   def get(key) do
     lookup({:value, get_parent(), key})
@@ -29,6 +44,11 @@ defmodule ExshomeTest.TestRegistry do
   @spec get_parent() :: pid()
   def get_parent do
     lookup({:parent, self()})
+  end
+
+  @spec get_service(module()) :: pid()
+  def get_service(module) do
+    get({:service, module})
   end
 
   defp lookup(key) do

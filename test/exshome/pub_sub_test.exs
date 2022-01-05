@@ -12,7 +12,7 @@ defmodule ExshomeTest.PubSubTest do
   end
 
   test "topic name is tied to an owner process in tests", %{topic: topic} do
-    assert PubSub.topic_name(topic) == test_topic_name(topic)
+    assert PubSub.topic_name(topic) == ExshomeTest.TestHooks.topic_name(topic)
   end
 
   test "broadcast works fine for the same process", %{topic: topic} do

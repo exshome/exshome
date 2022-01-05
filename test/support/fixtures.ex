@@ -6,7 +6,6 @@ defmodule ExshomeTest.Fixtures do
   alias ExshomeTest.TestMpvServer
   alias ExUnit.Callbacks
   import ExUnit.Assertions
-  alias ExshomeTest.TestRegistry
 
   @received_event_tag :event
 
@@ -129,7 +128,4 @@ defmodule ExshomeTest.Fixtures do
       0 -> Enum.reverse(acc)
     end
   end
-
-  def test_topic_name(topic) when is_binary(topic),
-    do: "#{inspect(TestRegistry.get_parent())}_#{topic}"
 end

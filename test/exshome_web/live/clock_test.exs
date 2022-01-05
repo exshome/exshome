@@ -4,11 +4,15 @@ defmodule ExshomeWeb.Live.ClockTest do
   alias ExshomeWeb.ClockView
   import Phoenix.LiveViewTest
 
+  setup do
+    ExshomeTest.TestRegistry.start_service(Exshome.Clock, %{})
+  end
+
   test "renders a current time", %{conn: conn} do
     {:ok, view, _html} = live(conn, Routes.clock_index_path(conn, :index))
-    current_time = Clock.get_state()
+    current_time = Clock.get_value()
     Clock.broadcast(current_time)
-    render(view) =~ ClockView.format_date(current_time.time)
-    render(view) =~ ClockView.format_time(current_time.time)
+    render(view) =~ ClockView.format_date(current_time)
+    render(view) =~ ClockView.format_time(current_time)
   end
 end
