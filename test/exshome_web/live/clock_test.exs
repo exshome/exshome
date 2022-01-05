@@ -1,11 +1,11 @@
 defmodule ExshomeWeb.Live.ClockTest do
   use ExshomeWeb.ConnCase, async: true
-  alias Exshome.Clock
+  alias Exshome.Service.Clock
   alias ExshomeWeb.ClockView
   import Phoenix.LiveViewTest
 
   setup do
-    ExshomeTest.TestRegistry.start_service(Exshome.Clock, %{})
+    ExshomeTest.TestRegistry.start_service(Clock)
   end
 
   test "renders a current time", %{conn: conn} do

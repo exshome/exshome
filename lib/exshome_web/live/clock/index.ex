@@ -3,7 +3,7 @@ defmodule ExshomeWeb.Live.Clock.Index do
   Clock view for the application.
   """
   use ExshomeWeb, :live_view
-  alias Exshome.Clock
+  alias Exshome.Service.Clock
   alias Phoenix.LiveView.Socket
 
   @impl Phoenix.LiveView

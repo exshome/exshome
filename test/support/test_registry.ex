@@ -22,7 +22,7 @@ defmodule ExshomeTest.TestRegistry do
   end
 
   @spec start_service(module :: module(), opts :: map()) :: :ok
-  def start_service(module, opts) do
+  def start_service(module, opts \\ %{}) do
     current_pid = self()
 
     opts =

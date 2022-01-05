@@ -1,4 +1,4 @@
-defmodule Exshome.Clock do
+defmodule Exshome.Service.Clock do
   @moduledoc """
   Application clock server.
   """

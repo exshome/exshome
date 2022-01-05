@@ -123,8 +123,9 @@ defmodule Exshome.Service do
 
       @impl unquote(__MODULE__)
       def subscribe(server \\ __MODULE__) do
+        result = __MODULE__.get_value(get_service_pid(server))
         :ok = Exshome.PubSub.subscribe(unquote(key))
-        __MODULE__.get_value(get_service_pid(server))
+        result
       end
 
       @impl unquote(__MODULE__)
