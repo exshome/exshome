@@ -20,17 +20,13 @@ defmodule Exshome.Service do
   @callback parse_opts(map()) :: any()
   @callback update_value(State.t(), value :: any()) :: State.t()
   @callback on_init(State.t()) :: State.t()
+  @callback get_value(GenServer.server()) :: any()
   @callback handle_info(message :: any(), State.t()) ::
               {:noreply, new_state}
               | {:noreply, new_state, timeout() | :hibernate | {:continue, term()}}
               | {:stop, reason :: term(), new_state}
             when new_state: State.t()
   @optional_callbacks handle_info: 2
-
-  @callback broadcast(value :: any()) :: :ok
-  @callback subscribe(GenServer.server()) :: any()
-  @callback unsubscribe() :: :ok
-  @callback get_value(GenServer.server()) :: any()
 
   @spec start_link(opts :: map()) :: GenServer.on_start()
   def start_link(opts) do
@@ -155,19 +151,16 @@ defmodule Exshome.Service do
       defoverridable(on_init: 1)
 
       @doc "Send current value to all subscribers."
-      @impl unquote(__MODULE__)
       def broadcast(value) do
         unquote(__MODULE__).broadcast(unquote(pubsub_key), {__MODULE__, value})
       end
 
       @doc "Subscribe to the value updates of the service."
-      @impl unquote(__MODULE__)
       def subscribe(server \\ __MODULE__) do
         unquote(__MODULE__).subscribe(server, unquote(pubsub_key))
       end
 
       @doc "Unsubscribe from the value updates of the service."
-      @impl unquote(__MODULE__)
       def unsubscribe do
         unquote(__MODULE__).unsubscribe(unquote(pubsub_key))
       end
