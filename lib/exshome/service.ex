@@ -120,10 +120,12 @@ defmodule Exshome.Service do
     quote do
       @behaviour unquote(__MODULE__)
 
+      @doc "Starts a service."
       def start_link(opts) do
         opts |> update_opts() |> unquote(__MODULE__).start_link()
       end
 
+      @doc "Returns a child spec for the service."
       def child_spec(opts) do
         opts |> update_opts() |> unquote(__MODULE__).child_spec()
       end
@@ -141,25 +143,30 @@ defmodule Exshome.Service do
       def parse_opts(opts), do: opts
       defoverridable(parse_opts: 1)
 
+      @doc "Returns a current value of the service."
       @impl unquote(__MODULE__)
       def update_value(state, value) do
         unquote(__MODULE__).update_value(__MODULE__, state, value)
       end
 
+      @doc "Run callbacks on service init."
       @impl unquote(__MODULE__)
       def on_init(%unquote(__MODULE__).State{} = state), do: state
       defoverridable(on_init: 1)
 
+      @doc "Send current value to all subscribers."
       @impl unquote(__MODULE__)
       def broadcast(value) do
         unquote(__MODULE__).broadcast(unquote(pubsub_key), {__MODULE__, value})
       end
 
+      @doc "Subscribe to the value updates of the service."
       @impl unquote(__MODULE__)
       def subscribe(server \\ __MODULE__) do
         unquote(__MODULE__).subscribe(server, unquote(pubsub_key))
       end
 
+      @doc "Unsubscribe from the value updates of the service."
       @impl unquote(__MODULE__)
       def unsubscribe do
         unquote(__MODULE__).unsubscribe(unquote(pubsub_key))
