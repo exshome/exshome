@@ -13,5 +13,7 @@ defmodule ExshomeTest.Service.ClockServiceTest do
     initial_time = ClockService.subscribe()
     assert_receive({ClockService, current_time})
     assert current_time > initial_time
+    ClockService.unsubscribe()
+    refute_receive({ClockService, _current_time}, 10)
   end
 end
