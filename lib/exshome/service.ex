@@ -27,7 +27,7 @@ defmodule Exshome.Service do
 
   @spec start_link(module :: module(), opts :: map()) :: GenServer.on_start()
   def start_link(module, %{} = opts) do
-    {name, opts} = Map.pop(opts, :name, nil)
+    {name, opts} = Map.pop(opts, :name, module)
     GenServer.start_link(module, opts, name: name)
   end
 

@@ -45,7 +45,7 @@ config :tailwind,
   ]
 
 config :exshome, :application_children, [
-  {Exshome.Clock, %{refresh_interval: 200, name: Exshome.Clock}}
+  {Exshome.Service.Clock, %{refresh_interval: 200}}
 ]
 
 # Import environment specific config. This must remain at the bottom

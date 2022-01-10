@@ -26,11 +26,12 @@ defmodule ExshomeTest.TestRegistry do
     current_pid = self()
 
     opts =
-      Map.put(
-        opts,
+      opts
+      |> Map.put(
         :custom_init_hook,
         fn -> allow(current_pid, self()) end
       )
+      |> Map.put_new(:name, nil)
 
     pid = ExUnit.Callbacks.start_supervised!({module, opts})
     put({:service, module}, pid)
