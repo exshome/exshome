@@ -69,17 +69,6 @@ defmodule Exshome.Service do
     {:ok, state, {:continue, :on_init}}
   end
 
-  @init_hook_module Application.compile_env(:exshome, :service_init_hook_module)
-  if @init_hook_module do
-    defoverridable(init: 1)
-
-    def init(opts) do
-      result = super(opts)
-      @init_hook_module.on_service_init(opts)
-      result
-    end
-  end
-
   @impl GenServer
   def handle_continue(:on_init, %State{} = state) do
     new_state = state.module.on_init(state)
@@ -113,9 +102,18 @@ defmodule Exshome.Service do
     server
   end
 
-  if getter = Application.compile_env(:exshome, :service_pid_getter) do
+  @hook_module Application.compile_env(:exshome, :service_hook_module)
+  if @hook_module do
+    defoverridable(init: 1)
+
+    def init(opts) do
+      result = super(opts)
+      @hook_module.on_service_init(opts)
+      result
+    end
+
     defoverridable(get_service_pid: 1)
-    defdelegate get_service_pid(server), to: getter
+    defdelegate get_service_pid(server), to: @hook_module
   end
 
   defmacro __using__(pubsub_key: pubsub_key) do

@@ -8,10 +8,9 @@ config :exshome, ExshomeWeb.Endpoint,
   server: false
 
 config :exshome, :environment, :test
-config :exshome, Exshome.PubSub, ExshomeTest.TestHooks
-config :exshome, :service_pid_getter, ExshomeTest.TestHooks
-config :exshome, :service_init_hook_module, ExshomeTest.TestHooks
-config :exshome, :live_view_hooks, [ExshomeTest.TestHooks]
+config :exshome, Exshome.PubSub, ExshomeTest.Hooks.PubSub
+config :exshome, :service_hook_module, ExshomeTest.Hooks.Service
+config :exshome, :live_view_hooks, [ExshomeTest.Hooks.LiveView]
 
 config :exshome, :application_children, [
   ExshomeTest.TestRegistry
