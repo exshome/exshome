@@ -1,11 +1,11 @@
-defmodule Exshome.Service.Clock do
+defmodule Exshome.Service.ClockService do
   @moduledoc """
   Application clock server.
   """
 
   defmodule Opts do
     @moduledoc """
-    Clock options.
+    ClockService options.
     """
 
     defstruct [:refresh_interval, :precision]

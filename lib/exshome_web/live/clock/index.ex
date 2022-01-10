@@ -3,12 +3,12 @@ defmodule ExshomeWeb.Live.Clock.Index do
   Clock view for the application.
   """
   use ExshomeWeb, :live_view
-  alias Exshome.Service.Clock
+  alias Exshome.Service.ClockService
   alias Phoenix.LiveView.Socket
 
   @impl Phoenix.LiveView
   def mount(_params, _session, %Socket{} = socket) do
-    time = Clock.subscribe()
+    time = ClockService.subscribe()
     {:ok, assign(socket, time: time)}
   end
 
@@ -18,7 +18,7 @@ defmodule ExshomeWeb.Live.Clock.Index do
   end
 
   @impl Phoenix.LiveView
-  def handle_info({Clock, time}, %Socket{} = socket) do
+  def handle_info({ClockService, time}, %Socket{} = socket) do
     {:noreply, assign(socket, time: time)}
   end
 
