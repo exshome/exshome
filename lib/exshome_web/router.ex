@@ -15,10 +15,13 @@ defmodule ExshomeWeb.Router do
   end
 
   scope "/", ExshomeWeb do
+    import ExshomeWeb.Live.ServicePageLive, only: [service_routing: 1]
+
     pipe_through :browser
 
     get "/", PageController, :index
-    live "/clock", Live.Clock.Index, :index
+
+    service_routing(ExshomeWeb.Live.ServicePage.Clock)
   end
 
   # Other scopes may use custom stacks.
