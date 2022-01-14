@@ -6,7 +6,7 @@ defmodule ExshomeWeb.Live.ServicePageLive do
   use ExshomeWeb, :live_view
   alias Phoenix.LiveView.Socket
 
-  @callback base_url() :: String.t()
+  @callback base_prefix() :: atom()
   @callback dependencies() :: %{module() => atom()}
   @callback render(map()) :: Phoenix.LiveView.Rendered.t()
 

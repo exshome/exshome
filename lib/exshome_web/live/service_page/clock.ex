@@ -19,5 +19,5 @@ defmodule ExshomeWeb.Live.ServicePage.Clock do
   end
 
   @impl ServicePageLive
-  def base_url, do: "/clock"
+  def base_prefix, do: :clock
 end

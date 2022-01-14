@@ -5,8 +5,16 @@ defmodule ExshomeWeb.Router.RouteHelpers do
 
   defmacro service_routing(module) do
     quote bind_quoted: [module: module] do
-      live_session module, on_mount: {ExshomeWeb.Live.ServicePageLive, module} do
-        live module.base_url(), ExshomeWeb.Live.ServicePageLive, :index
+      alias ExshomeWeb.Live.ServicePageLive
+      alias Phoenix.LiveView.Router
+
+      Router.live_session module, on_mount: {ServicePageLive, module} do
+        Router.live(
+          "/#{Atom.to_string(module.base_prefix())}",
+          ServicePageLive,
+          :index,
+          as: module.base_prefix()
+        )
       end
     end
   end
