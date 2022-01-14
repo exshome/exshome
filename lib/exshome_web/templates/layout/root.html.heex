@@ -9,7 +9,7 @@
     <link phx-track-static rel="stylesheet" href={Routes.static_path(@conn, "/assets/app.css")}/>
     <script defer phx-track-static type="text/javascript" src={Routes.static_path(@conn, "/assets/app.js")}></script>
   </head>
-  <body class="bg-white dark:bg-black h-full flex flex-col">
+  <body class="bg-white dark:bg-black h-full flex flex-col dark:text-gray-200">
     <%= render "_navbar.html", conn: @conn %>
     <%= @inner_content %>
   </body>
