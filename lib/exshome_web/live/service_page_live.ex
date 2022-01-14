@@ -11,19 +11,17 @@ defmodule ExshomeWeb.Live.ServicePageLive do
   @callback render(map()) :: Phoenix.LiveView.Rendered.t()
 
   def on_mount(callback_module, _params, _session, socket) do
-    socket =
-      socket
-      |> put_callback_module(callback_module)
-      |> subscribe_to_dependencies(callback_module)
-
-    {:cont, socket}
+    {:cont, put_callback_module(socket, callback_module)}
   end
 
   @impl Phoenix.LiveView
   def mount(_params, _session, %Socket{} = socket), do: {:ok, socket}
 
   @impl Phoenix.LiveView
-  def handle_params(_unsigned_params, _url, %Socket{} = socket), do: {:noreply, socket}
+  def handle_params(_unsigned_params, _url, %Socket{} = socket) do
+    callback_module = get_callback_module(socket)
+    {:noreply, subscribe_to_dependencies(socket, callback_module)}
+  end
 
   @impl Phoenix.LiveView
   def handle_info({module, value}, %Socket{assigns: %{deps: deps}} = socket) do
@@ -54,5 +52,23 @@ defmodule ExshomeWeb.Live.ServicePageLive do
       end
 
     assign(socket, deps: deps)
+  end
+
+  defmacro __using__(prefix) when is_atom(prefix) do
+    quote do
+      alias ExshomeWeb.Live.ServicePageLive
+      @behaviour ServicePageLive
+
+      @impl ServicePageLive
+      def base_prefix, do: unquote(prefix)
+
+      def path(conn_or_endpoint, action, params \\ []) do
+        apply(
+          ExshomeWeb.Router.Helpers,
+          :"#{unquote(prefix)}_path",
+          [conn_or_endpoint, action, params]
+        )
+      end
+    end
   end
 end

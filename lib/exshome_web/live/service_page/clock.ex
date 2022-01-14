@@ -2,9 +2,7 @@ defmodule ExshomeWeb.Live.ServicePage.Clock do
   @moduledoc """
   Clock view for the application.
   """
-  alias ExshomeWeb.Live.ServicePageLive
-
-  @behaviour ServicePageLive
+  use ExshomeWeb.Live.ServicePageLive, :clock
 
   @impl ServicePageLive
   def dependencies do
@@ -17,7 +15,4 @@ defmodule ExshomeWeb.Live.ServicePage.Clock do
   def render(assigns) do
     ExshomeWeb.ClockView.render("index.html", assigns)
   end
-
-  @impl ServicePageLive
-  def base_prefix, do: :clock
 end
