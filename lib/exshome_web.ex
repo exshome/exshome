@@ -79,6 +79,7 @@ defmodule ExshomeWeb do
       import Plug.Conn
       import Phoenix.Controller
       import Phoenix.LiveView.Router
+      import ExshomeWeb.Router.RouteHelpers
     end
   end
 

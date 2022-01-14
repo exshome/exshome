@@ -1,5 +1,6 @@
 defmodule ExshomeWeb.Router do
   use ExshomeWeb, :router
+  alias ExshomeWeb.Live.ServicePage
 
   pipeline :browser do
     plug :accepts, ["html"]
@@ -14,14 +15,12 @@ defmodule ExshomeWeb.Router do
     plug :accepts, ["json"]
   end
 
-  scope "/", ExshomeWeb do
-    import ExshomeWeb.Live.ServicePageLive, only: [service_routing: 1]
-
+  scope "/" do
     pipe_through :browser
 
-    get "/", PageController, :index
+    get "/", ExshomeWeb.PageController, :index
 
-    service_routing(ExshomeWeb.Live.ServicePage.Clock)
+    service_routing(ServicePage.Clock)
   end
 
   # Other scopes may use custom stacks.

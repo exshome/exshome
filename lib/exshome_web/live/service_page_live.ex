@@ -10,14 +10,6 @@ defmodule ExshomeWeb.Live.ServicePageLive do
   @callback dependencies() :: %{module() => atom()}
   @callback render(map()) :: Phoenix.LiveView.Rendered.t()
 
-  defmacro service_routing(module) do
-    quote bind_quoted: [module: module] do
-      live_session module, on_mount: {ExshomeWeb.Live.ServicePageLive, module} do
-        live module.base_url(), Live.ServicePageLive, :index
-      end
-    end
-  end
-
   def on_mount(callback_module, _params, _session, socket) do
     socket =
       socket
