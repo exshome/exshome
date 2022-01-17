@@ -44,7 +44,12 @@ defmodule ExshomeTest.TestRegistry do
 
   @spec get_parent() :: pid()
   def get_parent do
-    lookup({:parent, self()})
+    get_parent(self())
+  end
+
+  @spec get_parent(pid()) :: pid()
+  def get_parent(pid) do
+    lookup({:parent, pid})
   end
 
   @spec get_service(module()) :: pid()

@@ -1,4 +1,4 @@
-defmodule ExshomeWeb.Live.Service.ClockTest do
+defmodule ExshomeWebTest.Live.Service.ClockTest do
   use ExshomeWeb.ConnCase, async: true
   alias Exshome.Service.ClockService
   alias ExshomeWeb.ClockView
