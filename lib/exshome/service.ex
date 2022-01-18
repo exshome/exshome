@@ -114,55 +114,56 @@ defmodule Exshome.Service do
 
   defmacro __using__(pubsub_key: pubsub_key) do
     quote do
-      @behaviour unquote(__MODULE__)
+      alias unquote(__MODULE__)
+      @behaviour Service
 
       @doc "Starts a service."
       def start_link(opts) do
-        opts |> update_opts() |> unquote(__MODULE__).start_link()
+        opts |> update_opts() |> Service.start_link()
       end
 
       @doc "Returns a child spec for the service."
       def child_spec(opts) do
-        opts |> update_opts() |> unquote(__MODULE__).child_spec()
+        opts |> update_opts() |> Service.child_spec()
       end
 
       defp update_opts(%{} = opts) do
         Map.merge(opts, %{module: __MODULE__})
       end
 
-      @impl unquote(__MODULE__)
+      @impl Service
       def get_value(server \\ __MODULE__) do
-        unquote(__MODULE__).get_value(server)
+        Service.get_value(server)
       end
 
-      @impl unquote(__MODULE__)
+      @impl Service
       def parse_opts(opts), do: opts
       defoverridable(parse_opts: 1)
 
       @doc "Returns a current value of the service."
-      @impl unquote(__MODULE__)
+      @impl Service
       def update_value(state, value) do
-        unquote(__MODULE__).update_value(__MODULE__, state, value)
+        Service.update_value(__MODULE__, state, value)
       end
 
       @doc "Run callbacks on service init."
-      @impl unquote(__MODULE__)
-      def on_init(%unquote(__MODULE__).State{} = state), do: state
+      @impl Service
+      def on_init(%Service.State{} = state), do: state
       defoverridable(on_init: 1)
 
       @doc "Send current value to all subscribers."
       def broadcast(value) do
-        unquote(__MODULE__).broadcast(unquote(pubsub_key), {__MODULE__, value})
+        Service.broadcast(unquote(pubsub_key), {__MODULE__, value})
       end
 
       @doc "Subscribe to the value updates of the service."
       def subscribe(server \\ __MODULE__) do
-        unquote(__MODULE__).subscribe(server, unquote(pubsub_key))
+        Service.subscribe(server, unquote(pubsub_key))
       end
 
       @doc "Unsubscribe from the value updates of the service."
       def unsubscribe do
-        unquote(__MODULE__).unsubscribe(unquote(pubsub_key))
+        Service.unsubscribe(unquote(pubsub_key))
       end
     end
   end
