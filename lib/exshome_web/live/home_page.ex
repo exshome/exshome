@@ -9,7 +9,7 @@ defmodule ExshomeWeb.Live.HomePage do
   @impl Phoenix.LiveView
   def mount(_params, _session, %Socket{} = socket) do
     services = [
-      {ExshomeWeb.Live.ServicePreview, "clock"}
+      {ExshomeWeb.Live.ServicePreview, "clock", ExshomeWeb.Live.ServicePage.Clock}
     ]
 
     {:ok, assign(socket, services: services)}
