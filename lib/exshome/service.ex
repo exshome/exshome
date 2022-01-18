@@ -115,6 +115,9 @@ defmodule Exshome.Service do
   defmacro __using__(pubsub_key: pubsub_key) do
     quote do
       alias unquote(__MODULE__)
+      import Exshome.Tag, only: [add_tag: 1]
+      add_tag(Service)
+
       @behaviour Service
 
       @doc "Starts a service."
