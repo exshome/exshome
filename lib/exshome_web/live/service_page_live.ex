@@ -54,9 +54,18 @@ defmodule ExshomeWeb.Live.ServicePageLive do
     assign(socket, deps: deps)
   end
 
+  @spec service_pages() :: MapSet.t(atom())
+  def service_pages do
+    Exshome.Tag.tag_mapping() |> Map.fetch!(__MODULE__)
+  end
+
   defmacro __using__(prefix) when is_atom(prefix) do
     quote do
+      import Exshome.Tag, only: [add_tag: 1]
       alias ExshomeWeb.Live.ServicePageLive
+
+      add_tag({ExshomeWeb.Live.ServicePreview, unquote(prefix)})
+      add_tag(ServicePageLive)
       @behaviour ServicePageLive
 
       @impl ServicePageLive

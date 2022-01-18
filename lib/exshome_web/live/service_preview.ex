@@ -7,11 +7,27 @@ defmodule ExshomeWeb.Live.ServicePreview do
   alias Phoenix.LiveView.Socket
 
   @impl Phoenix.LiveView
-  def mount(_params, _session, %Socket{} = socket),
-    do: {:ok, assign(socket, time: DateTime.utc_now())}
+  def mount(_params, _session, %Socket{} = socket) do
+    socket =
+      assign(
+        socket,
+        time: DateTime.utc_now(),
+        module: get_preview_module(socket)
+      )
+
+    {:ok, socket}
+  end
 
   @impl Phoenix.LiveView
   def render(assigns) do
     ExshomeWeb.ClockView.render("preview.html", assigns)
+  end
+
+  defp get_preview_module(%Socket{} = socket) do
+    module_prefix = String.to_existing_atom(socket.id)
+
+    Exshome.Tag.tag_mapping()
+    |> Map.fetch!(__MODULE__)
+    |> Map.fetch!(module_prefix)
   end
 end
