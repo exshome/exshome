@@ -3,7 +3,6 @@ defmodule Exshome.Tag do
   A registry for tagged modules.
   """
 
-  @tagged_modules_key :tagged_modules
   @tag_mapping_key :tag_mapping
   @not_found :not_found
 
@@ -22,6 +21,8 @@ defmodule Exshome.Tag do
             @protocol.tags(@for)
           end
         end
+
+        @tag unquote(Exshome.Tag.Tagged)
       end
 
       @tag unquote(tag)
@@ -37,31 +38,6 @@ defmodule Exshome.Tag do
     end
   end
 
-  @spec tagged_modules() :: [module()]
-  def tagged_modules do
-    case :persistent_term.get({__MODULE__, @tagged_modules_key}, @not_found) do
-      @not_found -> refresh_tagged_modules()
-      mapping -> mapping
-    end
-  end
-
-  @spec refresh_tagged_modules() :: [module()]
-  def refresh_tagged_modules do
-    modules = compute_tagged_modules()
-    :ok = :persistent_term.put({__MODULE__, @tagged_modules_key}, modules)
-    modules
-  end
-
-  defp compute_tagged_modules do
-    available_modules = Protocol.extract_impls(Tagged, :code.get_path())
-
-    for module <- available_modules,
-        module.__info__(:attributes)
-        |> Keyword.has_key?(:tag) do
-      module
-    end
-  end
-
   @spec tag_mapping() :: map()
   def tag_mapping do
     case :persistent_term.get({__MODULE__, @tag_mapping_key}, @not_found) do
@@ -72,28 +48,87 @@ defmodule Exshome.Tag do
 
   @spec refresh_tag_mapping() :: map()
   def refresh_tag_mapping do
-    mapping = compute_tag_mapping()
+    modules = compute_tagged_modules()
+    mapping = compute_tag_mapping(modules)
     :ok = :persistent_term.put({__MODULE__, @tag_mapping_key}, mapping)
     mapping
   end
 
-  defp compute_tag_mapping do
-    modules =
-      for module <- refresh_tagged_modules(),
-          tag <- Tagged.tags(module) do
+  def compute_tagged_modules do
+    available_modules = Protocol.extract_impls(Tagged, :code.get_path())
+
+    for module <- available_modules,
+        module.__info__(:attributes)
+        |> Keyword.has_key?(:tag) do
+      {module, Tagged.tags(module)}
+    end
+  end
+
+  def compute_tag_mapping(params) do
+    tag_data =
+      for {module, tags} <- params,
+          tag <- tags do
         case tag do
-          {top_level_key, key} -> {top_level_key, {key, module}}
-          key -> {key, module}
+          atom when is_atom(atom) ->
+            %{type: :simple, key: tag, value: module}
+
+          {parent_key, child_key} when is_atom(child_key) ->
+            %{type: :nested_atom_map, key: parent_key, child_key: child_key, value: module}
+
+          {parent_key, child_key} when is_binary(child_key) ->
+            %{type: :nested_binary_map, key: parent_key, child_key: child_key, value: module}
         end
       end
 
-    modules
-    |> Enum.group_by(&elem(&1, 0), &elem(&1, 1))
-    |> Enum.map(fn {key, value} ->
-      into = if Keyword.keyword?(value), do: %{}, else: MapSet.new()
-      value = Enum.into(value, into)
-      {key, value}
-    end)
-    |> Enum.into(%{})
+    tag_data = Enum.group_by(tag_data, & &1.key)
+
+    validate_tag_data(tag_data)
+
+    for {key, [%{type: type} | _] = values} <- tag_data, into: %{} do
+      nested_values =
+        case type do
+          :simple -> values |> Enum.map(& &1.value) |> MapSet.new()
+          _ -> values |> Enum.map(&{&1.child_key, &1.value}) |> Enum.into(%{})
+        end
+
+      {key, nested_values}
+    end
+  end
+
+  defp validate_tag_data(tag_data) do
+    for {key, values} <- tag_data do
+      case Enum.uniq_by(values, & &1.type) do
+        [_single_type] ->
+          :ok
+
+        data ->
+          modules = Enum.map(data, & &1.value)
+          raise "#{key} has mixed types in modules: #{inspect(modules)}"
+      end
+
+      duplicate_values =
+        values
+        |> Enum.frequencies_by(& &1.value)
+        |> Enum.filter(&(elem(&1, 1) > 1))
+        |> Enum.map(&elem(&1, 0))
+
+      unless duplicate_values == [] do
+        raise "#{key} has duplicate values: #{inspect(duplicate_values)}"
+      end
+
+      [%{type: type} | _] = values
+
+      unless type == :simple do
+        duplicate_keys =
+          values
+          |> Enum.frequencies_by(& &1.child_key)
+          |> Enum.filter(&(elem(&1, 1) > 1))
+          |> Enum.map(&elem(&1, 0))
+
+        unless duplicate_keys == [] do
+          raise "#{key} has duplicate keys: #{inspect(duplicate_keys)}"
+        end
+      end
+    end
   end
 end
