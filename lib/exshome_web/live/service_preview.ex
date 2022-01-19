@@ -24,10 +24,8 @@ defmodule ExshomeWeb.Live.ServicePreview do
   end
 
   defp get_preview_module(%Socket{} = socket) do
-    module_prefix = String.to_existing_atom(socket.id)
-
     Exshome.Tag.tag_mapping()
     |> Map.fetch!(__MODULE__)
-    |> Map.fetch!(module_prefix)
+    |> Map.fetch!(socket.id)
   end
 end
