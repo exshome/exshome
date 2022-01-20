@@ -3,13 +3,10 @@ defmodule Exshome.Tag do
   A registry for tagged modules.
   """
 
+  alias Exshome.Tag.Tagged
+
   @tag_mapping_key :tag_mapping
   @not_found :not_found
-
-  defprotocol Tagged do
-    @spec tags(t()) :: [atom()]
-    def tags(data)
-  end
 
   defmacro add_tag(tag) do
     quote do
