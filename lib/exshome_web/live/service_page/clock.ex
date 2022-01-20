@@ -12,7 +12,5 @@ defmodule ExshomeWeb.Live.ServicePage.Clock do
   end
 
   @impl ServicePageLive
-  def render(assigns) do
-    ExshomeWeb.ClockView.render("index.html", assigns)
-  end
+  def view_module, do: ExshomeWeb.ClockView
 end

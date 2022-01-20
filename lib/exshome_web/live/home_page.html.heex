@@ -1,8 +1,15 @@
 <div class="flex flex-wrap justify-center">
-  <%= for {service_view, service_id, service_module} <- @services do %>
+  <%= for service_module <- @services do %>
     <%= live_patch to: service_module.path(@socket, :index) do %>
-      <div class="w-[40vw] h-[40vw] md:w-[15vw] md:h-[15vw] p-2 m-2 border-2 border-gray-500 rounded-md overflow-hidden">
-        <%= live_render @socket, service_view, id: service_id %>
+    <div
+      class="
+          w-[40vw] h-[40vw] md:w-[15vw] md:h-[15vw]
+          p-2 m-2
+          border-2 border-gray-500 rounded-md overflow-hidden
+          hover:bg-gray-200 dark:hover:bg-gray-800
+      "
+      >
+        <%= live_render @socket, ExshomeWeb.Live.ServicePreview, id: service_module.name() %>
       </div>
     <% end %>
   <% end %>

@@ -8,7 +8,8 @@ defmodule ExshomeWeb.Live.ServicePageLive do
 
   @callback base_prefix() :: atom()
   @callback dependencies() :: %{module() => atom()}
-  @callback render(map()) :: Phoenix.LiveView.Rendered.t()
+  @callback name() :: String.t()
+  @callback view_module() :: module()
 
   def on_mount(callback_module, _params, _session, socket) do
     {:cont, put_callback_module(socket, callback_module)}
@@ -18,9 +19,19 @@ defmodule ExshomeWeb.Live.ServicePageLive do
   def mount(_params, _session, %Socket{} = socket), do: {:ok, socket}
 
   @impl Phoenix.LiveView
-  def handle_params(_unsigned_params, _url, %Socket{} = socket) do
+  def handle_params(
+        _unsigned_params,
+        _url,
+        %Socket{assigns: %{live_action: live_action}} = socket
+      ) do
     callback_module = get_callback_module(socket)
-    {:noreply, subscribe_to_dependencies(socket, callback_module)}
+
+    socket =
+      socket
+      |> subscribe_to_dependencies(callback_module)
+      |> put_template_name("#{live_action}.html")
+
+    {:noreply, socket}
   end
 
   @impl Phoenix.LiveView
@@ -32,7 +43,8 @@ defmodule ExshomeWeb.Live.ServicePageLive do
 
   @impl Phoenix.LiveView
   def render(%{socket: socket} = assigns) do
-    get_callback_module(socket).render(assigns)
+    template_name = get_template_name(socket)
+    get_callback_module(socket).view_module().render(template_name, assigns)
   end
 
   @spec put_callback_module(Socket.t(), module()) :: Socket.t()
@@ -53,6 +65,15 @@ defmodule ExshomeWeb.Live.ServicePageLive do
 
     assign(socket, deps: deps)
   end
+
+  @spec put_template_name(socket :: Socket.t(), template_name :: String.t()) :: Socket.t()
+  def put_template_name(%Socket{private: private} = socket, template_name) do
+    private = Map.put(private, :template_name, template_name)
+    %Socket{socket | private: private}
+  end
+
+  @spec get_template_name(Socket.t()) :: String.t()
+  def get_template_name(%Socket{private: %{template_name: template_name}}), do: template_name
 
   @spec service_pages() :: MapSet.t(atom())
   def service_pages do
@@ -78,6 +99,9 @@ defmodule ExshomeWeb.Live.ServicePageLive do
 
       @impl ServicePageLive
       def base_prefix, do: unquote(prefix)
+
+      @impl ServicePageLive
+      def name, do: @name
 
       def path(conn_or_endpoint, action, params \\ []) do
         apply(
