@@ -2,6 +2,12 @@ defmodule ExshomeTest.TagTest do
   use ExUnit.Case, async: true
   alias Exshome.Tag
 
+  describe "Check tag logic" do
+    test "check tag_mapping after refresh" do
+      assert Tag.refresh_tag_mapping() == Tag.tag_mapping()
+    end
+  end
+
   test "compute_tag_mapping" do
     result =
       Tag.compute_tag_mapping(
