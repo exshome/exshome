@@ -22,14 +22,11 @@ defmodule Exshome.Tag.Mapping do
 
     tag_data = Enum.group_by(tag_data, & &1.key)
 
-    validate_tag_data(tag_data)
-
-    for {key, [%{type: type} | _] = values} <- tag_data, into: %{} do
+    for {key, values} <- tag_data, into: %{} do
       nested_values =
-        case type do
-          :simple -> values |> Enum.map(& &1.value) |> MapSet.new()
-          _ -> values |> Enum.map(&{&1.child_key, &1.value}) |> Enum.into(%{})
-        end
+        values
+        |> validate_partial_mapping(key)
+        |> values_to_mapping()
 
       {key, nested_values}
     end
@@ -57,40 +54,46 @@ defmodule Exshome.Tag.Mapping do
     }
   end
 
-  defp validate_tag_data(tag_data) do
-    for {key, values} <- tag_data do
-      case Enum.uniq_by(values, & &1.type) do
-        [_single_type] ->
-          :ok
+  def validate_partial_mapping([%__MODULE__{type: type} | _] = values, key) do
+    case Enum.uniq_by(values, & &1.type) do
+      [_single_type] ->
+        :ok
 
-        data ->
-          modules = Enum.map(data, & &1.value)
-          raise "#{key} has mixed types in modules: #{inspect(modules)}"
-      end
+      data ->
+        modules = Enum.map(data, & &1.value)
+        raise "#{key} has mixed types in modules: #{inspect(modules)}"
+    end
 
-      duplicate_values =
-        values
-        |> Enum.frequencies_by(& &1.value)
-        |> Enum.filter(&(elem(&1, 1) > 1))
-        |> Enum.map(&elem(&1, 0))
+    duplicate_values = duplicated_by(values, :value)
 
-      unless duplicate_values == [] do
-        raise "#{key} has duplicate values: #{inspect(duplicate_values)}"
-      end
+    unless duplicate_values == [] do
+      raise "#{key} has duplicate values: #{inspect(duplicate_values)}"
+    end
 
-      [%{type: type} | _] = values
+    unless type == :simple do
+      duplicate_keys = duplicated_by(values, :child_key)
 
-      unless type == :simple do
-        duplicate_keys =
-          values
-          |> Enum.frequencies_by(& &1.child_key)
-          |> Enum.filter(&(elem(&1, 1) > 1))
-          |> Enum.map(&elem(&1, 0))
-
-        unless duplicate_keys == [] do
-          raise "#{key} has duplicate keys: #{inspect(duplicate_keys)}"
-        end
+      unless duplicate_keys == [] do
+        raise "#{key} has duplicate keys: #{inspect(duplicate_keys)}"
       end
     end
+
+    values
+  end
+
+  defp duplicated_by(values, field) do
+    values
+    |> Enum.frequencies_by(fn value -> Map.from_struct(value)[field] end)
+    |> Enum.filter(&(elem(&1, 1) > 1))
+    |> Enum.map(&elem(&1, 0))
+  end
+
+  def values_to_mapping([%__MODULE__{type: :simple} | _] = values) do
+    values |> Enum.map(& &1.value) |> MapSet.new()
+  end
+
+  def values_to_mapping([%__MODULE__{type: type} | _] = values)
+      when type in [:nested_atom_map, :nested_binary_map] do
+    values |> Enum.map(&{&1.child_key, &1.value}) |> Enum.into(%{})
   end
 end

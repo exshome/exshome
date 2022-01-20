@@ -3,13 +3,13 @@ defmodule ExshomeTest.TagTest do
   alias Exshome.Tag
   alias Exshome.Tag.Mapping
 
-  describe "Check tag logic" do
+  describe "check tag logic" do
     test "check tag_mapping after refresh" do
       assert Tag.refresh_tag_mapping() == Tag.tag_mapping()
     end
   end
 
-  describe "Check mapping computation" do
+  describe "check mapping computation" do
     test "compute_tag_mapping" do
       result =
         Mapping.compute_tag_mapping(
