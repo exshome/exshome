@@ -1,7 +1,12 @@
 defmodule ExshomeWebTest.Live.HomePageTest do
+  alias Exshome.Service.ClockService
   use ExshomeWeb.ConnCase, async: true
   alias ExshomeWeb.Live.ServicePageLive
   import Phoenix.LiveViewTest
+
+  setup do
+    ExshomeTest.TestRegistry.start_service(ClockService)
+  end
 
   test "Home page works", %{conn: conn} do
     {:ok, _view, html} = live(conn, "/")

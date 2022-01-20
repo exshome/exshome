@@ -4,28 +4,24 @@ defmodule ExshomeWeb.Live.ServicePreview do
   """
 
   use ExshomeWeb, :live_view
+  alias ExshomeWeb.Live.ServicePageLive
   alias Phoenix.LiveView.Socket
 
   @impl Phoenix.LiveView
   def mount(_params, _session, %Socket{} = socket) do
+    callback_module = ServicePageLive.get_module_by_name(socket.id)
+
     socket =
-      assign(
-        socket,
-        time: DateTime.utc_now(),
-        module: get_preview_module(socket)
-      )
+      socket
+      |> ServicePageLive.put_callback_module(callback_module)
+      |> ServicePageLive.subscribe_to_dependencies(callback_module)
 
     {:ok, socket}
   end
 
   @impl Phoenix.LiveView
-  def render(assigns) do
-    ExshomeWeb.ClockView.render("preview.html", assigns)
-  end
+  defdelegate render(assigns), to: ServicePageLive
 
-  defp get_preview_module(%Socket{} = socket) do
-    Exshome.Tag.tag_mapping()
-    |> Map.fetch!(__MODULE__)
-    |> Map.fetch!(socket.id)
-  end
+  @impl Phoenix.LiveView
+  defdelegate handle_info(info, socket), to: ServicePageLive
 end

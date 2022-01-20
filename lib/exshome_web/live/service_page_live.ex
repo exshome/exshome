@@ -36,7 +36,7 @@ defmodule ExshomeWeb.Live.ServicePageLive do
   end
 
   @spec put_callback_module(Socket.t(), module()) :: Socket.t()
-  defp put_callback_module(%Socket{private: private} = socket, callback_module) do
+  def put_callback_module(%Socket{private: private} = socket, callback_module) do
     private = Map.put(private, :callback_module, callback_module)
     %Socket{socket | private: private}
   end
@@ -45,7 +45,7 @@ defmodule ExshomeWeb.Live.ServicePageLive do
   defp get_callback_module(%Socket{} = socket), do: socket.private.callback_module
 
   @spec subscribe_to_dependencies(Socket.t(), module()) :: Socket.t()
-  defp subscribe_to_dependencies(%Socket{} = socket, callback_module) do
+  def subscribe_to_dependencies(%Socket{} = socket, callback_module) do
     deps =
       for {module, key} <- callback_module.dependencies(), into: %{} do
         {key, module.subscribe()}
@@ -59,12 +59,20 @@ defmodule ExshomeWeb.Live.ServicePageLive do
     Exshome.Tag.tag_mapping() |> Map.fetch!(__MODULE__)
   end
 
+  @spec get_module_by_name(String.t()) :: module()
+  def get_module_by_name(module_name) when is_binary(module_name) do
+    Exshome.Tag.tag_mapping()
+    |> Map.fetch!({__MODULE__, :module})
+    |> Map.fetch!(module_name)
+  end
+
   defmacro __using__(prefix) when is_atom(prefix) do
     quote do
       import Exshome.Tag, only: [add_tag: 1]
       alias ExshomeWeb.Live.ServicePageLive
 
-      add_tag({ExshomeWeb.Live.ServicePreview, "#{unquote(prefix)}"})
+      @name "#{unquote(prefix)}"
+      add_tag({{ServicePageLive, :module}, @name})
       add_tag(ServicePageLive)
       @behaviour ServicePageLive
 
@@ -74,7 +82,7 @@ defmodule ExshomeWeb.Live.ServicePageLive do
       def path(conn_or_endpoint, action, params \\ []) do
         apply(
           ExshomeWeb.Router.Helpers,
-          :"#{unquote(prefix)}_path",
+          :"#{@name}_path",
           [conn_or_endpoint, action, params]
         )
       end
