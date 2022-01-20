@@ -5,6 +5,7 @@ defmodule ExshomeTest.TagTest do
 
   describe "check tag logic" do
     test "check tag_mapping after refresh" do
+      assert Tag.tag_mapping()
       assert Tag.refresh_tag_mapping() == Tag.tag_mapping()
     end
   end
