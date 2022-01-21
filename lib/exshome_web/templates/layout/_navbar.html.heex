@@ -1,17 +1,24 @@
 <header class="py-4 mx-4">
   <section>
-    <nav class="flex justify-end items-center">
-      <span class="mx-2 hidden md:block">Theme:</span>
-      <select
-        id="themeSelector"
-        class="rounded-lg bg-transparent hover:bg-gray-200 dark:hover:bg-gray-800"
-        onchange="Theme.useTheme(this.options[this.selectedIndex].value)"
-      >
-        <option value="light">Light &#127774;</option>
-        <option value="dark">Dark &#127771;</option>
-        <option value="system">System &#x1F4BB;</option>
-      </select>
-    </nav>
+      <nav class="flex justify-between items-center">
+        <div>
+          <%= live_patch(to: Routes.home_path(@conn, :index)) do %>
+            &#x1F3E0;
+          <% end %>
+        </div>
+        <div class="flex items-center">
+          <span class="mx-2 hidden md:block">Theme:</span>
+          <select
+            id="themeSelector"
+            class="rounded-lg bg-transparent hover:bg-gray-200 dark:hover:bg-gray-800"
+            onchange="Theme.useTheme(this.options[this.selectedIndex].value)"
+          >
+            <option value="light">Light &#127774;</option>
+            <option value="dark">Dark &#127771;</option>
+            <option value="system">System &#x1F4BB;</option>
+          </select>
+        </div>
+      </nav>
   </section>
 </header>
 

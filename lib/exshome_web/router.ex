@@ -18,7 +18,7 @@ defmodule ExshomeWeb.Router do
   scope "/" do
     pipe_through :browser
 
-    live "/", ExshomeWeb.Live.HomePage, as: :home
+    live "/", ExshomeWeb.Live.HomePage, :index, as: :home
 
     service_routing(ServicePage.Clock)
   end
