@@ -12,4 +12,7 @@ defmodule ExshomeWeb.Live.HomePage do
 
     {:ok, assign(socket, services: services)}
   end
+
+  @impl Phoenix.LiveView
+  def handle_params(_unsigned_params, _uri, socket), do: {:noreply, socket}
 end
