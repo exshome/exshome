@@ -7,12 +7,14 @@
 # General application configuration
 import Config
 
+config :exshome,
+  ecto_repos: [Exshome.Repo],
+  generators: [binary_id: true]
+
+# Configure your database
 config :exshome, Exshome.Repo,
-  database: Path.expand("../data/db/app.db", __DIR__),
+  migration_timestamps: [type: :utc_datetime_usec],
   cache_size: -2000
-
-
-config :exshome, ecto_repos: [Exshome.Repo]
 
 # Configures the endpoint
 config :exshome, ExshomeWeb.Endpoint,

@@ -9,14 +9,14 @@ defmodule Exshome.Application do
   def start(_type, _args) do
     children =
       [
+        # Start the Ecto repository
+        Exshome.Repo,
         # Start the Telemetry supervisor
         ExshomeWeb.Telemetry,
         # Start the PubSub system
         {Phoenix.PubSub, name: Exshome.PubSub},
         # Start the Endpoint (http/https)
-        ExshomeWeb.Endpoint,
-        # Start the Database connections
-        {Exshome.Repo, []}
+        ExshomeWeb.Endpoint
         # Start a worker by calling: Exshome.Worker.start_link(arg)
         # {Exshome.Worker, arg}
       ] ++ Application.get_env(:exshome, :application_children, [])
