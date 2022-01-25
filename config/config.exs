@@ -7,6 +7,13 @@
 # General application configuration
 import Config
 
+config :exshome, Exshome.Repo,
+  database: Path.expand("../data/db/app.db", __DIR__),
+  cache_size: -2000
+
+
+config :exshome, ecto_repos: [Exshome.Repo]
+
 # Configures the endpoint
 config :exshome, ExshomeWeb.Endpoint,
   url: [host: "localhost"],
