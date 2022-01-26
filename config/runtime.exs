@@ -12,6 +12,9 @@ if System.get_env("PHX_SERVER") && System.get_env("RELEASE_NAME") do
   config :exshome, ExshomeWeb.Endpoint, server: true
 end
 
+root_folder = Application.get_env(:exshome, :root_folder)
+database_name = Application.get_env(:exshome, Exshome.Repo) |> Keyword.get(:database_name)
+
 if config_env() == :prod do
   # The secret key base is used to sign/encrypt cookies and other secrets.
   # A default value is used in config/dev.exs and config/test.exs but you
@@ -50,3 +53,5 @@ if config_env() == :prod do
   # Then you can assemble a release by calling `mix release`.
   # See `mix help release` for more information.
 end
+
+config :exshome, Exshome.Repo, database: Path.join([root_folder, "db", database_name])

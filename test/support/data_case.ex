@@ -14,7 +14,6 @@ defmodule Exshome.DataCase do
   this option is not recommended for other databases.
   """
 
-  alias Ecto.Adapters.SQL.Sandbox
   use ExUnit.CaseTemplate
 
   using do
@@ -30,9 +29,8 @@ defmodule Exshome.DataCase do
 
   setup tags do
     ExshomeTest.TestRegistry.allow(self(), self())
-    ExshomeTest.FileUtils.generate_test_folder(tags)
-    pid = Sandbox.start_owner!(Exshome.Repo, shared: not tags[:async])
-    on_exit(fn -> Sandbox.stop_owner(pid) end)
+    ExshomeTest.TestFileUtils.generate_test_folder(tags)
+    ExshomeTest.TestDbUtils.start_test_db()
     :ok
   end
 

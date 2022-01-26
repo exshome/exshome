@@ -2,9 +2,9 @@ import Config
 
 # Configure your database
 config :exshome, Exshome.Repo,
-  database: Path.expand("../data/db/exshome_dev.db", Path.dirname(__ENV__.file)),
   pool_size: 5,
-  show_sensitive_data_on_connection_error: true
+  show_sensitive_data_on_connection_error: true,
+  database_name: "exshome_dev.db"
 
 # For development, we disable any cache and enable
 # debugging and code reloading.

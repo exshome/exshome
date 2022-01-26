@@ -1,4 +1,4 @@
-defmodule ExshomeTest.FileUtils do
+defmodule ExshomeTest.TestFileUtils do
   @moduledoc """
   File manipulation utils for tests.
   """

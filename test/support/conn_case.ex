@@ -15,7 +15,6 @@ defmodule ExshomeWeb.ConnCase do
   this option is not recommended for other databases.
   """
 
-  alias Ecto.Adapters.SQL.Sandbox
   use ExUnit.CaseTemplate
 
   using do
@@ -34,6 +33,9 @@ defmodule ExshomeWeb.ConnCase do
 
   setup tags do
     ExshomeTest.TestRegistry.allow(self(), self())
+    ExshomeTest.TestFileUtils.generate_test_folder(tags)
+    ExshomeTest.TestDbUtils.start_test_db()
+
     conn = Phoenix.ConnTest.build_conn()
     key = :live_view_connect_info
 
@@ -43,8 +45,6 @@ defmodule ExshomeWeb.ConnCase do
 
     conn = Plug.Conn.put_private(conn, key, connect_info)
 
-    pid = Sandbox.start_owner!(Exshome.Repo, shared: not tags[:async])
-    on_exit(fn -> Sandbox.stop_owner(pid) end)
     {:ok, conn: conn}
   end
 end

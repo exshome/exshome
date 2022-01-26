@@ -16,6 +16,8 @@ config :exshome, Exshome.Repo,
   migration_timestamps: [type: :utc_datetime_usec],
   cache_size: -2000
 
+config :exshome, :root_folder, Path.expand("../data/", __DIR__)
+
 # Configures the endpoint
 config :exshome, ExshomeWeb.Endpoint,
   url: [host: "localhost"],
