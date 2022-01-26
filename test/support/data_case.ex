@@ -29,6 +29,8 @@ defmodule Exshome.DataCase do
   end
 
   setup tags do
+    ExshomeTest.TestRegistry.allow(self(), self())
+    ExshomeTest.FileUtils.generate_test_folder(tags)
     pid = Sandbox.start_owner!(Exshome.Repo, shared: not tags[:async])
     on_exit(fn -> Sandbox.stop_owner(pid) end)
     :ok

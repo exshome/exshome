@@ -21,6 +21,21 @@ defmodule ExshomeTest.TestRegistry do
     :ok
   end
 
+  @spec get(key :: any()) :: any()
+  def get(key) do
+    lookup({:value, get_parent(), key})
+  end
+
+  @spec put_config(key :: any(), value :: any()) :: :ok
+  def put_config(key, value) do
+    put({:config, key}, value)
+  end
+
+  @spec get_config(key :: any()) :: any()
+  def get_config(key) do
+    get({:config, key})
+  end
+
   @spec start_service(module :: module(), opts :: map()) :: :ok
   def start_service(module, opts \\ %{}) do
     current_pid = self()
@@ -37,9 +52,9 @@ defmodule ExshomeTest.TestRegistry do
     put({:service, module}, pid)
   end
 
-  @spec get(key :: any()) :: any()
-  def get(key) do
-    lookup({:value, get_parent(), key})
+  @spec get_service(module()) :: pid()
+  def get_service(module) do
+    get({:service, module})
   end
 
   @spec get_parent() :: pid()
@@ -50,11 +65,6 @@ defmodule ExshomeTest.TestRegistry do
   @spec get_parent(pid()) :: pid()
   def get_parent(pid) do
     lookup({:parent, pid})
-  end
-
-  @spec get_service(module()) :: pid()
-  def get_service(module) do
-    get({:service, module})
   end
 
   defp lookup(key) do
