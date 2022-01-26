@@ -8,6 +8,9 @@ defmodule ExshomeTest.TestRegistry do
     Registry.child_spec(keys: :unique, name: __MODULE__)
   end
 
+  @spec started?() :: boolean()
+  def started?, do: !!Process.whereis(__MODULE__)
+
   @spec allow(parent :: pid(), allow :: pid()) :: :ok
   def allow(parent, allow) when is_pid(parent) and is_pid(allow) do
     {:ok, _} = Registry.register(__MODULE__, {:parent, allow}, parent)
@@ -24,16 +27,6 @@ defmodule ExshomeTest.TestRegistry do
   @spec get(key :: any()) :: any()
   def get(key) do
     lookup({:value, get_parent(), key})
-  end
-
-  @spec put_config(key :: any(), value :: any()) :: :ok
-  def put_config(key, value) do
-    put({:config, key}, value)
-  end
-
-  @spec get_config(key :: any()) :: any()
-  def get_config(key) do
-    get({:config, key})
   end
 
   @spec start_service(module :: module(), opts :: map()) :: :ok

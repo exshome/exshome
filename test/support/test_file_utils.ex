@@ -18,14 +18,14 @@ defmodule ExshomeTest.TestFileUtils do
       ])
 
     File.mkdir_p!(test_path)
-    ExshomeTest.TestRegistry.put_config(__MODULE__, test_path)
+    ExshomeTest.TestRegistry.put(__MODULE__, test_path)
     ExUnit.Callbacks.on_exit(fn -> File.rm_rf!(test_folder_name) end)
     test_path
   end
 
   @spec get_test_folder() :: String.t()
   def get_test_folder do
-    ExshomeTest.TestRegistry.get_config(__MODULE__)
+    ExshomeTest.TestRegistry.get(__MODULE__)
   end
 
   defp sanitize_filder_name(name) when is_atom(name) do
