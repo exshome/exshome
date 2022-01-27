@@ -3,8 +3,9 @@ defmodule Exshome.Repo.Migrations.CreateServiceSettings do
 
   def change do
     create table(:service_settings, primary_key: false) do
-      add :id, :binary_id, primary_key: true
-      add :settings, :map
+      add :name, :string, primary_key: true
+      add :data, :map
+      add :version, :integer
 
       timestamps()
     end
