@@ -30,9 +30,12 @@ defmodule Exshome.SettingsTest do
       %{settings: settings}
     end
 
-    test "adds extra fields, keeps exsisting ones", %{settings: %Settings{name: name, data: data}} do
+    test "adds extra fields, keeps exsisting ones", %{
+      settings: %Settings{name: name, data: data, version: version}
+    } do
       extra_data = %{"key_#{Fixtures.unique_integer()}" => "extra value"}
-      assert %Settings{data: new_data} = Settings.update!(name, extra_data)
+      assert %Settings{data: new_data, version: new_version} = Settings.update!(name, extra_data)
+      assert new_version > version
       compare_data(data, new_data)
       compare_data(extra_data, new_data)
     end

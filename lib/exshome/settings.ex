@@ -46,7 +46,7 @@ defmodule Exshome.Settings do
         s in __MODULE__,
         where: s.name == ^name and s.version == ^settings.version,
         select: s,
-        update: [set: [data: ^data]]
+        update: [set: [data: ^data], inc: [version: 1]]
       )
       |> Repo.update_all([])
 
