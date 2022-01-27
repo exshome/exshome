@@ -36,20 +36,27 @@ defmodule Exshome.Settings do
     end
   end
 
-  @spec update!(name :: String.t(), partial_data :: map()) :: t()
-  def update!(name, partial_data) do
-    %__MODULE__{} = settings = Repo.get!(__MODULE__, name)
-    data = Map.merge(settings.data, partial_data)
+  @spec update!(name :: String.t(), (map() -> map()) | map()) :: t() | {:error, atom()}
+  def update!(name, partial_data) when is_map(partial_data) do
+    update!(name, &Map.merge(&1, partial_data))
+  end
 
-    {1, [result]} =
+  def update!(name, update_fn) do
+    %__MODULE__{data: data, version: version} = Repo.get!(__MODULE__, name)
+    data = update_fn.(data)
+
+    result =
       from(
         s in __MODULE__,
-        where: s.name == ^name and s.version == ^settings.version,
+        where: s.name == ^name and s.version == ^version,
         select: s,
         update: [set: [data: ^data], inc: [version: 1]]
       )
       |> Repo.update_all([])
 
-    result
+    case result do
+      {1, [settings]} -> settings
+      _ -> {:error, :outdated_settings}
+    end
   end
 end

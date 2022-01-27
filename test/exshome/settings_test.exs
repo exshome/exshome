@@ -57,6 +57,35 @@ defmodule Exshome.SettingsTest do
                Settings.update!(name, %{existing_key => random_value})
     end
 
+    test "fails to update while a race condition", %{settings: %Settings{name: name}} do
+      ref = make_ref()
+      test_pid = self()
+
+      update_fn = fn data ->
+        send(test_pid, {self(), ref})
+
+        receive do
+          ^ref ->
+            %{}
+        end
+      end
+
+      task =
+        Task.async(fn ->
+          ExshomeTest.TestRegistry.allow(test_pid, self())
+          Settings.update!(name, update_fn)
+        end)
+
+      receive do
+        {pid, ^ref} ->
+          Settings.update!(name, %{})
+          send(pid, ref)
+      end
+
+      result = Task.await(task)
+      assert {:error, _reason} = result
+    end
+
     defp compare_data(%{} = expected, %{} = existing) do
       data =
         for key <- Map.keys(expected), into: %{} do
