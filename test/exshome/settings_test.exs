@@ -87,4 +87,28 @@ defmodule Exshome.SettingsTest do
       assert expected == data
     end
   end
+
+  describe "work with settings modules" do
+    test "we can save default settings for each module" do
+      for module <- Settings.available_modules() do
+        assert %{__struct__: ^module} =
+                 module |> Settings.get_settings() |> Settings.save_settings()
+      end
+    end
+  end
+
+  describe "__using__/1" do
+    test "macro works well" do
+      require Settings
+
+      result =
+        quote do
+          Settings.__using__(fields: [[name: :data, db_type: :string, type: String.t()]])
+        end
+        |> Macro.expand(__ENV__)
+        |> Macro.to_string()
+
+      assert result
+    end
+  end
 end
