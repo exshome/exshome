@@ -61,7 +61,7 @@ defmodule Exshome.SettingsTest do
       ref = make_ref()
       test_pid = self()
 
-      update_fn = fn data ->
+      update_fn = fn _data ->
         send(test_pid, {self(), ref})
 
         receive do
@@ -82,8 +82,7 @@ defmodule Exshome.SettingsTest do
           send(pid, ref)
       end
 
-      result = Task.await(task)
-      assert {:error, _reason} = result
+      assert {:error, _reason} = Task.await(task)
     end
 
     defp compare_data(%{} = expected, %{} = existing) do
