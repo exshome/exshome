@@ -10,32 +10,25 @@ defmodule Exshome.SettingsTest do
       default_data = %{"key_#{Fixtures.unique_integer()}" => "some_value"}
       create_result = Settings.get_or_create(settings_name, default_data)
 
-      assert %Settings{
-               name: ^settings_name,
-               data: ^default_data,
-               version: 1
-             } = create_result
+      assert default_data = create_result
 
       another_data = %{"key_#{Fixtures.unique_integer()}" => "some_value"}
       existing_result = Settings.get_or_create(settings_name, another_data)
-      assert create_result == existing_result
+      assert default_data == existing_result
     end
   end
 
   describe "settings update!/2" do
     setup do
-      settings_name = "settings_#{Fixtures.unique_integer()}"
+      name = "settings_#{Fixtures.unique_integer()}"
       default_data = %{"key_#{Fixtures.unique_integer()}" => "some_value"}
-      settings = Settings.get_or_create(settings_name, default_data)
-      %{settings: settings}
+      data = Settings.get_or_create(name, default_data)
+      %{name: name, data: data}
     end
 
-    test "adds extra fields, keeps exsisting ones", %{
-      settings: %Settings{name: name, data: data, version: version}
-    } do
+    test "adds extra fields, keeps exsisting ones", %{name: name, data: data} do
       extra_data = %{"key_#{Fixtures.unique_integer()}" => "extra value"}
-      assert %Settings{data: new_data, version: new_version} = Settings.update!(name, extra_data)
-      assert new_version > version
+      assert new_data = Settings.update!(name, extra_data)
       compare_data(data, new_data)
       compare_data(extra_data, new_data)
     end
@@ -48,16 +41,16 @@ defmodule Exshome.SettingsTest do
       end)
     end
 
-    test "updates the existing value", %{settings: %Settings{name: name, data: data}} do
+    test "updates the existing value", %{name: name, data: data} do
       existing_key = data |> Map.keys() |> List.first()
       random_value = Fixtures.unique_integer()
       refute data[existing_key] == random_value
 
-      assert %Settings{data: %{^existing_key => ^random_value}} =
-               Settings.update!(name, %{existing_key => random_value})
+      new_data = %{existing_key => random_value}
+      assert ^new_data = Settings.update!(name, new_data)
     end
 
-    test "fails to update while a race condition", %{settings: %Settings{name: name}} do
+    test "fails to update while a race condition", %{name: name} do
       ref = make_ref()
       test_pid = self()
 

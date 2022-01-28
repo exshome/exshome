@@ -21,22 +21,25 @@ defmodule Exshome.Settings do
           name: String.t()
         }
 
-  @spec get_or_create(name :: String.t(), default_data :: map()) :: t()
+  @spec get_or_create(name :: String.t(), default_data :: map()) :: map()
   def get_or_create(name, default_data) do
-    case Repo.get(__MODULE__, name) do
-      nil ->
-        Repo.insert!(%__MODULE__{
-          name: name,
-          data: default_data,
-          version: 1
-        })
+    %__MODULE__{data: data} =
+      case Repo.get(__MODULE__, name) do
+        nil ->
+          Repo.insert!(%__MODULE__{
+            name: name,
+            data: default_data,
+            version: 1
+          })
 
-      settings ->
-        settings
-    end
+        settings ->
+          settings
+      end
+
+    data
   end
 
-  @spec update!(name :: String.t(), (map() -> map()) | map()) :: t() | {:error, atom()}
+  @spec update!(name :: String.t(), (map() -> map()) | map()) :: map() | {:error, atom()}
   def update!(name, partial_data) when is_map(partial_data) do
     update!(name, &Map.merge(&1, partial_data))
   end
@@ -55,7 +58,7 @@ defmodule Exshome.Settings do
       |> Repo.update_all([])
 
     case result do
-      {1, [settings]} -> settings
+      {1, [%__MODULE__{data: data}]} -> data
       _ -> {:error, :outdated_settings}
     end
   end
