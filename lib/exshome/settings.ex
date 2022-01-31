@@ -9,6 +9,7 @@ defmodule Exshome.Settings do
   alias Exshome.Repo
 
   @callback default_values() :: %{atom() => any()}
+  @callback validate(Ecto.Changeset.t(t())) :: Ecto.Changeset.t(t())
 
   @primary_key {:name, :string, []}
   schema "service_settings" do
@@ -72,14 +73,43 @@ defmodule Exshome.Settings do
     |> get_module_name()
     |> get_or_create(module.default_values())
     |> from_map(module)
+    |> set_default_values_for_errors()
   end
 
-  @spec save_settings(Ecto.Schema.t()) :: Ecto.Schema.t()
+  @spec save_settings(Ecto.Schema.t()) :: Ecto.Schema.t() | {:error, Ecto.Changeset.t()}
   def save_settings(%module{} = data) do
-    module
-    |> get_module_name()
-    |> update!(data)
-    |> from_map(module)
+    case validate(data) do
+      {:ok, data} ->
+        module
+        |> get_module_name()
+        |> update!(data)
+        |> from_map(module)
+
+      {:error, changeset} ->
+        {:error, changeset}
+    end
+  end
+
+  @spec get_module_name(module()) :: String.t()
+  def get_module_name(module), do: Atom.to_string(module)
+
+  @spec set_default_values_for_errors(Ecto.Schema.t()) :: Ecto.Schema.t()
+  defp set_default_values_for_errors(%module{} = data) do
+    case validate(data) do
+      {:ok, result} ->
+        result
+
+      {:error, %Ecto.Changeset{} = changeset} ->
+        default_values =
+          for field <- Keyword.keys(changeset.errors), into: %{} do
+            {field, module.default_values()[field]}
+          end
+
+        module
+        |> get_module_name()
+        |> update!(default_values)
+        |> from_map(module)
+    end
   end
 
   defp from_map(data, module) do
@@ -89,7 +119,13 @@ defmodule Exshome.Settings do
     |> apply_changes()
   end
 
-  defp get_module_name(module), do: Atom.to_string(module)
+  defp validate(%module{} = data) do
+    module
+    |> struct(%{})
+    |> Ecto.Changeset.cast(Map.from_struct(data), Map.keys(module.default_values()))
+    |> module.validate()
+    |> Ecto.Changeset.apply_action(:update)
+  end
 
   @spec available_modules() :: MapSet.t(atom())
   def available_modules do
@@ -103,6 +139,7 @@ defmodule Exshome.Settings do
     quote do
       alias Exshome.Settings
       use Exshome.Schema
+      import Ecto.Changeset
 
       import Exshome.Tag, only: [add_tag: 1]
       @behaviour Settings

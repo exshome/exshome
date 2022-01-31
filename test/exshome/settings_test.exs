@@ -1,4 +1,4 @@
-defmodule Exshome.SettingsTest do
+defmodule ExshomeTest.SettingsTest do
   use Exshome.DataCase, async: true
 
   alias Exshome.Settings
