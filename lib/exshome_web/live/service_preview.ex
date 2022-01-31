@@ -14,7 +14,7 @@ defmodule ExshomeWeb.Live.ServicePreview do
     socket =
       socket
       |> ServicePageLive.put_callback_module(callback_module)
-      |> ServicePageLive.subscribe_to_dependencies(callback_module)
+      |> ServicePageLive.subscribe_to_dependencies()
       |> ServicePageLive.put_template_name("preview.html")
 
     {:ok, socket}

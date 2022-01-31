@@ -7,7 +7,7 @@ defmodule ExshomeWeb.Live.ServicePageLive do
   alias Phoenix.LiveView.Socket
 
   @callback base_prefix() :: atom()
-  @callback dependencies() :: %{module() => atom()}
+  @callback actions() :: %{atom() => %{module() => atom()}}
   @callback name() :: String.t()
   @callback view_module() :: module()
 
@@ -24,11 +24,9 @@ defmodule ExshomeWeb.Live.ServicePageLive do
         _url,
         %Socket{assigns: %{live_action: live_action}} = socket
       ) do
-    callback_module = get_callback_module(socket)
-
     socket =
       socket
-      |> subscribe_to_dependencies(callback_module)
+      |> subscribe_to_dependencies()
       |> put_template_name("#{live_action}.html")
 
     {:noreply, socket}
@@ -36,7 +34,7 @@ defmodule ExshomeWeb.Live.ServicePageLive do
 
   @impl Phoenix.LiveView
   def handle_info({module, value}, %Socket{assigns: %{deps: deps}} = socket) do
-    dependencies = get_callback_module(socket).dependencies()
+    dependencies = get_dependencies(socket)
     deps = Map.put(deps, Map.fetch!(dependencies, module), value)
     {:noreply, assign(socket, deps: deps)}
   end
@@ -56,14 +54,20 @@ defmodule ExshomeWeb.Live.ServicePageLive do
   @spec get_callback_module(Socket.t()) :: module()
   defp get_callback_module(%Socket{} = socket), do: socket.private.callback_module
 
-  @spec subscribe_to_dependencies(Socket.t(), module()) :: Socket.t()
-  def subscribe_to_dependencies(%Socket{} = socket, callback_module) do
+  @spec subscribe_to_dependencies(Socket.t()) :: Socket.t()
+  def subscribe_to_dependencies(%Socket{} = socket) do
     deps =
-      for {module, key} <- callback_module.dependencies(), into: %{} do
+      for {module, key} <- get_dependencies(socket), into: %{} do
         {key, module.subscribe()}
       end
 
     assign(socket, deps: deps)
+  end
+
+  @spec get_dependencies(Socket.t()) :: map()
+  defp get_dependencies(%Socket{} = socket) do
+    get_callback_module(socket).actions
+    |> Map.fetch!(socket.assigns.live_action || :preview)
   end
 
   @spec put_template_name(socket :: Socket.t(), template_name :: String.t()) :: Socket.t()
@@ -87,7 +91,11 @@ defmodule ExshomeWeb.Live.ServicePageLive do
     |> Map.fetch!(module_name)
   end
 
-  defmacro __using__(prefix) when is_atom(prefix) do
+  defmacro __using__(settings) do
+    prefix = settings[:prefix]
+    view_module = settings[:view_module]
+    actions = settings[:actions]
+
     quote do
       import Exshome.Tag, only: [add_tag: 1]
       alias ExshomeWeb.Live.ServicePageLive
@@ -110,6 +118,12 @@ defmodule ExshomeWeb.Live.ServicePageLive do
           [conn_or_endpoint, action, params]
         )
       end
+
+      @impl ServicePageLive
+      def actions, do: unquote(actions)
+
+      @impl ServicePageLive
+      def view_module, do: unquote(view_module)
     end
   end
 end
