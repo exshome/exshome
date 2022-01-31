@@ -97,6 +97,9 @@ defmodule Exshome.Settings do
   end
 
   defmacro __using__(fields: fields) do
+    database_fields = Enum.map(fields, &{&1[:name], &1[:db_type]})
+    typespec = Enum.map(fields, &{&1[:name], &1[:type]})
+
     quote do
       alias Exshome.Settings
       use Exshome.Schema
@@ -108,14 +111,12 @@ defmodule Exshome.Settings do
       @primary_key false
       embedded_schema do
         @derive {Jason.Encoder, only: Map.keys(@default_values)}
-        for {field_name, db_type} <- unquote(Enum.map(fields, &{&1[:name], &1[:db_type]})) do
+        for {field_name, db_type} <- unquote(database_fields) do
           field(field_name, db_type)
         end
       end
 
-      @type t() :: %__MODULE__{
-              unquote_splicing(Enum.map(fields, &{&1[:name], &1[:type]}))
-            }
+      @type t() :: %__MODULE__{unquote_splicing(typespec)}
 
       add_tag(Settings)
 
