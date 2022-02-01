@@ -104,6 +104,12 @@ defmodule ExshomeTest.SettingsTest do
                  |> Settings.valid_changes?()
       end
     end
+
+    test "unable to work with invalid settings module" do
+      assert_raise RuntimeError, fn ->
+        Settings.get_settings(:unknown_module)
+      end
+    end
   end
 
   describe "__using__/1" do

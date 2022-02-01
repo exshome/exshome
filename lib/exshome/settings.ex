@@ -91,7 +91,13 @@ defmodule Exshome.Settings do
   end
 
   @spec get_module_name(module()) :: String.t()
-  def get_module_name(module), do: Atom.to_string(module)
+  def get_module_name(module) do
+    if module in available_modules() do
+      Atom.to_string(module)
+    else
+      raise "#{inspect(module)} is not valid settings!"
+    end
+  end
 
   @spec set_default_values_for_errors(Ecto.Schema.t()) :: Ecto.Schema.t()
   defp set_default_values_for_errors(%module{} = data) do
