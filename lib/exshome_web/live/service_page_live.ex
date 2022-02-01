@@ -96,6 +96,8 @@ defmodule ExshomeWeb.Live.ServicePageLive do
     view_module = settings[:view_module]
     actions = settings[:actions]
 
+    validate_settings!(prefix, view_module, actions)
+
     quote do
       import Exshome.Tag, only: [add_tag: 1]
       alias ExshomeWeb.Live.ServicePageLive
@@ -104,6 +106,11 @@ defmodule ExshomeWeb.Live.ServicePageLive do
       add_tag({{ServicePageLive, :module}, @name})
       add_tag(ServicePageLive)
       @behaviour ServicePageLive
+      @actions unquote(actions)
+               |> Enum.map(fn {action, deps} ->
+                 {action, Enum.into(deps, %{})}
+               end)
+               |> Enum.into(%{})
 
       @impl ServicePageLive
       def base_prefix, do: unquote(prefix)
@@ -120,10 +127,71 @@ defmodule ExshomeWeb.Live.ServicePageLive do
       end
 
       @impl ServicePageLive
-      def actions, do: unquote(actions)
+      def actions, do: @actions
 
       @impl ServicePageLive
       def view_module, do: unquote(view_module)
+    end
+  end
+
+  defp validate_settings!(prefix, view_module, actions) do
+    if !is_atom(prefix) do
+      raise "Prefix should be an atom, but got #{inspect(prefix)}."
+    end
+
+    view_module = Macro.expand(view_module, __ENV__)
+
+    if !is_atom(view_module) do
+      raise "View module should be a module: #{inspect(view_module)}"
+    end
+
+    available_actions = actions |> Keyword.keys() |> MapSet.new()
+    required_actions = MapSet.new([:index, :preview])
+    missing_actions = MapSet.difference(required_actions, available_actions)
+
+    if MapSet.size(missing_actions) > 0 do
+      raise "Some required actions are missing: #{inspect(missing_actions)}, please add them."
+    end
+
+    for {action, dependencies} <- actions do
+      validate_action_settings!(dependencies)
+    end
+  end
+
+  defp validate_action_settings!(dependencies) do
+    dependencies =
+      Enum.map(
+        dependencies,
+        fn {key, value} -> {Macro.expand(key, __ENV__), value} end
+      )
+
+    dependency_keys = Enum.map(dependencies, fn {_, key} -> key end)
+
+    invalid_dependency_keys = Enum.filter(dependency_keys, &(!is_atom(&1)))
+
+    if !Enum.empty?(invalid_dependency_keys) do
+      raise "invalid dependency keys: #{inspect(invalid_dependency_keys)}, they should be atoms."
+    end
+
+    duplicated_dependency_keys =
+      dependency_keys
+      |> Enum.frequencies()
+      |> Enum.filter(fn {_key, count} -> count > 1 end)
+      |> Enum.map(fn {key, _count} -> key end)
+
+    if !Enum.empty?(duplicated_dependency_keys) do
+      raise "duplicate dependency keys: #{inspect(duplicated_dependency_keys)}"
+    end
+
+    duplicated_dependencies =
+      dependencies
+      |> Enum.map(fn {key, _} -> key end)
+      |> Enum.frequencies()
+      |> Enum.filter(fn {_key, count} -> count > 1 end)
+      |> Enum.map(fn {key, _count} -> key end)
+
+    if !Enum.empty?(duplicated_dependencies) do
+      raise "duplicate dependencies: #{inspect(duplicated_dependencies)}"
     end
   end
 end
