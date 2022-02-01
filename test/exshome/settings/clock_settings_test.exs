@@ -17,10 +17,11 @@ defmodule ExshomeTest.Settings.ClockSettingsTest do
   test "reverts invalid timezone to a default value" do
     name = Settings.get_module_name(ClockSettings)
 
-    assert %{timezone: "nonexisting"} = Settings.get_or_create(name, %{timezone: "nonexisting"})
+    assert %{timezone: "nonexisting"} =
+             Settings.Schema.get_or_create(name, %{timezone: "nonexisting"})
 
     default_timezone = ClockSettings.default_values().timezone
     assert %ClockSettings{timezone: ^default_timezone} = Settings.get_settings(ClockSettings)
-    assert %{"timezone" => ^default_timezone} = Settings.get_or_create(name, %{})
+    assert %{"timezone" => ^default_timezone} = Settings.Schema.get_or_create(name, %{})
   end
 end

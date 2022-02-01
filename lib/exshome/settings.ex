@@ -1,77 +1,18 @@
 defmodule Exshome.Settings do
   @moduledoc """
-  Schema for storing application settings.
+  Settings module.
   """
-  use Exshome.Schema
   import Ecto.Changeset
-
-  import Ecto.Query, warn: false
-  alias Exshome.Repo
+  alias Exshome.Settings.Schema
 
   @callback default_values() :: %{atom() => any()}
-  @callback changeset(Ecto.Changeset.t(t())) :: Ecto.Changeset.t(t())
-
-  @primary_key {:name, :string, []}
-  schema "service_settings" do
-    field(:data, :map)
-    field(:version, :integer)
-
-    timestamps()
-  end
-
-  @type t() :: %__MODULE__{
-          data: map(),
-          version: integer(),
-          name: String.t()
-        }
-
-  @spec get_or_create(name :: String.t(), default_data :: map()) :: map()
-  def get_or_create(name, default_data) do
-    %__MODULE__{data: data} =
-      case Repo.get(__MODULE__, name) do
-        nil ->
-          Repo.insert!(%__MODULE__{
-            name: name,
-            data: default_data,
-            version: 1
-          })
-
-        settings ->
-          settings
-      end
-
-    data
-  end
-
-  @spec update!(name :: String.t(), (map() -> map()) | map()) :: map() | {:error, atom()}
-  def update!(name, partial_data) when is_map(partial_data) do
-    update!(name, &Map.merge(&1, partial_data))
-  end
-
-  def update!(name, update_fn) do
-    %__MODULE__{data: data, version: version} = Repo.get!(__MODULE__, name)
-    data = update_fn.(data)
-
-    result =
-      from(
-        s in __MODULE__,
-        where: s.name == ^name and s.version == ^version,
-        select: s,
-        update: [set: [data: ^data], inc: [version: 1]]
-      )
-      |> Repo.update_all([])
-
-    case result do
-      {1, [%__MODULE__{data: data}]} -> data
-      _ -> {:error, :outdated_settings}
-    end
-  end
+  @callback changeset(Ecto.Changeset.t()) :: Ecto.Changeset.t()
 
   @spec get_settings(arg :: module()) :: Ecto.Schema.t()
   def get_settings(module) when is_atom(module) do
     module
     |> get_module_name()
-    |> get_or_create(module.default_values())
+    |> Schema.get_or_create(module.default_values())
     |> from_map(module)
     |> set_default_values_for_errors()
   end
@@ -82,7 +23,7 @@ defmodule Exshome.Settings do
       {:ok, data} ->
         module
         |> get_module_name()
-        |> update!(data)
+        |> Schema.update!(data)
         |> from_map(module)
 
       {:error, changeset} ->
@@ -113,7 +54,7 @@ defmodule Exshome.Settings do
 
         module
         |> get_module_name()
-        |> update!(default_values)
+        |> Schema.update!(default_values)
         |> from_map(module)
     end
   end
