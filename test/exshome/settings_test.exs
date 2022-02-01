@@ -95,6 +95,15 @@ defmodule ExshomeTest.SettingsTest do
                  module |> Settings.get_settings() |> Settings.save_settings()
       end
     end
+
+    test "default settings are valid" do
+      for module <- Settings.available_modules() do
+        assert {:ok, %{__struct__: ^module}} =
+                 module
+                 |> struct(module.default_values())
+                 |> Settings.valid_changes?()
+      end
+    end
   end
 
   describe "__using__/1" do

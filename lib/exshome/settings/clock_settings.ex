@@ -9,8 +9,8 @@ defmodule Exshome.Settings.ClockSettings do
     ]
 
   @impl Settings
-  def validate(%Ecto.Changeset{} = changeset) do
-    changeset
+  def changeset(%Ecto.Changeset{} = data) do
+    data
     |> validate_inclusion(:timezone, TzExtra.time_zone_identifiers())
   end
 end

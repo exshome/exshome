@@ -9,7 +9,7 @@ defmodule Exshome.Settings do
   alias Exshome.Repo
 
   @callback default_values() :: %{atom() => any()}
-  @callback validate(Ecto.Changeset.t(t())) :: Ecto.Changeset.t(t())
+  @callback changeset(Ecto.Changeset.t(t())) :: Ecto.Changeset.t(t())
 
   @primary_key {:name, :string, []}
   schema "service_settings" do
@@ -78,7 +78,7 @@ defmodule Exshome.Settings do
 
   @spec save_settings(Ecto.Schema.t()) :: Ecto.Schema.t() | {:error, Ecto.Changeset.t()}
   def save_settings(%module{} = data) do
-    case validate(data) do
+    case valid_changes?(data) do
       {:ok, data} ->
         module
         |> get_module_name()
@@ -95,7 +95,7 @@ defmodule Exshome.Settings do
 
   @spec set_default_values_for_errors(Ecto.Schema.t()) :: Ecto.Schema.t()
   defp set_default_values_for_errors(%module{} = data) do
-    case validate(data) do
+    case valid_changes?(data) do
       {:ok, result} ->
         result
 
@@ -119,11 +119,15 @@ defmodule Exshome.Settings do
     |> apply_changes()
   end
 
-  defp validate(%module{} = data) do
+  @spec valid_changes?(struct()) :: {:ok, map()} | {:error, Ecto.Changeset.t()}
+  def valid_changes?(%module{} = data) do
+    available_keys = Map.keys(module.default_values())
+
     module
     |> struct(%{})
-    |> Ecto.Changeset.cast(Map.from_struct(data), Map.keys(module.default_values()))
-    |> module.validate()
+    |> Ecto.Changeset.cast(Map.from_struct(data), available_keys)
+    |> Ecto.Changeset.validate_required(available_keys)
+    |> module.changeset()
     |> Ecto.Changeset.apply_action(:update)
   end
 
