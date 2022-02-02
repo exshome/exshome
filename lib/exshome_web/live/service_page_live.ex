@@ -88,6 +88,14 @@ defmodule ExshomeWeb.Live.ServicePageLive do
     Exshome.Named.get_module_by_type_and_name(__MODULE__, module_name)
   end
 
+  @spec actions_with_pages(module()) :: [atom()]
+  def actions_with_pages(module) do
+    module.actions()
+    |> Map.keys()
+    |> Enum.filter(&(&1 != :preview))
+    |> Enum.sort()
+  end
+
   defmacro __using__(settings) do
     prefix = settings[:prefix]
     view_module = settings[:view_module]

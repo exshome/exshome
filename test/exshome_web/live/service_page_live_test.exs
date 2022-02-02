@@ -3,6 +3,14 @@ defmodule ExshomeWebTest.Live.ServicePageLiveTest do
   alias ExshomeWeb.Live.ServicePageLive
   import ExshomeTest.MacroHelpers, only: [compile_with_settings: 2]
 
+  describe "actions_with_pages/1" do
+    test "does not have :preview" do
+      for module <- ServicePageLive.service_pages() do
+        assert :preview not in ServicePageLive.actions_with_pages(module)
+      end
+    end
+  end
+
   describe "__using__/1" do
     test "valid settings, empty dependencies" do
       compile_with_settings(
