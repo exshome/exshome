@@ -34,7 +34,7 @@ defmodule Exshome.Settings do
   @spec get_module_name(module()) :: String.t()
   def get_module_name(module) do
     if module in available_modules() do
-      Atom.to_string(module)
+      module.name()
     else
       raise "#{inspect(module)} is not valid settings!"
     end
@@ -83,13 +83,16 @@ defmodule Exshome.Settings do
     Exshome.Tag.tag_mapping() |> Map.fetch!(__MODULE__)
   end
 
-  defmacro __using__(fields: fields) do
+  defmacro __using__(settings) do
+    name = Keyword.fetch!(settings, :name)
+    fields = Keyword.fetch!(settings, :fields)
     database_fields = Enum.map(fields, &{&1[:name], &1[:db_type]})
     typespec = Enum.map(fields, &{&1[:name], &1[:type]})
 
     quote do
       alias Exshome.Settings
       use Exshome.Schema
+      use Exshome.Named, unquote(name)
       import Ecto.Changeset
 
       import Exshome.Tag, only: [add_tag: 1]
