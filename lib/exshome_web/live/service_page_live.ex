@@ -8,7 +8,6 @@ defmodule ExshomeWeb.Live.ServicePageLive do
 
   @callback base_prefix() :: atom()
   @callback actions() :: %{atom() => %{module() => atom()}}
-  @callback name() :: String.t()
   @callback view_module() :: module()
 
   def on_mount(callback_module, _params, _session, socket) do
@@ -86,9 +85,7 @@ defmodule ExshomeWeb.Live.ServicePageLive do
 
   @spec get_module_by_name(String.t()) :: module()
   def get_module_by_name(module_name) when is_binary(module_name) do
-    Exshome.Tag.tag_mapping()
-    |> Map.fetch!({__MODULE__, :module})
-    |> Map.fetch!(module_name)
+    Exshome.Named.get_module_by_type_and_name(__MODULE__, module_name)
   end
 
   defmacro __using__(settings) do
@@ -102,8 +99,7 @@ defmodule ExshomeWeb.Live.ServicePageLive do
       import Exshome.Tag, only: [add_tag: 1]
       alias ExshomeWeb.Live.ServicePageLive
 
-      @name "#{unquote(prefix)}"
-      add_tag({{ServicePageLive, :module}, @name})
+      use Exshome.Named, "service_page_live_#{unquote(prefix)}"
       add_tag(ServicePageLive)
       @behaviour ServicePageLive
       @actions unquote(actions)
@@ -115,13 +111,10 @@ defmodule ExshomeWeb.Live.ServicePageLive do
       @impl ServicePageLive
       def base_prefix, do: unquote(prefix)
 
-      @impl ServicePageLive
-      def name, do: @name
-
       def path(conn_or_endpoint, action, params \\ []) do
         apply(
           ExshomeWeb.Router.Helpers,
-          :"#{@name}_path",
+          :"#{unquote(prefix)}_path",
           [conn_or_endpoint, action, params]
         )
       end
@@ -153,7 +146,7 @@ defmodule ExshomeWeb.Live.ServicePageLive do
       raise "Some required actions are missing: #{inspect(missing_actions)}, please add them."
     end
 
-    for {action, dependencies} <- actions do
+    for {_action, dependencies} <- actions do
       validate_action_settings!(dependencies)
     end
   end

@@ -1,12 +1,12 @@
 defmodule ExshomeWebTest.Live.ServicePageLiveTest do
   use ExUnit.Case, async: true
   alias ExshomeWeb.Live.ServicePageLive
+  import ExshomeTest.MacroHelpers, only: [compile_with_settings: 2]
 
   describe "__using__/1" do
-    require ServicePageLive
-
     test "valid settings, empty dependencies" do
       compile_with_settings(
+        ServicePageLive,
         prefix: :some_prefix,
         view_module: ExshomeWeb.ClockView,
         actions: [
@@ -18,6 +18,7 @@ defmodule ExshomeWebTest.Live.ServicePageLiveTest do
 
     test "valid settings with dependencies" do
       compile_with_settings(
+        ServicePageLive,
         prefix: :some_prefix,
         view_module: ExshomeWeb.ClockView,
         actions: [
@@ -32,13 +33,14 @@ defmodule ExshomeWebTest.Live.ServicePageLiveTest do
 
     test "invalid prefix" do
       assert_raise RuntimeError, ~r/"invalid_prefix"/, fn ->
-        compile_with_settings(prefix: "invalid_prefix")
+        compile_with_settings(ServicePageLive, prefix: "invalid_prefix")
       end
     end
 
     test "invalid view module" do
       assert_raise RuntimeError, ~r/"invalid_view_module"/, fn ->
         compile_with_settings(
+          ServicePageLive,
           prefix: :valid_prefix,
           view_module: "invalid_view_module"
         )
@@ -48,6 +50,7 @@ defmodule ExshomeWebTest.Live.ServicePageLiveTest do
     test "missing required actions" do
       assert_raise RuntimeError, ~r/:index, :preview/, fn ->
         compile_with_settings(
+          ServicePageLive,
           prefix: :valid_prefix,
           view_module: ExshomeWeb.ClockView,
           actions: []
@@ -58,6 +61,7 @@ defmodule ExshomeWebTest.Live.ServicePageLiveTest do
     test "invalid dependency key" do
       assert_raise RuntimeError, ~r/"invalid_dependency_key"/, fn ->
         compile_with_settings(
+          ServicePageLive,
           prefix: :valid_prefix,
           view_module: ExshomeWeb.ClockView,
           actions: [
@@ -73,6 +77,7 @@ defmodule ExshomeWebTest.Live.ServicePageLiveTest do
     test "duplicate dependency keys" do
       assert_raise RuntimeError, ~r/:duplicate_dependency_key/, fn ->
         compile_with_settings(
+          ServicePageLive,
           prefix: :valid_prefix,
           view_module: ExshomeWeb.ClockView,
           actions: [
@@ -89,6 +94,7 @@ defmodule ExshomeWebTest.Live.ServicePageLiveTest do
     test "duplicate dependencies" do
       assert_raise RuntimeError, ~r/DuplicateDependency/, fn ->
         compile_with_settings(
+          ServicePageLive,
           prefix: :valid_prefix,
           view_module: ExshomeWeb.ClockView,
           actions: [
@@ -100,14 +106,6 @@ defmodule ExshomeWebTest.Live.ServicePageLiveTest do
           ]
         )
       end
-    end
-
-    defp compile_with_settings(settings) do
-      quote do
-        ServicePageLive.__using__(unquote(settings))
-      end
-      |> Macro.expand(__ENV__)
-      |> Macro.to_string()
     end
   end
 end

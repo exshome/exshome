@@ -1,5 +1,6 @@
 defmodule ExshomeTest.SettingsTest do
   use Exshome.DataCase, async: true
+  import ExshomeTest.MacroHelpers, only: [compile_with_settings: 2]
 
   alias Exshome.Settings
 
@@ -29,14 +30,12 @@ defmodule ExshomeTest.SettingsTest do
 
   describe "__using__/1" do
     test "macro works well" do
-      require Settings
-
       result =
-        quote do
-          Settings.__using__(fields: [[name: :data, db_type: :string, type: String.t()]])
-        end
-        |> Macro.expand(__ENV__)
-        |> Macro.to_string()
+        compile_with_settings(
+          Settings,
+          name: "some name",
+          fields: [[name: :data, db_type: :string, type: String]]
+        )
 
       assert result
     end
