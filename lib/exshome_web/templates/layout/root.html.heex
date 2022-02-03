@@ -10,7 +10,7 @@
     <script defer phx-track-static type="text/javascript" src={Routes.static_path(@conn, "/assets/app.js")}></script>
   </head>
   <body class="bg-white dark:bg-black h-full flex flex-col dark:text-gray-200">
-    <%= render "_navbar.html", conn: @conn %>
+    <%= render "_theme_picker.html" %>
     <%= @inner_content %>
   </body>
 </html>

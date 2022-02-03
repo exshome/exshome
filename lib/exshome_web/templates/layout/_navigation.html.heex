@@ -1,0 +1,19 @@
+<% alias ExshomeWeb.Live.ServicePageLive %>
+<%= if @socket.view == ServicePageLive do %>
+  <% module = @socket.private.callback_module %>
+  <div class="fixed top-0 py-6 mx-4 flex">
+    <div>
+      <%= live_redirect(to: Routes.home_path(@socket, :index)) do %>
+        &#x1F3E0;
+      <% end %>
+    </div>
+    <%= for action <- ServicePageLive.actions_with_pages(module) do %>
+      <div class="px-3">
+        <%= live_redirect(to: module.path(@socket, action)) do %>
+          <%= if action == @live_action, do: "*" %>
+          <%= Atom.to_string(action) %>
+        <% end %>
+      </div>
+    <% end %>
+  </div>
+<% end %>
