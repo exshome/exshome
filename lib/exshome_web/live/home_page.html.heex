@@ -1,6 +1,6 @@
 <div class="flex flex-wrap justify-center">
   <%= for service_module <- @services do %>
-    <%= live_patch to: service_module.path(@socket, :index) do %>
+    <%= live_redirect to: service_module.path(@socket, :index) do %>
     <div
       class="
           w-[40vw] h-[40vw] md:w-[15vw] md:h-[15vw]

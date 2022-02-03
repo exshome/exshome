@@ -19,7 +19,7 @@ defmodule ExshomeWebTest.Live.HomePageTest do
     for service_page <- ServicePageLive.service_pages() do
       page_path = service_page.path(conn, :index)
       element(view, ~s/[href="#{page_path}"]/) |> render_click()
-      assert_patch(view, page_path)
+      assert_redirect(view, page_path)
     end
   end
 end
