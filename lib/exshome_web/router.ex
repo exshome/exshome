@@ -9,6 +9,7 @@ defmodule ExshomeWeb.Router do
     plug :put_root_layout, {ExshomeWeb.LayoutView, :root}
     plug :protect_from_forgery
     plug :put_secure_browser_headers
+    plug :put_live_service_callback_to_session
   end
 
   pipeline :api do

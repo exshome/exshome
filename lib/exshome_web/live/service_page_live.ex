@@ -10,12 +10,11 @@ defmodule ExshomeWeb.Live.ServicePageLive do
   @callback actions() :: %{atom() => %{module() => atom()}}
   @callback view_module() :: module()
 
-  def on_mount(callback_module, _params, _session, socket) do
-    {:cont, put_callback_module(socket, callback_module)}
-  end
-
   @impl Phoenix.LiveView
-  def mount(_params, _session, %Socket{} = socket), do: {:ok, socket}
+  def mount(_params, %{"callback_module_name" => callback_module_name}, %Socket{} = socket) do
+    callback_module = get_module_by_name(callback_module_name)
+    {:ok, put_callback_module(socket, callback_module)}
+  end
 
   @impl Phoenix.LiveView
   def handle_params(
@@ -88,6 +87,15 @@ defmodule ExshomeWeb.Live.ServicePageLive do
     Exshome.Named.get_module_by_type_and_name(__MODULE__, module_name)
   end
 
+  def get_module_name_by_prefix(prefix) do
+    module =
+      Exshome.Tag.tag_mapping()
+      |> Map.fetch!({__MODULE__, :prefix})
+      |> Map.fetch!(prefix)
+
+    module.name()
+  end
+
   @spec actions_with_pages(module()) :: [atom()]
   def actions_with_pages(module) do
     module.actions()
@@ -107,8 +115,10 @@ defmodule ExshomeWeb.Live.ServicePageLive do
       import Exshome.Tag, only: [add_tag: 1]
       alias ExshomeWeb.Live.ServicePageLive
 
-      use Exshome.Named, "service_page_live_#{unquote(prefix)}"
+      @prefix unquote(prefix)
+      use Exshome.Named, "service_page_live_#{@prefix}"
       add_tag(ServicePageLive)
+      add_tag({{ServicePageLive, :prefix}, @prefix})
       @behaviour ServicePageLive
       @actions unquote(actions)
                |> Enum.map(fn {action, deps} ->
@@ -117,12 +127,12 @@ defmodule ExshomeWeb.Live.ServicePageLive do
                |> Enum.into(%{})
 
       @impl ServicePageLive
-      def base_prefix, do: unquote(prefix)
+      def base_prefix, do: @prefix
 
       def path(conn_or_endpoint, action, params \\ []) do
         apply(
           ExshomeWeb.Router.Helpers,
-          :"#{unquote(prefix)}_path",
+          :"#{@prefix}_path",
           [conn_or_endpoint, action, params]
         )
       end
