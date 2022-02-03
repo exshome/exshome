@@ -7,6 +7,7 @@ defmodule ExshomeWeb.Live.ServicePage.Clock do
     view_module: ExshomeWeb.ClockView,
     actions: [
       index: [{Exshome.Service.ClockService, :time}],
-      preview: [{Exshome.Service.ClockService, :time}]
+      preview: [{Exshome.Service.ClockService, :time}],
+      settings: []
     ]
 end
