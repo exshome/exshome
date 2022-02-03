@@ -4,12 +4,13 @@
     <div
       class="
           w-[40vw] h-[40vw] md:w-[15vw] md:h-[15vw]
-          p-2 m-2
+          p-2 m-2 relative
           border-2 border-gray-500 rounded-md overflow-hidden
           hover:bg-gray-200 dark:hover:bg-gray-800
           shadow-2xl dark:shadow-gray-600
       "
       >
+        <div class="absolute inset-0"></div>
         <%= live_render @socket, ExshomeWeb.Live.ServicePreview, id: service_module.name() %>
       </div>
     <% end %>

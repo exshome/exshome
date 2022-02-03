@@ -11,19 +11,21 @@ defmodule ExshomeWeb.Live.ServicePageLive do
   @callback view_module() :: module()
 
   @impl Phoenix.LiveView
-  def mount(_params, %{"callback_module_name" => callback_module_name}, %Socket{} = socket) do
-    callback_module = get_module_by_name(callback_module_name)
-    {:ok, put_callback_module(socket, callback_module)}
-  end
+  def mount(_params, _session, %Socket{} = socket), do: {:ok, socket}
 
   @impl Phoenix.LiveView
   def handle_params(
         _unsigned_params,
-        _url,
+        url,
         %Socket{assigns: %{live_action: live_action}} = socket
       ) do
+    %URI{path: path} = URI.parse(url)
+    [prefix | _] = String.split(path, "/", trim: true)
+    callback_module = prefix |> String.to_existing_atom() |> get_module_by_prefix()
+
     socket =
       socket
+      |> put_callback_module(callback_module)
       |> subscribe_to_dependencies()
       |> put_template_name("#{live_action}.html")
 
@@ -87,13 +89,10 @@ defmodule ExshomeWeb.Live.ServicePageLive do
     Exshome.Named.get_module_by_type_and_name(__MODULE__, module_name)
   end
 
-  def get_module_name_by_prefix(prefix) do
-    module =
-      Exshome.Tag.tag_mapping()
-      |> Map.fetch!({__MODULE__, :prefix})
-      |> Map.fetch!(prefix)
-
-    module.name()
+  def get_module_by_prefix(prefix) do
+    Exshome.Tag.tag_mapping()
+    |> Map.fetch!({__MODULE__, :prefix})
+    |> Map.fetch!(prefix)
   end
 
   @spec actions_with_pages(module()) :: [atom()]
