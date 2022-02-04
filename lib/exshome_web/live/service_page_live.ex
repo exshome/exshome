@@ -4,6 +4,7 @@ defmodule ExshomeWeb.Live.ServicePageLive do
   """
 
   use ExshomeWeb, :live_view
+  alias Exshome.Dependency
   alias Phoenix.LiveView.Socket
 
   @callback base_prefix() :: atom()
@@ -57,8 +58,8 @@ defmodule ExshomeWeb.Live.ServicePageLive do
   @spec subscribe_to_dependencies(Socket.t()) :: Socket.t()
   def subscribe_to_dependencies(%Socket{} = socket) do
     deps =
-      for {module, key} <- get_dependencies(socket), into: %{} do
-        {key, module.subscribe()}
+      for {dependency, key} <- get_dependencies(socket), into: %{} do
+        {key, Dependency.subscribe(dependency)}
       end
 
     assign(socket, deps: deps)

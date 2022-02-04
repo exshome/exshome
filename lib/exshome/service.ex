@@ -3,6 +3,7 @@ defmodule Exshome.Service do
   Generic Exshome service.
   """
   use GenServer
+  alias Exshome.Dependency
 
   defmodule State do
     @moduledoc """
@@ -20,7 +21,6 @@ defmodule Exshome.Service do
   @callback parse_opts(map()) :: any()
   @callback update_value(State.t(), value :: any()) :: State.t()
   @callback on_init(State.t()) :: State.t()
-  @callback get_value(GenServer.server()) :: any()
   @callback handle_info(message :: any(), State.t()) ::
               {:noreply, new_state}
               | {:noreply, new_state, timeout() | :hibernate | {:continue, term()}}
@@ -38,23 +38,6 @@ defmodule Exshome.Service do
   @spec get_value(GenServer.server()) :: any()
   def get_value(server) do
     GenServer.call(get_service_pid(server), :get_value)
-  end
-
-  @spec subscribe(server :: GenServer.server(), pubsub_key :: String.t()) :: any()
-  def subscribe(server, pubsub_key) do
-    result = __MODULE__.get_value(get_service_pid(server))
-    :ok = Exshome.PubSub.subscribe(pubsub_key)
-    result
-  end
-
-  @spec unsubscribe(pubsub_key :: String.t()) :: any()
-  def unsubscribe(pubsub_key) do
-    Exshome.PubSub.unsubscribe(pubsub_key)
-  end
-
-  @spec broadcast(pubsub_key :: String.t(), value :: any()) :: any()
-  def broadcast(pubsub_key, value) do
-    Exshome.PubSub.broadcast(pubsub_key, value)
   end
 
   @impl GenServer
@@ -86,7 +69,7 @@ defmodule Exshome.Service do
     old_value = state.value
 
     if value != old_value do
-      module.broadcast(value)
+      Dependency.broadcast_value(module, value)
     end
 
     %State{state | value: value}
@@ -112,9 +95,11 @@ defmodule Exshome.Service do
     defdelegate get_service_pid(server), to: @hook_module
   end
 
-  defmacro __using__(pubsub_key: pubsub_key) do
+  defmacro __using__(name: name) do
     quote do
       alias unquote(__MODULE__)
+      use Exshome.Dependency
+      use Exshome.Named, unquote(name)
       import Exshome.Tag, only: [add_tag: 1]
       add_tag(Service)
 
@@ -134,10 +119,8 @@ defmodule Exshome.Service do
         Map.merge(opts, %{module: __MODULE__})
       end
 
-      @impl Service
-      def get_value(server \\ __MODULE__) do
-        Service.get_value(server)
-      end
+      @impl Exshome.Dependency
+      def get_value, do: Service.get_value(__MODULE__)
 
       @impl Service
       def parse_opts(opts), do: opts
@@ -153,21 +136,6 @@ defmodule Exshome.Service do
       @impl Service
       def on_init(%Service.State{} = state), do: state
       defoverridable(on_init: 1)
-
-      @doc "Send current value to all subscribers."
-      def broadcast(value) do
-        Service.broadcast(unquote(pubsub_key), {__MODULE__, value})
-      end
-
-      @doc "Subscribe to the value updates of the service."
-      def subscribe(server \\ __MODULE__) do
-        Service.subscribe(server, unquote(pubsub_key))
-      end
-
-      @doc "Unsubscribe from the value updates of the service."
-      def unsubscribe do
-        Service.unsubscribe(unquote(pubsub_key))
-      end
     end
   end
 end

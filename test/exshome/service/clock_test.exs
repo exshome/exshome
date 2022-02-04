@@ -1,5 +1,6 @@
 defmodule ExshomeTest.Service.ClockServiceTest do
   use ExUnit.Case, async: true
+  alias Exshome.Dependency
   alias Exshome.Service.ClockService
   alias ExshomeTest.TestRegistry
 
@@ -10,11 +11,11 @@ defmodule ExshomeTest.Service.ClockServiceTest do
 
   test "clock works" do
     refute_received({ClockService, _})
-    initial_time = ClockService.subscribe()
+    initial_time = Dependency.subscribe(ClockService)
     assert_receive({ClockService, current_time})
     assert :gt = DateTime.compare(current_time, initial_time)
     clear_received_messages()
-    ClockService.unsubscribe()
+    Dependency.unsubscribe(ClockService)
     refute_receive({ClockService, _current_time}, 10)
   end
 
