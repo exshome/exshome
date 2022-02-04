@@ -21,10 +21,14 @@ defmodule Exshome.Settings do
   def save_settings(%module{} = data) do
     case valid_changes?(data) do
       {:ok, data} ->
-        module
-        |> get_module_name()
-        |> Schema.update!(data)
-        |> from_map(module)
+        result =
+          module
+          |> get_module_name()
+          |> Schema.update!(data)
+          |> from_map(module)
+
+        Exshome.Dependency.broadcast_value(module, result)
+        result
 
       {:error, changeset} ->
         {:error, changeset}
@@ -93,6 +97,7 @@ defmodule Exshome.Settings do
       alias Exshome.Settings
       use Exshome.Schema
       use Exshome.Named, unquote(name)
+      use Exshome.Dependency
       import Ecto.Changeset
 
       import Exshome.Tag, only: [add_tag: 1]
@@ -113,6 +118,9 @@ defmodule Exshome.Settings do
 
       @impl Settings
       def default_values, do: @default_values
+
+      @impl Exshome.Dependency
+      def get_value, do: Settings.get_settings(__MODULE__)
     end
   end
 end
