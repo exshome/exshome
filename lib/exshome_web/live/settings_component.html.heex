@@ -1,0 +1,7 @@
+<div>
+  <.form let={f} for={@changeset} phx-target={@myself} phx-change="validate" phx-submit="save">
+    <%= select f, :timezone, TzExtra.time_zone_identifiers() %>
+    <%= error_tag(f, :timezone) %>
+    <%= submit "Save" %>
+  </.form>
+</div>

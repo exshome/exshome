@@ -71,15 +71,24 @@ defmodule Exshome.Settings do
   end
 
   @spec valid_changes?(struct()) :: {:ok, map()} | {:error, Ecto.Changeset.t()}
-  def valid_changes?(%module{} = data) do
+  def valid_changes?(data) do
+    data
+    |> changeset()
+    |> Ecto.Changeset.apply_action(:update)
+  end
+
+  @spec changeset(struct()) :: Ecto.Changeset.t()
+  def changeset(%module{} = data), do: changeset(module, Map.from_struct(data))
+
+  @spec changeset(module(), map()) :: Ecto.Changeset.t()
+  def changeset(module, data) do
     available_keys = Map.keys(module.default_values())
 
     module
     |> struct(%{})
-    |> Ecto.Changeset.cast(Map.from_struct(data), available_keys)
+    |> Ecto.Changeset.cast(data, available_keys)
     |> Ecto.Changeset.validate_required(available_keys)
     |> module.changeset()
-    |> Ecto.Changeset.apply_action(:update)
   end
 
   @spec available_modules() :: MapSet.t(atom())
