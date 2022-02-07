@@ -7,15 +7,10 @@ defmodule Exshome.Settings.ClockSettings do
     name: "settings_clock",
     fields: [
       timezone: [
+        allowed_values: &TzExtra.time_zone_identifiers/0,
         default: "Etc/UTC",
         required: true,
         type: DataType.String
       ]
     ]
-
-  @impl Settings
-  def changeset(%Ecto.Changeset{} = data) do
-    data
-    |> validate_inclusion(:timezone, TzExtra.time_zone_identifiers())
-  end
 end

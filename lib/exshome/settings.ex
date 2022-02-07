@@ -5,7 +5,6 @@ defmodule Exshome.Settings do
   import Ecto.Changeset
   alias Exshome.Settings.Schema
 
-  @callback changeset(Ecto.Changeset.t()) :: Ecto.Changeset.t()
   @callback __fields__() :: term()
 
   @spec get_settings(arg :: module()) :: Ecto.Schema.t()
@@ -88,11 +87,16 @@ defmodule Exshome.Settings do
     available_keys = Keyword.keys(fields)
     required_fields = for {field, data} <- fields, data[:required], do: field
 
+    allowed_fields =
+      for {field, data} <- fields, data[:allowed_values] do
+        {field, data[:allowed_values]}
+      end
+
     module
     |> struct(%{})
     |> Ecto.Changeset.cast(data, available_keys)
     |> Ecto.Changeset.validate_required(required_fields)
-    |> module.changeset()
+    |> check_allowed_values(allowed_fields)
   end
 
   @spec available_modules() :: MapSet.t(atom())
@@ -105,6 +109,12 @@ defmodule Exshome.Settings do
     module.__fields__()
     |> Enum.map(fn {field, data} -> {field, data[:default]} end)
     |> Enum.into(%{})
+  end
+
+  defp check_allowed_values(changeset, allowed_fields) do
+    for {field, values_fn} <- allowed_fields, reduce: changeset do
+      ch -> validate_inclusion(ch, field, values_fn.())
+    end
   end
 
   defmacro __using__(settings) do
