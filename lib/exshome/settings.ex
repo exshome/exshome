@@ -84,12 +84,14 @@ defmodule Exshome.Settings do
 
   @spec changeset(module(), map()) :: Ecto.Changeset.t()
   def changeset(module, data) do
-    available_keys = Keyword.keys(module.__fields__())
+    fields = module.__fields__()
+    available_keys = Keyword.keys(fields)
+    required_fields = for {field, data} <- fields, data[:required], do: field
 
     module
     |> struct(%{})
     |> Ecto.Changeset.cast(data, available_keys)
-    |> Ecto.Changeset.validate_required(available_keys)
+    |> Ecto.Changeset.validate_required(required_fields)
     |> module.changeset()
   end
 

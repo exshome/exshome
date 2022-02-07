@@ -8,6 +8,7 @@ defmodule Exshome.Settings.ClockSettings do
     fields: [
       timezone: [
         default: "Etc/UTC",
+        required: true,
         type: DataType.String
       ]
     ]
