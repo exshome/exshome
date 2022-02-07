@@ -5,7 +5,7 @@ defmodule Exshome.Settings do
   import Ecto.Changeset
   alias Exshome.Settings.Schema
 
-  @callback __fields__() :: term()
+  @callback fields() :: term()
 
   @spec get_settings(arg :: module()) :: Ecto.Schema.t()
   def get_settings(module) when is_atom(module) do
@@ -67,7 +67,7 @@ defmodule Exshome.Settings do
   defp from_map(data, module) do
     module
     |> struct!()
-    |> cast(data, module.__fields__() |> Keyword.keys())
+    |> cast(data, module.fields() |> Keyword.keys())
     |> apply_changes()
   end
 
@@ -83,7 +83,7 @@ defmodule Exshome.Settings do
 
   @spec changeset(module(), map()) :: Ecto.Changeset.t()
   def changeset(module, data) do
-    fields = module.__fields__()
+    fields = module.fields()
     available_keys = Keyword.keys(fields)
     required_fields = for {field, data} <- fields, data[:required], do: field
 
@@ -106,7 +106,7 @@ defmodule Exshome.Settings do
 
   @spec default_values(module()) :: map()
   def default_values(module) when is_atom(module) do
-    module.__fields__()
+    module.fields()
     |> Enum.map(fn {field, data} -> {field, data[:default]} end)
     |> Enum.into(%{})
   end
@@ -149,7 +149,7 @@ defmodule Exshome.Settings do
       def get_value, do: Settings.get_settings(__MODULE__)
 
       @impl Settings
-      def __fields__, do: unquote(fields)
+      def fields, do: unquote(fields)
     end
   end
 end

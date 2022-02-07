@@ -5,19 +5,21 @@ defmodule ExshomeWeb.Live.SettingsComponent do
 
   use ExshomeWeb, :live_component
   alias Exshome.Settings
-  alias Exshome.Settings.ClockSettings
 
   @impl Phoenix.LiveComponent
-  def update(%{settings: settings}, socket) do
-    socket = assign_new(socket, :changeset, fn -> Settings.changeset(settings) end)
+  def update(%{settings: %module{} = settings}, socket) do
+    socket =
+      socket
+      |> assign_new(:changeset, fn -> Settings.changeset(settings) end)
+      |> assign_new(:module, fn -> module end)
 
     {:ok, socket}
   end
 
   @impl Phoenix.LiveComponent
-  def handle_event("save", %{"clock_settings" => clock_settings}, socket) do
+  def handle_event("save", %{"settings" => clock_settings}, socket) do
     result =
-      ClockSettings
+      socket.assigns.module
       |> Settings.changeset(clock_settings)
       |> Ecto.Changeset.apply_action(:validate)
 
@@ -34,8 +36,13 @@ defmodule ExshomeWeb.Live.SettingsComponent do
     {:noreply, assign(socket, changeset: changeset)}
   end
 
-  def handle_event("validate", %{"clock_settings" => clock_settings}, socket) do
-    changeset = Settings.changeset(ClockSettings, clock_settings)
+  def handle_event("validate", %{"settings" => clock_settings}, socket) do
+    changeset = Settings.changeset(socket.assigns.module, clock_settings)
     {:noreply, assign(socket, changeset: changeset)}
+  end
+
+  @impl Phoenix.LiveComponent
+  def render(assigns) do
+    ExshomeWeb.SettingsComponentView.render("settings_component.html", assigns)
   end
 end
