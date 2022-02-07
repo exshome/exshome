@@ -99,10 +99,10 @@ defmodule Exshome.Settings do
   defmacro __using__(settings) do
     name = Keyword.fetch!(settings, :name)
     fields = Keyword.fetch!(settings, :fields)
-    database_fields = Enum.map(fields, &{&1[:name], &1[:db_type]})
-    typespec = Enum.map(fields, &{&1[:name], &1[:type]})
+    database_fields = Enum.map(fields, fn {name, data} -> {name, data[:type]} end)
 
     quote do
+      alias Exshome.DataType
       alias Exshome.Settings
       use Exshome.Schema
       use Exshome.Named, unquote(name)
@@ -111,7 +111,8 @@ defmodule Exshome.Settings do
 
       import Exshome.Tag, only: [add_tag: 1]
       @behaviour Settings
-      @default_values unquote(Enum.map(fields, &{&1[:name], &1[:default]})) |> Enum.into(%{})
+      @default_values unquote(Enum.map(fields, fn {name, data} -> {name, data[:default]} end))
+                      |> Enum.into(%{})
 
       @primary_key false
       embedded_schema do
@@ -121,7 +122,7 @@ defmodule Exshome.Settings do
         end
       end
 
-      @type t() :: %__MODULE__{unquote_splicing(typespec)}
+      @type t() :: %__MODULE__{unquote_splicing(database_fields)}
 
       add_tag(Settings)
 

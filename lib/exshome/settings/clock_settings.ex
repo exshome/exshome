@@ -6,7 +6,10 @@ defmodule Exshome.Settings.ClockSettings do
   use Exshome.Settings,
     name: "settings_clock",
     fields: [
-      [name: :timezone, db_type: :string, default: "Etc/UTC", type: String.t()]
+      timezone: [
+        default: "Etc/UTC",
+        type: DataType.String
+      ]
     ]
 
   @impl Settings

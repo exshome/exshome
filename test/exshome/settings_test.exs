@@ -34,7 +34,11 @@ defmodule ExshomeTest.SettingsTest do
         compile_with_settings(
           Settings,
           name: "some name",
-          fields: [[name: :data, db_type: :string, type: String]]
+          fields: [
+            data: [
+              type: Exshome.DataType.String
+            ]
+          ]
         )
 
       assert result
