@@ -10,7 +10,7 @@ defmodule ExshomeTest.Settings.ClockSettingsTest do
              Settings.save_settings(%ClockSettings{settings | timezone: "nonexisting"})
 
     assert %{timezone: ["is invalid"]} = errors_on(changeset)
-    default_timezone = ClockSettings.default_values().timezone
+    default_timezone = Settings.default_values(ClockSettings).timezone
     assert %ClockSettings{timezone: ^default_timezone} = Settings.get_settings(ClockSettings)
   end
 
@@ -20,7 +20,7 @@ defmodule ExshomeTest.Settings.ClockSettingsTest do
     assert %{timezone: "nonexisting"} =
              Settings.Schema.get_or_create(name, %{timezone: "nonexisting"})
 
-    default_timezone = ClockSettings.default_values().timezone
+    default_timezone = Settings.default_values(ClockSettings).timezone
     assert %ClockSettings{timezone: ^default_timezone} = Settings.get_settings(ClockSettings)
     assert %{"timezone" => ^default_timezone} = Settings.Schema.get_or_create(name, %{})
   end

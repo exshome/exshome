@@ -16,7 +16,7 @@ defmodule ExshomeTest.SettingsTest do
       for module <- Settings.available_modules() do
         assert {:ok, %{__struct__: ^module}} =
                  module
-                 |> struct(module.default_values())
+                 |> struct(Settings.default_values(module))
                  |> Settings.valid_changes?()
       end
     end

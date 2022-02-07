@@ -5,14 +5,14 @@ defmodule Exshome.Settings do
   import Ecto.Changeset
   alias Exshome.Settings.Schema
 
-  @callback default_values() :: %{atom() => any()}
   @callback changeset(Ecto.Changeset.t()) :: Ecto.Changeset.t()
+  @callback __fields__() :: term()
 
   @spec get_settings(arg :: module()) :: Ecto.Schema.t()
   def get_settings(module) when is_atom(module) do
     module
     |> get_module_name()
-    |> Schema.get_or_create(module.default_values())
+    |> Schema.get_or_create(default_values(module))
     |> from_map(module)
     |> set_default_values_for_errors()
   end
@@ -51,9 +51,11 @@ defmodule Exshome.Settings do
         result
 
       {:error, %Ecto.Changeset{} = changeset} ->
+        module_default_values = default_values(module)
+
         default_values =
           for field <- Keyword.keys(changeset.errors), into: %{} do
-            {field, module.default_values()[field]}
+            {field, module_default_values[field]}
           end
 
         module
@@ -66,7 +68,7 @@ defmodule Exshome.Settings do
   defp from_map(data, module) do
     module
     |> struct!()
-    |> cast(data, Map.keys(module.default_values()))
+    |> cast(data, module.__fields__() |> Keyword.keys())
     |> apply_changes()
   end
 
@@ -82,7 +84,7 @@ defmodule Exshome.Settings do
 
   @spec changeset(module(), map()) :: Ecto.Changeset.t()
   def changeset(module, data) do
-    available_keys = Map.keys(module.default_values())
+    available_keys = Keyword.keys(module.__fields__())
 
     module
     |> struct(%{})
@@ -94,6 +96,13 @@ defmodule Exshome.Settings do
   @spec available_modules() :: MapSet.t(atom())
   def available_modules do
     Exshome.Tag.tag_mapping() |> Map.fetch!(__MODULE__)
+  end
+
+  @spec default_values(module()) :: map()
+  def default_values(module) when is_atom(module) do
+    module.__fields__()
+    |> Enum.map(fn {field, data} -> {field, data[:default]} end)
+    |> Enum.into(%{})
   end
 
   defmacro __using__(settings) do
@@ -111,12 +120,10 @@ defmodule Exshome.Settings do
 
       import Exshome.Tag, only: [add_tag: 1]
       @behaviour Settings
-      @default_values unquote(Enum.map(fields, fn {name, data} -> {name, data[:default]} end))
-                      |> Enum.into(%{})
 
       @primary_key false
       embedded_schema do
-        @derive {Jason.Encoder, only: Map.keys(@default_values)}
+        @derive {Jason.Encoder, only: Keyword.keys(unquote(fields))}
         for {field_name, db_type} <- unquote(database_fields) do
           field(field_name, db_type)
         end
@@ -126,11 +133,11 @@ defmodule Exshome.Settings do
 
       add_tag(Settings)
 
-      @impl Settings
-      def default_values, do: @default_values
-
       @impl Exshome.Dependency
       def get_value, do: Settings.get_settings(__MODULE__)
+
+      @impl Settings
+      def __fields__, do: unquote(fields)
     end
   end
 end
