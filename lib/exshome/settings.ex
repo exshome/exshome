@@ -117,9 +117,10 @@ defmodule Exshome.Settings do
     end
   end
 
-  defmacro __using__(settings) do
-    name = Keyword.fetch!(settings, :name)
-    fields = Keyword.fetch!(settings, :fields)
+  defmacro __using__(config) do
+    config |> Macro.expand(__ENV__) |> validate_config!()
+    name = Keyword.fetch!(config, :name)
+    fields = Keyword.fetch!(config, :fields)
     database_fields = Enum.map(fields, fn {name, data} -> {name, data[:type]} end)
 
     quote do
@@ -151,5 +152,40 @@ defmodule Exshome.Settings do
       @impl Settings
       def fields, do: unquote(fields)
     end
+  end
+
+  defp validate_config!(config) do
+    validation_schema = [
+      name: [
+        type: :string,
+        required: true
+      ],
+      fields: [
+        type: :keyword_list,
+        keys: [
+          *: [
+            keys: [
+              allowed_values: [
+                type: :any
+              ],
+              default: [
+                type: :any,
+                required: true
+              ],
+              required: [
+                type: :boolean,
+                required: true
+              ],
+              type: [
+                type: :atom,
+                required: true
+              ]
+            ]
+          ]
+        ]
+      ]
+    ]
+
+    Exshome.Validation.validate_config!(config, validation_schema)
   end
 end

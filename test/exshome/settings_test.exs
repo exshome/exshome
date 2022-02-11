@@ -36,7 +36,9 @@ defmodule ExshomeTest.SettingsTest do
           name: "some name",
           fields: [
             data: [
-              type: Exshome.DataType.String
+              type: Exshome.DataType.String,
+              required: true,
+              default: nil
             ]
           ]
         )
