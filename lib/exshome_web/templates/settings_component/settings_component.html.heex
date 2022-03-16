@@ -9,7 +9,10 @@
     class="flex items-center flex-col"
   >
     <%= for {field, data} <- @module.fields() do %>
-      <%= render_field f, field, data %>
+      <span>
+        <label><%= field %></label>
+        <%= render_field f, field, data %>
+      </span>
       <%= error_tag(f, field) %>
     <% end %>
     <%= submit "Save", phx_disable_with: "Saving...", class: "block bg-gray-300 dark:bg-gray-500 rounded-lg p-2 my-2" %>
