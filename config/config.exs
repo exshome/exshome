@@ -56,7 +56,8 @@ config :tailwind,
   ]
 
 config :exshome, :application_children, [
-  {Exshome.Service.ClockService, %{refresh_interval: 200}}
+  {Exshome.Service.ClockService, %{refresh_interval: 200}},
+  {Exshome.Variable.Builtin.LocalTime, []}
 ]
 
 config :elixir, :time_zone_database, Tz.TimeZoneDatabase

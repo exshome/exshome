@@ -44,13 +44,13 @@
       "
     />
   </g>
-  <g id="clock-hour" transform={"rotate(#{clock_hand_rotation(@deps.time.hour)}, 300, 300)"}>
+  <g id="clock-hour" transform={"rotate(#{clock_hand_rotation(@deps.time.hour, 12)}, 300, 300)"}>
     <path d="M 300.5 298 V 142" class="stroke-black stroke-[9]" />
   </g>
-  <g id="clock-minute" transform={"rotate(#{clock_hand_rotation(@deps.time.minute)}, 300, 300)"}>
+  <g id="clock-minute" transform={"rotate(#{clock_hand_rotation(@deps.time.minute, 60)}, 300, 300)"}>
     <path d="M 300.5 298 V 67" class="stroke-black stroke-[5]" />
   </g>
-  <g id="clock-second" transform={"rotate(#{clock_hand_rotation(@deps.time.second)}, 300, 300)"}>
+  <g id="clock-second" transform={"rotate(#{clock_hand_rotation(@deps.time.second, 60)}, 300, 300)"}>
     <path d="M 300.5 298 V 55" class="stroke-red-400 stroke-[4]" />
   </g>
   <circle cx="300" cy="300" r="16.2" />

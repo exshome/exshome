@@ -30,6 +30,7 @@ defmodule Exshome.Service.ClockService do
     }
   end
 
+  @impl Service
   def handle_info(:tick, state) do
     new_state = schedule_next_tick(state)
     {:noreply, new_state}

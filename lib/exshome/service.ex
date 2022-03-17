@@ -64,12 +64,12 @@ defmodule Exshome.Service do
     state.module.handle_info(message, state)
   end
 
-  @spec update_value(module(), State.t(), any()) :: State.t()
-  def update_value(module, %State{} = state, value) do
+  @spec update_value(State.t(), any()) :: State.t()
+  def update_value(%State{} = state, value) do
     old_value = state.value
 
     if value != old_value do
-      Dependency.broadcast_value(module, value)
+      Dependency.broadcast_value(state.module, value)
     end
 
     %State{state | value: value}
@@ -128,9 +128,7 @@ defmodule Exshome.Service do
 
       @doc "Returns a current value of the service."
       @impl Service
-      def update_value(state, value) do
-        Service.update_value(__MODULE__, state, value)
-      end
+      defdelegate update_value(state, value), to: Service
 
       @doc "Run callbacks on service init."
       @impl Service
