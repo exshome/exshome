@@ -16,7 +16,6 @@ defmodule Exshome.Service.ClockService do
           }
   end
 
-  alias Exshome.Service.State
   use Exshome.Service, name: "service_clock"
 
   def on_init(state) do

@@ -9,10 +9,32 @@ defmodule Exshome.Dependency do
 
   @callback get_value() :: get_value_result()
 
+  defmodule State do
+    @moduledoc """
+    Inner state for each dependency.
+    """
+
+    defstruct [:value, :module, :opts, :deps]
+
+    @type t() :: %__MODULE__{
+            module: module(),
+            value: Exshome.Dependency.get_value_result(),
+            opts: any(),
+            deps: map()
+          }
+  end
+
   @spec get_value(dependency()) :: get_value_result()
   def get_value(dependency) do
     raise_if_not_dependency!(dependency)
     dependency.get_value()
+  end
+
+  @spec get_pid(atom() | pid()) :: pid() | nil
+  def get_pid(server) when is_atom(server), do: Process.whereis(server)
+
+  def get_pid(server) when is_pid(server) do
+    if Process.alive?(server), do: server, else: nil
   end
 
   @spec subscribe(dependency()) :: get_value_result()
@@ -48,6 +70,12 @@ defmodule Exshome.Dependency do
   def broadcast_value(dependency, value) do
     raise_if_not_dependency!(dependency)
     Exshome.PubSub.broadcast(dependency.name(), {dependency, value})
+  end
+
+  @hook_module Application.compile_env(:exshome, :dependency_hook_module)
+  if @hook_module do
+    defoverridable(get_pid: 1)
+    defdelegate get_pid(server), to: @hook_module
   end
 
   defmacro __using__(_) do

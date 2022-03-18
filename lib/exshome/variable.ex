@@ -6,36 +6,26 @@ defmodule Exshome.Variable do
   """
   use GenServer
   alias Exshome.Dependency
-
-  defmodule State do
-    @moduledoc """
-    This module represents inner state for each variable.
-    """
-    defstruct [:module, deps: %{}, value: Exshome.Dependency.NotReady]
-
-    @type t() :: %__MODULE__{
-            module: module(),
-            value: Exshome.Dependency.get_value_result(),
-            deps: map()
-          }
-  end
+  alias Exshome.Dependency.State
 
   @callback update_value(State.t(), value :: any()) :: State.t()
   @callback handle_dependency_change(State.t()) :: State.t()
 
-  @spec get_value(module()) :: Exshome.Dependency.get_value_result()
-  def get_value(module) do
-    GenServer.call(module, :get_value)
+  @spec get_value(GenServer.server()) :: Dependency.get_value_result()
+  def get_value(server) do
+    Exshome.Service.get_value(server)
   end
 
-  @spec start_link(module()) :: GenServer.on_start()
-  def start_link(module) do
-    GenServer.start_link(__MODULE__, module, name: module)
+  @spec start_link(opts :: map()) :: GenServer.on_start()
+  def start_link(opts) do
+    module = opts.module
+    {name, opts} = Map.pop(opts, :name, module)
+    GenServer.start_link(__MODULE__, opts, name: name)
   end
 
   @impl GenServer
-  def init(module) do
-    {:ok, %State{module: module}, {:continue, :connect_to_dependencies}}
+  def init(opts) do
+    {:ok, %State{module: opts[:module]}, {:continue, :connect_to_dependencies}}
   end
 
   @impl GenServer
@@ -97,6 +87,17 @@ defmodule Exshome.Variable do
     end
   end
 
+  @hook_module Application.compile_env(:exshome, :dependency_hook_module)
+  if @hook_module do
+    defoverridable(init: 1)
+
+    def init(opts) do
+      result = super(opts)
+      @hook_module.on_dependency_init(opts)
+      result
+    end
+  end
+
   @doc """
   Validates configuration for the variable and raises if they are invalid.
   Available configuration options:
@@ -130,7 +131,7 @@ defmodule Exshome.Variable do
   defmacro __using__(config) do
     quote do
       alias unquote(__MODULE__)
-      alias Variable.State
+      alias Exshome.Dependency.State
       use Exshome.Dependency
       use Exshome.Named, "variable_#{unquote(config)[:name]}"
       import Exshome.Tag, only: [add_tag: 1]
@@ -139,7 +140,7 @@ defmodule Exshome.Variable do
       @behaviour Variable
       @after_compile __MODULE__
 
-      def __config__(), do: unquote(config)
+      def __config__, do: unquote(config)
 
       def __after_compile__(_env, _bytecode), do: Variable.validate_config(__MODULE__)
 
@@ -149,9 +150,13 @@ defmodule Exshome.Variable do
       @impl Exshome.Dependency
       def get_value, do: Variable.get_value(__MODULE__)
 
-      def start_link(_opts), do: Variable.start_link(__MODULE__)
+      def start_link(opts), do: opts |> update_opts() |> Variable.start_link()
 
-      def child_spec(_opts), do: Variable.child_spec(__MODULE__)
+      def child_spec(opts), do: opts |> update_opts() |> Variable.child_spec()
+
+      defp update_opts(%{} = opts) do
+        Map.merge(opts, %{module: __MODULE__})
+      end
     end
   end
 end

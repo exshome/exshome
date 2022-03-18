@@ -4,19 +4,7 @@ defmodule Exshome.Service do
   """
   use GenServer
   alias Exshome.Dependency
-
-  defmodule State do
-    @moduledoc """
-    A state for every service. It holds service options together with its value.
-    """
-    defstruct [:opts, :value, :module]
-
-    @type t() :: %__MODULE__{
-            module: module(),
-            opts: any(),
-            value: any()
-          }
-  end
+  alias Exshome.Dependency.State
 
   @callback parse_opts(map()) :: any()
   @callback update_value(State.t(), value :: any()) :: State.t()
@@ -37,7 +25,10 @@ defmodule Exshome.Service do
 
   @spec get_value(GenServer.server()) :: any()
   def get_value(server) do
-    GenServer.call(get_service_pid(server), :get_value)
+    case Dependency.get_pid(server) do
+      nil -> Dependency.NotReady
+      pid -> GenServer.call(pid, :get_value)
+    end
   end
 
   @impl GenServer
@@ -75,29 +66,21 @@ defmodule Exshome.Service do
     %State{state | value: value}
   end
 
-  defp get_service_pid(server) when is_pid(server), do: server
-
-  defp get_service_pid(server) when is_atom(server) do
-    server
-  end
-
-  @hook_module Application.compile_env(:exshome, :service_hook_module)
+  @hook_module Application.compile_env(:exshome, :dependency_hook_module)
   if @hook_module do
     defoverridable(init: 1)
 
     def init(opts) do
       result = super(opts)
-      @hook_module.on_service_init(opts)
+      @hook_module.on_dependency_init(opts)
       result
     end
-
-    defoverridable(get_service_pid: 1)
-    defdelegate get_service_pid(server), to: @hook_module
   end
 
   defmacro __using__(name: name) do
     quote do
       alias unquote(__MODULE__)
+      alias Exshome.Dependency.State
       use Exshome.Dependency
       use Exshome.Named, unquote(name)
       import Exshome.Tag, only: [add_tag: 1]
@@ -132,7 +115,7 @@ defmodule Exshome.Service do
 
       @doc "Run callbacks on service init."
       @impl Service
-      def on_init(%Service.State{} = state), do: state
+      def on_init(%State{} = state), do: state
       defoverridable(on_init: 1)
     end
   end
