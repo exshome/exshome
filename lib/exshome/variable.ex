@@ -5,26 +5,26 @@ defmodule Exshome.Variable do
   It is also a dependency by itself, so you can subscribe to changes in variables.
   """
   use GenServer
-  alias Exshome.Dependency
-  alias Exshome.Dependency.State
+  alias Exshome.Dependency.GenServerDependency
+  alias Exshome.Dependency.GenServerDependency.State
 
   @callback update_value(State.t(), value :: any()) :: State.t()
   @callback handle_dependency_change(State.t()) :: State.t()
 
-  @spec get_value(GenServer.server()) :: Dependency.get_value_result()
-  def get_value(server) do
-    Exshome.Service.get_value(server)
-  end
+  defdelegate get_value(server), to: GenServerDependency
+
+  defdelegate update_value(state, value), to: GenServerDependency
+
+  defdelegate handle_dependency_change(state), to: GenServerDependency
 
   @spec start_link(opts :: map()) :: GenServer.on_start()
   def start_link(opts) do
-    module = opts.module
-    {name, opts} = Map.pop(opts, :name, module)
-    GenServer.start_link(__MODULE__, opts, name: name)
+    GenServerDependency.start_link(__MODULE__, opts)
   end
 
   @impl GenServer
   def init(opts) do
+    GenServerDependency.on_init(opts)
     {:ok, %State{module: opts[:module]}, {:continue, :connect_to_dependencies}}
   end
 
@@ -32,14 +32,11 @@ defmodule Exshome.Variable do
   def handle_continue(:connect_to_dependencies, %State{} = state) do
     dependencies = state.module.__config__()[:dependencies]
 
-    deps =
-      for {dependency, key} <- dependencies, into: %{} do
-        {key, Dependency.subscribe(dependency)}
-      end
-
     state =
-      %State{state | deps: deps}
-      |> handle_dependency_change()
+      GenServerDependency.subscribe_to_dependencies(
+        state,
+        dependencies
+      )
 
     {:noreply, state}
   end
@@ -50,53 +47,14 @@ defmodule Exshome.Variable do
   end
 
   @impl GenServer
-  def handle_info({dependency, value}, %State{} = state) do
-    key =
-      state.module.__config__()[:dependencies]
-      |> Keyword.fetch!(dependency)
-
-    state =
-      put_in(state.deps[key], value)
-      |> handle_dependency_change()
+  def handle_info(message, state) do
+    state = GenServerDependency.handle_dependency_info(message, state)
 
     {:noreply, state}
   end
 
-  @spec update_value(State.t(), value :: any()) :: State.t()
-  def update_value(%State{} = state, value) do
-    old_value = state.value
-
-    if value != old_value do
-      Dependency.broadcast_value(state.module, value)
-    end
-
-    %State{state | value: value}
-  end
-
-  @spec handle_dependency_change(State.t()) :: State.t()
-  def handle_dependency_change(%State{deps: deps} = state) do
-    missing_dependencies =
-      deps
-      |> Map.values()
-      |> Enum.any?(&(&1 == Dependency.NotReady))
-
-    if missing_dependencies do
-      update_value(state, Dependency.NotReady)
-    else
-      state.module.handle_dependency_change(state)
-    end
-  end
-
-  @hook_module Application.compile_env(:exshome, :dependency_hook_module)
-  if @hook_module do
-    defoverridable(init: 1)
-
-    def init(opts) do
-      result = super(opts)
-      @hook_module.on_dependency_init(opts)
-      result
-    end
-  end
+  @impl GenServer
+  def terminate(_reason, state), do: GenServerDependency.terminate(state)
 
   @doc """
   Validates configuration for the variable and raises if they are invalid.
@@ -131,9 +89,9 @@ defmodule Exshome.Variable do
   defmacro __using__(config) do
     quote do
       alias unquote(__MODULE__)
-      alias Exshome.Dependency.State
+      alias Exshome.Dependency.GenServerDependency.State
       use Exshome.Dependency
-      use Exshome.Named, "variable_#{unquote(config)[:name]}"
+      use Exshome.Named, "variable_#{unquote(config[:name])}"
       import Exshome.Tag, only: [add_tag: 1]
       add_tag(Variable)
 
