@@ -41,9 +41,19 @@ defmodule ExshomeWeb.Live.ServicePageLive do
   end
 
   @impl Phoenix.LiveView
-  def render(%{socket: socket} = assigns) do
+  def render(%{socket: socket, deps: deps} = assigns) do
     template_name = get_template_name(socket)
-    get_callback_module(socket).view_module().render(template_name, assigns)
+
+    missing_deps =
+      deps
+      |> Enum.filter(fn {_key, value} -> value == Dependency.NotReady end)
+      |> Enum.map(fn {key, _value} -> key end)
+
+    if Enum.any?(missing_deps) do
+      ~L"Missing dependencies: <%= inspect(missing_deps) %>"
+    else
+      get_callback_module(socket).view_module().render(template_name, assigns)
+    end
   end
 
   @spec put_callback_module(Socket.t(), module()) :: Socket.t()
