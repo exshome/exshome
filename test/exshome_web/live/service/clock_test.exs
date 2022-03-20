@@ -7,7 +7,7 @@ defmodule ExshomeWebTest.Live.Service.ClockTest do
   import Phoenix.LiveViewTest
 
   setup do
-    ExshomeTest.TestRegistry.start_service(ClockService)
+    ExshomeTest.TestRegistry.start_dependency(ClockService)
   end
 
   test "renders a current time", %{conn: conn} do

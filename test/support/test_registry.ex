@@ -24,13 +24,20 @@ defmodule ExshomeTest.TestRegistry do
     :ok
   end
 
-  @spec get(key :: any()) :: any()
+  @spec get!(key :: any()) :: any()
+  def get!(key) do
+    case get(key) do
+      {:ok, value} -> value
+      {:error, error} -> raise error
+    end
+  end
+
   def get(key) do
     lookup({:value, get_parent(), key})
   end
 
-  @spec start_service(module :: module(), opts :: map()) :: :ok
-  def start_service(module, opts \\ %{}) do
+  @spec start_dependency(module :: module(), opts :: map()) :: :ok
+  def start_dependency(module, opts \\ %{}) do
     current_pid = self()
 
     opts =
@@ -42,12 +49,15 @@ defmodule ExshomeTest.TestRegistry do
       |> Map.put_new(:name, nil)
 
     pid = ExUnit.Callbacks.start_supervised!({module, opts})
-    put({:service, module}, pid)
+    put({:dependency, module}, pid)
   end
 
-  @spec get_service(module()) :: pid()
-  def get_service(module) do
-    get({:service, module})
+  @spec get_dependency_pid(module()) :: pid() | nil
+  def get_dependency_pid(module) do
+    case get({:dependency, module}) do
+      {:ok, value} -> value
+      _ -> nil
+    end
   end
 
   @spec get_parent() :: pid()
@@ -57,13 +67,14 @@ defmodule ExshomeTest.TestRegistry do
 
   @spec get_parent(pid()) :: pid()
   def get_parent(pid) do
-    lookup({:parent, pid})
+    {:ok, parent} = lookup({:parent, pid})
+    parent
   end
 
   defp lookup(key) do
     case Registry.lookup(__MODULE__, key) do
-      [{_, value}] -> value
-      _ -> raise "Unable to find a value for a key #{inspect(key)}"
+      [{_, value}] -> {:ok, value}
+      _ -> {:error, "Unable to find a value for a key #{inspect(key)}"}
     end
   end
 end

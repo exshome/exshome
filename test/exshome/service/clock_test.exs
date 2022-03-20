@@ -6,7 +6,7 @@ defmodule ExshomeTest.Service.ClockServiceTest do
 
   setup do
     TestRegistry.allow(self(), self())
-    TestRegistry.start_service(ClockService, %{refresh_interval: 1, precision: :microsecond})
+    TestRegistry.start_dependency(ClockService, %{refresh_interval: 1, precision: :microsecond})
   end
 
   test "clock works" do

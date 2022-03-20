@@ -8,7 +8,7 @@ defmodule ExshomeTest.Hooks.Dependency do
   def get_pid(server) when is_pid(server), do: server
 
   def get_pid(server) when is_atom(server) do
-    TestRegistry.get_service(server)
+    TestRegistry.get_dependency_pid(server)
   end
 
   def on_init(opts) do

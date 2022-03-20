@@ -25,7 +25,7 @@ defmodule ExshomeTest.TestFileUtils do
 
   @spec get_test_folder() :: String.t()
   def get_test_folder do
-    ExshomeTest.TestRegistry.get(__MODULE__)
+    ExshomeTest.TestRegistry.get!(__MODULE__)
   end
 
   defp sanitize_filder_name(name) when is_atom(name) do

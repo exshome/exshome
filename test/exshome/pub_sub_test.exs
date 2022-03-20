@@ -58,7 +58,7 @@ defmodule ExshomeTest.PubSubTest do
     test "pubsub does not work in tests if there is no subscription" do
       topic = "topic_#{unique_integer()}"
 
-      assert_raise(RuntimeError, fn ->
+      assert_raise(MatchError, fn ->
         PubSub.subscribe(topic)
       end)
 
