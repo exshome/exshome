@@ -1,4 +1,8 @@
 defmodule ExshomeTest.Variable.Builtin.LocalTimeTest do
+  @moduledoc """
+  Tests for LocalTime variable.
+  """
+
   use ExUnit.Case, async: true
   alias Exshome.Dependency
   alias Exshome.Variable.Builtin.LocalTime

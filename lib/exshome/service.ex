@@ -21,8 +21,6 @@ defmodule Exshome.Service do
     GenServerDependency.start_link(__MODULE__, opts)
   end
 
-  defdelegate get_value(server), to: GenServerDependency
-
   @impl GenServer
   def init(opts) do
     GenServerDependency.on_init(opts)
