@@ -1,4 +1,4 @@
-defmodule ExshomeTest.Dependency do
+defmodule ExshomeTest.DependencyTest do
   @moduledoc """
   Test edge cases for dependencies.
   """

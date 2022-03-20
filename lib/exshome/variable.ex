@@ -15,8 +15,6 @@ defmodule Exshome.Variable do
 
   defdelegate update_value(state, value), to: GenServerDependency
 
-  defdelegate handle_dependency_change(state), to: GenServerDependency
-
   @spec start_link(opts :: map()) :: GenServer.on_start()
   def start_link(opts) do
     GenServerDependency.start_link(__MODULE__, opts)
@@ -63,10 +61,10 @@ defmodule Exshome.Variable do
   :datatype (required) - datatype for the variable
   :dependencies (default %{}) - dependencies of the variable
   """
-  @spec validate_config(module()) :: keyword()
-  def validate_config(module) do
+  @spec validate_config(Keyword.t()) :: keyword()
+  def validate_config(config) do
     NimbleOptions.validate!(
-      module.__config__(),
+      config,
       name: [
         type: :string,
         required: true
@@ -100,7 +98,8 @@ defmodule Exshome.Variable do
 
       def __config__, do: unquote(config)
 
-      def __after_compile__(_env, _bytecode), do: Variable.validate_config(__MODULE__)
+      def __after_compile__(_env, _bytecode),
+        do: Variable.validate_config(__MODULE__.__config__())
 
       @impl Variable
       defdelegate update_value(state, value), to: Variable
