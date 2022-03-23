@@ -2,7 +2,6 @@ defmodule ExshomeTest.TestRegistry do
   @moduledoc """
   Registry for async tests.
   """
-  alias Exshome.Dependency
 
   @spec child_spec(opts :: any()) :: Supervisor.child_spec()
   def child_spec(_opts) do
@@ -51,16 +50,6 @@ defmodule ExshomeTest.TestRegistry do
 
     pid = ExUnit.Callbacks.start_supervised!({module, opts})
     put({:dependency, module}, pid)
-  end
-
-  @spec broadcast_dependency(module :: module(), value :: any()) :: :ok
-  def broadcast_dependency(module, value) do
-    Dependency.subscribe(module)
-    Dependency.broadcast_value(module, value)
-
-    receive do
-      {^module, ^value} -> :ok
-    end
   end
 
   @spec get_dependency_pid(module()) :: pid() | nil

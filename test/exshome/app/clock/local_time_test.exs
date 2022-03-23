@@ -32,7 +32,7 @@ defmodule ExshomeTest.App.Clock.LocalTimeTest do
 
     test "works with dependencies" do
       current_time = DateTime.utc_now()
-      TestRegistry.broadcast_dependency(Clock.UtcTimeService, current_time)
+      Dependency.broadcast_value(Clock.UtcTimeService, current_time)
 
       refute Dependency.get_value(LocalTime) == Dependency.NotReady
       assert Dependency.get_value(LocalTime) == current_time
