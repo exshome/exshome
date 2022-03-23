@@ -1,11 +1,12 @@
-defmodule ExshomeTest.Variable.Builtin.LocalTimeTest do
+defmodule ExshomeTest.App.Clock.LocalTimeTest do
   @moduledoc """
   Tests for LocalTime variable.
   """
 
   use ExUnit.Case, async: true
+  alias Exshome.App.Clock
+  alias Exshome.App.Clock.LocalTime
   alias Exshome.Dependency
-  alias Exshome.Variable.Builtin.LocalTime
   alias ExshomeTest.TestRegistry
 
   setup tags do
@@ -31,7 +32,7 @@ defmodule ExshomeTest.Variable.Builtin.LocalTimeTest do
 
     test "works with dependencies" do
       current_time = DateTime.utc_now()
-      Dependency.broadcast_value(Exshome.Service.ClockService, current_time)
+      TestRegistry.broadcast_dependency(Clock.UtcTimeService, current_time)
 
       refute Dependency.get_value(LocalTime) == Dependency.NotReady
       assert Dependency.get_value(LocalTime) == current_time

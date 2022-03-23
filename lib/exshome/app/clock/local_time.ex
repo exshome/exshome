@@ -1,14 +1,16 @@
-defmodule Exshome.Variable.Builtin.LocalTime do
+defmodule Exshome.App.Clock.LocalTime do
   @moduledoc """
   Provides a value for local time.
   It subscribes to the changes in clock settings and current time.
   """
+  alias Exshome.App.Clock
+
   use Exshome.Variable,
     name: "local_time",
     datatype: Exshome.DataType.String,
     dependencies: [
-      {Exshome.Service.ClockService, :utc_time},
-      {Exshome.Settings.ClockSettings, :clock_settings}
+      {Clock.UtcTimeService, :utc_time},
+      {Clock.Settings, :settings}
     ]
 
   @impl Variable
@@ -16,7 +18,7 @@ defmodule Exshome.Variable.Builtin.LocalTime do
     value =
       DateTime.shift_zone!(
         deps.utc_time,
-        deps.clock_settings.timezone
+        deps.settings.timezone
       )
 
     update_value(state, value)

@@ -20,7 +20,7 @@ defmodule ExshomeWeb.Router do
 
     live "/", ExshomeWeb.Live.HomePage, :index, as: :home
 
-    service_routing(ServicePage.Clock)
+    service_routing(ServicePage.ClockPage)
   end
 
   # Other scopes may use custom stacks.
