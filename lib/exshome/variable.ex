@@ -21,22 +21,17 @@ defmodule Exshome.Variable do
   end
 
   @impl GenServer
-  def init(opts) do
+  def init(%{module: module} = opts) when is_atom(module) do
     GenServerDependency.on_init(opts)
-    {:ok, %State{module: opts[:module]}, {:continue, :connect_to_dependencies}}
-  end
-
-  @impl GenServer
-  def handle_continue(:connect_to_dependencies, %State{} = state) do
-    dependencies = state.module.__config__()[:dependencies]
+    dependencies = module.__config__()[:dependencies]
 
     state =
       GenServerDependency.subscribe_to_dependencies(
-        state,
+        %State{module: module, deps: %{}},
         dependencies
       )
 
-    {:noreply, state}
+    {:ok, state}
   end
 
   @impl GenServer
