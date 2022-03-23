@@ -5,6 +5,11 @@
 
 DIY elixir-based smart home.
 
+## Project goals
+- Extensibility
+- Test coverage
+- Should support different Single Board Computers
+
 ## Getting started
 - Install dependencies with `mix deps.get`
 - Setup database `mix ecto.setup`
