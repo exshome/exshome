@@ -23,8 +23,10 @@ defmodule ExshomeWeb.ConnCase do
       import Plug.Conn
       import Phoenix.ConnTest
       import ExshomeWeb.ConnCase
+      import Phoenix.LiveViewTest
 
       alias ExshomeWeb.Router.Helpers, as: Routes
+      import ExshomeTest.LiveViewHelpers
 
       # The default endpoint for testing
       @endpoint ExshomeWeb.Endpoint
