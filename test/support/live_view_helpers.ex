@@ -10,7 +10,7 @@ defmodule ExshomeTest.LiveViewHelpers do
   @doc """
   Renders a live service page and returns a view. Raises when something bad happens.
   """
-  @spec live_with_dependencies(Plug.Conn.t(), module(), atom()) :: Phoenix.LiveViewTest.View.t()
+  @spec live_with_dependencies(Plug.Conn.t(), module(), atom()) :: Phoenix.LiveViewTest.View
   def live_with_dependencies(%Plug.Conn{} = conn, service_page, action)
       when is_atom(service_page) and is_atom(action) do
     service_page.actions()
