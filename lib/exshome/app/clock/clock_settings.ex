@@ -1,10 +1,10 @@
-defmodule Exshome.App.Clock.Settings do
+defmodule Exshome.App.Clock.ClockSettings do
   @moduledoc """
   Module for storing clock settings.
   """
 
   use Exshome.Settings,
-    name: "settings_clock",
+    name: "clock_settings",
     fields: [
       timezone: [
         allowed_values: &TzExtra.time_zone_identifiers/0,

@@ -10,7 +10,7 @@ defmodule Exshome.App.Clock.LocalTime do
     datatype: Exshome.DataType.String,
     dependencies: [
       {Clock.UtcTimeService, :utc_time},
-      {Clock.Settings, :settings}
+      {Clock.ClockSettings, :settings}
     ]
 
   @impl Variable

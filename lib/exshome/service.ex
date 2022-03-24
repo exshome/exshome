@@ -55,7 +55,7 @@ defmodule Exshome.Service do
       alias Exshome.Dependency.GenServerDependency
       alias Exshome.Dependency.GenServerDependency.State
       use Exshome.Dependency
-      use Exshome.Named, unquote(name)
+      use Exshome.Named, "service:#{unquote(name)}"
       import Exshome.Tag, only: [add_tag: 1]
       add_tag(Service)
 

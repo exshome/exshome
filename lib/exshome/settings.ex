@@ -127,7 +127,7 @@ defmodule Exshome.Settings do
       alias Exshome.DataType
       alias Exshome.Settings
       use Exshome.Schema
-      use Exshome.Named, unquote(name)
+      use Exshome.Named, "settings:#{unquote(name)}"
       use Exshome.Dependency
       import Ecto.Changeset
 

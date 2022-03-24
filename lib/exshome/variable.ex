@@ -84,7 +84,7 @@ defmodule Exshome.Variable do
       alias unquote(__MODULE__)
       alias Exshome.Dependency.GenServerDependency.State
       use Exshome.Dependency
-      use Exshome.Named, "variable_#{unquote(config[:name])}"
+      use Exshome.Named, "variable:#{unquote(config[:name])}"
       import Exshome.Tag, only: [add_tag: 1]
       add_tag(Variable)
 

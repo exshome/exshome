@@ -16,7 +16,7 @@ defmodule Exshome.App.Clock.UtcTimeService do
           }
   end
 
-  use Exshome.Service, name: "service_clock"
+  use Exshome.Service, name: "utc_time"
 
   def on_init(state) do
     schedule_next_tick(state)

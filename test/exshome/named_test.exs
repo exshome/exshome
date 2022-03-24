@@ -1,12 +1,12 @@
 defmodule ExshomeTest.NamedTest do
   use ExUnit.Case, async: true
-  alias Exshome.App.Clock
+  alias Exshome.App.Clock.ClockSettings
   alias Exshome.Named
   import ExshomeTest.MacroHelpers, only: [compile_with_settings: 2]
 
   describe "get_module_by_name/1" do
     test "works fine" do
-      assert Named.get_module_by_name(Clock.Settings.name()) == Clock.Settings
+      assert Named.get_module_by_name(ClockSettings.name()) == ClockSettings
     end
 
     test "fails for unknown module" do
@@ -18,13 +18,13 @@ defmodule ExshomeTest.NamedTest do
 
   describe "get_module_by_type_and_name/1" do
     test "works fine" do
-      module = Named.get_module_by_type_and_name(Exshome.Settings, Clock.Settings.name())
-      assert module == Clock.Settings
+      module = Named.get_module_by_type_and_name(Exshome.Settings, ClockSettings.name())
+      assert module == ClockSettings
     end
 
     test "fails for invalid type" do
       assert_raise RuntimeError, ~r/Service/, fn ->
-        Named.get_module_by_type_and_name(Exshome.Service, Clock.Settings.name())
+        Named.get_module_by_type_and_name(Exshome.Service, ClockSettings.name())
       end
     end
   end
