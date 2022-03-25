@@ -10,6 +10,6 @@ defmodule ExshomeWeb.Live.ServicePage.ClockPage do
     actions: [
       index: [{Clock.LocalTime, :time}],
       preview: [{Clock.LocalTime, :time}],
-      settings: [{Clock.Settings, :settings}]
+      settings: [{Clock.ClockSettings, :settings}]
     ]
 end
