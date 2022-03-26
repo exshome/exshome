@@ -7,6 +7,10 @@ defmodule ExshomeWebTest.Live.ServicePage.ClockPageTest do
   alias ExshomeWeb.Live.ServicePage.ClockPage
 
   describe "index" do
+    test "renders without dependencies", %{conn: conn} do
+      assert {:ok, _view, _html} = live(conn, ClockPage.path(conn, :index))
+    end
+
     test "renders current time", %{conn: conn} do
       view = live_with_dependencies(conn, ClockPage, :index)
       current_time = DateTime.utc_now()
@@ -17,6 +21,10 @@ defmodule ExshomeWebTest.Live.ServicePage.ClockPageTest do
   end
 
   describe "settings" do
+    test "renders without dependencies", %{conn: conn} do
+      assert {:ok, _view, _html} = live(conn, ClockPage.path(conn, :settings))
+    end
+
     test "renders clock settings", %{conn: conn} do
       view = live_with_dependencies(conn, ClockPage, :settings)
 
@@ -42,6 +50,16 @@ defmodule ExshomeWebTest.Live.ServicePage.ClockPageTest do
       assert view |> form("form", value) |> render_submit()
       assert compare_timezone(view, random_value)
       assert Settings.get_settings(Clock.ClockSettings).timezone == random_value
+    end
+  end
+
+  describe "preview" do
+    test "renders", %{conn: conn} do
+      view = live_with_dependencies(conn, ClockPage, :index)
+      current_time = DateTime.utc_now()
+      Dependency.broadcast_value(Clock.LocalTime, current_time)
+      assert render(view) =~ ClockView.format_date(current_time)
+      assert render(view) =~ ClockView.format_time(current_time)
     end
   end
 
