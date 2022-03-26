@@ -11,7 +11,11 @@
       "
       >
         <div class="absolute inset-0"></div>
-        <%= live_render @socket, ExshomeWeb.Live.ServicePreview, id: service_module.name() %>
+        <%=
+          live_render @socket,
+          ExshomeWeb.Live.ServicePreview,
+          ExshomeWeb.Live.ServicePreview.preview_settings(service_module)
+        %>
       </div>
     <% end %>
   <% end %>

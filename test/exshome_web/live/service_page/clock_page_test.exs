@@ -51,25 +51,31 @@ defmodule ExshomeWebTest.Live.ServicePage.ClockPageTest do
       assert compare_timezone(view, random_value)
       assert Settings.get_settings(Clock.ClockSettings).timezone == random_value
     end
-  end
 
-  describe "preview" do
-    test "renders", %{conn: conn} do
-      view = live_with_dependencies(conn, ClockPage, :index)
-      current_time = DateTime.utc_now()
-      Dependency.broadcast_value(Clock.LocalTime, current_time)
-      assert render(view) =~ ClockView.format_date(current_time)
-      assert render(view) =~ ClockView.format_time(current_time)
+    @spec compare_timezone(Phoenix.LiveViewTest.View, String.t()) :: String.t()
+    defp compare_timezone(view, expected_timezone) do
+      [timezone] =
+        view
+        |> render()
+        |> Floki.attribute("#settings_timezone [selected]", "value")
+
+      assert timezone == expected_timezone
     end
   end
 
-  @spec compare_timezone(Phoenix.LiveViewTest.View, String.t()) :: String.t()
-  defp compare_timezone(view, expected_timezone) do
-    [timezone] =
-      view
-      |> render()
-      |> Floki.attribute("#settings_timezone [selected]", "value")
+  describe "preview" do
+    test "renders without dependencies", %{conn: conn} do
+      assert live_preview(conn, ClockPage)
+    end
 
-    assert timezone == expected_timezone
+    test "renders current time", %{conn: conn} do
+      view = live_preview_with_dependencies(conn, ClockPage)
+      current_time = DateTime.utc_now()
+      Dependency.broadcast_value(Clock.LocalTime, current_time)
+
+      for clock_part <- ["hour", "minute", "second"] do
+        assert has_element?(view, "#clock-#{clock_part}")
+      end
+    end
   end
 end
