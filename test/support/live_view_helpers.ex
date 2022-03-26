@@ -13,10 +13,15 @@ defmodule ExshomeTest.LiveViewHelpers do
   @spec live_with_dependencies(Plug.Conn.t(), module(), atom()) :: Phoenix.LiveViewTest.View
   def live_with_dependencies(%Plug.Conn{} = conn, service_page, action)
       when is_atom(service_page) and is_atom(action) do
-    service_page.actions()
-    |> Map.get(action)
-    |> Map.keys()
-    |> Enum.each(&ExshomeTest.TestRegistry.start_dependency(&1))
+    supervised_dependencies =
+      service_page.actions()
+      |> Map.get(action)
+      |> Map.keys()
+      |> Enum.filter(&function_exported?(&1, :child_spec, 1))
+
+    for dependency <- supervised_dependencies do
+      ExshomeTest.TestRegistry.start_dependency(dependency)
+    end
 
     {:ok, view, _html} =
       live(

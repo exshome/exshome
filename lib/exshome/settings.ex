@@ -87,16 +87,11 @@ defmodule Exshome.Settings do
     available_keys = Keyword.keys(fields)
     required_fields = for {field, data} <- fields, data[:required], do: field
 
-    allowed_fields =
-      for {field, data} <- fields, data[:allowed_values] do
-        {field, data[:allowed_values]}
-      end
-
     module
     |> struct(%{})
     |> Ecto.Changeset.cast(data, available_keys)
     |> Ecto.Changeset.validate_required(required_fields)
-    |> check_allowed_values(allowed_fields)
+    |> check_allowed_values(allowed_values(module))
   end
 
   @spec available_modules() :: MapSet.t(atom())
@@ -111,9 +106,16 @@ defmodule Exshome.Settings do
     |> Enum.into(%{})
   end
 
-  defp check_allowed_values(changeset, allowed_fields) do
-    for {field, values_fn} <- allowed_fields, reduce: changeset do
-      ch -> validate_inclusion(ch, field, values_fn.())
+  @spec allowed_values(module()) :: map()
+  def allowed_values(module) when is_atom(module) do
+    for {field, data} <- module.fields(), data[:allowed_values], into: %{} do
+      {field, data[:allowed_values].()}
+    end
+  end
+
+  defp check_allowed_values(changeset, allowed_values) do
+    for {field, values} <- allowed_values, reduce: changeset do
+      ch -> validate_inclusion(ch, field, values)
     end
   end
 

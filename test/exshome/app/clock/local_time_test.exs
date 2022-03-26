@@ -7,6 +7,8 @@ defmodule ExshomeTest.App.Clock.LocalTimeTest do
   alias Exshome.App.Clock
   alias Exshome.App.Clock.LocalTime
   alias Exshome.Dependency
+  alias Exshome.Settings
+  alias Exshome.Variable
   alias ExshomeTest.TestRegistry
 
   setup tags do
@@ -36,6 +38,21 @@ defmodule ExshomeTest.App.Clock.LocalTimeTest do
 
       refute Dependency.get_value(LocalTime) == Dependency.NotReady
       assert Dependency.get_value(LocalTime) == current_time
+    end
+
+    test "syncs after timezone is updated" do
+      current_time = DateTime.utc_now()
+      Dependency.broadcast_value(Clock.UtcTimeService, current_time)
+
+      assert Variable.get_value(LocalTime).time_zone == current_time.time_zone
+
+      random_timezone =
+        Settings.allowed_values(Clock.ClockSettings).timezone
+        |> Enum.random()
+
+      Settings.save_settings(%Clock.ClockSettings{timezone: random_timezone})
+
+      assert Variable.get_value(LocalTime).time_zone == random_timezone
     end
   end
 end
