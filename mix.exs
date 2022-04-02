@@ -32,7 +32,7 @@ defmodule Exshome.MixProject do
   # Type `mix help compile.app` for more information.
   def application do
     [
-      extra_applications: [:logger, :runtime_tools],
+      extra_applications: [:logger, :runtime_tools, :erlexec],
       mod: {Exshome.Application, []}
     ]
   end
@@ -49,6 +49,7 @@ defmodule Exshome.MixProject do
       {:credo, "~> 1.6", only: [:dev, :test], runtime: false},
       {:dialyxir, "~> 1.0", only: [:dev, :test], runtime: false},
       {:ecto, "~> 3.7"},
+      {:erlexec, "~> 1.0"},
       {:ecto_sqlite3, "~> 0.7.3"},
       {:esbuild, "~> 0.3", runtime: Mix.env() == :dev},
       {:excoveralls, "~> 0.10", only: :test},
