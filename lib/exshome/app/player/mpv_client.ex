@@ -1,7 +1,7 @@
-defmodule Exshome.Mpv.Client do
+defmodule Exshome.App.Player.MpvClient do
   use GenServer
   require Logger
-  alias Exshome.Mpv.Socket
+  alias Exshome.App.Player.MpvSocket
 
   defmodule PlayerState do
     @moduledoc """
@@ -42,8 +42,9 @@ defmodule Exshome.Mpv.Client do
     defstruct [:player_state_change_fn, :socket_args, :unknown_event_handler]
 
     @type t() :: %__MODULE__{
-            socket_args: Socket.Arguments.t(),
-            player_state_change_fn: (Exshome.Mpv.Client.player_state_t() -> term()) | nil,
+            socket_args: MpvSocket.Arguments.t(),
+            player_state_change_fn:
+              (Exshome.App.Player.MpvClient.player_state_t() -> term()) | nil,
             unknown_event_handler: (term() -> term()) | nil
           }
   end
@@ -62,8 +63,8 @@ defmodule Exshome.Mpv.Client do
 
     @type t() :: %__MODULE__{
             socket: pid() | nil,
-            socket_args: Socket.Arguments.t(),
-            player_state: Exshome.Mpv.Client.player_state_t(),
+            socket_args: MpvSocket.Arguments.t(),
+            player_state: Exshome.App.Player.MpvClient.player_state_t(),
             player_state_change_fn: (PlayerState.t() -> term()) | nil,
             unknown_event_handler: (term() -> term())
           }
@@ -139,7 +140,7 @@ defmodule Exshome.Mpv.Client do
   def handle_continue(@connect_to_socket_key, %State{} = state) do
     my_pid = self()
 
-    socket_args = %Socket.Arguments{
+    socket_args = %MpvSocket.Arguments{
       state.socket_args
       | handle_event: fn event ->
           handler = state.socket_args.handle_event
@@ -148,7 +149,7 @@ defmodule Exshome.Mpv.Client do
         end
     }
 
-    {:ok, socket} = Socket.start_link(socket_args)
+    {:ok, socket} = MpvSocket.start_link(socket_args)
 
     new_state = %State{state | socket: socket}
     {:noreply, new_state}
@@ -160,7 +161,7 @@ defmodule Exshome.Mpv.Client do
     {:noreply, new_state}
   end
 
-  @spec handle_event(event :: Socket.event_t(), state :: State.t()) :: State.t()
+  @spec handle_event(event :: MpvSocket.event_t(), state :: State.t()) :: State.t()
   def handle_event(:connected, state) do
     subscribe_to_player_state(state)
     update_player_state(%PlayerState{}, state)
@@ -210,7 +211,7 @@ defmodule Exshome.Mpv.Client do
   end
 
   defp socket_command(payload, %State{} = state) do
-    Socket.request!(state.socket, %{command: payload})
+    MpvSocket.request!(state.socket, %{command: payload})
   end
 
   @spec update_player_state(player_state_t(), State.t()) :: State.t()

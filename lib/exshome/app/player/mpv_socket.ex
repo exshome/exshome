@@ -1,4 +1,4 @@
-defmodule Exshome.Mpv.Socket do
+defmodule Exshome.App.Player.MpvSocket do
   @moduledoc """
   Implementation for MPV socket. It allows to send you some commands to the MPV server.
   """
@@ -14,7 +14,7 @@ defmodule Exshome.Mpv.Socket do
     @moduledoc """
     A structure for storing internal state for the MPV socket.
     """
-    alias Exshome.Mpv.Socket
+    alias Exshome.App.Player.MpvSocket
 
     @enforce_keys [:handle_event]
 
@@ -33,7 +33,7 @@ defmodule Exshome.Mpv.Socket do
             reconnect_interval: non_neg_integer(),
             socket_location: String.t() | nil,
             requests: %{integer() => GenServer.from()},
-            handle_event: (Socket.event_t() -> any())
+            handle_event: (MpvSocket.event_t() -> any())
           }
   end
 

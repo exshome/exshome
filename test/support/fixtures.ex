@@ -72,7 +72,9 @@ defmodule ExshomeTest.Fixtures do
 
   def updated_player_state do
     {@received_event_tag, result} =
-      assert_receive({@received_event_tag, %{__struct__: Exshome.Mpv.Client.PlayerState}})
+      assert_receive(
+        {@received_event_tag, %{__struct__: Exshome.App.Player.MpvClient.PlayerState}}
+      )
 
     result
   end
