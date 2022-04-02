@@ -8,7 +8,10 @@ defmodule ExshomeWeb.Live.HomePage do
 
   @impl Phoenix.LiveView
   def mount(_params, _session, %Socket{} = socket) do
-    services = [ExshomeWeb.Live.ServicePage.ClockPage]
+    services = [
+      ExshomeWeb.Live.ServicePage.ClockPage,
+      ExshomeWeb.Live.ServicePage.PlayerPage
+    ]
 
     {:ok, assign(socket, services: services)}
   end

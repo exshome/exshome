@@ -21,6 +21,7 @@ defmodule ExshomeWeb.Router do
     live "/", ExshomeWeb.Live.HomePage, :index, as: :home
 
     service_routing(ServicePage.ClockPage)
+    service_routing(ServicePage.PlayerPage)
   end
 
   # Other scopes may use custom stacks.

@@ -3,10 +3,10 @@ defmodule ExshomeWebTest.Live.ServicePage.ClockPageTest do
   alias Exshome.App.Clock
   alias Exshome.Dependency
   alias Exshome.Settings
-  alias ExshomeWeb.ClockView
   alias ExshomeWeb.Live.ServicePage.ClockPage
+  alias ExshomeWeb.ServicePage.ClockView
 
-  describe "index" do
+  describe "clock page index" do
     test "renders without dependencies", %{conn: conn} do
       assert {:ok, _view, _html} = live(conn, ClockPage.path(conn, :index))
     end
@@ -20,7 +20,7 @@ defmodule ExshomeWebTest.Live.ServicePage.ClockPageTest do
     end
   end
 
-  describe "settings" do
+  describe "clock page settings" do
     test "renders without dependencies", %{conn: conn} do
       assert {:ok, _view, _html} = live(conn, ClockPage.path(conn, :settings))
     end
@@ -63,7 +63,7 @@ defmodule ExshomeWebTest.Live.ServicePage.ClockPageTest do
     end
   end
 
-  describe "preview" do
+  describe "clock page preview" do
     test "renders without dependencies", %{conn: conn} do
       assert live_preview(conn, ClockPage)
     end

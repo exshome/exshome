@@ -6,7 +6,7 @@ defmodule ExshomeWeb.Live.ServicePage.ClockPage do
 
   use ExshomeWeb.Live.ServicePageLive,
     prefix: :clock,
-    view_module: ExshomeWeb.ClockView,
+    view_module: ExshomeWeb.ServicePage.ClockView,
     actions: [
       index: [{Clock.LocalTime, :time}],
       preview: [{Clock.LocalTime, :time}],

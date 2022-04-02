@@ -9,12 +9,23 @@ defmodule ExshomeWebTest.Live.HomePageTest do
   end
 
   test "We can navigate to a service page", %{conn: conn} do
-    {:ok, view, _html} = live(conn, "/")
-
     for service_page <- ServicePageLive.service_pages() do
+      home_path = Routes.home_path(conn, :index)
+      {:ok, view, _html} = live(conn, home_path)
+
       page_path = service_page.path(conn, :index)
-      element(view, ~s/[href="#{page_path}"]/) |> render_click()
-      assert_redirect(view, page_path)
+
+      {:ok, view, _html} =
+        view
+        |> element(~s/[href="#{page_path}"]/)
+        |> render_click()
+        |> follow_redirect(conn)
+
+      {:ok, _view, _html} =
+        view
+        |> element(~s/[href="#{home_path}"]/)
+        |> render_click()
+        |> follow_redirect(conn)
     end
   end
 end
