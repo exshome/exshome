@@ -5,8 +5,8 @@ defmodule ExshomeTest.TestFileUtils do
 
   @spec generate_test_folder(Access.t()) :: String.t()
   def generate_test_folder(tags) do
-    parent_folder_name = sanitize_filder_name(tags[:module])
-    test_folder_name = sanitize_filder_name(tags[:test])
+    parent_folder_name = sanitize_folder_name(tags[:module])
+    test_folder_name = sanitize_folder_name(tags[:test])
 
     test_path =
       Path.join([
@@ -28,7 +28,7 @@ defmodule ExshomeTest.TestFileUtils do
     ExshomeTest.TestRegistry.get!(__MODULE__)
   end
 
-  defp sanitize_filder_name(name) when is_atom(name) do
+  defp sanitize_folder_name(name) when is_atom(name) do
     Regex.replace(~r/\W+/, Atom.to_string(name), "_")
   end
 end
