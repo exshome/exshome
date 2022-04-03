@@ -72,7 +72,7 @@ defmodule Exshome.App.Player.PlayerService do
     {:ok, pid, _ospid} =
       :exec.run_link(
         [
-          'mpv',
+          System.find_executable("mpv") |> String.to_charlist(),
           '--no-video',
           '--idle',
           '--input-ipc-server=#{ipc_socket_location()}'
