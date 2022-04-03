@@ -1,6 +1,6 @@
 defmodule Exshome.App.Clock.UtcTimeService do
   @moduledoc """
-  Application clock server.
+  UTC time service.
   """
 
   defmodule Opts do
@@ -16,7 +16,7 @@ defmodule Exshome.App.Clock.UtcTimeService do
           }
   end
 
-  use Exshome.Service, name: "utc_time"
+  use Exshome.Service, name: "utc_time_service"
 
   def on_init(state) do
     schedule_next_tick(state)

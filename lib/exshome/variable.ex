@@ -20,6 +20,11 @@ defmodule Exshome.Variable do
     GenServerDependency.start_link(__MODULE__, opts)
   end
 
+  @spec child_spec(opts :: map()) :: map()
+  def child_spec(%{module: module} = opts) do
+    %{super(opts) | id: module}
+  end
+
   @impl GenServer
   def init(%{module: module} = opts) when is_atom(module) do
     GenServerDependency.on_init(opts)

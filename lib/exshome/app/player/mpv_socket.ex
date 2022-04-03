@@ -46,7 +46,7 @@ defmodule Exshome.App.Player.MpvSocket do
 
     @type t() :: %__MODULE__{
             handle_event: (%{String.t() => term()} -> any()) | nil,
-            reconnect_interval: integer(),
+            reconnect_interval: integer() | nil,
             socket_location: String.t()
           }
   end

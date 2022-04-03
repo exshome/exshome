@@ -5,6 +5,9 @@
 
 DIY elixir-based smart home.
 
+## Depends on
+- [MPV](https://mpv.io/)
+
 ## Project goals
 - Extensibility
 - Test coverage

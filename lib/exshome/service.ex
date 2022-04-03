@@ -21,6 +21,11 @@ defmodule Exshome.Service do
     GenServerDependency.start_link(__MODULE__, opts)
   end
 
+  @spec child_spec(opts :: map()) :: map()
+  def child_spec(%{module: module} = opts) do
+    %{super(opts) | id: module}
+  end
+
   @impl GenServer
   def init(opts) do
     GenServerDependency.on_init(opts)
