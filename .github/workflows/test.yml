@@ -3,6 +3,7 @@ name: Build and test the project
 on: [push]
 
 env:
+  SHELL: /bin/bash
   MIX_ENV: test
 
 jobs:
