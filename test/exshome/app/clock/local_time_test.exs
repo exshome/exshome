@@ -3,19 +3,13 @@ defmodule ExshomeTest.App.Clock.LocalTimeTest do
   Tests for LocalTime variable.
   """
 
-  use ExUnit.Case, async: true
+  use Exshome.DataCase, async: true
   alias Exshome.App.Clock
   alias Exshome.App.Clock.LocalTime
   alias Exshome.Dependency
   alias Exshome.Settings
   alias Exshome.Variable
   alias ExshomeTest.TestRegistry
-
-  setup tags do
-    TestRegistry.allow(self(), self())
-    ExshomeTest.TestFileUtils.generate_test_folder(tags)
-    ExshomeTest.TestDbUtils.start_test_db()
-  end
 
   describe "LocalTime is not started" do
     test "returns NotReady" do

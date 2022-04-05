@@ -9,25 +9,22 @@ defmodule ExshomeTest.Fixtures do
 
   @received_event_tag :event
 
-  @spec unique_socket_location() :: String.t()
-  def unique_socket_location do
-    System.tmp_dir!()
-    |> Path.join("socket_location#{unique_integer()}")
-  end
-
   @spec unique_integer() :: integer()
   def unique_integer do
     System.unique_integer([:positive, :monotonic])
   end
 
-  @spec server_fixture(socket_path :: String.t()) :: term()
-  def server_fixture(socket_path) do
+  @spec server_fixture() :: term()
+  def server_fixture do
     clear_received_events()
+    my_pid = self()
 
     server =
       Callbacks.start_supervised!({
         TestMpvServer,
-        %TestMpvServer.Arguments{socket_path: socket_path}
+        %TestMpvServer.Arguments{
+          init_fn: fn -> ExshomeTest.TestRegistry.allow(my_pid, self()) end
+        }
       })
 
     set_events([])

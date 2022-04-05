@@ -22,7 +22,6 @@ defmodule Exshome.App.Player.MpvSocket do
       :socket,
       :handle_event,
       :reconnect_interval,
-      :socket_location,
       requests: %{},
       counter: 1
     ]
@@ -31,7 +30,6 @@ defmodule Exshome.App.Player.MpvSocket do
             socket: :gen_tcp.socket() | nil,
             counter: integer(),
             reconnect_interval: non_neg_integer(),
-            socket_location: String.t() | nil,
             requests: %{integer() => GenServer.from()},
             handle_event: (MpvSocket.event_t() -> any())
           }
@@ -41,13 +39,12 @@ defmodule Exshome.App.Player.MpvSocket do
     @moduledoc """
     Initial arguments for MPV socket.
     """
-    @enforce_keys [:socket_location]
-    defstruct [:socket_location, :reconnect_interval, :handle_event]
+    defstruct [:reconnect_interval, :handle_event, :on_init]
 
     @type t() :: %__MODULE__{
+            on_init: (() -> any()) | nil,
             handle_event: (%{String.t() => term()} -> any()) | nil,
-            reconnect_interval: non_neg_integer() | nil,
-            socket_location: String.t()
+            reconnect_interval: non_neg_integer() | nil
           }
   end
 
@@ -69,6 +66,8 @@ defmodule Exshome.App.Player.MpvSocket do
 
   @impl GenServer
   def init(%Arguments{} = args) do
+    args.on_init && args.on_init.()
+
     args = %Arguments{
       args
       | handle_event: args.handle_event || fn event -> event end
@@ -82,7 +81,7 @@ defmodule Exshome.App.Player.MpvSocket do
   def handle_continue(@connect_to_socket_key, %State{} = state) do
     connect_result =
       :gen_tcp.connect(
-        {:local, state.socket_location},
+        {:local, socket_path()},
         0,
         [:binary, packet: :line]
       )
@@ -185,5 +184,10 @@ defmodule Exshome.App.Player.MpvSocket do
     )
 
     {:noreply, state}
+  end
+
+  def socket_path do
+    Exshome.FileUtils.get_of_create_folder!("player")
+    |> Path.join("mpv_socket")
   end
 end

@@ -5,21 +5,23 @@ defmodule ExshomeTest.TestFileUtils do
 
   @spec generate_test_folder(Access.t()) :: String.t()
   def generate_test_folder(tags) do
-    parent_folder_name = sanitize_folder_name(tags[:module])
-    test_folder_name = sanitize_folder_name(tags[:test])
+    intermediate_paths =
+      if tags[:mpv_test_folder] do
+        ["mpv_test_folder"]
+      else
+        parent_folder_name = sanitize_folder_name(tags[:module])
+        test_folder_name = sanitize_folder_name(tags[:test])
+        [parent_folder_name, test_folder_name]
+      end
 
     test_path =
-      Path.join([
-        System.tmp_dir!(),
-        "ExshomeTest",
-        parent_folder_name,
-        test_folder_name,
-        "#{Ecto.UUID.generate()}"
-      ])
+      Path.join(
+        [System.tmp_dir!(), "ExshomeTest"] ++ intermediate_paths ++ ["#{Ecto.UUID.generate()}"]
+      )
 
     File.mkdir_p!(test_path)
     ExshomeTest.TestRegistry.put(__MODULE__, test_path)
-    ExUnit.Callbacks.on_exit(fn -> File.rm_rf!(test_folder_name) end)
+    ExUnit.Callbacks.on_exit(fn -> File.rm_rf!(test_path) end)
     test_path
   end
 

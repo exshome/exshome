@@ -75,7 +75,7 @@ defmodule Exshome.App.Player.PlayerService do
           System.find_executable("mpv") |> String.to_charlist(),
           '--no-video',
           '--idle',
-          '--input-ipc-server=#{ipc_socket_location()}'
+          '--input-ipc-server=#{Player.MpvSocket.socket_path()}'
         ],
         [
           {:group, 0},
@@ -103,18 +103,10 @@ defmodule Exshome.App.Player.PlayerService do
 
     {:ok, pid} =
       Player.MpvClient.start_link(%Player.MpvClient.Arguments{
-        socket_args: %Player.MpvSocket.Arguments{
-          socket_location: ipc_socket_location()
-        },
         player_state_change_fn: &send(player_pid, {:player_state, &1}),
         unknown_event_handler: &send(player_pid, {:unknown_event, &1})
       })
 
     pid
-  end
-
-  defp ipc_socket_location do
-    Exshome.FileUtils.get_of_create_folder!("player")
-    |> Path.join("mpv_socket")
   end
 end

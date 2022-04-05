@@ -1,5 +1,7 @@
 defmodule ExshomeTest.App.Player.MpvClientTest do
-  use ExUnit.Case, async: true
+  use Exshome.DataCase, async: true
+  @moduletag :mpv_test_folder
+
   import ExshomeTest.Fixtures
 
   alias Exshome.App.Player.{MpvClient, MpvSocket}
@@ -9,13 +11,13 @@ defmodule ExshomeTest.App.Player.MpvClientTest do
   @unknown_event :unknown_event
 
   setup do
-    socket_location = unique_socket_location()
-    server = server_fixture(socket_location)
+    server = server_fixture()
+    my_pid = self()
 
     client_data = %MpvClient.Arguments{
       socket_args: %MpvSocket.Arguments{
-        socket_location: socket_location,
-        reconnect_interval: 0
+        reconnect_interval: 0,
+        on_init: fn -> ExshomeTest.TestRegistry.allow(my_pid, self()) end
       },
       player_state_change_fn: event_handler(self()),
       unknown_event_handler: event_handler(self(), @unknown_event)
@@ -23,17 +25,17 @@ defmodule ExshomeTest.App.Player.MpvClientTest do
 
     client = start_supervised!({MpvClient, client_data})
     assert_client_connected()
-    %{client: client, socket_location: socket_location, server: server}
+    %{client: client, server: server}
   end
 
-  test "client can reconnect to a server", %{client: client, socket_location: socket_location} do
+  test "client can reconnect to a server", %{client: client} do
     assert MpvClient.player_state(client) != :disconnected
     stop_server()
 
     assert received_event(:disconnected)
     assert MpvClient.player_state(client) == :disconnected
 
-    server_fixture(socket_location)
+    server_fixture()
     assert_client_connected()
     assert MpvClient.player_state(client) != :disconnected
   end

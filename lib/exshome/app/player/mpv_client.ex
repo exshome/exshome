@@ -39,7 +39,11 @@ defmodule Exshome.App.Player.MpvClient do
     @moduledoc """
     Initial arguments for MPV client.
     """
-    defstruct [:player_state_change_fn, :socket_args, :unknown_event_handler]
+    defstruct [
+      :player_state_change_fn,
+      :unknown_event_handler,
+      socket_args: %MpvSocket.Arguments{}
+    ]
 
     @type t() :: %__MODULE__{
             socket_args: MpvSocket.Arguments.t(),

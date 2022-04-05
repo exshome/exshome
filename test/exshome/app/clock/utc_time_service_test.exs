@@ -1,11 +1,10 @@
 defmodule ExshomeTest.App.Clock.UtcTimeServiceTest do
-  use ExUnit.Case, async: true
+  use Exshome.DataCase, async: true
   alias Exshome.App.Clock.UtcTimeService
   alias Exshome.Dependency
   alias ExshomeTest.TestRegistry
 
   setup do
-    TestRegistry.allow(self(), self())
     TestRegistry.start_dependency(UtcTimeService, %{refresh_interval: 1, precision: :microsecond})
   end
 

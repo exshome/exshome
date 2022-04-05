@@ -1,5 +1,7 @@
 defmodule ExshomeTest.App.Player.MpvSocketTest do
-  use ExUnit.Case, async: true
+  use Exshome.DataCase, async: true
+  @moduletag :mpv_test_folder
+
   import ExshomeTest.Fixtures
 
   alias Exshome.App.Player.MpvSocket
@@ -7,11 +9,11 @@ defmodule ExshomeTest.App.Player.MpvSocketTest do
   @reconnect_interval 0
 
   setup do
-    socket_location = unique_socket_location()
-    server = server_fixture(socket_location)
+    server = server_fixture()
+    my_pid = self()
 
     socket_data = %MpvSocket.Arguments{
-      socket_location: socket_location,
+      on_init: fn -> ExshomeTest.TestRegistry.allow(my_pid, self()) end,
       handle_event: event_handler(self()),
       reconnect_interval: @reconnect_interval
     }
@@ -20,7 +22,7 @@ defmodule ExshomeTest.App.Player.MpvSocketTest do
 
     wait_until_socket_connects()
 
-    %{socket: socket, socket_location: socket_location, server: server}
+    %{socket: socket, server: server}
   end
 
   test "simple connection", %{socket: socket} do
@@ -54,10 +56,7 @@ defmodule ExshomeTest.App.Player.MpvSocketTest do
     assert received_event() == event
   end
 
-  test "client reconnects to the server", %{
-    socket: socket,
-    socket_location: socket_location
-  } do
+  test "client reconnects to the server", %{socket: socket} do
     MpvSocket.request!(socket, %{data: "test"})
     assert last_received_message()
 
@@ -67,7 +66,7 @@ defmodule ExshomeTest.App.Player.MpvSocketTest do
 
     :timer.sleep(@reconnect_interval + 1)
 
-    server_fixture(socket_location)
+    server_fixture()
     wait_until_socket_connects()
     MpvSocket.request!(socket, %{data: "test"})
     assert last_received_message()

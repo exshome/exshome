@@ -3,13 +3,13 @@ defmodule ExshomeTest.TestMpvServer do
   Test MPV server. You can use it to emulate an MPV server.
   """
   use GenServer
+  alias Exshome.App.Player.MpvSocket
 
   defmodule State do
     @moduledoc """
     A structure to represent internal state of test MPV server.
     """
     defstruct [
-      :socket_path,
       :server,
       :connection,
       :response_fn,
@@ -22,7 +22,6 @@ defmodule ExshomeTest.TestMpvServer do
             connection: :gen_tcp.socket() | nil,
             received_messages: [term()],
             server: :gen_tcp.socket() | nil,
-            socket_path: String.t() | nil,
             observed_properties: MapSet.t(),
             response_fn: ExshomeTest.TestMpvServer.response_fn() | nil,
             playlist: [String.t()]
@@ -33,10 +32,10 @@ defmodule ExshomeTest.TestMpvServer do
     @moduledoc """
     Arguments to start a test MPV server.
     """
-    @enforce_keys [:socket_path]
-    defstruct [:socket_path]
+    @enforce_keys [:init_fn]
+    defstruct [:init_fn]
 
-    @type t() :: %__MODULE__{socket_path: String.t()}
+    @type t() :: %__MODULE__{init_fn: (() -> any())}
   end
 
   @type response_fn() :: (request_id :: String.t(), data :: map() -> map())
@@ -67,7 +66,9 @@ defmodule ExshomeTest.TestMpvServer do
   end
 
   @impl GenServer
-  def init(%Arguments{socket_path: socket_path}) do
+  def init(%Arguments{init_fn: init_fn}) do
+    init_fn.()
+    socket_path = MpvSocket.socket_path()
     File.rm(socket_path)
 
     {:ok, server} =
@@ -78,7 +79,7 @@ defmodule ExshomeTest.TestMpvServer do
         reuseaddr: true
       ])
 
-    state = %State{socket_path: socket_path, server: server}
+    state = %State{server: server}
     {:ok, state, {:continue, :accept_connection}}
   end
 
