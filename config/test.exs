@@ -16,6 +16,7 @@ config :exshome, ExshomeWeb.Endpoint,
 config :exshome, :environment, :test
 config :exshome, :dependency_hook_module, ExshomeTest.Hooks.Dependency
 config :exshome, :file_utils_hook_module, ExshomeTest.Hooks.FileUtils
+config :exshome, :mpv_server_hook_module, ExshomeTest.Hooks.MpvServer
 config :exshome, :pub_sub_hook_module, ExshomeTest.Hooks.PubSub
 config :exshome, :repo_hook_module, ExshomeTest.Hooks.Repo
 config :exshome, :live_view_hooks, [ExshomeTest.Hooks.LiveView]

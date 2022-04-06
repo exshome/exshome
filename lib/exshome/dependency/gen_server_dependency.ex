@@ -9,11 +9,12 @@ defmodule Exshome.Dependency.GenServerDependency do
     Inner state for each dependency.
     """
 
-    defstruct [:module, :opts, :deps, value: Dependency.NotReady]
+    defstruct [:module, :opts, :deps, :data, value: Dependency.NotReady]
 
     @type t() :: %__MODULE__{
             module: module(),
             value: Exshome.Dependency.get_value_result(),
+            data: any(),
             opts: any(),
             deps: map()
           }
