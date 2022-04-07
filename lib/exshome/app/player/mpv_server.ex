@@ -4,6 +4,7 @@ defmodule Exshome.App.Player.MpvServer do
   """
   use Exshome.Dependency.GenServerDependency, name: "mpv_server"
 
+  @impl GenServerDependency
   def on_init(%DependencyState{} = state) do
     server_pid = start_mpv_server()
     update_value(state, %{server_pid: server_pid})

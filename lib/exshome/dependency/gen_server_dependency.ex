@@ -11,13 +11,14 @@ defmodule Exshome.Dependency.GenServerDependency do
     Inner state for each dependency.
     """
 
-    defstruct [:module, :opts, :deps, value: Dependency.NotReady]
+    defstruct [:module, :opts, :deps, :data, value: Dependency.NotReady]
 
     @type t() :: %__MODULE__{
             module: module(),
-            value: Exshome.Dependency.get_value_result(),
+            deps: map(),
+            data: any(),
             opts: any(),
-            deps: map()
+            value: Exshome.Dependency.get_value_result()
           }
   end
 
@@ -30,7 +31,15 @@ defmodule Exshome.Dependency.GenServerDependency do
               | {:noreply, new_state, timeout() | :hibernate | {:continue, term()}}
               | {:stop, reason :: term(), new_state}
             when new_state: DependencyState.t()
-  @optional_callbacks handle_info: 2
+  @callback handle_call(request :: term(), GenServer.from(), state :: DependencyState.t()) ::
+              {:reply, reply, new_state}
+              | {:reply, reply, new_state, timeout() | :hibernate | {:continue, term()}}
+              | {:noreply, new_state}
+              | {:noreply, new_state, timeout() | :hibernate | {:continue, term()}}
+              | {:stop, reason, reply, new_state}
+              | {:stop, reason, new_state}
+            when reply: term(), new_state: DependencyState.t(), reason: term()
+  @optional_callbacks handle_info: 2, handle_call: 3
 
   @spec start_link(map()) :: GenServer.on_start()
   def start_link(%{module: module} = opts) do
@@ -68,6 +77,10 @@ defmodule Exshome.Dependency.GenServerDependency do
     {:reply, state.value, state}
   end
 
+  def handle_call(message, from, %DependencyState{} = state) do
+    state.module.handle_call(message, from, state)
+  end
+
   @impl GenServer
   def handle_info(message, state) do
     if Dependency.dependency_message?(message) do
@@ -91,9 +104,14 @@ defmodule Exshome.Dependency.GenServerDependency do
 
   @spec get_value(GenServer.server()) :: any()
   def get_value(server) do
+    call(server, :get_value)
+  end
+
+  @spec call(GenServer.server(), any()) :: any()
+  def call(server, message) do
     case get_pid(server) do
       nil -> Dependency.NotReady
-      pid -> GenServer.call(pid, :get_value)
+      pid -> GenServer.call(pid, message)
     end
   end
 
@@ -106,6 +124,11 @@ defmodule Exshome.Dependency.GenServerDependency do
     end
 
     %DependencyState{state | value: value}
+  end
+
+  @spec update_data(DependencyState.t(), (any() -> any())) :: DependencyState.t()
+  def update_data(%DependencyState{} = state, update_fn) do
+    %DependencyState{state | data: update_fn.(state.data)}
   end
 
   @spec handle_dependency_change(DependencyState.t()) :: DependencyState.t()
@@ -197,6 +220,7 @@ defmodule Exshome.Dependency.GenServerDependency do
 
       @impl GenServerDependency
       defdelegate update_value(state, value), to: GenServerDependency
+      defdelegate update_data(state, data_fn), to: GenServerDependency
 
       @impl Exshome.Dependency
       def get_value, do: GenServerDependency.get_value(__MODULE__)
@@ -208,6 +232,8 @@ defmodule Exshome.Dependency.GenServerDependency do
       @impl GenServerDependency
       def handle_dependency_change(state), do: state
       defoverridable(parse_opts: 1, on_init: 1, handle_dependency_change: 1)
+
+      def call(message), do: GenServerDependency.call(__MODULE__, message)
 
       def start_link(opts), do: opts |> update_opts() |> GenServerDependency.start_link()
 
