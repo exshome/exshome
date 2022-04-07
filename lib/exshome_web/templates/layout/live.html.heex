@@ -1,12 +1,12 @@
-<%= render "_navigation.html", socket: @socket, live_action: @live_action %>
+<%= render("_navigation.html", socket: @socket, live_action: @live_action) %>
 <main class="h-full">
-  <p class="alert alert-info" role="alert"
-    phx-click="lv:clear-flash"
-    phx-value-key="info"><%= live_flash(@flash, :info) %></p>
+  <p class="alert alert-info" role="alert" phx-click="lv:clear-flash" phx-value-key="info">
+    <%= live_flash(@flash, :info) %>
+  </p>
 
-  <p class="alert alert-danger" role="alert"
-    phx-click="lv:clear-flash"
-    phx-value-key="error"><%= live_flash(@flash, :error) %></p>
+  <p class="alert alert-danger" role="alert" phx-click="lv:clear-flash" phx-value-key="error">
+    <%= live_flash(@flash, :error) %>
+  </p>
 
   <div class="h-full">
     <%= @inner_content %>

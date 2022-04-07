@@ -3,12 +3,13 @@
   height="300"
   width="300"
   viewBox="0 0 600 600"
-  class="w-full h-full">
+  class="w-full h-full"
+>
   <defs>
     <radialGradient id="clockBorderGradient">
-      <stop offset="95%" stop-color="white"/>
-      <stop offset="98%" stop-color="gray"/>
-      <stop offset="100%" stop-color="black"/>
+      <stop offset="95%" stop-color="white" />
+      <stop offset="98%" stop-color="gray" />
+      <stop offset="100%" stop-color="black" />
     </radialGradient>
   </defs>
   <g id="clock-face">
@@ -47,10 +48,16 @@
   <g id="clock-hour" transform={"rotate(#{clock_hand_rotation(@deps.time.hour, 12)}, 300, 300)"}>
     <path d="M 300.5 298 V 142" class="stroke-black stroke-[9]" />
   </g>
-  <g id="clock-minute" transform={"rotate(#{clock_hand_rotation(@deps.time.minute, 60)}, 300, 300)"}>
+  <g
+    id="clock-minute"
+    transform={"rotate(#{clock_hand_rotation(@deps.time.minute, 60)}, 300, 300)"}
+  >
     <path d="M 300.5 298 V 67" class="stroke-black stroke-[5]" />
   </g>
-  <g id="clock-second" transform={"rotate(#{clock_hand_rotation(@deps.time.second, 60)}, 300, 300)"}>
+  <g
+    id="clock-second"
+    transform={"rotate(#{clock_hand_rotation(@deps.time.second, 60)}, 300, 300)"}
+  >
     <path d="M 300.5 298 V 55" class="stroke-red-400 stroke-[4]" />
   </g>
   <circle cx="300" cy="300" r="16.2" />
