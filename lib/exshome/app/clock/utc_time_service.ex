@@ -35,7 +35,7 @@ defmodule Exshome.App.Clock.UtcTimeService do
     {:noreply, new_state}
   end
 
-  def schedule_next_tick(%State{opts: %Opts{} = opts} = state) do
+  def schedule_next_tick(%DependencyState{opts: %Opts{} = opts} = state) do
     update_interval = opts.refresh_interval
     Process.send_after(self(), :tick, update_interval)
     update_value(state, prepare_value(opts))

@@ -6,10 +6,10 @@ defmodule Exshome.Variable do
   """
   use GenServer
   alias Exshome.Dependency.GenServerDependency
-  alias Exshome.Dependency.GenServerDependency.State
+  alias Exshome.Dependency.GenServerDependency.DependencyState
 
-  @callback update_value(State.t(), value :: any()) :: State.t()
-  @callback handle_dependency_change(State.t()) :: State.t()
+  @callback update_value(DependencyState.t(), value :: any()) :: DependencyState.t()
+  @callback handle_dependency_change(DependencyState.t()) :: DependencyState.t()
 
   defdelegate get_value(server), to: GenServerDependency
 
@@ -32,7 +32,7 @@ defmodule Exshome.Variable do
 
     state =
       GenServerDependency.subscribe_to_dependencies(
-        %State{module: module, deps: %{}},
+        %DependencyState{module: module, deps: %{}},
         dependencies
       )
 
@@ -40,7 +40,7 @@ defmodule Exshome.Variable do
   end
 
   @impl GenServer
-  def handle_call(:get_value, _from, %State{} = state) do
+  def handle_call(:get_value, _from, %DependencyState{} = state) do
     {:reply, state.value, state}
   end
 
@@ -87,7 +87,7 @@ defmodule Exshome.Variable do
   defmacro __using__(config) do
     quote do
       alias unquote(__MODULE__)
-      alias Exshome.Dependency.GenServerDependency.State
+      alias Exshome.Dependency.GenServerDependency.DependencyState
       use Exshome.Dependency
       use Exshome.Named, "variable:#{unquote(config[:name])}"
       import Exshome.Tag, only: [add_tag: 1]

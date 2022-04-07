@@ -4,7 +4,7 @@ defmodule Exshome.Dependency.GenServerDependency do
   """
   alias Exshome.Dependency
 
-  defmodule State do
+  defmodule DependencyState do
     @moduledoc """
     Inner state for each dependency.
     """
@@ -47,19 +47,19 @@ defmodule Exshome.Dependency.GenServerDependency do
     end
   end
 
-  @spec update_value(State.t(), value :: any()) :: State.t()
-  def update_value(%State{} = state, value) do
+  @spec update_value(DependencyState.t(), value :: any()) :: DependencyState.t()
+  def update_value(%DependencyState{} = state, value) do
     old_value = state.value
 
     if value != old_value do
       Dependency.broadcast_value(state.module, value)
     end
 
-    %State{state | value: value}
+    %DependencyState{state | value: value}
   end
 
-  @spec handle_dependency_change(State.t()) :: State.t()
-  def handle_dependency_change(%State{deps: deps} = state) do
+  @spec handle_dependency_change(DependencyState.t()) :: DependencyState.t()
+  def handle_dependency_change(%DependencyState{deps: deps} = state) do
     missing_dependencies =
       deps
       |> Map.values()
@@ -72,8 +72,8 @@ defmodule Exshome.Dependency.GenServerDependency do
     end
   end
 
-  @spec handle_dependency_info(any(), State.t()) :: State.t()
-  def handle_dependency_info({dependency, value}, %State{} = state) do
+  @spec handle_dependency_info(any(), DependencyState.t()) :: DependencyState.t()
+  def handle_dependency_info({dependency, value}, %DependencyState{} = state) do
     key =
       state.module.__config__()[:dependencies]
       |> Keyword.fetch!(dependency)
@@ -82,18 +82,18 @@ defmodule Exshome.Dependency.GenServerDependency do
     |> handle_dependency_change()
   end
 
-  @spec subscribe_to_dependencies(State.t(), Enumerable.t()) :: State.t()
-  def subscribe_to_dependencies(%State{} = state, dependencies) do
+  @spec subscribe_to_dependencies(DependencyState.t(), Enumerable.t()) :: DependencyState.t()
+  def subscribe_to_dependencies(%DependencyState{} = state, dependencies) do
     deps =
       for {dependency, key} <- dependencies, into: %{} do
         {key, Dependency.subscribe(dependency)}
       end
 
-    handle_dependency_change(%State{state | deps: deps})
+    handle_dependency_change(%DependencyState{state | deps: deps})
   end
 
-  @spec terminate(State.t()) :: any()
-  def terminate(%State{module: module}) do
+  @spec terminate(DependencyState.t()) :: any()
+  def terminate(%DependencyState{module: module}) do
     Dependency.broadcast_value(module, Dependency.NotReady)
   end
 

@@ -4,16 +4,16 @@ defmodule Exshome.Service do
   """
   use GenServer
   alias Exshome.Dependency.GenServerDependency
-  alias Exshome.Dependency.GenServerDependency.State
+  alias Exshome.Dependency.GenServerDependency.DependencyState
 
   @callback parse_opts(map()) :: any()
-  @callback update_value(State.t(), value :: any()) :: State.t()
-  @callback on_init(State.t()) :: State.t()
-  @callback handle_info(message :: any(), State.t()) ::
+  @callback update_value(DependencyState.t(), value :: any()) :: DependencyState.t()
+  @callback on_init(DependencyState.t()) :: DependencyState.t()
+  @callback handle_info(message :: any(), DependencyState.t()) ::
               {:noreply, new_state}
               | {:noreply, new_state, timeout() | :hibernate | {:continue, term()}}
               | {:stop, reason :: term(), new_state}
-            when new_state: State.t()
+            when new_state: DependencyState.t()
   @optional_callbacks handle_info: 2
 
   @spec start_link(opts :: map()) :: GenServer.on_start()
@@ -31,12 +31,12 @@ defmodule Exshome.Service do
     GenServerDependency.on_init(opts)
     {module, opts} = Map.pop!(opts, :module)
     parsed_opts = module.parse_opts(opts)
-    state = %State{opts: parsed_opts, module: module}
+    state = %DependencyState{opts: parsed_opts, module: module}
     {:ok, state, {:continue, :on_init}}
   end
 
   @impl GenServer
-  def handle_continue(:on_init, %State{} = state) do
+  def handle_continue(:on_init, %DependencyState{} = state) do
     new_state = state.module.on_init(state)
     {:noreply, new_state}
   end
@@ -47,7 +47,7 @@ defmodule Exshome.Service do
   end
 
   @impl GenServer
-  def handle_info(message, %State{} = state) do
+  def handle_info(message, %DependencyState{} = state) do
     state.module.handle_info(message, state)
   end
 
@@ -58,7 +58,7 @@ defmodule Exshome.Service do
     quote do
       alias unquote(__MODULE__)
       alias Exshome.Dependency.GenServerDependency
-      alias Exshome.Dependency.GenServerDependency.State
+      alias Exshome.Dependency.GenServerDependency.DependencyState
       use Exshome.Dependency
       use Exshome.Named, "service:#{unquote(name)}"
       import Exshome.Tag, only: [add_tag: 1]
@@ -85,7 +85,7 @@ defmodule Exshome.Service do
       defdelegate update_value(state, value), to: GenServerDependency
 
       @impl Service
-      def on_init(%State{} = state), do: state
+      def on_init(%DependencyState{} = state), do: state
       defoverridable(on_init: 1)
     end
   end
