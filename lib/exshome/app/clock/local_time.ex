@@ -5,15 +5,14 @@ defmodule Exshome.App.Clock.LocalTime do
   """
   alias Exshome.App.Clock
 
-  use Exshome.Variable,
+  use Exshome.Dependency.GenServerDependency,
     name: "local_time",
-    datatype: Exshome.DataType.String,
     dependencies: [
-      {Clock.UtcTimeService, :utc_time},
+      {Clock.UtcTime, :utc_time},
       {Clock.ClockSettings, :settings}
     ]
 
-  @impl Variable
+  @impl GenServerDependency
   def handle_dependency_change(%DependencyState{deps: deps} = state) do
     value =
       DateTime.shift_zone!(

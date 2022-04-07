@@ -3,7 +3,7 @@ defmodule Exshome.App.Player.MpvSocket do
   Implementation for MPV socket. It allows to send you some commands to the MPV server.
   """
   use GenServer
-  alias Exshome.App.Player.MpvServerService
+  alias Exshome.App.Player.MpvServer
   @connect_to_socket_key :connect_to_socket
   @reconnect_key :reconnect
   @send_command_key :send_command
@@ -82,7 +82,7 @@ defmodule Exshome.App.Player.MpvSocket do
   def handle_continue(@connect_to_socket_key, %State{} = state) do
     connect_result =
       :gen_tcp.connect(
-        {:local, MpvServerService.socket_path()},
+        {:local, MpvServer.socket_path()},
         0,
         [:binary, packet: :line]
       )

@@ -1,15 +1,15 @@
-defmodule Exshome.App.Player.MpvServerService do
+defmodule Exshome.App.Player.MpvServer do
   @moduledoc """
   Starts MPV server.
   """
-  use Exshome.Service, name: "mpv_server"
+  use Exshome.Dependency.GenServerDependency, name: "mpv_server"
 
   def on_init(%DependencyState{} = state) do
     server_pid = start_mpv_server()
     update_value(state, %{server_pid: server_pid})
   end
 
-  @impl Exshome.Service
+  @impl GenServerDependency
   def handle_info(
         {:EXIT, server_pid, _reason},
         %DependencyState{value: %{server_pid: server_pid}} = state

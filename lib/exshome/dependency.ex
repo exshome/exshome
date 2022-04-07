@@ -33,17 +33,25 @@ defmodule Exshome.Dependency do
   end
 
   defp raise_if_not_dependency!(module) do
+    if !module_is_dependency?(module) do
+      raise "#{inspect(module)} is not a dependency!"
+    end
+  end
+
+  @spec module_is_dependency?(module()) :: boolean()
+  defp module_is_dependency?(module) do
     module_has_correct_behaviour =
       Exshome.Tag.tag_mapping()
       |> Map.fetch!(__MODULE__)
       |> MapSet.member?(module)
 
     module_has_name = function_exported?(module, :name, 0)
-
-    if !(module_has_correct_behaviour && module_has_name) do
-      raise "#{inspect(module)} is not a dependency!"
-    end
+    module_has_correct_behaviour && module_has_name
   end
+
+  @spec dependency_message?(term()) :: boolean()
+  def dependency_message?({module, _value}), do: module_is_dependency?(module)
+  def dependency_message?(_), do: false
 
   def broadcast_value(dependency, value) do
     raise_if_not_dependency!(dependency)

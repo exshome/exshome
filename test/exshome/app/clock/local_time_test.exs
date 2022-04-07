@@ -1,6 +1,6 @@
 defmodule ExshomeTest.App.Clock.LocalTimeTest do
   @moduledoc """
-  Tests for LocalTime variable.
+  Tests for LocalTime dependency.
   """
 
   use Exshome.DataCase, async: true
@@ -8,7 +8,6 @@ defmodule ExshomeTest.App.Clock.LocalTimeTest do
   alias Exshome.App.Clock.LocalTime
   alias Exshome.Dependency
   alias Exshome.Settings
-  alias Exshome.Variable
   alias ExshomeTest.TestRegistry
 
   describe "LocalTime is not started" do
@@ -28,7 +27,7 @@ defmodule ExshomeTest.App.Clock.LocalTimeTest do
 
     test "works with dependencies" do
       current_time = DateTime.utc_now()
-      Dependency.broadcast_value(Clock.UtcTimeService, current_time)
+      Dependency.broadcast_value(Clock.UtcTime, current_time)
 
       refute Dependency.get_value(LocalTime) == Dependency.NotReady
       assert Dependency.get_value(LocalTime) == current_time
@@ -36,9 +35,9 @@ defmodule ExshomeTest.App.Clock.LocalTimeTest do
 
     test "syncs after timezone is updated" do
       current_time = DateTime.utc_now()
-      Dependency.broadcast_value(Clock.UtcTimeService, current_time)
+      Dependency.broadcast_value(Clock.UtcTime, current_time)
 
-      assert Variable.get_value(LocalTime).time_zone == current_time.time_zone
+      assert Dependency.get_value(LocalTime).time_zone == current_time.time_zone
 
       random_timezone =
         Settings.allowed_values(Clock.ClockSettings).timezone
@@ -46,7 +45,7 @@ defmodule ExshomeTest.App.Clock.LocalTimeTest do
 
       Settings.save_settings(%Clock.ClockSettings{timezone: random_timezone})
 
-      assert Variable.get_value(LocalTime).time_zone == random_timezone
+      assert Dependency.get_value(LocalTime).time_zone == random_timezone
     end
   end
 end

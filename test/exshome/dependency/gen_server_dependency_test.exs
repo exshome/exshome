@@ -1,21 +1,18 @@
-defmodule ExshomeTest.VariableTest do
+defmodule ExshomeTest.Dependency.GenServerDependencyTest do
   @moduledoc """
-  Test Variable API.
+  Test GenServerDependency API.
   """
   use ExUnit.Case, async: true
-  alias Exshome.Variable
+  alias Exshome.Dependency.GenServerDependency
 
   describe "validate_config/1" do
     test "works fine with correct data" do
-      Variable.validate_config(
-        name: "some_name",
-        datatype: Exshome.DataType.String
-      )
+      GenServerDependency.validate_config(name: "some_name")
     end
 
     test "raises for incorrect data" do
       assert_raise(NimbleOptions.ValidationError, fn ->
-        Variable.validate_config([])
+        GenServerDependency.validate_config([])
       end)
     end
   end

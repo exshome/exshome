@@ -23,8 +23,8 @@ defmodule ExshomeTest.NamedTest do
     end
 
     test "fails for invalid type" do
-      assert_raise RuntimeError, ~r/Service/, fn ->
-        Named.get_module_by_type_and_name(Exshome.Service, ClockSettings.name())
+      assert_raise RuntimeError, ~r/ServicePageLive/, fn ->
+        Named.get_module_by_type_and_name(ExshomeWeb.Live.ServicePageLive, ClockSettings.name())
       end
     end
   end

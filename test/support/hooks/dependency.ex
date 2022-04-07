@@ -11,7 +11,7 @@ defmodule ExshomeTest.Hooks.Dependency do
     TestRegistry.get_dependency_pid(server)
   end
 
-  def on_init(opts) do
+  def init(opts) do
     custom_init_hook = opts[:custom_init_hook]
     custom_init_hook && custom_init_hook.()
   end

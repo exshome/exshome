@@ -1,7 +1,8 @@
-defmodule Exshome.App.Clock.UtcTimeService do
+defmodule Exshome.App.Clock.UtcTime do
   @moduledoc """
-  UTC time service.
+  UTC time dependency.
   """
+  use Exshome.Dependency.GenServerDependency, name: "utc_time"
 
   defmodule Opts do
     @moduledoc """
@@ -16,12 +17,12 @@ defmodule Exshome.App.Clock.UtcTimeService do
           }
   end
 
-  use Exshome.Service, name: "utc_time_service"
-
+  @impl GenServerDependency
   def on_init(state) do
     schedule_next_tick(state)
   end
 
+  @impl GenServerDependency
   def parse_opts(opts) do
     %Opts{
       refresh_interval: opts[:refresh_interval] || 200,
@@ -29,7 +30,7 @@ defmodule Exshome.App.Clock.UtcTimeService do
     }
   end
 
-  @impl Service
+  @impl GenServerDependency
   def handle_info(:tick, state) do
     new_state = schedule_next_tick(state)
     {:noreply, new_state}

@@ -3,7 +3,7 @@ defmodule ExshomeTest.TestMpvServer do
   Test MPV server. You can use it to emulate an MPV server.
   """
   use GenServer
-  alias Exshome.App.Player.MpvServerService
+  alias Exshome.App.Player.MpvServer
 
   defmodule State do
     @moduledoc """
@@ -68,7 +68,7 @@ defmodule ExshomeTest.TestMpvServer do
   @impl GenServer
   def init(%Arguments{init_fn: init_fn}) do
     init_fn.()
-    socket_path = MpvServerService.socket_path()
+    socket_path = MpvServer.socket_path()
     File.rm(socket_path)
 
     {:ok, server} =
