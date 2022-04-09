@@ -49,10 +49,6 @@ defmodule Exshome.Dependency do
     module_has_correct_behaviour && module_has_name
   end
 
-  @spec dependency_message?(term()) :: boolean()
-  def dependency_message?({module, _value}), do: module_is_dependency?(module)
-  def dependency_message?(_), do: false
-
   def broadcast_value(dependency, value) do
     raise_if_not_dependency!(dependency)
     Exshome.PubSub.broadcast(dependency.name(), {__MODULE__, {dependency, value}})
