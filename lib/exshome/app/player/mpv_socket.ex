@@ -2,145 +2,144 @@ defmodule Exshome.App.Player.MpvSocket do
   @moduledoc """
   Implementation for MPV socket. It allows to send you some commands to the MPV server.
   """
-  use GenServer
+  use Exshome.Dependency.GenServerDependency, name: "mpv_socket"
   alias Exshome.App.Player.MpvServer
-  @connect_to_socket_key :connect_to_socket
-  @reconnect_key :reconnect
-  @send_command_key :send_command
-  @default_reconnect_interval 100
 
-  @type event_t() :: %{String.t() => term()} | :connected | :dicsonnected
+  @type command_response :: %{String.t() => term()}
 
-  defmodule State do
+  @spec load_file(url :: String.t()) :: command_response()
+  def load_file(url) when is_binary(url) do
+    send_command(["playlist-clear"])
+    send_command(["loadfile", url])
+    play()
+  end
+
+  @spec play() :: command_response()
+  def play do
+    set_property("pause", false)
+  end
+
+  @spec pause() :: command_response()
+  def pause do
+    set_property("pause", true)
+  end
+
+  @spec set_volume(level :: integer()) :: command_response()
+  def set_volume(level) when is_number(level) do
+    set_property("volume", level)
+  end
+
+  @spec seek(duration :: integer()) :: command_response()
+  def seek(time_pos) when is_number(time_pos) do
+    send_command(["seek", time_pos, "absolute"])
+  end
+
+  @spec set_property(property :: String.t(), value :: term()) :: command_response()
+  def set_property(property, value) do
+    send_command(["set_property", property, value])
+  end
+
+  @spec send_command(payload :: [term()]) :: command_response()
+  def send_command(payload) do
+    request!(%{command: payload})
+  end
+
+  def request!(data) do
+    {:ok, result} = request(data)
+    result
+  end
+
+  def request(data) when is_map(data) do
+    call({:send_command, data})
+  end
+
+  defmodule Opts do
+    @moduledoc """
+    Initial arguments for MPV socket.
+    """
+    defstruct [:reconnect_interval, :on_event]
+
+    @type t() :: %__MODULE__{
+            on_event: (%{String.t() => term()} -> any()),
+            reconnect_interval: non_neg_integer()
+          }
+  end
+
+  defmodule Data do
     @moduledoc """
     A structure for storing internal state for the MPV socket.
     """
-    alias Exshome.App.Player.MpvSocket
-
-    @enforce_keys [:handle_event]
-
-    defstruct [
-      :socket,
-      :handle_event,
-      :reconnect_interval,
-      requests: %{},
-      counter: 1
-    ]
+    defstruct [:socket, requests: %{}, counter: 1]
 
     @type t() :: %__MODULE__{
             socket: :gen_tcp.socket() | nil,
             counter: integer(),
-            reconnect_interval: non_neg_integer(),
-            requests: %{integer() => GenServer.from()},
-            handle_event: (MpvSocket.event_t() -> any())
+            requests: %{integer() => GenServer.from()}
           }
   end
 
-  defmodule Arguments do
-    @moduledoc """
-    Initial arguments for MPV socket.
-    """
-    defstruct [:reconnect_interval, :handle_event, :on_init]
-
-    @type t() :: %__MODULE__{
-            on_init: (() -> any()) | nil,
-            handle_event: (%{String.t() => term()} -> any()) | nil,
-            reconnect_interval: non_neg_integer() | nil
-          }
-  end
-
-  @spec start_link(Arguments.t()) :: GenServer.on_start()
-  def start_link(%Arguments{} = data) do
-    GenServer.start_link(__MODULE__, data)
-  end
-
-  @spec request(pid :: pid(), data :: map()) :: term()
-  def request(pid, data) when is_map(data) do
-    GenServer.call(pid, {@send_command_key, data})
-  end
-
-  @spec request!(pid :: pid(), data :: map()) :: term()
-  def request!(pid, data) do
-    {:ok, result} = __MODULE__.request(pid, data)
-    result
-  end
-
-  @impl GenServer
-  def init(%Arguments{} = args) do
-    args.on_init && args.on_init.()
-
-    args = %Arguments{
-      args
-      | handle_event: args.handle_event || fn event -> event end
+  @impl GenServerDependency
+  def parse_opts(%{} = opts) do
+    %Opts{
+      on_event: opts.on_event,
+      reconnect_interval: opts[:reconnect_interval] || 100
     }
-
-    state = struct(State, Map.from_struct(args))
-    {:ok, state, {:continue, @connect_to_socket_key}}
   end
 
-  @impl GenServer
-  def handle_continue(@connect_to_socket_key, %State{} = state) do
-    connect_result =
-      :gen_tcp.connect(
-        {:local, MpvServer.socket_path()},
-        0,
-        [:binary, packet: :line]
-      )
+  @impl GenServerDependency
+  def on_init(%DependencyState{} = state), do: connect_to_socket(state)
 
-    case connect_result do
-      {:ok, socket} ->
-        new_state = %State{state | socket: socket}
-        new_state.handle_event.(:connected)
-
-        {:noreply, new_state}
-
-      {:error, _reason} ->
-        reconnect(state)
-    end
-  end
-
-  @impl GenServer
-  def handle_call({@send_command_key, _data}, _from, %State{socket: nil} = state) do
+  @impl GenServerDependency
+  def handle_call(
+        {:send_command, _data},
+        _from,
+        %DependencyState{data: %Data{socket: nil}} = state
+      ) do
     {:reply, not_connected_error(), state}
   end
 
-  @impl GenServer
-  def handle_call({@send_command_key, data}, from, %State{} = state) do
+  @impl GenServerDependency
+  def handle_call({:send_command, data}, from, %DependencyState{} = state) do
     string_data =
       data
-      |> Map.put(:request_id, state.counter)
+      |> Map.put(:request_id, state.data.counter)
       |> Jason.encode!()
 
-    :ok = :gen_tcp.send(state.socket, "#{string_data}\n")
+    :ok = :gen_tcp.send(state.data.socket, "#{string_data}\n")
 
-    new_state = %{
-      state
-      | counter: state.counter + 1,
-        requests: Map.put(state.requests, state.counter, from)
-    }
+    new_state =
+      update_data(state, fn %Data{} = d ->
+        %Data{
+          d
+          | counter: d.counter + 1,
+            requests: Map.put(d.requests, d.counter, from)
+        }
+      end)
 
     {:noreply, new_state}
   end
 
-  @impl GenServer
-  def handle_info(@reconnect_key, %State{} = state) do
-    {:noreply, state, {:continue, @connect_to_socket_key}}
-  end
-
-  @impl GenServer
-  def handle_info({:tcp_closed, _socket}, %State{} = state) do
-    for pending_request <- Map.values(state.requests) do
+  @impl GenServerDependency
+  def handle_info({:tcp_closed, _socket}, %DependencyState{} = state) do
+    for pending_request <- Map.values(state.data.requests) do
       GenServer.reply(pending_request, not_connected_error())
     end
 
-    new_state = %State{state | socket: nil, requests: %{}}
-    new_state.handle_event.(:disconnected)
+    new_state =
+      state
+      |> update_data(fn %Data{} = data -> %Data{data | socket: nil, requests: %{}} end)
+      |> update_value(:disconnected)
 
-    reconnect(new_state)
+    {:noreply, schedule_reconnect(new_state)}
   end
 
-  @impl GenServer
-  def handle_info({:tcp, _socket, message}, %State{} = state) do
+  @impl GenServerDependency
+  def handle_info(:reconnect, %DependencyState{} = state) do
+    {:noreply, connect_to_socket(state)}
+  end
+
+  @impl GenServerDependency
+  def handle_info({:tcp, _socket, message}, %DependencyState{} = state) do
     new_state =
       message
       |> Jason.decode!()
@@ -149,12 +148,12 @@ defmodule Exshome.App.Player.MpvSocket do
     {:noreply, new_state}
   end
 
-  def handle_message(%{"event" => _event} = message, %State{} = state) do
-    state.handle_event.(message)
+  def handle_message(%{"event" => _event} = message, %DependencyState{} = state) do
+    state.opts.on_event.(message)
     state
   end
 
-  def handle_message(message, %State{requests: requests} = state) do
+  def handle_message(message, %DependencyState{data: %Data{requests: requests}} = state) do
     {request_id, response} = Map.pop!(message, "request_id")
 
     :ok =
@@ -163,7 +162,10 @@ defmodule Exshome.App.Player.MpvSocket do
         process_response(response)
       )
 
-    Map.put(state, :requests, Map.delete(requests, request_id))
+    update_data(
+      state,
+      fn %Data{} = data -> %Data{data | requests: Map.delete(data.requests, request_id)} end
+    )
   end
 
   defp process_response(%{"error" => "success"} = response) do
@@ -176,14 +178,34 @@ defmodule Exshome.App.Player.MpvSocket do
 
   defp not_connected_error, do: {:error, :not_connected}
 
-  @spec reconnect(State.t()) :: {:noreply, State.t()}
-  defp reconnect(%State{} = state) do
+  @spec connect_to_socket(DependencyState.t()) :: DependencyState.t()
+  defp connect_to_socket(%DependencyState{} = state) do
+    connect_result =
+      :gen_tcp.connect(
+        {:local, MpvServer.socket_path()},
+        0,
+        [:binary, packet: :line]
+      )
+
+    case connect_result do
+      {:ok, socket} ->
+        state
+        |> update_data(fn _ -> %Data{socket: socket} end)
+        |> update_value(:connected)
+
+      {:error, _reason} ->
+        schedule_reconnect(state)
+    end
+  end
+
+  @spec schedule_reconnect(DependencyState.t()) :: DependencyState.t()
+  defp schedule_reconnect(%DependencyState{} = state) do
     Process.send_after(
       self(),
-      @reconnect_key,
-      state.reconnect_interval || @default_reconnect_interval
+      :reconnect,
+      state.opts.reconnect_interval
     )
 
-    {:noreply, state}
+    state
   end
 end

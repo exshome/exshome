@@ -3,6 +3,7 @@ defmodule ExshomeTest.App.Player.MpvSocketTest do
   @moduletag :mpv_test_folder
 
   import ExshomeTest.Fixtures
+  import ExshomeTest.TestMpvServer
 
   alias Exshome.App.Player.MpvSocket
 
@@ -10,44 +11,40 @@ defmodule ExshomeTest.App.Player.MpvSocketTest do
 
   setup do
     server = server_fixture()
-    my_pid = self()
 
-    socket_data = %MpvSocket.Arguments{
-      on_init: fn -> ExshomeTest.TestRegistry.allow(my_pid, self()) end,
-      handle_event: event_handler(self()),
+    ExshomeTest.TestRegistry.start_dependency(MpvSocket, %{
+      on_event: event_handler(self()),
       reconnect_interval: @reconnect_interval
-    }
+    })
 
-    socket = start_supervised!({MpvSocket, socket_data})
+    assert Exshome.Dependency.subscribe(MpvSocket) == :connected
 
-    wait_until_socket_connects()
-
-    %{socket: socket, server: server}
+    %{server: server}
   end
 
-  test "simple connection", %{socket: socket} do
-    assert %{"test" => 123} == MpvSocket.request!(socket, %{data: "test"})
+  test "simple connection" do
+    assert %{"test" => 123} == MpvSocket.request!(%{data: "test"})
     assert last_received_message() == %{"data" => "test", "request_id" => 1}
   end
 
-  test "received all messages", %{socket: socket} do
-    MpvSocket.request!(socket, %{data: "test"})
-    MpvSocket.request!(socket, %{data: "test"})
+  test "received all messages" do
+    MpvSocket.request!(%{data: "test"})
+    MpvSocket.request!(%{data: "test"})
     assert length(received_messages()) == 2
   end
 
-  test "request_id differs", %{socket: socket} do
-    MpvSocket.request!(socket, %{data: "test"})
+  test "request_id differs" do
+    MpvSocket.request!(%{data: "test"})
     message_1 = last_received_message()
-    MpvSocket.request!(socket, %{data: "test"})
+    MpvSocket.request!(%{data: "test"})
     message_2 = last_received_message()
 
     assert message_1["request_id"] < message_2["request_id"]
   end
 
-  test "request fails", %{socket: socket} do
+  test "request fails" do
     respond_with_errors()
-    assert {:error, _message} = MpvSocket.request(socket, %{data: "test"})
+    assert {:error, _message} = MpvSocket.request(%{data: "test"})
   end
 
   test "socket can receive event" do
@@ -56,24 +53,23 @@ defmodule ExshomeTest.App.Player.MpvSocketTest do
     assert received_event() == event
   end
 
-  test "client reconnects to the server", %{socket: socket} do
-    MpvSocket.request!(socket, %{data: "test"})
+  test "client reconnects to the server" do
+    MpvSocket.request!(%{data: "test"})
     assert last_received_message()
 
     stop_server()
     wait_until_socket_disconnects()
-    {:error, :not_connected} = MpvSocket.request(socket, %{data: "test"})
+    {:error, :not_connected} = MpvSocket.request(%{data: "test"})
 
     :timer.sleep(@reconnect_interval + 1)
 
     server_fixture()
     wait_until_socket_connects()
-    MpvSocket.request!(socket, %{data: "test"})
+    MpvSocket.request!(%{data: "test"})
     assert last_received_message()
   end
 
   test "client receives error when server goes down", %{
-    socket: socket,
     server: server
   } do
     fatal_request_fn = fn _, _ ->
@@ -82,6 +78,6 @@ defmodule ExshomeTest.App.Player.MpvSocketTest do
 
     set_response_fn(fatal_request_fn)
 
-    {:error, :not_connected} = MpvSocket.request(socket, %{data: "test"})
+    {:error, :not_connected} = MpvSocket.request(%{data: "test"})
   end
 end

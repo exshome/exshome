@@ -1,7 +1,13 @@
 defmodule Exshome.App.Player.MpvClient do
-  use GenServer
+  @moduledoc """
+  Mpv Client implementation.
+  """
   require Logger
   alias Exshome.App.Player.MpvSocket
+
+  use Exshome.Dependency.GenServerDependency,
+    name: "mpv_client",
+    dependencies: [{MpvSocket, :socket}]
 
   defmodule PlayerState do
     @moduledoc """
@@ -35,193 +41,75 @@ defmodule Exshome.App.Player.MpvClient do
     end
   end
 
-  defmodule Arguments do
+  defmodule Opts do
     @moduledoc """
     Initial arguments for MPV client.
     """
-    defstruct [
-      :player_state_change_fn,
-      :unknown_event_handler,
-      socket_args: %MpvSocket.Arguments{}
-    ]
+    defstruct [:unknown_event_handler]
 
     @type t() :: %__MODULE__{
-            socket_args: MpvSocket.Arguments.t(),
-            player_state_change_fn:
-              (Exshome.App.Player.MpvClient.player_state_t() -> term()) | nil,
             unknown_event_handler: (term() -> term()) | nil
           }
   end
 
-  defmodule State do
-    @moduledoc """
-    A structure for storing internal state for the MPV client.
-    """
-    defstruct [
-      :socket,
-      :socket_args,
-      :player_state_change_fn,
-      :unknown_event_handler,
-      player_state: :disconnected
-    ]
-
-    @type t() :: %__MODULE__{
-            socket: pid() | nil,
-            socket_args: MpvSocket.Arguments.t(),
-            player_state: Exshome.App.Player.MpvClient.player_state_t(),
-            player_state_change_fn: (PlayerState.t() -> term()) | nil,
-            unknown_event_handler: (term() -> term())
-          }
-  end
-
-  @connect_to_socket_key :connect_to_socket
-  @handle_event_key :handle_event
-  @send_command_key :send_command
-  @get_player_state_key :get_player_state
-
-  @spec start_link(Arguments.t()) :: GenServer.on_start()
-  def start_link(%Arguments{} = args) do
-    GenServer.start_link(__MODULE__, args, [])
-  end
-
   @type player_state_t() :: PlayerState.t() | :disconnected
-  @type command_response :: {:ok, %{String.t() => term()}} | {:error, atom() | String.t()}
 
-  @spec load_file(pid(), url :: String.t()) :: command_response()
-  def load_file(pid, url) when is_binary(url) do
-    send_command(pid, ["playlist-clear"])
-    send_command(pid, ["loadfile", url])
-    play(pid)
+  @spec on_mpv_event(map()) :: :ok
+  def on_mpv_event(event) do
+    cast(event)
   end
 
-  @spec play(pid()) :: command_response()
-  def play(pid) do
-    set_property(pid, "pause", false)
-  end
-
-  @spec pause(pid()) :: command_response()
-  def pause(pid) do
-    set_property(pid, "pause", true)
-  end
-
-  @spec set_volume(pid :: pid(), level :: integer()) :: command_response()
-  def set_volume(pid, level) when is_number(level) do
-    set_property(pid, "volume", level)
-  end
-
-  @spec seek(pid :: pid(), duration :: integer()) :: command_response()
-  def seek(pid, time_pos) when is_number(time_pos) do
-    send_command(pid, ["seek", time_pos, "absolute"])
-  end
-
-  @spec set_property(pid :: pid(), property :: String.t(), value :: term()) :: command_response()
-  def set_property(pid, property, value) do
-    send_command(pid, ["set_property", property, value])
-  end
-
-  @spec send_command(pid :: pid(), payload :: [term()]) :: command_response()
-  def send_command(pid, payload) do
-    GenServer.call(pid, {@send_command_key, payload})
-  end
-
-  @spec player_state(pid :: pid()) :: player_state_t()
-  def player_state(pid) do
-    GenServer.call(pid, @get_player_state_key)
-  end
-
-  @impl GenServer
-  def init(%Arguments{} = args) do
-    state = %State{
-      socket_args: args.socket_args,
-      unknown_event_handler: args.unknown_event_handler || (&Logger.warn/1),
-      player_state_change_fn: args.player_state_change_fn
+  @impl GenServerDependency
+  def parse_opts(opts) do
+    %Opts{
+      unknown_event_handler: opts[:unknown_event_handler] || (&Logger.warn/1)
     }
-
-    {:ok, state, {:continue, @connect_to_socket_key}}
   end
 
-  @impl GenServer
-  def handle_continue(@connect_to_socket_key, %State{} = state) do
-    my_pid = self()
-
-    socket_args = %MpvSocket.Arguments{
-      state.socket_args
-      | handle_event: fn event ->
-          handler = state.socket_args.handle_event
-          handler && handler.(event)
-          send(my_pid, {@handle_event_key, event})
-        end
-    }
-
-    {:ok, socket} = MpvSocket.start_link(socket_args)
-
-    new_state = %State{state | socket: socket}
-    {:noreply, new_state}
+  @impl GenServerDependency
+  def handle_dependency_change(%DependencyState{} = state) do
+    if state.deps.socket == :connected do
+      subscribe_to_player_state()
+      update_value(state, %PlayerState{})
+    else
+      update_value(state, Dependency.NotReady)
+    end
   end
 
-  @impl GenServer
-  def handle_info({@handle_event_key, event}, state) do
+  @impl GenServerDependency
+  def handle_cast(event, state) do
     new_state = handle_event(event, state)
     {:noreply, new_state}
   end
 
-  @spec handle_event(event :: MpvSocket.event_t(), state :: State.t()) :: State.t()
-  def handle_event(:connected, state) do
-    subscribe_to_player_state(state)
-    update_player_state(%PlayerState{}, state)
-  end
-
-  def handle_event(:disconnected, state) do
-    update_player_state(:disconnected, state)
-  end
-
-  def handle_event(%{"event" => "property-change", "name" => name} = event, %State{} = state) do
-    new_player_state =
+  @spec handle_event(event :: map(), state :: DependencyState.t()) :: DependencyState.t()
+  def handle_event(
+        %{"event" => "property-change", "name" => name} = event,
+        %DependencyState{value: %PlayerState{} = value} = state
+      ) do
+    new_value =
       Map.put(
-        state.player_state,
+        value,
         PlayerState.property_mapping()[name],
         event["data"]
       )
 
-    update_player_state(new_player_state, state)
+    update_value(state, new_value)
   end
 
-  def handle_event(event, %State{} = state) do
-    state.unknown_event_handler.(event)
+  def handle_event(event, %DependencyState{} = state) do
+    state.opts.unknown_event_handler.(event)
     state
   end
 
-  @spec subscribe_to_player_state(State.t()) :: term()
-  def subscribe_to_player_state(%State{} = state) do
+  @spec subscribe_to_player_state() :: term()
+  def subscribe_to_player_state do
     PlayerState.property_mapping()
     |> Map.keys()
-    |> Enum.each(&observe_property(&1, state))
+    |> Enum.each(&observe_property/1)
   end
 
-  @impl GenServer
-  def handle_call({@send_command_key, payload}, _from, %State{} = state) do
-    result = socket_command(payload, state)
-
-    {:reply, result, state}
-  end
-
-  @impl GenServer
-  def handle_call(@get_player_state_key, _from, %State{} = state) do
-    {:reply, state.player_state, state}
-  end
-
-  defp observe_property(property, state) do
-    %{} = socket_command(["observe_property", 1, property], state)
-  end
-
-  defp socket_command(payload, %State{} = state) do
-    MpvSocket.request!(state.socket, %{command: payload})
-  end
-
-  @spec update_player_state(player_state_t(), State.t()) :: State.t()
-  def update_player_state(player_state, %State{} = state) do
-    state.player_state_change_fn && state.player_state_change_fn.(player_state)
-
-    %State{state | player_state: player_state}
+  defp observe_property(property) do
+    %{} = MpvSocket.send_command(["observe_property", 1, property])
   end
 end

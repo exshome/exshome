@@ -21,7 +21,13 @@ defmodule ExshomeTest.TestFileUtils do
 
     File.mkdir_p!(test_path)
     ExshomeTest.TestRegistry.put(__MODULE__, test_path)
-    ExUnit.Callbacks.on_exit(fn -> File.rm_rf!(test_path) end)
+
+    ExUnit.Callbacks.on_exit(fn ->
+      if File.exists?(test_path) do
+        File.rm_rf!(test_path)
+      end
+    end)
+
     test_path
   end
 

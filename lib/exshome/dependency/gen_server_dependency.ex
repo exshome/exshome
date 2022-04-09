@@ -39,7 +39,12 @@ defmodule Exshome.Dependency.GenServerDependency do
               | {:stop, reason, reply, new_state}
               | {:stop, reason, new_state}
             when reply: term(), new_state: DependencyState.t(), reason: term()
-  @optional_callbacks handle_info: 2, handle_call: 3
+  @callback handle_cast(request :: term(), state :: DependencyState.t()) ::
+              {:noreply, new_state}
+              | {:noreply, new_state, timeout() | :hibernate | {:continue, term()}}
+              | {:stop, reason :: term(), new_state}
+            when new_state: DependencyState.t()
+  @optional_callbacks handle_info: 2, handle_call: 3, handle_cast: 2
 
   @spec start_link(map()) :: GenServer.on_start()
   def start_link(%{module: module} = opts) do
@@ -77,8 +82,14 @@ defmodule Exshome.Dependency.GenServerDependency do
     {:reply, state.value, state}
   end
 
+  @impl GenServer
   def handle_call(message, from, %DependencyState{} = state) do
     state.module.handle_call(message, from, state)
+  end
+
+  @impl GenServer
+  def handle_cast(request, %DependencyState{} = state) do
+    state.module.handle_cast(request, state)
   end
 
   @impl GenServer
@@ -112,6 +123,14 @@ defmodule Exshome.Dependency.GenServerDependency do
     case get_pid(server) do
       nil -> Dependency.NotReady
       pid -> GenServer.call(pid, message)
+    end
+  end
+
+  @spec cast(GenServer.server(), any()) :: any()
+  def cast(server, message) do
+    case get_pid(server) do
+      nil -> Dependency.NotReady
+      pid -> GenServer.cast(pid, message)
     end
   end
 
@@ -234,6 +253,7 @@ defmodule Exshome.Dependency.GenServerDependency do
       defoverridable(parse_opts: 1, on_init: 1, handle_dependency_change: 1)
 
       def call(message), do: GenServerDependency.call(__MODULE__, message)
+      def cast(message), do: GenServerDependency.cast(__MODULE__, message)
 
       def start_link(opts), do: opts |> update_opts() |> GenServerDependency.start_link()
 

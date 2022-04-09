@@ -58,7 +58,9 @@ config :tailwind,
 config :exshome, :application_children, [
   {Exshome.App.Clock.UtcTime, %{refresh_interval: 200}},
   {Exshome.App.Clock.LocalTime, %{}},
-  {Exshome.App.Player.MpvServer, %{}}
+  {Exshome.App.Player.MpvServer, %{}},
+  {Exshome.App.Player.MpvSocket, %{on_event: &Exshome.App.Player.MpvClient.on_mpv_event/1}},
+  {Exshome.App.Player.MpvClient, %{}}
 ]
 
 config :elixir, :time_zone_database, Tz.TimeZoneDatabase

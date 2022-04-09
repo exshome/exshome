@@ -3,7 +3,12 @@ defmodule ExshomeTest.TestMpvServer do
   Test MPV server. You can use it to emulate an MPV server.
   """
   use GenServer
+
+  import ExUnit.Assertions
+  alias ExUnit.Callbacks
+  import ExshomeTest.Fixtures
   alias Exshome.App.Player.MpvServer
+  alias Exshome.App.Player.MpvSocket
 
   defmodule State do
     @moduledoc """
@@ -40,9 +45,61 @@ defmodule ExshomeTest.TestMpvServer do
 
   @type response_fn() :: (request_id :: String.t(), data :: map() -> map())
 
-  @spec start_link(Arguments.t()) :: GenServer.on_start()
-  def start_link(%Arguments{} = init_arguments) do
-    GenServer.start_link(__MODULE__, init_arguments)
+  @received_event_tag :event
+
+  @spec event_handler(pid()) :: fun()
+  def event_handler(test_pid, key \\ @received_event_tag) do
+    fn event ->
+      send(test_pid, {key, event})
+    end
+  end
+
+  @spec received_messages() :: [map()]
+  def received_messages do
+    received_messages(test_server())
+  end
+
+  @spec received_messages(pid()) :: [map()]
+  def received_messages(server) do
+    GenServer.call(server, :messages)
+  end
+
+  @spec last_received_message() :: map()
+  def last_received_message do
+    [message | _] = received_messages()
+    message
+  end
+
+  @spec received_event() :: term()
+  def received_event do
+    assert_receive({@received_event_tag, event})
+    event
+  end
+
+  @spec test_server() :: pid()
+  defp test_server do
+    Process.get(TestMpvServer) || raise "Test server not found"
+  end
+
+  @spec set_test_server(pid()) :: term()
+  defp set_test_server(server) do
+    Process.put(TestMpvServer, server)
+  end
+
+  @spec set_events([%{}]) :: term()
+  defp set_events(events) do
+    Process.put(:events, events)
+  end
+
+  def respond_with_errors do
+    set_response_fn(fn request_id, _ ->
+      %{request_id: request_id, error: "some error #{unique_integer()}"}
+    end)
+  end
+
+  @spec set_response_fn(function :: TestMpvServer.response_fn()) :: term()
+  def set_response_fn(function) do
+    set_response_fn(test_server(), function)
   end
 
   @spec set_response_fn(server :: pid(), response_fn :: response_fn()) :: term()
@@ -50,9 +107,36 @@ defmodule ExshomeTest.TestMpvServer do
     GenServer.call(server, {:set_response_fn, response_fn})
   end
 
-  @spec received_messages(pid()) :: [%{}]
-  def received_messages(server) do
-    GenServer.call(server, :messages)
+  @spec server_fixture() :: term()
+  def server_fixture do
+    my_pid = self()
+
+    server =
+      Callbacks.start_supervised!({
+        __MODULE__,
+        %Arguments{
+          init_fn: fn -> ExshomeTest.TestRegistry.allow(my_pid, self()) end
+        }
+      })
+
+    set_events([])
+    set_test_server(server)
+    server
+  end
+
+  @spec stop_server() :: :ok
+  def stop_server do
+    :ok = Callbacks.stop_supervised!(ExshomeTest.TestMpvServer)
+  end
+
+  @spec start_link(Arguments.t()) :: GenServer.on_start()
+  def start_link(%Arguments{} = init_arguments) do
+    GenServer.start_link(__MODULE__, init_arguments)
+  end
+
+  @spec send_event(map()) :: map()
+  def send_event(event) do
+    send_event(test_server(), event)
   end
 
   @spec send_event(server :: pid(), event :: %{}) :: term()
@@ -60,9 +144,17 @@ defmodule ExshomeTest.TestMpvServer do
     GenServer.call(server, {:event, event})
   end
 
-  @spec playlist(server :: pid()) :: list(String.t())
-  def playlist(server) do
-    GenServer.call(server, :get_playlist)
+  @spec playlist() :: list(String.t())
+  def playlist do
+    GenServer.call(test_server(), :get_playlist)
+  end
+
+  def wait_until_socket_disconnects do
+    assert_receive({MpvSocket, :disconnected})
+  end
+
+  def wait_until_socket_connects do
+    assert_receive({MpvSocket, :connected})
   end
 
   @impl GenServer
