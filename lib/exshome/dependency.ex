@@ -55,7 +55,7 @@ defmodule Exshome.Dependency do
 
   def broadcast_value(dependency, value) do
     raise_if_not_dependency!(dependency)
-    Exshome.PubSub.broadcast(dependency.name(), {dependency, value})
+    Exshome.PubSub.broadcast(dependency.name(), {__MODULE__, {dependency, value}})
   end
 
   defmacro __using__(_) do

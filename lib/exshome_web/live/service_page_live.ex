@@ -34,7 +34,7 @@ defmodule ExshomeWeb.Live.ServicePageLive do
   end
 
   @impl Phoenix.LiveView
-  def handle_info({module, value}, %Socket{assigns: %{deps: deps}} = socket) do
+  def handle_info({Dependency, {module, value}}, %Socket{assigns: %{deps: deps}} = socket) do
     dependencies = get_dependencies(socket)
     deps = Map.put(deps, Map.fetch!(dependencies, module), value)
     {:noreply, assign(socket, deps: deps)}

@@ -11,11 +11,11 @@ defmodule ExshomeTest.App.Clock.UtcTimeTest do
   test "clock works" do
     refute_received({UtcTime, _})
     initial_time = Dependency.subscribe(UtcTime)
-    assert_receive({UtcTime, current_time})
+    assert_receive_dependency({UtcTime, current_time})
     assert :gt = DateTime.compare(current_time, initial_time)
     clear_received_messages()
     Dependency.unsubscribe(UtcTime)
-    refute_receive({UtcTime, _current_time}, 10)
+    refute_receive_dependency({UtcTime, _current_time}, 10)
   end
 
   defp clear_received_messages do

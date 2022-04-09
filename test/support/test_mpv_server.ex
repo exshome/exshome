@@ -4,9 +4,10 @@ defmodule ExshomeTest.TestMpvServer do
   """
   use GenServer
 
-  import ExUnit.Assertions
   alias ExUnit.Callbacks
-  import ExshomeTest.Fixtures
+  import ExUnit.Assertions
+  alias ExshomeTest.Fixtures
+  import ExshomeTest.TestHelpers, only: [assert_receive_dependency: 1]
   alias Exshome.App.Player.MpvServer
   alias Exshome.App.Player.MpvSocket
 
@@ -93,7 +94,7 @@ defmodule ExshomeTest.TestMpvServer do
 
   def respond_with_errors do
     set_response_fn(fn request_id, _ ->
-      %{request_id: request_id, error: "some error #{unique_integer()}"}
+      %{request_id: request_id, error: "some error #{Fixtures.unique_integer()}"}
     end)
   end
 
@@ -150,11 +151,11 @@ defmodule ExshomeTest.TestMpvServer do
   end
 
   def wait_until_socket_disconnects do
-    assert_receive({MpvSocket, :disconnected})
+    assert_receive_dependency({MpvSocket, :disconnected})
   end
 
   def wait_until_socket_connects do
-    assert_receive({MpvSocket, :connected})
+    assert_receive_dependency({MpvSocket, :connected})
   end
 
   @impl GenServer

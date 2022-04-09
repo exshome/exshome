@@ -24,6 +24,7 @@ defmodule Exshome.DataCase do
       import Ecto.Changeset
       import Ecto.Query
       import Exshome.DataCase
+      import ExshomeTest.TestHelpers
     end
   end
 

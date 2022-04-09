@@ -18,7 +18,7 @@ defmodule Exshome.Dependency.GenServerDependency do
             deps: map(),
             data: any(),
             opts: any(),
-            value: Exshome.Dependency.get_value_result()
+            value: Dependency.get_value_result()
           }
   end
 
@@ -93,12 +93,13 @@ defmodule Exshome.Dependency.GenServerDependency do
   end
 
   @impl GenServer
-  def handle_info(message, state) do
-    if Dependency.dependency_message?(message) do
-      {:noreply, handle_dependency_info(message, state)}
-    else
-      state.module.handle_info(message, state)
-    end
+  def handle_info({Dependency, message}, %DependencyState{} = state) do
+    {:noreply, handle_dependency_info(message, state)}
+  end
+
+  @impl GenServer
+  def handle_info(message, %DependencyState{} = state) do
+    state.module.handle_info(message, state)
   end
 
   @impl GenServer
