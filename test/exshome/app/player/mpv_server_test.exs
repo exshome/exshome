@@ -15,9 +15,10 @@ defmodule ExshomeTest.App.Player.MpvServerTest do
   end
 
   test "restarts a service" do
-    %{server_pid: server_pid} = Dependency.subscribe(MpvServer)
-    server_pid |> :exec.ospid() |> :exec.kill(9)
-    assert_receive_dependency({MpvServer, %{server_pid: new_server_pid}})
-    assert server_pid != new_server_pid
+    :started = Dependency.subscribe(MpvServer)
+
+    MpvServer.restart()
+    assert_receive_dependency({MpvServer, Dependency.NotReady})
+    assert_receive_dependency({MpvServer, :started})
   end
 end
