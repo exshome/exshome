@@ -103,7 +103,7 @@ defmodule Exshome.App.Player.MpvClient do
   end
 
   @spec subscribe_to_player_state() :: term()
-  def subscribe_to_player_state do
+  defp subscribe_to_player_state do
     PlayerState.property_mapping()
     |> Map.keys()
     |> Enum.each(&observe_property/1)
