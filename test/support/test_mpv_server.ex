@@ -98,7 +98,7 @@ defmodule ExshomeTest.TestMpvServer do
     end)
   end
 
-  @spec set_response_fn(function :: TestMpvServer.response_fn()) :: term()
+  @spec set_response_fn(function :: response_fn()) :: term()
   def set_response_fn(function) do
     set_response_fn(test_server(), function)
   end
