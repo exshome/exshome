@@ -60,7 +60,13 @@ config :exshome, :application_children, [
   {Exshome.App.Clock.LocalTime, %{}},
   {Exshome.App.Player.MpvServer, %{}},
   {Exshome.App.Player.MpvSocket, %{on_event: &Exshome.App.Player.MpvClient.on_mpv_event/1}},
-  {Exshome.App.Player.MpvClient, %{}}
+  {Exshome.App.Player.MpvClient, %{}},
+  {Exshome.App.Player.PlayerState.Path, %{}},
+  {Exshome.App.Player.PlayerState.Pause, %{}},
+  {Exshome.App.Player.PlayerState.Position, %{}},
+  {Exshome.App.Player.PlayerState.Volume, %{}},
+  {Exshome.App.Player.PlayerState.Title, %{}},
+  {Exshome.App.Player.PlayerState.Duration, %{}}
 ]
 
 config :elixir, :time_zone_database, Tz.TimeZoneDatabase

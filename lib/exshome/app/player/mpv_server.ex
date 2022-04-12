@@ -4,6 +4,9 @@ defmodule Exshome.App.Player.MpvServer do
   """
   use Exshome.Dependency.GenServerDependency, name: "mpv_server"
 
+  @player_folder "player"
+  @music_folder Path.join(@player_folder, "music")
+
   def restart do
     call(:restart)
   end
@@ -50,8 +53,12 @@ defmodule Exshome.App.Player.MpvServer do
   end
 
   def socket_path do
-    Exshome.FileUtils.get_of_create_folder!("player")
+    Exshome.FileUtils.get_of_create_folder!(@player_folder)
     |> Path.join("mpv_socket")
+  end
+
+  def music_folder do
+    Exshome.FileUtils.get_of_create_folder!(@music_folder)
   end
 
   defp mpv_server_command do
@@ -59,6 +66,7 @@ defmodule Exshome.App.Player.MpvServer do
       System.find_executable("mpv") |> String.to_charlist(),
       '--no-video',
       '--idle',
+      '--no-terminal',
       '--input-ipc-server=#{socket_path()}'
     ]
   end

@@ -4,42 +4,11 @@ defmodule Exshome.App.Player.MpvClient do
   """
   require Logger
   alias Exshome.App.Player.MpvSocket
+  alias Exshome.App.Player.PlayerState
 
   use Exshome.Dependency.GenServerDependency,
     name: "mpv_client",
     dependencies: [{MpvSocket, :socket}]
-
-  defmodule PlayerState do
-    @moduledoc """
-    A structure for storing a playback state for the MPV client.
-    """
-    @keys [
-      :path,
-      :pause,
-      :volume,
-      :duration,
-      :time_pos,
-      :metadata
-    ]
-
-    defstruct @keys
-
-    @type t() :: %__MODULE__{
-            path: String.t() | nil,
-            pause: boolean() | nil,
-            volume: float() | nil,
-            duration: float() | nil,
-            time_pos: float() | nil,
-            metadata: map() | nil
-          }
-
-    def property_mapping do
-      for key <- @keys, into: %{} do
-        property_key = key |> Atom.to_string() |> String.replace(~r/_/, "-")
-        {property_key, key}
-      end
-    end
-  end
 
   defmodule Opts do
     @moduledoc """
