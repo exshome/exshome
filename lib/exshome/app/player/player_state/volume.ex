@@ -13,6 +13,8 @@ defmodule Exshome.App.Player.PlayerState.Volume do
   def handle_dependency_change(
         %DependencyState{deps: %{player: %Player.PlayerState{} = player}} = state
       ) do
-    update_value(state, player.volume)
+    volume = round(player.volume)
+
+    update_value(state, volume)
   end
 end

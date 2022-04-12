@@ -13,6 +13,8 @@ defmodule Exshome.App.Player.PlayerState.Duration do
   def handle_dependency_change(
         %DependencyState{deps: %{player: %Player.PlayerState{} = player}} = state
       ) do
-    update_value(state, player.duration || 0)
+    duration = round(player.duration || 0)
+
+    update_value(state, duration)
   end
 end
