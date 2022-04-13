@@ -172,7 +172,13 @@ defmodule Exshome.Dependency.GenServerDependency do
         {key, Dependency.subscribe(dependency)}
       end
 
-    handle_dependency_change(%DependencyState{state | deps: deps})
+    state = %DependencyState{state | deps: deps}
+
+    if Enum.empty?(deps) do
+      state
+    else
+      handle_dependency_change(state)
+    end
   end
 
   @spec subscribe_to_events(DependencyState.t(), Enumerable.t()) :: DependencyState.t()
@@ -260,8 +266,16 @@ defmodule Exshome.Dependency.GenServerDependency do
       def parse_opts(opts), do: opts
       @impl GenServerDependency
       def on_init(state), do: state
+
       @impl GenServerDependency
-      def handle_dependency_change(state), do: state
+      def handle_dependency_change(state) do
+        Logger.warn("""
+        Some module dependency changed.
+        Please implement handle_dependency_change/1 callback for #{state.module}
+        """)
+
+        state
+      end
 
       @impl GenServerDependency
       def handle_event(event, %DependencyState{} = state) do
