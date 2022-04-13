@@ -198,14 +198,19 @@ defmodule Exshome.Dependency.GenServerDependency do
     end
   end
 
+  @spec validate_module!(Macro.Env.t(), String.t()) :: keyword()
+  def validate_module!(%Macro.Env{} = env, _bytecode) do
+    validate_config!(env.module.__config__())
+  end
+
   @doc """
   Validates configuration for the dependency and raises if it is invalid.
   Available configuration options:
   :name (required) - name of the dependency
   :dependencies (default []) - dependencies list
   """
-  @spec validate_config(Keyword.t()) :: keyword()
-  def validate_config(config) do
+  @spec validate_config!(Keyword.t()) :: keyword()
+  def validate_config!(config) do
     NimbleOptions.validate!(
       config,
       name: [
@@ -230,13 +235,10 @@ defmodule Exshome.Dependency.GenServerDependency do
       use Exshome.Dependency
       use Exshome.Named, "dependency:#{unquote(config[:name])}"
 
-      @after_compile __MODULE__
+      @after_compile {GenServerDependency, :validate_module!}
       @behaviour GenServerDependency
 
       def __config__, do: unquote(config)
-
-      def __after_compile__(_env, _bytecode),
-        do: GenServerDependency.validate_config(__MODULE__.__config__())
 
       @impl GenServerDependency
       defdelegate update_value(state, value), to: GenServerDependency
