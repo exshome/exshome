@@ -9,7 +9,7 @@ defmodule Exshome.App.Player.PlayerState do
   use Exshome.Dependency.GenServerDependency,
     name: "mpv_client",
     dependencies: [{MpvSocket, :socket}],
-    events: [{MpvSocket, "player_event"}]
+    events: [{MpvSocket, "mpv_event"}]
 
   use Exshome.Event, topics: ["player_event"]
 
@@ -45,7 +45,7 @@ defmodule Exshome.App.Player.PlayerState do
 
   @impl GenServerDependency
   def handle_event(
-        {MpvSocket, "player_event", %{"event" => "property-change", "name" => name} = event},
+        {MpvSocket, "mpv_event", %{"event" => "property-change", "name" => name} = event},
         %DependencyState{value: %PlayerState{} = value} = state
       ) do
     new_value =
@@ -58,7 +58,7 @@ defmodule Exshome.App.Player.PlayerState do
     update_value(state, new_value)
   end
 
-  def handle_event({MpvSocket, "player_event", unknown_event}, %DependencyState{} = state) do
+  def handle_event({MpvSocket, "mpv_event", unknown_event}, %DependencyState{} = state) do
     broadcast_event("player_event", unknown_event)
     state
   end
