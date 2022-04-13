@@ -23,9 +23,7 @@ defmodule ExshomeTest.TestFileUtils do
     ExshomeTest.TestRegistry.put(__MODULE__, test_path)
 
     ExUnit.Callbacks.on_exit(fn ->
-      if File.exists?(test_path) do
-        File.rm_rf!(test_path)
-      end
+      File.rm_rf(test_path)
     end)
 
     test_path
