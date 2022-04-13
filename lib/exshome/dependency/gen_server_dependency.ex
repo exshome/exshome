@@ -18,7 +18,7 @@ defmodule Exshome.Dependency.GenServerDependency do
             deps: map(),
             data: any(),
             opts: any(),
-            value: Dependency.get_value_result()
+            value: Dependency.value()
           }
   end
 
