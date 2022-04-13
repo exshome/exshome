@@ -13,11 +13,11 @@ defmodule ExshomeTest.App.Player.MpvSocketTest do
     server = server_fixture()
 
     ExshomeTest.TestRegistry.start_dependency(MpvSocket, %{
-      on_event: event_handler(self()),
       reconnect_interval: @reconnect_interval
     })
 
     assert Exshome.Dependency.subscribe(MpvSocket) == :connected
+    Exshome.Event.subscribe(MpvSocket, "player_event")
 
     %{server: server}
   end
@@ -50,7 +50,7 @@ defmodule ExshomeTest.App.Player.MpvSocketTest do
   test "socket can receive event" do
     event = %{"event" => "some event", "data" => unique_integer()}
     send_event(event)
-    assert received_event() == event
+    assert_receive_event({MpvSocket, "player_event", ^event})
   end
 
   test "client reconnects to the server" do

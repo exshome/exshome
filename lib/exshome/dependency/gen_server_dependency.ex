@@ -5,6 +5,7 @@ defmodule Exshome.Dependency.GenServerDependency do
   use GenServer
 
   alias Exshome.Dependency
+  alias Exshome.Event
 
   defmodule DependencyState do
     @moduledoc """
@@ -25,6 +26,7 @@ defmodule Exshome.Dependency.GenServerDependency do
   @callback parse_opts(map()) :: any()
   @callback update_value(DependencyState.t(), value :: any()) :: DependencyState.t()
   @callback handle_dependency_change(DependencyState.t()) :: DependencyState.t()
+  @callback handle_event(Event.event_message(), DependencyState.t()) :: DependencyState.t()
   @callback on_init(DependencyState.t()) :: DependencyState.t()
   @callback handle_info(message :: any(), DependencyState.t()) ::
               {:noreply, new_state}
@@ -61,12 +63,12 @@ defmodule Exshome.Dependency.GenServerDependency do
     parsed_opts = module.parse_opts(opts)
 
     dependencies = module.__config__()[:dependencies] || []
+    events = module.__config__()[:events] || []
 
     state =
-      subscribe_to_dependencies(
-        %DependencyState{module: module, deps: %{}, opts: parsed_opts},
-        dependencies
-      )
+      %DependencyState{module: module, deps: %{}, opts: parsed_opts}
+      |> subscribe_to_dependencies(dependencies)
+      |> subscribe_to_events(events)
 
     {:ok, state, {:continue, :on_init}}
   end
@@ -95,6 +97,12 @@ defmodule Exshome.Dependency.GenServerDependency do
   @impl GenServer
   def handle_info({Dependency, message}, %DependencyState{} = state) do
     {:noreply, handle_dependency_info(message, state)}
+  end
+
+  @impl GenServer
+  def handle_info({Event, event}, %DependencyState{} = state) do
+    new_state = state.module.handle_event(event, state)
+    {:noreply, new_state}
   end
 
   @impl GenServer
@@ -185,6 +193,15 @@ defmodule Exshome.Dependency.GenServerDependency do
     handle_dependency_change(%DependencyState{state | deps: deps})
   end
 
+  @spec subscribe_to_events(DependencyState.t(), Enumerable.t()) :: DependencyState.t()
+  def subscribe_to_events(%DependencyState{} = state, events) do
+    for {event_module, topic} <- events do
+      :ok = Event.subscribe(event_module, topic)
+    end
+
+    state
+  end
+
   @hook_module Application.compile_env(:exshome, :dependency_hook_module)
   if @hook_module do
     defoverridable(get_pid: 1)
@@ -208,6 +225,7 @@ defmodule Exshome.Dependency.GenServerDependency do
   Available configuration options:
   :name (required) - name of the dependency
   :dependencies (default []) - dependencies list
+  :events (default []) - events to subscribe, where key is a module, and value is a topic
   """
   @spec validate_config!(Keyword.t()) :: keyword()
   def validate_config!(config) do
@@ -224,12 +242,21 @@ defmodule Exshome.Dependency.GenServerDependency do
             type: :atom
           ]
         ]
+      ],
+      events: [
+        type: :keyword_list,
+        keys: [
+          *: [
+            type: :string
+          ]
+        ]
       ]
     )
   end
 
   defmacro __using__(config) do
     quote do
+      require Logger
       alias unquote(__MODULE__)
       alias unquote(__MODULE__).DependencyState
       use Exshome.Dependency
@@ -253,10 +280,24 @@ defmodule Exshome.Dependency.GenServerDependency do
       def on_init(state), do: state
       @impl GenServerDependency
       def handle_dependency_change(state), do: state
-      defoverridable(parse_opts: 1, on_init: 1, handle_dependency_change: 1)
+
+      @impl GenServerDependency
+      def handle_event(event, %DependencyState{} = state) do
+        Logger.warn("""
+        Received unexpected event #{inspect(event)},
+        Please implement handle_event/2 callback for #{state.module}
+        """)
+
+        state
+      end
+
+      defoverridable(parse_opts: 1, on_init: 1, handle_dependency_change: 1, handle_event: 2)
 
       def call(message), do: GenServerDependency.call(__MODULE__, message)
       def cast(message), do: GenServerDependency.cast(__MODULE__, message)
+
+      def broadcast_event(topic, event),
+        do: Exshome.Event.broadcast_event(__MODULE__, topic, event)
 
       def start_link(opts), do: opts |> update_opts() |> GenServerDependency.start_link()
 

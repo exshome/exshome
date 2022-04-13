@@ -46,15 +46,6 @@ defmodule ExshomeTest.TestMpvServer do
 
   @type response_fn() :: (request_id :: String.t(), data :: map() -> map())
 
-  @received_event_tag :event
-
-  @spec event_handler(pid()) :: fun()
-  def event_handler(test_pid, key \\ @received_event_tag) do
-    fn event ->
-      send(test_pid, {key, event})
-    end
-  end
-
   @spec received_messages() :: [map()]
   def received_messages do
     received_messages(test_server())
@@ -69,12 +60,6 @@ defmodule ExshomeTest.TestMpvServer do
   def last_received_message do
     [message | _] = received_messages()
     message
-  end
-
-  @spec received_event() :: term()
-  def received_event do
-    assert_receive({@received_event_tag, event})
-    event
   end
 
   @spec test_server() :: pid()

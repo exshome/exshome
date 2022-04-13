@@ -1,4 +1,4 @@
-defmodule ExshomeTest.App.Player.MpvClientTest do
+defmodule ExshomeTest.App.Player.PlayerStateTest do
   use Exshome.DataCase, async: true
   @moduletag :mpv_test_folder
 
@@ -9,21 +9,15 @@ defmodule ExshomeTest.App.Player.MpvClientTest do
   alias Exshome.Dependency
   alias ExshomeTest.TestRegistry
 
-  @unknown_event :unknown_event
-
   setup do
     server_fixture()
 
-    TestRegistry.start_dependency(MpvSocket, %{
-      on_event: &PlayerState.on_mpv_event/1,
-      reconnect_interval: 0
-    })
+    TestRegistry.start_dependency(MpvSocket, %{reconnect_interval: 0})
 
     assert Dependency.subscribe(MpvSocket) == :connected
 
-    TestRegistry.start_dependency(PlayerState, %{
-      unknown_event_handler: event_handler(self(), @unknown_event)
-    })
+    TestRegistry.start_dependency(PlayerState)
+    Exshome.Event.subscribe(PlayerState, "player_event")
 
     assert Dependency.subscribe(PlayerState) != Dependency.NotReady
     %{}
@@ -68,13 +62,8 @@ defmodule ExshomeTest.App.Player.MpvClientTest do
   end
 
   test "client can handle unexpected event" do
-    event = "unexpected_event_#{unique_integer()}"
-    send_event(%{event: event})
-    assert received_unknown_event() == %{"event" => event}
-  end
-
-  defp received_unknown_event do
-    assert_receive({@unknown_event, event})
-    event
+    event = %{"event" => "unexpected_event_#{unique_integer()}"}
+    send_event(event)
+    assert_receive_event({PlayerState, "player_event", ^event})
   end
 end

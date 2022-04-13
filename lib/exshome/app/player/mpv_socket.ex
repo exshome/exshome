@@ -3,6 +3,7 @@ defmodule Exshome.App.Player.MpvSocket do
   Implementation for MPV socket. It allows to send you some commands to the MPV server.
   """
   use Exshome.Dependency.GenServerDependency, name: "mpv_socket"
+  use Exshome.Event, topics: ["player_event"]
   alias Exshome.App.Player.MpvServer
 
   @type command_response :: %{String.t() => term()}
@@ -57,12 +58,9 @@ defmodule Exshome.App.Player.MpvSocket do
     @moduledoc """
     Initial arguments for MPV socket.
     """
-    defstruct [:reconnect_interval, :on_event]
+    defstruct [:reconnect_interval]
 
-    @type t() :: %__MODULE__{
-            on_event: (%{String.t() => term()} -> any()),
-            reconnect_interval: non_neg_integer()
-          }
+    @type t() :: %__MODULE__{reconnect_interval: non_neg_integer()}
   end
 
   defmodule Data do
@@ -81,7 +79,6 @@ defmodule Exshome.App.Player.MpvSocket do
   @impl GenServerDependency
   def parse_opts(%{} = opts) do
     %Opts{
-      on_event: opts.on_event,
       reconnect_interval: opts[:reconnect_interval] || 100
     }
   end
@@ -149,7 +146,7 @@ defmodule Exshome.App.Player.MpvSocket do
   end
 
   def handle_message(%{"event" => _event} = message, %DependencyState{} = state) do
-    state.opts.on_event.(message)
+    broadcast_event("player_event", message)
     state
   end
 

@@ -5,11 +5,13 @@ defmodule Exshome.App.Player.PlayerState do
 
   alias __MODULE__
   alias Exshome.App.Player.MpvSocket
-  require Logger
 
   use Exshome.Dependency.GenServerDependency,
     name: "mpv_client",
-    dependencies: [{MpvSocket, :socket}]
+    dependencies: [{MpvSocket, :socket}],
+    events: [{MpvSocket, "player_event"}]
+
+  use Exshome.Event, topics: ["player_event"]
 
   @keys [
     :path,
@@ -31,29 +33,6 @@ defmodule Exshome.App.Player.PlayerState do
           metadata: map() | nil
         }
 
-  defmodule Opts do
-    @moduledoc """
-    Initial arguments for MPV client.
-    """
-    defstruct [:unknown_event_handler]
-
-    @type t() :: %__MODULE__{
-            unknown_event_handler: (term() -> term()) | nil
-          }
-  end
-
-  @spec on_mpv_event(map()) :: :ok
-  def on_mpv_event(event) do
-    cast(event)
-  end
-
-  @impl GenServerDependency
-  def parse_opts(opts) do
-    %Opts{
-      unknown_event_handler: opts[:unknown_event_handler] || (&Logger.warn/1)
-    }
-  end
-
   @impl GenServerDependency
   def handle_dependency_change(%DependencyState{} = state) do
     if state.deps.socket == :connected do
@@ -65,14 +44,8 @@ defmodule Exshome.App.Player.PlayerState do
   end
 
   @impl GenServerDependency
-  def handle_cast(event, state) do
-    new_state = handle_event(event, state)
-    {:noreply, new_state}
-  end
-
-  @spec handle_event(event :: map(), state :: DependencyState.t()) :: DependencyState.t()
   def handle_event(
-        %{"event" => "property-change", "name" => name} = event,
+        {MpvSocket, "player_event", %{"event" => "property-change", "name" => name} = event},
         %DependencyState{value: %PlayerState{} = value} = state
       ) do
     new_value =
@@ -85,8 +58,8 @@ defmodule Exshome.App.Player.PlayerState do
     update_value(state, new_value)
   end
 
-  def handle_event(event, %DependencyState{} = state) do
-    state.opts.unknown_event_handler.(event)
+  def handle_event({MpvSocket, "player_event", unknown_event}, %DependencyState{} = state) do
+    broadcast_event("player_event", unknown_event)
     state
   end
 
