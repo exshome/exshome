@@ -31,12 +31,6 @@ defmodule Exshome.Event do
       |> Exshome.PubSub.broadcast({__MODULE__, {event_module, topic, event}})
   end
 
-  @spec validate_module!(Macro.Env.t(), String.t()) :: :ok
-  def validate_module!(%Macro.Env{} = env, _bytecode) do
-    topics = env.module.__topics__()
-    validate_topics!(topics)
-  end
-
   @spec pub_sub_topic!(event_module(), topic()) :: String.t()
   defp pub_sub_topic!(event_module, topic) when is_binary(topic) do
     raise_if_not_event_module!(event_module)
@@ -66,6 +60,12 @@ defmodule Exshome.Event do
     if !correct_module do
       raise "#{inspect(module)} does not emit events!"
     end
+  end
+
+  @spec validate_module!(Macro.Env.t(), String.t()) :: :ok
+  def validate_module!(%Macro.Env{} = env, _bytecode) do
+    topics = env.module.__topics__()
+    validate_topics!(topics)
   end
 
   @doc """
