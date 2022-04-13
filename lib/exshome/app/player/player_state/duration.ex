@@ -3,16 +3,14 @@ defmodule Exshome.App.Player.PlayerState.Duration do
   Playback duration.
   """
 
-  alias Exshome.App.Player
+  alias Exshome.App.Player.PlayerState
 
   use Exshome.Dependency.GenServerDependency,
     name: "player_duration",
-    dependencies: [{Player.MpvClient, :player}]
+    dependencies: [{PlayerState, :player}]
 
   @impl GenServerDependency
-  def handle_dependency_change(
-        %DependencyState{deps: %{player: %Player.PlayerState{} = player}} = state
-      ) do
+  def handle_dependency_change(%DependencyState{deps: %{player: %PlayerState{} = player}} = state) do
     duration = round(player.duration || 0)
 
     update_value(state, duration)

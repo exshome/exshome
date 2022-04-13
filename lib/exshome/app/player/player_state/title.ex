@@ -3,16 +3,14 @@ defmodule Exshome.App.Player.PlayerState.Title do
   Playback title.
   """
 
-  alias Exshome.App.Player
+  alias Exshome.App.Player.PlayerState
 
   use Exshome.Dependency.GenServerDependency,
     name: "player_title",
-    dependencies: [{Player.MpvClient, :player}]
+    dependencies: [{PlayerState, :player}]
 
   @impl GenServerDependency
-  def handle_dependency_change(
-        %DependencyState{deps: %{player: %Player.PlayerState{} = player}} = state
-      ) do
+  def handle_dependency_change(%DependencyState{deps: %{player: %PlayerState{} = player}} = state) do
     title = extract_title(player.metadata)
     update_value(state, title)
   end

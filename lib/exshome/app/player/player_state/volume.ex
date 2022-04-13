@@ -3,16 +3,14 @@ defmodule Exshome.App.Player.PlayerState.Volume do
   Playback volume.
   """
 
-  alias Exshome.App.Player
+  alias Exshome.App.Player.PlayerState
 
   use Exshome.Dependency.GenServerDependency,
     name: "player_volume",
-    dependencies: [{Player.MpvClient, :player}]
+    dependencies: [{PlayerState, :player}]
 
   @impl GenServerDependency
-  def handle_dependency_change(
-        %DependencyState{deps: %{player: %Player.PlayerState{} = player}} = state
-      ) do
+  def handle_dependency_change(%DependencyState{deps: %{player: %PlayerState{} = player}} = state) do
     volume = round(player.volume || 0)
 
     update_value(state, volume)

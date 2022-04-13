@@ -3,16 +3,14 @@ defmodule Exshome.App.Player.PlayerState.Pause do
   Playback pause data.
   """
 
-  alias Exshome.App.Player
+  alias Exshome.App.Player.PlayerState
 
   use Exshome.Dependency.GenServerDependency,
     name: "player_pause",
-    dependencies: [{Player.MpvClient, :player}]
+    dependencies: [{PlayerState, :player}]
 
   @impl GenServerDependency
-  def handle_dependency_change(
-        %DependencyState{deps: %{player: %Player.PlayerState{} = player}} = state
-      ) do
+  def handle_dependency_change(%DependencyState{deps: %{player: %PlayerState{} = player}} = state) do
     player_has_track = !player.path
     update_value(state, player_has_track || player.pause)
   end
