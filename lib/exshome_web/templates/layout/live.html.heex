@@ -1,14 +1,14 @@
 <%= render("_navigation.html", socket: @socket, live_action: @live_action) %>
 <main class="h-full">
-  <%= if live_flash(@flash, :info) do %>
+  <%= if info_message = live_flash(@flash, :info) do %>
     <p class="alert alert-info" role="alert" phx-click="lv:clear-flash" phx-value-key="info">
-      <%= live_flash(@flash, :info) %>
+      <%= info_message %>
     </p>
   <% end %>
 
-  <%= if live_flash(@flash, :error) do %>
+  <%= if error_message = live_flash(@flash, :error) do %>
     <p class="alert alert-info" role="alert" phx-click="lv:clear-flash" phx-value-key="info">
-      <%= live_flash(@flash, :error) %>
+      <%= error_message %>
     </p>
   <% end %>
 
