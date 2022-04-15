@@ -56,17 +56,7 @@ config :tailwind,
   ]
 
 config :exshome, :application_children, [
-  {Exshome.App.Clock.UtcTime, %{refresh_interval: 200}},
-  {Exshome.App.Clock.LocalTime, %{}},
-  {Exshome.App.Player.MpvServer, %{}},
-  {Exshome.App.Player.MpvSocket, %{}},
-  {Exshome.App.Player.PlayerState, %{}},
-  {Exshome.App.Player.PlayerState.Path, %{}},
-  {Exshome.App.Player.PlayerState.Pause, %{}},
-  {Exshome.App.Player.PlayerState.Position, %{}},
-  {Exshome.App.Player.PlayerState.Volume, %{}},
-  {Exshome.App.Player.PlayerState.Title, %{}},
-  {Exshome.App.Player.PlayerState.Duration, %{}}
+  {Exshome.Dependency.GenServerDependency.DependencySupervisor, %{}}
 ]
 
 config :elixir, :time_zone_database, Tz.TimeZoneDatabase

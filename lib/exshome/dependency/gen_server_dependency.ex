@@ -7,6 +7,26 @@ defmodule Exshome.Dependency.GenServerDependency do
   alias Exshome.Dependency
   alias Exshome.Event
 
+  defmodule DependencySupervisor do
+    @moduledoc """
+    Supervisor that starts all GenServerDependencies
+    """
+
+    use Supervisor, shutdown: :infinity
+    alias Exshome.Dependency.GenServerDependency
+
+    def start_link(child_opts) do
+      Supervisor.start_link(__MODULE__, child_opts, name: __MODULE__)
+    end
+
+    @impl Supervisor
+    def init(child_opts) do
+      GenServerDependency.modules()
+      |> Enum.map(&{&1, child_opts})
+      |> Supervisor.init(strategy: :one_for_one)
+    end
+  end
+
   defmodule DependencyState do
     @moduledoc """
     Inner state for each dependency.
@@ -242,6 +262,9 @@ defmodule Exshome.Dependency.GenServerDependency do
     )
   end
 
+  @spec modules() :: MapSet.t(Dependency.dependency())
+  def modules, do: Map.fetch!(Exshome.Tag.tag_mapping(), __MODULE__)
+
   defmacro __using__(config) do
     quote do
       require Logger
@@ -249,6 +272,7 @@ defmodule Exshome.Dependency.GenServerDependency do
       alias unquote(__MODULE__).DependencyState
       use Exshome.Dependency
       use Exshome.Named, "dependency:#{unquote(config[:name])}"
+      add_tag(GenServerDependency)
 
       @after_compile {GenServerDependency, :validate_module!}
       @behaviour GenServerDependency

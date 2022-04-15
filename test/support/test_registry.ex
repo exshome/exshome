@@ -38,18 +38,20 @@ defmodule ExshomeTest.TestRegistry do
 
   @spec start_dependency(module :: module(), opts :: map()) :: :ok
   def start_dependency(module, opts \\ %{}) do
-    current_pid = self()
-
-    opts =
-      opts
-      |> Map.put(
-        :custom_init_hook,
-        fn -> allow(current_pid, self()) end
-      )
-      |> Map.put_new(:name, nil)
-
+    opts = prepare_child_opts(opts)
     pid = ExUnit.Callbacks.start_supervised!({module, opts})
     put({:dependency, module}, pid)
+  end
+
+  def prepare_child_opts(opts) do
+    current_pid = self()
+
+    opts
+    |> Map.put(
+      :custom_init_hook,
+      fn -> allow(current_pid, self()) end
+    )
+    |> Map.put_new(:name, nil)
   end
 
   @spec get_dependency_pid(module()) :: pid() | nil

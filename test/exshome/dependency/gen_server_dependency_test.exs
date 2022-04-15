@@ -2,7 +2,9 @@ defmodule ExshomeTest.Dependency.GenServerDependencyTest do
   @moduledoc """
   Test GenServerDependency API.
   """
-  use ExUnit.Case, async: true
+  use Exshome.DataCase, async: true
+  @moduletag :mpv_test_folder
+
   alias Exshome.Dependency.GenServerDependency
 
   describe "validate_module!/2" do
@@ -25,6 +27,25 @@ defmodule ExshomeTest.Dependency.GenServerDependencyTest do
       assert_raise(NimbleOptions.ValidationError, fn ->
         GenServerDependency.validate_config!([])
       end)
+    end
+  end
+
+  describe "DependencySupervisor" do
+    alias GenServerDependency.DependencySupervisor
+
+    test "start_link/1 works fine" do
+      {:ok, pid} =
+        %{}
+        |> ExshomeTest.TestRegistry.prepare_child_opts()
+        |> DependencySupervisor.start_link()
+
+      modules =
+        pid
+        |> Supervisor.which_children()
+        |> Enum.map(&elem(&1, 0))
+        |> Enum.into(MapSet.new())
+
+      assert MapSet.equal?(GenServerDependency.modules(), modules)
     end
   end
 end
