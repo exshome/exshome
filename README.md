@@ -1,6 +1,6 @@
 # Exshome
 
-[![CI](https://github.com/exshome/exshome/actions/workflows/CI/badge.svg)](https://github.com/exshome/exshome/actions?query=branch%3Amain+workflow%3ACI)
+[![CI](https://github.com/exshome/exshome/workflows/CI/badge.svg?branch=main)](https://github.com/exshome/exshome/actions/workflows/ci.yml?query=branch%3Amain)
 [![codecov](https://codecov.io/gh/exshome/exshome/branch/main/graph/badge.svg?token=N0HBNURO8P)](https://codecov.io/gh/exshome/exshome)
 
 DIY elixir-based smart home.
