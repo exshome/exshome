@@ -5,11 +5,15 @@ defmodule ExshomeWeb.Live.ServicePageLive do
 
   use ExshomeWeb, :live_view
   alias Exshome.Dependency
+  alias Phoenix.LiveView
   alias Phoenix.LiveView.Socket
 
   @callback base_prefix() :: atom()
   @callback actions() :: %{atom() => %{module() => atom()}}
   @callback view_module() :: module()
+  @callback handle_event(event :: binary, LiveView.unsigned_params(), socket :: Socket.t()) ::
+              {:noreply, Socket.t()} | {:reply, map, Socket.t()}
+  @optional_callbacks handle_event: 3
 
   @impl Phoenix.LiveView
   def mount(_params, _session, %Socket{} = socket), do: {:ok, socket}
@@ -31,6 +35,11 @@ defmodule ExshomeWeb.Live.ServicePageLive do
       |> put_template_name("#{live_action}.html")
 
     {:noreply, socket}
+  end
+
+  @impl Phoenix.LiveView
+  def handle_event(event, params, %Socket{} = socket) do
+    get_callback_module(socket).handle_event(event, params, socket)
   end
 
   @impl Phoenix.LiveView
@@ -124,6 +133,7 @@ defmodule ExshomeWeb.Live.ServicePageLive do
     quote do
       import Exshome.Tag, only: [add_tag: 1]
       alias ExshomeWeb.Live.ServicePageLive
+      alias Phoenix.LiveView.Socket
 
       @prefix unquote(prefix)
       use Exshome.Named, "service_page_live_#{@prefix}"

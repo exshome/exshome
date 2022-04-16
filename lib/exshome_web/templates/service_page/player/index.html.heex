@@ -1,1 +1,30 @@
-<%= inspect(@deps) %>
+<form>
+  <div>
+    <%= @deps.title %>
+  </div>
+  <div>
+    <button phx-click="play" type="button">
+      <%= if @deps.pause, do: "play", else: "pause" %>
+    </button>
+  </div>
+  <div>
+    <input
+      name="position"
+      type="range"
+      min="0"
+      max={@deps.duration}
+      value={@deps.position}
+      phx-change="set_position"
+    />
+  </div>
+  <div>
+    <input
+      name="volume"
+      type="range"
+      min="0"
+      max="100"
+      value={@deps.volume}
+      phx-change="set_volume"
+    />
+  </div>
+</form>

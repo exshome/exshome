@@ -1,1 +1,8 @@
-
+<marquee>
+  <%= @deps.title %>
+</marquee>
+<div>
+  <button phx-click="play" type="button">
+    <%= if @deps.pause, do: "play", else: "pause" %>
+  </button>
+</div>

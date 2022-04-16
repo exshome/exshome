@@ -66,6 +66,7 @@ defmodule Exshome.App.Player.MpvServer do
       System.find_executable("mpv") |> String.to_charlist(),
       '--no-video',
       '--idle',
+      '--no-cache',
       '--no-terminal',
       '--input-ipc-server=#{socket_path()}'
     ]
