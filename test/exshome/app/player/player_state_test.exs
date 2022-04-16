@@ -14,32 +14,6 @@ defmodule ExshomeTest.App.Player.PlayerStateTest do
       setup_with_opts(%{})
     end
 
-    test "client can switch tracks" do
-      file_location = "test_file_#{unique_integer()}"
-      MpvSocket.load_file(file_location)
-      assert %PlayerState{path: ^file_location, pause: false} = Dependency.get_value(PlayerState)
-      assert [file_location] == playlist()
-      MpvSocket.pause()
-      assert %PlayerState{pause: true} = Dependency.get_value(PlayerState)
-
-      another_file = "another_file_#{unique_integer()}"
-      MpvSocket.load_file(another_file)
-      assert %PlayerState{path: ^another_file, pause: false} = Dependency.get_value(PlayerState)
-      assert [another_file] == playlist()
-    end
-
-    test "client can set volume" do
-      volume_level = unique_integer()
-      MpvSocket.set_volume(volume_level)
-      assert %PlayerState{volume: ^volume_level} = Dependency.get_value(PlayerState)
-    end
-
-    test "client can seek a file" do
-      time_pos = unique_integer()
-      MpvSocket.seek(time_pos)
-      assert %PlayerState{time_pos: ^time_pos} = Dependency.get_value(PlayerState)
-    end
-
     test "client can handle unexpected event" do
       event = %{"event" => "unexpected_event_#{unique_integer()}"}
       send_event(event)

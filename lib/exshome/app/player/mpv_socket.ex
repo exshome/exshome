@@ -8,38 +8,6 @@ defmodule Exshome.App.Player.MpvSocket do
 
   @type command_response :: %{String.t() => term()}
 
-  @spec load_file(url :: String.t()) :: command_response()
-  def load_file(url) when is_binary(url) do
-    send_command(["playlist-clear"])
-    send_command(["loadfile", url])
-    play()
-  end
-
-  @spec play() :: command_response()
-  def play do
-    set_property("pause", false)
-  end
-
-  @spec pause() :: command_response()
-  def pause do
-    set_property("pause", true)
-  end
-
-  @spec set_volume(level :: integer()) :: command_response()
-  def set_volume(level) when is_number(level) do
-    set_property("volume", level)
-  end
-
-  @spec seek(duration :: integer()) :: command_response()
-  def seek(time_pos) when is_number(time_pos) do
-    send_command(["seek", time_pos, "absolute"])
-  end
-
-  @spec set_property(property :: String.t(), value :: term()) :: command_response()
-  def set_property(property, value) do
-    send_command(["set_property", property, value])
-  end
-
   @spec send_command(payload :: [term()]) :: command_response()
   def send_command(payload) do
     request!(%{command: payload})
