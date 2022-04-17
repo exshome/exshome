@@ -124,9 +124,8 @@
 input[type=range] {
   -webkit-appearance: none;
   appearance: none;
-  height: 1em;
   outline: none;
-  opacity: 0.7;
+  opacity: 0.9;
   -webkit-transition: .2s;
   transition: opacity .2s;
 }
@@ -138,17 +137,83 @@ input[type=range]:hover {
 input[type=range]::-webkit-slider-thumb {
   -webkit-appearance: none;
   appearance: none;
-  width: 1.3em;
-  height: 1.3em;
+  width: 1.5em;
+  height: 1.5em;
   border-radius: 50%;
   background: radial-gradient(white, currentColor);
   border: 0.2em solid currentColor;
 }
 
 input[type=range]::-moz-range-thumb {
-  width: 1.3em;
-  height: 1.3em;
+  width: 1.5em;
+  height: 1.5em;
   border-radius: 50%;
   background: radial-gradient(white, currentColor);
   border: 0.2em solid currentColor;
+}
+
+/* Icons from https://cssicons.space */
+.icon, .icon:before, .icon:after, .icon i, .icon i:before, .icon i:after {
+  transition: all 0.4s ease;
+}
+
+.icon, .icon i {
+  display: block;
+  position: absolute;
+}
+
+.icon::before, .icon::after {
+  content: '';
+  position: absolute;
+  display: block;
+}
+
+.play.icon {
+  margin-left: 20%;
+  width: 70%;
+  height: 70%;
+}
+
+.play.icon i {
+  height: 100%;
+  width: 10%;
+  border-radius: 100px;
+  background-color: currentColor;
+}
+
+.play.icon::before, .play.icon::after {
+  left: 6%;
+  width: 96%;
+  height: 10%;
+  border-radius: 100px;
+  background-color: currentColor;
+}
+
+.play.icon::before {
+  top: 0;
+  transform-origin: left top;
+  transform: rotate(30deg);
+}
+
+.play.icon::after {
+  bottom: 0;
+  transform-origin: left bottom;
+  transform: rotate(-30deg);
+}
+
+.pause.icon {
+  margin-left: 15%;
+  width: 70%;
+  height: 70%;
+}
+
+.pause.icon::before, .pause.icon::after {
+  width: 40%;
+  height: 100%;
+  background-color: currentColor;
+  border-radius: 10%;
+}
+
+.pause.icon::after {
+  right: 0;
 }

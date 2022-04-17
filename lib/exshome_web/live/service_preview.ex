@@ -30,7 +30,8 @@ defmodule ExshomeWeb.Live.ServicePreview do
   def preview_settings(module) do
     [
       id: module.name(),
-      session: %{"name" => module.name()}
+      session: %{"name" => module.name()},
+      container: {:div, class: "w-full h-full"}
     ]
   end
 end

@@ -2,7 +2,7 @@
   <%= for service_module <- @services do %>
     <%= live_redirect to: service_module.path(@socket, :index) do %>
       <div class="
-          w-[40vw] h-[40vw] md:w-[15vw] md:h-[15vw]
+          w-[40vw] h-[40vw] md:w-[25vw] md:h-[25vw] lg:w-[15vw] lg:h-[15vw]
           p-2 m-2 relative
           border-2 border-gray-500 rounded-md overflow-hidden
           hover:bg-gray-200 dark:hover:bg-gray-800
