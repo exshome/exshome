@@ -203,8 +203,8 @@ defmodule Exshome.Dependency.GenServerDependency do
 
   @spec subscribe_to_events(DependencyState.t(), Enumerable.t()) :: DependencyState.t()
   def subscribe_to_events(%DependencyState{} = state, events) do
-    for {event_module, topic} <- events do
-      :ok = Event.subscribe(event_module, topic)
+    for event_module <- events do
+      :ok = Event.subscribe(event_module)
     end
 
     state
@@ -252,12 +252,7 @@ defmodule Exshome.Dependency.GenServerDependency do
         ]
       ],
       events: [
-        type: :keyword_list,
-        keys: [
-          *: [
-            type: :string
-          ]
-        ]
+        type: {:list, :atom}
       ]
     )
   end
@@ -314,9 +309,6 @@ defmodule Exshome.Dependency.GenServerDependency do
       defoverridable(parse_opts: 1, on_init: 1, handle_dependency_change: 1, handle_event: 2)
 
       def call(message), do: GenServerDependency.call(__MODULE__, message)
-
-      def broadcast_event(topic, event),
-        do: Exshome.Event.broadcast_event(__MODULE__, topic, event)
 
       def start_link(opts), do: opts |> update_opts() |> GenServerDependency.start_link()
 

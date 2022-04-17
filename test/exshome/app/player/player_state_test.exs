@@ -5,7 +5,7 @@ defmodule ExshomeTest.App.Player.PlayerStateTest do
   import ExshomeTest.Fixtures
   import ExshomeTest.TestMpvServer
 
-  alias Exshome.App.Player.{MpvSocket, PlayerState}
+  alias Exshome.App.Player.{MpvSocket, PlayerState, PlayerStateEvent}
   alias Exshome.Dependency
   alias ExshomeTest.TestRegistry
 
@@ -17,7 +17,7 @@ defmodule ExshomeTest.App.Player.PlayerStateTest do
     test "client can handle unexpected event" do
       event = %{"event" => "unexpected_event_#{unique_integer()}"}
       send_event(event)
-      assert_receive_event({PlayerState, "player_event", ^event})
+      assert_receive_event(%PlayerStateEvent{data: ^event})
     end
   end
 
@@ -48,7 +48,7 @@ defmodule ExshomeTest.App.Player.PlayerStateTest do
     assert Dependency.subscribe(MpvSocket) == :connected
 
     TestRegistry.start_dependency(PlayerState)
-    Exshome.Event.subscribe(PlayerState, "player_event")
+    Exshome.Event.subscribe(PlayerStateEvent)
 
     assert Dependency.subscribe(PlayerState) != Dependency.NotReady
     %{}

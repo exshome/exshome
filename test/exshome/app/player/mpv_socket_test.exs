@@ -5,7 +5,7 @@ defmodule ExshomeTest.App.Player.MpvSocketTest do
   import ExshomeTest.Fixtures
   import ExshomeTest.TestMpvServer
 
-  alias Exshome.App.Player.MpvSocket
+  alias Exshome.App.Player.{MpvSocket, MpvSocketEvent}
 
   describe "default options" do
     setup do
@@ -40,7 +40,7 @@ defmodule ExshomeTest.App.Player.MpvSocketTest do
     test "socket can receive event" do
       event = %{"event" => "some event", "data" => unique_integer()}
       send_event(event)
-      assert_receive_event({MpvSocket, "mpv_event", ^event})
+      assert_receive_event(%MpvSocketEvent{data: ^event})
     end
 
     test "client receives error when server goes down", %{
@@ -87,7 +87,7 @@ defmodule ExshomeTest.App.Player.MpvSocketTest do
     ExshomeTest.TestRegistry.start_dependency(MpvSocket, opts)
 
     assert Exshome.Dependency.subscribe(MpvSocket) == :connected
-    Exshome.Event.subscribe(MpvSocket, "mpv_event")
+    Exshome.Event.subscribe(MpvSocketEvent)
 
     %{server: server}
   end
