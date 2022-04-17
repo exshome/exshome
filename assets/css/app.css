@@ -119,3 +119,36 @@
   0% { opacity: 1; }
   100% { opacity: 0; }
 }
+
+/* Range input */
+input[type=range] {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 1em;
+  outline: none;
+  opacity: 0.7;
+  -webkit-transition: .2s;
+  transition: opacity .2s;
+}
+
+input[type=range]:hover {
+  opacity: 1;
+}
+
+input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 1.3em;
+  height: 1.3em;
+  border-radius: 50%;
+  background: radial-gradient(white, currentColor);
+  border: 0.2em solid currentColor;
+}
+
+input[type=range]::-moz-range-thumb {
+  width: 1.3em;
+  height: 1.3em;
+  border-radius: 50%;
+  background: radial-gradient(white, currentColor);
+  border: 0.2em solid currentColor;
+}
