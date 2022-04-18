@@ -140,6 +140,7 @@ input[type=range]::-webkit-slider-thumb {
   width: 1.5em;
   height: 1.5em;
   border-radius: 50%;
+  cursor: pointer;
   background: radial-gradient(white, currentColor);
   border: 0.2em solid currentColor;
 }
@@ -148,6 +149,7 @@ input[type=range]::-moz-range-thumb {
   width: 1.5em;
   height: 1.5em;
   border-radius: 50%;
+  cursor: pointer;
   background: radial-gradient(white, currentColor);
   border: 0.2em solid currentColor;
 }
