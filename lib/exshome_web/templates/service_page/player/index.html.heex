@@ -3,12 +3,13 @@
     <marquee class="m-2 text-4xl font-bold">
       <%= @deps.title %>
     </marquee>
+    <% play = if @deps.pause, do: "play", else: "pause" %>
     <button
-      phx-click="play"
+      phx-click={play}
       type="button"
       class="m-4 h-[5em] w-[5em] rounded-lg bg-gray-300 hover:bg-gray-400 dark:bg-gray-800 dark:hover:bg-gray-700 shadow-md dark:shadow-gray-600 relative border-2 border-blue-300 text-orange-600"
     >
-      <div class={"icon mt-[-35%] #{if @deps.pause, do: 'play', else: 'pause'}"}>
+      <div class={"icon mt-[-35%] #{play}"}>
         <i />
       </div>
     </button>

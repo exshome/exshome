@@ -42,11 +42,14 @@ defmodule ExshomeWeb.Live.ServicePage.PlayerPage do
 
   @impl ServicePageLive
   def handle_event("play", _, %Socket{} = socket) do
-    if socket.assigns.deps.pause do
-      Playback.play()
-    else
-      Playback.pause()
-    end
+    Playback.play()
+
+    {:noreply, socket}
+  end
+
+  @impl ServicePageLive
+  def handle_event("pause", _, %Socket{} = socket) do
+    Playback.pause()
 
     {:noreply, socket}
   end

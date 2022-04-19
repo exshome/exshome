@@ -27,6 +27,7 @@ defmodule ExshomeWeb.ConnCase do
 
       alias ExshomeWeb.Router.Helpers, as: Routes
       import ExshomeTest.LiveViewHelpers
+      import ExshomeTest.TestHelpers
 
       # The default endpoint for testing
       @endpoint ExshomeWeb.Endpoint
