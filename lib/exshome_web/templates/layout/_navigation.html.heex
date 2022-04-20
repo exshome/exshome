@@ -1,6 +1,6 @@
 <%= if @socket.view == ExshomeWeb.Live.ServicePageLive do %>
   <% module = @socket.private.callback_module %>
-  <div class="fixed top-0 py-4 mx-4 md:flex">
+  <div class="mx-4 flex">
     <%= live_redirect(to: Routes.home_path(@socket, :index)) do %>
       <div class="
         px-3 py-2 m-1 m-top-2 rounded-lg shadow-inner
@@ -11,11 +11,12 @@
     <% end %>
     <%= for action <- ExshomeWeb.Live.ServicePageLive.actions_with_pages(module) do %>
       <%= live_redirect(to: module.path(@socket, action)) do %>
-        <div class={~s/
+        <div class={
+          ~s/
           px-3 py-2 m-1
           rounded-lg shadow-inner
-          #{if action == @live_action, do: "bg-gray-300 dark:bg-gray-500", else: "bg-gray-50 dark:bg-gray-800"}
-          /}>
+          #{if action == @live_action, do: "bg-gray-300 dark:bg-gray-500", else: "bg-gray-50 dark:bg-gray-800"} /
+        }>
           <%= Atom.to_string(action) %>
         </div>
       <% end %>

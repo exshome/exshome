@@ -23,7 +23,7 @@ defmodule ExshomeWebTest.Live.HomePageTest do
 
       {:ok, _view, _html} =
         view
-        |> element(~s/[href="#{home_path}"]/)
+        |> element(~s/header [href="#{home_path}"]/)
         |> render_click()
         |> follow_redirect(conn)
     end

@@ -45,7 +45,7 @@ defmodule ExshomeWeb do
   def live_view do
     quote do
       use Phoenix.LiveView,
-        container: {:div, [class: "grow"]},
+        container: {:div, [class: "h-full"]},
         layout: {ExshomeWeb.LayoutView, "live.html"}
 
       for module <- Application.compile_env(:exshome, :live_view_hooks, []) do

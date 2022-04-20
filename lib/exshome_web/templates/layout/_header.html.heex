@@ -1,0 +1,17 @@
+<header class="p-2 flex flex-row-reverse justify-between items-center">
+  <div class="whitespace-nowrap">
+    <span class="mx-2">Theme:</span>
+    <select
+      id="themeSelector"
+      class="rounded-lg bg-transparent hover:bg-gray-200 dark:hover:bg-gray-800"
+      onchange="Theme.useTheme(this.options[this.selectedIndex].value)"
+    >
+      <option value="light">Light &#127774;</option>
+      <option value="dark">Dark &#127771;</option>
+      <option value="system">System &#x1F4BB;</option>
+    </select>
+  </div>
+  <div class="hidden md:block whitespace-nowrap overflow-x-auto p-2">
+    <%= render("_navigation.html", socket: @socket, live_action: @live_action) %>
+  </div>
+</header>
