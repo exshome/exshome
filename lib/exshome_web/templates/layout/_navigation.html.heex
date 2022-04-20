@@ -1,9 +1,9 @@
 <%= if @socket.view == ExshomeWeb.Live.ServicePageLive do %>
   <% module = @socket.private.callback_module %>
-  <div class="mx-4 flex">
+  <div class="flex">
     <%= live_redirect(to: Routes.home_path(@socket, :index)) do %>
       <div class="
-        px-3 py-2 m-1 m-top-2 rounded-lg shadow-inner
+        p-2 mx-1 m-top-2 rounded-lg shadow-inner
         bg-gray-50 dark:bg-gray-800
       ">
         &#x1F3E0; home
@@ -13,7 +13,7 @@
       <%= live_redirect(to: module.path(@socket, action)) do %>
         <div class={
           ~s/
-          px-3 py-2 m-1
+          p-2 mx-1
           rounded-lg shadow-inner
           #{if action == @live_action, do: "bg-gray-300 dark:bg-gray-500", else: "bg-gray-50 dark:bg-gray-800"} /
         }>

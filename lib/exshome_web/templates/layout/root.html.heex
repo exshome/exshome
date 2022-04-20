@@ -7,41 +7,7 @@
     <%= csrf_meta_tag() %>
     <%= live_title_tag(assigns[:page_title] || "Exshome", suffix: " · Exshome") %>
     <link phx-track-static rel="stylesheet" href={Routes.static_path(@conn, "/assets/app.css")} />
-
-    <script>
-      const THEME_KEY = 'theme';
-      window.Theme = {
-        useTheme(value) {
-          let selected = 'system';
-          switch (value) {
-            case 'light':
-            case 'dark':
-              localStorage.setItem(THEME_KEY, value);
-              selected = value;
-              break;
-            default:
-              localStorage.removeItem(THEME_KEY);
-              break;
-          }
-          // [...document.getElementById('themeSelector').options].forEach(
-          //     option => {
-          //       option.selected = option.value === selected;
-          //     }
-          // );
-          this.refreshTheme();
-        },
-        refreshTheme() {
-          const theme = localStorage.getItem(THEME_KEY);
-          if (theme === 'dark' || (!Boolean(theme) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-            document.documentElement.classList.add('dark')
-          } else {
-            document.documentElement.classList.remove('dark')
-          }
-        }
-      }
-
-      window.Theme.useTheme(localStorage.theme);
-    </script>
+    <%= render("_theme_switch_script.html") %>
     <script
       defer
       phx-track-static
