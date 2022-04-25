@@ -1,4 +1,4 @@
-defmodule ExshomeWeb.Live.App.Player.Preview do
+defmodule ExshomeWeb.Live.PlayerApp.Preview do
   @moduledoc """
   Player preview widget.
   """

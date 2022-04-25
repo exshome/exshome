@@ -1,19 +1,19 @@
 defmodule ExshomeWebTest.Live.HomePageTest do
   use ExshomeWeb.ConnCase, async: true
-  alias ExshomeWeb.Live.ServicePageLive
+  alias ExshomeWeb.Live.App
   import Phoenix.LiveViewTest
 
-  test "Home page works", %{conn: conn} do
+  test "home page works", %{conn: conn} do
     {:ok, _view, html} = live(conn, "/")
     assert html =~ "Exshome"
   end
 
-  test "We can navigate to a service page", %{conn: conn} do
-    for service_page <- ServicePageLive.service_pages() do
+  test "we can navigate to an app page", %{conn: conn} do
+    for app <- App.apps() do
       home_path = Routes.home_path(conn, :index)
       {:ok, view, _html} = live(conn, home_path)
 
-      page_path = service_page.path(conn, :index)
+      page_path = app.path(conn, :index)
 
       {:ok, view, _html} =
         view

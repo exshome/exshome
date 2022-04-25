@@ -1,4 +1,4 @@
-defmodule ExshomeWeb.Live.App.Clock do
+defmodule ExshomeWeb.Live.ClockApp do
   @moduledoc """
   Live clock applicaton.
   """

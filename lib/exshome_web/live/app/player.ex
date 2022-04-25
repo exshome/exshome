@@ -1,4 +1,4 @@
-defmodule ExshomeWeb.Live.App.Player do
+defmodule ExshomeWeb.Live.PlayerApp do
   @moduledoc """
   Live player applicaton.
   """
@@ -6,8 +6,8 @@ defmodule ExshomeWeb.Live.App.Player do
   alias __MODULE__
 
   use ExshomeWeb.Live.App,
-    pages: [Player.Index],
+    pages: [PlayerApp.Index],
     prefix: :player,
-    preview: Player.Preview,
+    preview: PlayerApp.Preview,
     view_module: ExshomeWeb.App.PlayerView
 end

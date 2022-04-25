@@ -7,10 +7,11 @@ defmodule ExshomeWeb.Live.AppPage do
   alias Phoenix.LiveView.Socket
   import Phoenix.LiveView.Helpers
 
-  @callback action() :: Atom.t()
-  @callback app_module() :: Atom.t()
+  @callback action() :: atom()
+  @callback app_module() :: atom()
   @callback icon() :: String.t()
   @callback path() :: String.t()
+  @callback dependencies() :: Keyword.t()
 
   def on_mount(_, _params, _session, %Socket{} = socket) do
     socket =
@@ -56,7 +57,7 @@ defmodule ExshomeWeb.Live.AppPage do
     end
   end
 
-  def validate_config!(%Macro.Env{module: module}, _bytecode) do
+  def validate_module!(%Macro.Env{module: module}, _bytecode) do
     NimbleOptions.validate!(
       module.__config__(),
       dependencies: [type: :keyword_list],
@@ -64,9 +65,7 @@ defmodule ExshomeWeb.Live.AppPage do
     )
   end
 
-  defp get_dependencies(%Socket{view: view}) do
-    Keyword.fetch!(view.__config__(), :dependencies)
-  end
+  defp get_dependencies(%Socket{view: view}), do: view.dependencies()
 
   defp view_module(%Socket{view: view}) do
     view.app_module().view_module()
@@ -89,7 +88,7 @@ defmodule ExshomeWeb.Live.AppPage do
 
       alias ExshomeWeb.Live.AppPage
 
-      @afer_compile {AppPage, :validate_config!}
+      @afer_compile {AppPage, :validate_module!}
       @behaviour AppPage
 
       @impl AppPage
@@ -103,6 +102,9 @@ defmodule ExshomeWeb.Live.AppPage do
 
       @impl AppPage
       def icon, do: unquote(config[:icon] || "")
+
+      @impl AppPage
+      def dependencies, do: unquote(config[:dependencies])
 
       use ExshomeWeb, :live_view
       on_mount(AppPage)

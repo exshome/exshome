@@ -2,27 +2,33 @@ defmodule ExshomeWeb.Live.App do
   @moduledoc """
   Generic module for live applications.
   """
+  alias Exshome.Tag
 
-  @callback pages() :: list(Atom.t())
-  @callback view_module() :: Atom.t()
-  @callback preview() :: Atom.t()
-  @callback prefix() :: Atom.t()
+  @callback pages() :: list(atom())
+  @callback view_module() :: atom()
+  @callback preview() :: atom()
+  @callback prefix() :: atom()
 
-  def validate_config!(%Macro.Env{module: module}, _bytecode) do
-    module.__config__()
-    |> NimbleOptions.validate!(
-      pages: [type: {:list, :atom}],
-      prefix: [type: :atom],
-      preview: [type: :atom],
-      view_module: [type: :atom]
+  def apps, do: Tag.tag_mapping() |> Map.fetch!(__MODULE__)
+
+  def validate_module!(%Macro.Env{module: module}, _bytecode) do
+    NimbleOptions.validate!(
+      module.__config__(),
+      pages: [type: {:list, :atom}, required: true],
+      prefix: [type: :atom, required: true],
+      preview: [type: :atom, required: true],
+      view_module: [type: :atom, required: true]
     )
   end
 
   defmacro __using__(config) do
     quote do
       alias ExshomeWeb.Live.App
+      import Exshome.Tag, only: [add_tag: 1]
+      add_tag(App)
+
       @behaviour App
-      @after_compile {App, :validate_config!}
+      @after_compile {App, :validate_module!}
 
       def __config__, do: unquote(config)
 

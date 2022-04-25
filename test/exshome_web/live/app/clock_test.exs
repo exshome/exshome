@@ -1,18 +1,18 @@
-defmodule ExshomeWebTest.Live.ServicePage.ClockPageTest do
+defmodule ExshomeWebTest.ClockAppTest do
   use ExshomeWeb.ConnCase, async: true
   alias Exshome.App.Clock
   alias Exshome.Dependency
   alias Exshome.Settings
-  alias ExshomeWeb.Live.ServicePage.ClockPage
-  alias ExshomeWeb.ServicePage.ClockView
+  alias ExshomeWeb.App.ClockView
+  alias ExshomeWeb.Live.ClockApp
 
   describe "clock page index" do
     test "renders without dependencies", %{conn: conn} do
-      assert {:ok, _view, _html} = live(conn, ClockPage.path(conn, :index))
+      assert {:ok, _view, _html} = live(conn, ClockApp.path(conn, :index))
     end
 
     test "renders current time", %{conn: conn} do
-      view = live_with_dependencies(conn, ClockPage, :index)
+      view = live_with_dependencies(conn, ClockApp, :index)
       current_time = DateTime.utc_now()
       Dependency.broadcast_value(Clock.LocalTime, current_time)
       assert render(view) =~ ClockView.format_date(current_time)
@@ -22,17 +22,17 @@ defmodule ExshomeWebTest.Live.ServicePage.ClockPageTest do
 
   describe "clock page settings" do
     test "renders without dependencies", %{conn: conn} do
-      assert {:ok, _view, _html} = live(conn, ClockPage.path(conn, :settings))
+      assert {:ok, _view, _html} = live(conn, ClockApp.path(conn, :settings))
     end
 
     test "renders clock settings", %{conn: conn} do
-      view = live_with_dependencies(conn, ClockPage, :settings)
+      view = live_with_dependencies(conn, ClockApp, :settings)
 
       compare_timezone(view, Clock.ClockSettings.get_value().timezone)
     end
 
     test "updates clock settings", %{conn: conn} do
-      view = live_with_dependencies(conn, ClockPage, :settings)
+      view = live_with_dependencies(conn, ClockApp, :settings)
 
       random_value =
         Settings.allowed_values(Clock.ClockSettings).timezone
@@ -65,11 +65,11 @@ defmodule ExshomeWebTest.Live.ServicePage.ClockPageTest do
 
   describe "clock page preview" do
     test "renders without dependencies", %{conn: conn} do
-      assert live_preview(conn, ClockPage)
+      assert live_preview(conn, ClockApp)
     end
 
     test "renders current time", %{conn: conn} do
-      view = live_preview_with_dependencies(conn, ClockPage)
+      view = live_preview_with_dependencies(conn, ClockApp)
       current_time = DateTime.utc_now()
       Dependency.broadcast_value(Clock.LocalTime, current_time)
 

@@ -1,4 +1,4 @@
-defmodule ExshomeWeb.Live.App.Player.Index do
+defmodule ExshomeWeb.Live.PlayerApp.Index do
   @moduledoc """
   Main player page.
   """

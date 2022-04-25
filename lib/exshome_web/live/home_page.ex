@@ -4,14 +4,14 @@ defmodule ExshomeWeb.Live.HomePage do
   """
 
   use ExshomeWeb, :live_view
+  alias ExshomeWeb.Live
   alias Phoenix.LiveView.Socket
-  alias ExshomeWeb.Live.App
 
   @impl Phoenix.LiveView
   def mount(_params, _session, %Socket{} = socket) do
     apps = [
-      App.Clock,
-      App.Player
+      Live.ClockApp,
+      Live.PlayerApp
     ]
 
     {:ok, assign(socket, apps: apps)}
