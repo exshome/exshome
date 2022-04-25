@@ -1,4 +1,4 @@
-defmodule ExshomeWeb.ServicePage.ClockView do
+defmodule ExshomeWeb.App.ClockView do
   use ExshomeWeb, :view
 
   def format_time(%DateTime{} = data), do: Calendar.strftime(data, "%X")

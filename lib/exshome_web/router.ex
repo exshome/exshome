@@ -1,6 +1,6 @@
 defmodule ExshomeWeb.Router do
   use ExshomeWeb, :router
-  alias ExshomeWeb.Live.ServicePage
+  alias ExshomeWeb.Live.App
 
   pipeline :browser do
     plug :accepts, ["html"]
@@ -20,8 +20,8 @@ defmodule ExshomeWeb.Router do
 
     live "/", ExshomeWeb.Live.HomePage, :index, as: :home
 
-    service_routing(ServicePage.ClockPage)
-    service_routing(ServicePage.PlayerPage)
+    app_routing(App.Clock)
+    app_routing(App.Player)
   end
 
   # Other scopes may use custom stacks.

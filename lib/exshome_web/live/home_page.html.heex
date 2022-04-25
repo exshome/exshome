@@ -1,6 +1,6 @@
 <div class="flex flex-wrap justify-center">
-  <%= for service_module <- @services do %>
-    <%= live_redirect to: service_module.path(@socket, :index) do %>
+  <%= for app_module <- @apps do %>
+    <%= live_redirect to: app_module.path(@socket, List.first(app_module.pages()).action()) do %>
       <div class="
           w-[40vw] h-[40vw] md:w-[25vw] md:h-[25vw] lg:w-[15vw] lg:h-[15vw]
           p-2 m-2 relative
@@ -11,8 +11,9 @@
         <div class="absolute inset-0"></div>
         <%= live_render(
           @socket,
-          ExshomeWeb.Live.ServicePreview,
-          ExshomeWeb.Live.ServicePreview.preview_settings(service_module)
+          app_module.preview(),
+          id: app_module.prefix(),
+          container: {:div, class: "w-full h-full"}
         ) %>
       </div>
     <% end %>

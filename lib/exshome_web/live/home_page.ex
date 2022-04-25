@@ -5,17 +5,15 @@ defmodule ExshomeWeb.Live.HomePage do
 
   use ExshomeWeb, :live_view
   alias Phoenix.LiveView.Socket
+  alias ExshomeWeb.Live.App
 
   @impl Phoenix.LiveView
   def mount(_params, _session, %Socket{} = socket) do
-    services = [
-      ExshomeWeb.Live.ServicePage.ClockPage,
-      ExshomeWeb.Live.ServicePage.PlayerPage
+    apps = [
+      App.Clock,
+      App.Player
     ]
 
-    {:ok, assign(socket, services: services)}
+    {:ok, assign(socket, apps: apps)}
   end
-
-  @impl Phoenix.LiveView
-  def handle_params(_unsigned_params, _uri, socket), do: {:noreply, socket}
 end
