@@ -6,4 +6,8 @@ defmodule Exshome.App.Player.PlayerStateEvent do
 
   use Exshome.Event, name: "player_state"
   defstruct [:data]
+
+  @type t() :: %__MODULE__{
+          data: map()
+        }
 end

@@ -5,4 +5,8 @@ defmodule Exshome.App.Player.MpvSocketEvent do
 
   use Exshome.Event, name: "mpv_socket"
   defstruct [:data]
+
+  @type t() :: %__MODULE__{
+          data: map()
+        }
 end
