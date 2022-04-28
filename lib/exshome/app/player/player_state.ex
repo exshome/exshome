@@ -44,7 +44,7 @@ defmodule Exshome.App.Player.PlayerState do
 
   @impl GenServerDependency
   def handle_event(
-        %MpvSocketEvent{data: %{"event" => "property-change", "name" => name} = event},
+        %MpvSocketEvent{type: "property-change", data: %{"name" => name} = event},
         %DependencyState{value: %PlayerState{} = value} = state
       ) do
     new_value =
@@ -57,8 +57,8 @@ defmodule Exshome.App.Player.PlayerState do
     update_value(state, new_value)
   end
 
-  def handle_event(%MpvSocketEvent{data: unknown_event}, %DependencyState{} = state) do
-    Event.broadcast(%PlayerStateEvent{data: unknown_event})
+  def handle_event(%MpvSocketEvent{} = event, %DependencyState{} = state) do
+    Event.broadcast(%PlayerStateEvent{data: event.data, type: event.type})
     state
   end
 

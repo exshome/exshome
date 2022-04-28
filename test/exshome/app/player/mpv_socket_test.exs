@@ -38,9 +38,10 @@ defmodule ExshomeTest.App.Player.MpvSocketTest do
     end
 
     test "socket can receive event" do
-      event = %{"event" => "some event", "data" => unique_integer()}
-      send_event(event)
-      assert_receive_event(%MpvSocketEvent{data: ^event})
+      data = unique_integer()
+      event_type = "event #{unique_integer()}"
+      send_event(%{event: event_type, data: data})
+      assert_receive_event(%MpvSocketEvent{type: ^event_type, data: %{"data" => ^data}})
     end
 
     test "client receives error when server goes down", %{

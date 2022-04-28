@@ -114,7 +114,9 @@ defmodule Exshome.App.Player.MpvSocket do
   end
 
   def handle_message(%{"event" => _event} = message, %DependencyState{} = state) do
-    Event.broadcast(%MpvSocketEvent{data: message})
+    {type, data} = Map.pop!(message, "event")
+
+    Event.broadcast(%MpvSocketEvent{type: type, data: data})
     state
   end
 

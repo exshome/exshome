@@ -15,9 +15,10 @@ defmodule ExshomeTest.App.Player.PlayerStateTest do
     end
 
     test "client can handle unexpected event" do
-      event = %{"event" => "unexpected_event_#{unique_integer()}"}
+      event_type = "unexpected_event_#{unique_integer()}"
+      event = %{"event" => event_type}
       send_event(event)
-      assert_receive_event(%PlayerStateEvent{data: ^event})
+      assert_receive_event(%PlayerStateEvent{type: ^event_type, data: %{}})
     end
   end
 
