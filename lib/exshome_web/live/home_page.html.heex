@@ -1,5 +1,5 @@
 <div class="flex flex-wrap justify-center">
-  <%= for app_module <- @apps do %>
+  <%= for app_module <- ExshomeWeb.Live.App.apps() do %>
     <%= live_redirect to: app_module.path(@socket, List.first(app_module.pages()).action()) do %>
       <div class="
           w-[40vw] h-[40vw] md:w-[25vw] md:h-[25vw] lg:w-[15vw] lg:h-[15vw]

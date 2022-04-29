@@ -29,9 +29,15 @@ defmodule ExshomeWeb do
 
   def view do
     quote do
+      app_module =
+        __MODULE__
+        |> Module.split()
+        |> Enum.slice(0..0)
+        |> Module.safe_concat()
+
       use Phoenix.View,
-        root: "lib/exshome_web/templates",
-        namespace: ExshomeWeb
+        root: app_module.template_root(),
+        namespace: app_module.namespace()
 
       # Import convenience functions from controllers
       import Phoenix.Controller,
@@ -79,7 +85,6 @@ defmodule ExshomeWeb do
       import Plug.Conn
       import Phoenix.Controller
       import Phoenix.LiveView.Router
-      import ExshomeWeb.Router.RouteHelpers
     end
   end
 
@@ -113,4 +118,7 @@ defmodule ExshomeWeb do
   defmacro __using__(which) when is_atom(which) do
     apply(__MODULE__, which, [])
   end
+
+  def template_root, do: "lib/exshome_web/templates"
+  def namespace, do: __MODULE__
 end

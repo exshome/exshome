@@ -1,6 +1,6 @@
 defmodule ExshomeWeb.Router do
   use ExshomeWeb, :router
-  alias ExshomeWeb.Live
+  alias ExshomeWeb.Live.App
 
   pipeline :browser do
     plug :accepts, ["html"]
@@ -20,8 +20,12 @@ defmodule ExshomeWeb.Router do
 
     live "/", ExshomeWeb.Live.HomePage, :index, as: :home
 
-    app_routing(Live.ClockApp)
-    app_routing(Live.PlayerApp)
+    for module <- App.apps() do
+      for page <- module.pages() do
+        path = Path.join("/#{module.prefix()}", page.path())
+        live(path, page, page.action(), as: module.prefix())
+      end
+    end
   end
 
   # Other scopes may use custom stacks.

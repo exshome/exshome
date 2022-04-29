@@ -9,6 +9,7 @@ defmodule ExshomeWeb.Live.AppPage do
 
   @callback action() :: atom()
   @callback app_module() :: atom()
+  @callback view_module() :: atom()
   @callback icon() :: String.t()
   @callback path() :: String.t()
   @callback dependencies() :: Keyword.t()
@@ -68,7 +69,7 @@ defmodule ExshomeWeb.Live.AppPage do
   defp get_dependencies(%Socket{view: view}), do: view.dependencies()
 
   defp view_module(%Socket{view: view}) do
-    view.app_module().view_module()
+    view.view_module()
   end
 
   defp template_name(%Socket{view: view}), do: view.path()
@@ -81,9 +82,16 @@ defmodule ExshomeWeb.Live.AppPage do
               |> Macro.underscore()
               |> String.to_atom()
 
+      @view_module __MODULE__
+                   |> Module.split()
+                   |> Enum.slice(0..0)
+                   |> List.insert_at(-1, ["Web", "View"])
+                   |> List.flatten()
+                   |> Module.safe_concat()
+
       @app_module __MODULE__
                   |> Module.split()
-                  |> Enum.slice(0..-2)
+                  |> Enum.slice(0..0)
                   |> Module.safe_concat()
 
       alias ExshomeWeb.Live.AppPage
@@ -92,10 +100,13 @@ defmodule ExshomeWeb.Live.AppPage do
       @behaviour AppPage
 
       @impl AppPage
+      def app_module, do: @app_module
+
+      @impl AppPage
       def action, do: @action
 
       @impl AppPage
-      def app_module, do: @app_module
+      def view_module, do: @view_module
 
       @impl AppPage
       def path, do: "#{@action}.html"

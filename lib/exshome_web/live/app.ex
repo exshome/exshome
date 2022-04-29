@@ -2,22 +2,22 @@ defmodule ExshomeWeb.Live.App do
   @moduledoc """
   Generic module for live applications.
   """
-  alias Exshome.Tag
 
+  @callback namespace() :: atom()
   @callback pages() :: list(atom())
-  @callback view_module() :: atom()
   @callback preview() :: atom()
   @callback prefix() :: atom()
+  @callback template_root() :: String.t()
 
-  def apps, do: Tag.tag_mapping() |> Map.fetch!(__MODULE__)
+  @apps Application.compile_env!(:exshome, :apps)
+  def apps, do: @apps
 
   def validate_module!(%Macro.Env{module: module}, _bytecode) do
     NimbleOptions.validate!(
       module.__config__(),
       pages: [type: {:list, :atom}, required: true],
       prefix: [type: :atom, required: true],
-      preview: [type: :atom, required: true],
-      view_module: [type: :atom, required: true]
+      preview: [type: :atom, required: true]
     )
   end
 
@@ -25,12 +25,21 @@ defmodule ExshomeWeb.Live.App do
     quote do
       alias ExshomeWeb.Live.App
       import Exshome.Tag, only: [add_tag: 1]
-      add_tag(App)
 
       @behaviour App
       @after_compile {App, :validate_module!}
 
       def __config__, do: unquote(config)
+
+      @namespace __MODULE__
+                 |> Atom.to_string()
+                 |> String.split()
+                 |> List.insert_at(-1, "Web")
+                 |> Enum.join(".")
+                 |> String.to_atom()
+
+      @impl App
+      def namespace, do: @namespace
 
       @impl App
       def pages, do: Keyword.fetch!(__MODULE__.__config__(), :pages)
@@ -41,8 +50,15 @@ defmodule ExshomeWeb.Live.App do
       @impl App
       def preview, do: Keyword.fetch!(__MODULE__.__config__(), :preview)
 
+      @template_root Path.join([
+                       __ENV__.file |> Path.dirname() |> Path.relative_to(File.cwd!()),
+                       Path.basename(__ENV__.file, ".ex"),
+                       "web",
+                       "templates"
+                     ])
+
       @impl App
-      def view_module, do: Keyword.fetch!(__MODULE__.__config__(), :view_module)
+      def template_root, do: @template_root
 
       def path(conn_or_endpoint, action, params \\ []) do
         apply(

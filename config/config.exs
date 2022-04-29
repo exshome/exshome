@@ -59,6 +59,11 @@ config :exshome, :application_children, [
   {Exshome.Dependency.GenServerDependency.DependencySupervisor, %{}}
 ]
 
+config :exshome, :apps, [
+  ExshomeClock,
+  ExshomePlayer
+]
+
 config :elixir, :time_zone_database, Tz.TimeZoneDatabase
 
 # Import environment specific config. This must remain at the bottom

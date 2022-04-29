@@ -1,4 +1,4 @@
-defmodule ExshomeWebTest.Live.PlayerAppTest do
+defmodule ExshomePlayerTest.WebTest do
   use ExshomeWeb.ConnCase, async: true
   @moduletag :mpv_test_folder
 
@@ -7,11 +7,10 @@ defmodule ExshomeWebTest.Live.PlayerAppTest do
   alias ExshomePlayer.{MpvSocket, Playback, PlayerState}
   alias ExshomeTest.TestMpvServer
   alias ExshomeTest.TestRegistry
-  alias ExshomeWeb.Live.PlayerApp
 
   describe "player page index without dependencies" do
     test "renders fine", %{conn: conn} do
-      assert {:ok, _view, _html} = live(conn, PlayerApp.path(conn, :index))
+      assert {:ok, _view, _html} = live(conn, ExshomePlayer.path(conn, :index))
     end
   end
 
@@ -20,7 +19,7 @@ defmodule ExshomeWebTest.Live.PlayerAppTest do
       TestMpvServer.server_fixture()
       TestRegistry.start_dependency(MpvSocket, %{})
       TestRegistry.start_dependency(PlayerState, %{})
-      view = live_with_dependencies(conn, PlayerApp, :index)
+      view = live_with_dependencies(conn, ExshomePlayer, :index)
       %{view: view}
     end
 
@@ -58,7 +57,7 @@ defmodule ExshomeWebTest.Live.PlayerAppTest do
 
   describe "player page preview" do
     test "renders without dependencies", %{conn: conn} do
-      assert live_preview(conn, PlayerApp)
+      assert live_preview(conn, ExshomePlayer)
     end
   end
 
