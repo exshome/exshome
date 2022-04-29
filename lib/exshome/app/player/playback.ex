@@ -3,7 +3,8 @@ defmodule Exshome.App.Player.Playback do
   Store playback state.
   """
 
-  alias Exshome.App.Player.{MpvServer, MpvSocket, PlayerStateEvent}
+  alias Exshome.App.Player.Events.PlayerStateEvent
+  alias Exshome.App.Player.{MpvServer, MpvSocket}
   alias Exshome.App.Player.Playback.{MissingPlaylistItem, PlaylistItem}
 
   use Exshome.Dependency.GenServerDependency,

@@ -4,7 +4,8 @@ defmodule Exshome.App.Player.PlayerState do
   """
 
   alias __MODULE__
-  alias Exshome.App.Player.{MpvSocket, MpvSocketEvent, PlayerStateEvent}
+  alias Exshome.App.Player.Events.{MpvSocketEvent, PlayerStateEvent}
+  alias Exshome.App.Player.MpvSocket
   alias Exshome.Event
 
   use Exshome.Dependency.GenServerDependency,

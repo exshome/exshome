@@ -5,7 +5,8 @@ defmodule ExshomeTest.App.Player.PlayerStateTest do
   import ExshomeTest.Fixtures
   import ExshomeTest.TestMpvServer
 
-  alias Exshome.App.Player.{MpvSocket, PlayerState, PlayerStateEvent}
+  alias Exshome.App.Player.Events.PlayerStateEvent
+  alias Exshome.App.Player.{MpvSocket, PlayerState}
   alias Exshome.Dependency
   alias ExshomeTest.TestRegistry
 

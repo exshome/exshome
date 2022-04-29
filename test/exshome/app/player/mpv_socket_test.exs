@@ -5,7 +5,8 @@ defmodule ExshomeTest.App.Player.MpvSocketTest do
   import ExshomeTest.Fixtures
   import ExshomeTest.TestMpvServer
 
-  alias Exshome.App.Player.{MpvSocket, MpvSocketEvent}
+  alias Exshome.App.Player.Events.MpvSocketEvent
+  alias Exshome.App.Player.MpvSocket
 
   describe "default options" do
     setup do

@@ -1,6 +1,7 @@
 defmodule ExshomeTest.EventTest do
   use Exshome.DataCase, async: true
-  alias Exshome.App.Player.{MpvSocket, MpvSocketEvent, PlayerState}
+  alias Exshome.App.Player.Events.MpvSocketEvent
+  alias Exshome.App.Player.{MpvSocket, PlayerState}
   alias Exshome.Event
 
   describe "invalid event module" do
