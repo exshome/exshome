@@ -18,8 +18,6 @@ defmodule Exshome.Tag do
             @protocol.tags(@for)
           end
         end
-
-        @tag unquote(Exshome.Tag.Tagged)
       end
 
       @tag unquote(tag)
