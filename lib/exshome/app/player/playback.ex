@@ -3,60 +3,41 @@ defmodule Exshome.App.Player.Playback do
   Store playback state.
   """
 
-  alias Exshome.App.Player.{MpvServer, MpvSocket, PlayerState}
-  alias __MODULE__
+  alias Exshome.App.Player.{MpvServer, MpvSocket, PlayerStateEvent}
   alias Exshome.App.Player.Playback.{MissingPlaylistItem, PlaylistItem}
 
   use Exshome.Dependency.GenServerDependency,
-    name: "playback",
-    dependencies: [{PlayerState.Path, :path}]
+    events: [PlayerStateEvent],
+    name: "playback"
 
   defmodule Data do
     @moduledoc """
     Inner data format for playback.
     """
 
-    defstruct playlist: []
+    defstruct current: MissingPlaylistItem, next: [], previous: []
 
     @type t() :: %__MODULE__{
-            playlist: list(PlaylistItem.t())
+            previous: list(PlaylistItem.t()),
+            current: PlaylistItem.t() | MissingPlaylistItem,
+            next: list(PlaylistItem.t())
           }
   end
 
-  @type track() :: PlaylistItem.t() | MissingPlaylistItem
+  @spec next() :: :ok
+  def next, do: call(:next)
 
-  defstruct current_track: MissingPlaylistItem,
-            next_track: MissingPlaylistItem,
-            previous_track: MissingPlaylistItem
-
-  @type t() :: %__MODULE__{
-          current_track: track(),
-          next_track: track(),
-          previous_track: track()
-        }
+  @spec previous() :: :ok
+  def previous, do: call(:previous)
 
   @spec playlist() :: list(PlaylistItem.t())
-  def playlist do
-    call(:playlist)
-  end
+  def playlist, do: call(:playlist)
 
   @spec load_file(url :: String.t()) :: MpvSocket.command_response()
   def load_file(url) when is_binary(url) do
     send_command(["playlist-clear"])
     send_command(["loadfile", url])
     play()
-  end
-
-  @spec next!() :: MpvSocket.command_response()
-  def next! do
-    %Playback{next_track: %PlaylistItem{url: url}} = Dependency.get_value(__MODULE__)
-    load_file(url)
-  end
-
-  @spec previous!() :: MpvSocket.command_response()
-  def previous! do
-    %Playback{previous_track: %PlaylistItem{url: url}} = Dependency.get_value(__MODULE__)
-    load_file(url)
   end
 
   @spec play() :: MpvSocket.command_response()
@@ -88,53 +69,41 @@ defmodule Exshome.App.Player.Playback do
 
   @impl GenServerDependency
   def on_init(%DependencyState{} = state) do
-    state
-    |> update_data(fn _ -> %Data{playlist: compute_playlist()} end)
-    |> update_value(%Playback{})
-  end
-
-  @impl GenServerDependency
-  def handle_dependency_change(
-        %DependencyState{
-          data: %Data{playlist: playlist},
-          deps: %{path: path},
-          value: %Playback{current_track: previous_track} = value
-        } = state
-      ) do
-    current_track =
-      Enum.find_index(
-        playlist,
-        &(&1.url == path)
+    {current, next} =
+      List.pop_at(
+        load_playlist(),
+        0,
+        MissingPlaylistItem
       )
 
-    tracks =
-      case current_track do
-        nil -> []
-        index -> Enum.slice(playlist, index, 2)
-      end
-
-    [current_track, next_track] =
-      case tracks do
-        [] -> [MissingPlaylistItem, MissingPlaylistItem]
-        [track] -> [track, MissingPlaylistItem]
-        data -> data
-      end
-
-    update_value(state, %Playback{
-      value
-      | previous_track: previous_track,
-        current_track: current_track,
-        next_track: next_track
-    })
+    state
+    |> update_data(fn _ -> %Data{current: current, next: next} end)
+    |> update_value(:ready)
   end
 
   @impl GenServerDependency
-  def handle_call(:playlist, _, %DependencyState{data: %Data{playlist: playlist}} = state) do
-    {:reply, playlist, state}
+  def handle_event(%PlayerStateEvent{type: "end-file"}, %DependencyState{} = state) do
+    update_value(state, &load_next_track/1)
   end
 
-  @spec compute_playlist() :: list(PlaylistItem.t())
-  defp compute_playlist do
+  @impl GenServerDependency
+  def handle_event(%PlayerStateEvent{}, %DependencyState{} = state), do: state
+
+  @impl GenServerDependency
+  def handle_call(:playlist, _, %DependencyState{data: %Data{} = data} = state) do
+    {:reply, compute_playlist(data), state}
+  end
+
+  def handle_call(:previous, _, %DependencyState{} = state) do
+    {:reply, :ok, update_data(state, &load_previous_track/1)}
+  end
+
+  def handle_call(:next, _, %DependencyState{} = state) do
+    {:reply, :ok, update_data(state, &load_next_track/1)}
+  end
+
+  @spec load_playlist() :: list(PlaylistItem.t())
+  defp load_playlist do
     music_folder = MpvServer.music_folder()
 
     music_folder
@@ -145,5 +114,46 @@ defmodule Exshome.App.Player.Playback do
         url: Path.join(music_folder, &1)
       }
     )
+  end
+
+  @spec load_next_track(Data.t()) :: Data.t()
+  defp load_next_track(%Data{next: []} = data) do
+    {current, next} =
+      data
+      |> compute_playlist()
+      |> List.pop_at(0, MissingPlaylistItem)
+
+    %Data{data | current: current, next: next, previous: []}
+  end
+
+  defp load_next_track(%Data{current: previous, next: [current | next]} = data) do
+    load_file(current.url)
+
+    %Data{
+      data
+      | previous: [previous | data.previous],
+        next: next,
+        current: current
+    }
+  end
+
+  @spec load_previous_track(Data.t()) :: Data.t()
+  defp load_previous_track(%Data{previous: []} = data), do: data
+
+  defp load_previous_track(%Data{previous: [current | previous], current: next} = data) do
+    load_file(current.url)
+
+    %Data{
+      data
+      | previous: previous,
+        current: current,
+        next: [next | data.next]
+    }
+  end
+
+  @spec compute_playlist(Data.t()) :: list(PlaylistItem.t())
+  def compute_playlist(%Data{} = data) do
+    current = if data.current == MissingPlaylistItem, do: [], else: [data.current]
+    Enum.reverse(data.previous) ++ current ++ data.next
   end
 end
