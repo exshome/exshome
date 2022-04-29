@@ -9,7 +9,7 @@ defmodule ExshomeWeb.Live.ClockApp do
     """
 
     use ExshomeWeb.Live.AppPage,
-      dependencies: [{Exshome.App.Clock.LocalTime, :time}],
+      dependencies: [{ExshomeClock.LocalTime, :time}],
       icon: "⏰"
   end
 
@@ -19,7 +19,7 @@ defmodule ExshomeWeb.Live.ClockApp do
     """
 
     use ExshomeWeb.Live.AppPage,
-      dependencies: [{Exshome.App.Clock.LocalTime, :time}]
+      dependencies: [{ExshomeClock.LocalTime, :time}]
   end
 
   defmodule Settings do
@@ -28,7 +28,7 @@ defmodule ExshomeWeb.Live.ClockApp do
     """
 
     use ExshomeWeb.Live.AppPage,
-      dependencies: [{Exshome.App.Clock.ClockSettings, :settings}],
+      dependencies: [{ExshomeClock.ClockSettings, :settings}],
       icon: "⚙"
   end
 

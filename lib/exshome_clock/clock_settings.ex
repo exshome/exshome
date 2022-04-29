@@ -1,4 +1,4 @@
-defmodule Exshome.App.Clock.ClockSettings do
+defmodule ExshomeClock.ClockSettings do
   @moduledoc """
   Module for storing clock settings.
   """

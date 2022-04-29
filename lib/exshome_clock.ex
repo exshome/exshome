@@ -1,4 +1,4 @@
-defmodule Exshome.App.Clock do
+defmodule ExshomeClock do
   @moduledoc """
   Application related to the clock.
   """

@@ -1,7 +1,7 @@
 defmodule ExshomeTest.App.Clock.UtcTimeTest do
   use Exshome.DataCase, async: true
-  alias Exshome.App.Clock.UtcTime
   alias Exshome.Dependency
+  alias ExshomeClock.UtcTime
   alias ExshomeTest.TestRegistry
 
   setup do

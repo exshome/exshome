@@ -1,6 +1,5 @@
 defmodule ExshomeWebTest.ClockAppTest do
   use ExshomeWeb.ConnCase, async: true
-  alias Exshome.App.Clock
   alias Exshome.Dependency
   alias Exshome.Settings
   alias ExshomeWeb.App.ClockView
@@ -14,7 +13,7 @@ defmodule ExshomeWebTest.ClockAppTest do
     test "renders current time", %{conn: conn} do
       view = live_with_dependencies(conn, ClockApp, :index)
       current_time = DateTime.utc_now()
-      Dependency.broadcast_value(Clock.LocalTime, current_time)
+      Dependency.broadcast_value(ExshomeClock.LocalTime, current_time)
       assert render(view) =~ ClockView.format_date(current_time)
       assert render(view) =~ ClockView.format_time(current_time)
     end
@@ -28,14 +27,14 @@ defmodule ExshomeWebTest.ClockAppTest do
     test "renders clock settings", %{conn: conn} do
       view = live_with_dependencies(conn, ClockApp, :settings)
 
-      compare_timezone(view, Clock.ClockSettings.get_value().timezone)
+      compare_timezone(view, ExshomeClock.ClockSettings.get_value().timezone)
     end
 
     test "updates clock settings", %{conn: conn} do
       view = live_with_dependencies(conn, ClockApp, :settings)
 
       random_value =
-        Settings.allowed_values(Clock.ClockSettings).timezone
+        Settings.allowed_values(ExshomeClock.ClockSettings).timezone
         |> Enum.random()
 
       value = [
@@ -45,11 +44,11 @@ defmodule ExshomeWebTest.ClockAppTest do
       assert view |> form("form", value) |> render_change()
 
       assert compare_timezone(view, random_value)
-      refute Settings.get_settings(Clock.ClockSettings).timezone == random_value
+      refute Settings.get_settings(ExshomeClock.ClockSettings).timezone == random_value
 
       assert view |> form("form", value) |> render_submit()
       assert compare_timezone(view, random_value)
-      assert Settings.get_settings(Clock.ClockSettings).timezone == random_value
+      assert Settings.get_settings(ExshomeClock.ClockSettings).timezone == random_value
     end
 
     @spec compare_timezone(Phoenix.LiveViewTest.View, String.t()) :: String.t()
@@ -71,7 +70,7 @@ defmodule ExshomeWebTest.ClockAppTest do
     test "renders current time", %{conn: conn} do
       view = live_preview_with_dependencies(conn, ClockApp)
       current_time = DateTime.utc_now()
-      Dependency.broadcast_value(Clock.LocalTime, current_time)
+      Dependency.broadcast_value(ExshomeClock.LocalTime, current_time)
 
       for clock_part <- ["hour", "minute", "second"] do
         assert has_element?(view, "#clock-#{clock_part}")

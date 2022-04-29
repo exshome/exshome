@@ -11,7 +11,7 @@ defmodule ExshomeTest.Dependency.GenServerDependencyTest do
     test "calls validate_config!/2" do
       GenServerDependency.validate_module!(
         %Macro.Env{
-          module: Exshome.App.Clock.UtcTime
+          module: ExshomeClock.UtcTime
         },
         "some_bytecode"
       )
