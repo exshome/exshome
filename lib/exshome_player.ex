@@ -1,4 +1,4 @@
-defmodule Exshome.App.Player do
+defmodule ExshomePlayer do
   @moduledoc """
   Application related to the player.
   """

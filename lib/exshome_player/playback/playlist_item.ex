@@ -1,4 +1,4 @@
-defmodule Exshome.App.Player.Playback.PlaylistItem do
+defmodule ExshomePlayer.Playback.PlaylistItem do
   @moduledoc """
   Structure for working with playlist.
   """

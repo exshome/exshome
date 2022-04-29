@@ -1,18 +1,16 @@
-defmodule Exshome.App.Player.PlayerState.Volume do
+defmodule ExshomePlayer.PlayerState.Path do
   @moduledoc """
-  Playback volume.
+  Playback path.
   """
 
-  alias Exshome.App.Player.PlayerState
+  alias ExshomePlayer.PlayerState
 
   use Exshome.Dependency.GenServerDependency,
-    name: "player_volume",
+    name: "player_path",
     dependencies: [{PlayerState, :player}]
 
   @impl GenServerDependency
   def handle_dependency_change(%DependencyState{deps: %{player: %PlayerState{} = player}} = state) do
-    volume = round(player.volume || 0)
-
-    update_value(state, volume)
+    update_value(state, player.path || "")
   end
 end

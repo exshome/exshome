@@ -2,7 +2,7 @@ defmodule ExshomeWeb.Live.PlayerApp.Preview do
   @moduledoc """
   Player preview widget.
   """
-  alias Exshome.App.Player.PlayerState
+  alias ExshomePlayer.PlayerState
 
   use ExshomeWeb.Live.AppPage,
     dependencies: [

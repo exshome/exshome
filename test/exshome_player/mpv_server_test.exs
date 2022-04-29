@@ -1,9 +1,9 @@
-defmodule ExshomeTest.App.Player.MpvServerTest do
+defmodule ExshomePlayerTest.MpvServerTest do
   use Exshome.DataCase, async: true
   @moduletag :mpv_test_folder
 
-  alias Exshome.App.Player.MpvServer
   alias Exshome.Dependency
+  alias ExshomePlayer.MpvServer
   alias ExshomeTest.TestRegistry
 
   setup do

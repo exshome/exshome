@@ -2,9 +2,9 @@ defmodule ExshomeWebTest.Live.PlayerAppTest do
   use ExshomeWeb.ConnCase, async: true
   @moduletag :mpv_test_folder
 
-  alias Exshome.App.Player.{MpvSocket, Playback, PlayerState}
   alias Exshome.Dependency
   import ExshomeTest.Fixtures
+  alias ExshomePlayer.{MpvSocket, Playback, PlayerState}
   alias ExshomeTest.TestMpvServer
   alias ExshomeTest.TestRegistry
   alias ExshomeWeb.Live.PlayerApp

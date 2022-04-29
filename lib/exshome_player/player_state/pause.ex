@@ -1,18 +1,17 @@
-defmodule Exshome.App.Player.PlayerState.Duration do
+defmodule ExshomePlayer.PlayerState.Pause do
   @moduledoc """
-  Playback duration.
+  Playback pause data.
   """
 
-  alias Exshome.App.Player.PlayerState
+  alias ExshomePlayer.PlayerState
 
   use Exshome.Dependency.GenServerDependency,
-    name: "player_duration",
+    name: "player_pause",
     dependencies: [{PlayerState, :player}]
 
   @impl GenServerDependency
   def handle_dependency_change(%DependencyState{deps: %{player: %PlayerState{} = player}} = state) do
-    duration = round(player.duration || 0)
-
-    update_value(state, duration)
+    player_has_track = !player.path
+    update_value(state, player_has_track || player.pause)
   end
 end

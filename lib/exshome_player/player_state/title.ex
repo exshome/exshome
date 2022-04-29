@@ -1,9 +1,9 @@
-defmodule Exshome.App.Player.PlayerState.Title do
+defmodule ExshomePlayer.PlayerState.Title do
   @moduledoc """
   Playback title.
   """
 
-  alias Exshome.App.Player.PlayerState
+  alias ExshomePlayer.PlayerState
 
   use Exshome.Dependency.GenServerDependency,
     name: "player_title",

@@ -1,9 +1,9 @@
-defmodule Exshome.App.Player.PlayerState.Position do
+defmodule ExshomePlayer.PlayerState.Position do
   @moduledoc """
   Playback position.
   """
 
-  alias Exshome.App.Player.PlayerState
+  alias ExshomePlayer.PlayerState
 
   use Exshome.Dependency.GenServerDependency,
     name: "player_position",

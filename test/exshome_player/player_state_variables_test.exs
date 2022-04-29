@@ -1,10 +1,10 @@
-defmodule ExshomeTest.App.Player.PlayerStateVariablesTest do
+defmodule ExshomePlayerTest.PlayerStateVariablesTest do
   use Exshome.DataCase, async: true
 
   import ExshomeTest.Fixtures
 
-  alias Exshome.App.Player.PlayerState
   alias Exshome.Dependency
+  alias ExshomePlayer.PlayerState
   alias ExshomeTest.TestRegistry
 
   describe "PlayerState.Duration" do

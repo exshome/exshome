@@ -1,4 +1,4 @@
-defmodule Exshome.App.Player.Events.PlayerStateEvent do
+defmodule ExshomePlayer.Events.PlayerStateEvent do
   @moduledoc """
   Player-related events.
   Usually it is a subset of MpvEvents.

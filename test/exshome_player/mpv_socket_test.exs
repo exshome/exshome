@@ -1,12 +1,12 @@
-defmodule ExshomeTest.App.Player.MpvSocketTest do
+defmodule ExshomePlayerTest.MpvSocketTest do
   use Exshome.DataCase, async: true
   @moduletag :mpv_test_folder
 
   import ExshomeTest.Fixtures
   import ExshomeTest.TestMpvServer
 
-  alias Exshome.App.Player.Events.MpvSocketEvent
-  alias Exshome.App.Player.MpvSocket
+  alias ExshomePlayer.Events.MpvSocketEvent
+  alias ExshomePlayer.MpvSocket
 
   describe "default options" do
     setup do

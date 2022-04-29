@@ -1,12 +1,12 @@
-defmodule Exshome.App.Player.PlayerState do
+defmodule ExshomePlayer.PlayerState do
   @moduledoc """
   A module for storing a playback state for the MPV client.
   """
 
   alias __MODULE__
-  alias Exshome.App.Player.Events.{MpvSocketEvent, PlayerStateEvent}
-  alias Exshome.App.Player.MpvSocket
   alias Exshome.Event
+  alias ExshomePlayer.Events.{MpvSocketEvent, PlayerStateEvent}
+  alias ExshomePlayer.MpvSocket
 
   use Exshome.Dependency.GenServerDependency,
     name: "mpv_client",
