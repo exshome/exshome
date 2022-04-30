@@ -1,9 +1,9 @@
-defmodule ExshomePlayerTest.PlaybackTest do
+defmodule ExshomePlayerTest.Services.PlaybackTest do
   use Exshome.DataCase, async: true
   @moduletag :mpv_test_folder
 
   alias Exshome.Dependency
-  alias ExshomePlayer.{MpvSocket, Playback, PlayerState}
+  alias ExshomePlayer.Services.{MpvSocket, Playback, PlayerState}
   import ExshomeTest.Fixtures
   import ExshomeTest.TestMpvServer
 

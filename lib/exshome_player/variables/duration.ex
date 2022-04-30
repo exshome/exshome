@@ -1,9 +1,9 @@
-defmodule ExshomePlayer.PlayerState.Duration do
+defmodule ExshomePlayer.Variables.Duration do
   @moduledoc """
   Playback duration.
   """
 
-  alias ExshomePlayer.PlayerState
+  alias ExshomePlayer.Services.PlayerState
 
   use Exshome.Dependency.GenServerDependency,
     name: "player_duration",

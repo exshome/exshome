@@ -1,11 +1,11 @@
-defmodule ExshomePlayer.Playback do
+defmodule ExshomePlayer.Services.Playback do
   @moduledoc """
   Store playback state.
   """
 
   alias ExshomePlayer.Events.PlayerStateEvent
-  alias ExshomePlayer.{MpvServer, MpvSocket}
-  alias ExshomePlayer.Playback.{MissingPlaylistItem, PlaylistItem}
+  alias ExshomePlayer.Services.{MpvServer, MpvSocket}
+  alias ExshomePlayer.Services.Playback.{MissingPlaylistItem, PlaylistItem}
 
   use Exshome.Dependency.GenServerDependency,
     events: [PlayerStateEvent],

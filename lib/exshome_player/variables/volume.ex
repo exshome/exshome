@@ -1,17 +1,18 @@
-defmodule ExshomePlayer.PlayerState.Pause do
+defmodule ExshomePlayer.Variables.Volume do
   @moduledoc """
-  Playback pause data.
+  Playback volume.
   """
 
-  alias ExshomePlayer.PlayerState
+  alias ExshomePlayer.Services.PlayerState
 
   use Exshome.Dependency.GenServerDependency,
-    name: "player_pause",
+    name: "player_volume",
     dependencies: [{PlayerState, :player}]
 
   @impl GenServerDependency
   def handle_dependency_change(%DependencyState{deps: %{player: %PlayerState{} = player}} = state) do
-    player_has_track = !player.path
-    update_value(state, player_has_track || player.pause)
+    volume = round(player.volume || 0)
+
+    update_value(state, volume)
   end
 end

@@ -2,18 +2,19 @@ defmodule ExshomePlayer.Web.Live.Index do
   @moduledoc """
   Main player page.
   """
+  alias ExshomePlayer.Services.Playback
+  alias ExshomePlayer.Variables
   alias Phoenix.LiveView
   alias Phoenix.LiveView.Socket
-  alias ExshomePlayer.{Playback, PlayerState}
 
   use ExshomeWeb.Live.AppPage,
     icon: "🎵",
     dependencies: [
-      {PlayerState.Duration, :duration},
-      {PlayerState.Pause, :pause},
-      {PlayerState.Position, :position},
-      {PlayerState.Title, :title},
-      {PlayerState.Volume, :volume}
+      {Variables.Duration, :duration},
+      {Variables.Pause, :pause},
+      {Variables.Position, :position},
+      {Variables.Title, :title},
+      {Variables.Volume, :volume}
     ]
 
   @impl LiveView

@@ -1,4 +1,4 @@
-defmodule ExshomePlayer.Playback.MissingPlaylistItem do
+defmodule ExshomePlayer.Services.Playback.MissingPlaylistItem do
   @moduledoc """
   Placeholder for missing playlist item.
   """

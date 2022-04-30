@@ -1,7 +1,7 @@
 defmodule ExshomeTest.NamedTest do
   use ExUnit.Case, async: true
   alias Exshome.Named
-  alias ExshomeClock.ClockSettings
+  alias ExshomeClock.Settings.ClockSettings
   import ExshomeTest.MacroHelpers, only: [compile_with_settings: 2]
 
   describe "get_module_by_name/1" do

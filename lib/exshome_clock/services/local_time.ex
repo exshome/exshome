@@ -1,4 +1,4 @@
-defmodule ExshomeClock.LocalTime do
+defmodule ExshomeClock.Services.LocalTime do
   @moduledoc """
   Provides a value for local time.
   It subscribes to the changes in clock settings and current time.
@@ -6,8 +6,8 @@ defmodule ExshomeClock.LocalTime do
   use Exshome.Dependency.GenServerDependency,
     name: "local_time",
     dependencies: [
-      {ExshomeClock.UtcTime, :utc_time},
-      {ExshomeClock.ClockSettings, :settings}
+      {ExshomeClock.Services.UtcTime, :utc_time},
+      {ExshomeClock.Settings.ClockSettings, :settings}
     ]
 
   @impl GenServerDependency

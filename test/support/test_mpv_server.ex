@@ -8,8 +8,7 @@ defmodule ExshomeTest.TestMpvServer do
   import ExUnit.Assertions
   alias ExshomeTest.Fixtures
   import ExshomeTest.TestHelpers, only: [assert_receive_dependency: 1]
-  alias ExshomePlayer.MpvServer
-  alias ExshomePlayer.MpvSocket
+  alias ExshomePlayer.Services.{MpvServer, MpvSocket}
 
   defmodule State do
     @moduledoc """

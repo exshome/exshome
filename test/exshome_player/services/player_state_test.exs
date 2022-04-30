@@ -1,4 +1,4 @@
-defmodule ExshomePlayerTest.PlayerStateTest do
+defmodule ExshomePlayerTest.Services.PlayerStateTest do
   use Exshome.DataCase, async: true
   @moduletag :mpv_test_folder
 
@@ -7,7 +7,7 @@ defmodule ExshomePlayerTest.PlayerStateTest do
 
   alias Exshome.Dependency
   alias ExshomePlayer.Events.PlayerStateEvent
-  alias ExshomePlayer.{MpvSocket, PlayerState}
+  alias ExshomePlayer.Services.{MpvSocket, PlayerState}
   alias ExshomeTest.TestRegistry
 
   describe "default mpv_socket opts" do

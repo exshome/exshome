@@ -4,7 +4,8 @@ defmodule ExshomePlayerTest.WebTest do
 
   alias Exshome.Dependency
   import ExshomeTest.Fixtures
-  alias ExshomePlayer.{MpvSocket, Playback, PlayerState}
+  alias ExshomePlayer.Services.{MpvSocket, Playback, PlayerState}
+  alias ExshomePlayer.Variables
   alias ExshomeTest.TestMpvServer
   alias ExshomeTest.TestRegistry
 
@@ -27,7 +28,7 @@ defmodule ExshomePlayerTest.WebTest do
       volume_selector = "[name=volume]"
       volume = unique_integer()
       view |> element(volume_selector) |> render_change(%{volume: volume})
-      assert_receive_dependency({PlayerState.Volume, volume})
+      assert_receive_dependency({Variables.Volume, volume})
       assert get_value(view, volume_selector) == Integer.to_string(volume)
     end
 
@@ -35,23 +36,23 @@ defmodule ExshomePlayerTest.WebTest do
       position_selector = "[name=position]"
       position = unique_integer()
       view |> element(position_selector) |> render_change(%{position: position})
-      assert_receive_dependency({PlayerState.Position, position})
+      assert_receive_dependency({Variables.Position, position})
       assert get_value(view, position_selector) == Integer.to_string(position)
     end
 
     test "updates pause state", %{view: view} do
-      assert Dependency.subscribe(PlayerState.Pause) != Dependency.NotReady
+      assert Dependency.subscribe(Variables.Pause) != Dependency.NotReady
 
       random_file = "some_file#{unique_integer()}"
       Playback.load_file(random_file)
 
-      assert_receive_dependency({PlayerState.Pause, false})
+      assert_receive_dependency({Variables.Pause, false})
       assert view |> element("[phx-click=pause]") |> render_click()
-      assert_receive_dependency({PlayerState.Pause, true})
+      assert_receive_dependency({Variables.Pause, true})
       assert view |> element("[phx-click=play]") |> render_click()
-      assert_receive_dependency({PlayerState.Pause, false})
+      assert_receive_dependency({Variables.Pause, false})
       assert view |> element("[phx-click=pause]") |> render_click()
-      assert_receive_dependency({PlayerState.Pause, true})
+      assert_receive_dependency({Variables.Pause, true})
     end
   end
 

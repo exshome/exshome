@@ -1,4 +1,4 @@
-defmodule ExshomePlayer.MpvServer do
+defmodule ExshomePlayer.Services.MpvServer do
   @moduledoc """
   Starts MPV server.
   """

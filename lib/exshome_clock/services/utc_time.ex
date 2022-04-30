@@ -1,4 +1,4 @@
-defmodule ExshomeClock.UtcTime do
+defmodule ExshomeClock.Services.UtcTime do
   @moduledoc """
   UTC time dependency.
   """

@@ -1,4 +1,4 @@
-defmodule ExshomePlayer.Events.MpvSocketEvent do
+defmodule ExshomePlayer.Events.MpvEvent do
   @moduledoc """
   Mpv socket events.
   """

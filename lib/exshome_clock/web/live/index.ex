@@ -4,6 +4,6 @@ defmodule ExshomeClock.Web.Live.Index do
   """
 
   use ExshomeWeb.Live.AppPage,
-    dependencies: [{ExshomeClock.LocalTime, :time}],
+    dependencies: [{ExshomeClock.Services.LocalTime, :time}],
     icon: "⏰"
 end

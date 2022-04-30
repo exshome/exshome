@@ -4,5 +4,5 @@ defmodule ExshomeClock.Web.Live.Preview do
   """
 
   use ExshomeWeb.Live.AppPage,
-    dependencies: [{ExshomeClock.LocalTime, :time}]
+    dependencies: [{ExshomeClock.Services.LocalTime, :time}]
 end

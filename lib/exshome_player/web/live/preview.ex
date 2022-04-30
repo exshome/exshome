@@ -2,11 +2,11 @@ defmodule ExshomePlayer.Web.Live.Preview do
   @moduledoc """
   Player preview widget.
   """
-  alias ExshomePlayer.PlayerState
+  alias ExshomePlayer.Variables
 
   use ExshomeWeb.Live.AppPage,
     dependencies: [
-      {PlayerState.Pause, :pause},
-      {PlayerState.Title, :title}
+      {Variables.Pause, :pause},
+      {Variables.Title, :title}
     ]
 end

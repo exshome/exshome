@@ -1,7 +1,7 @@
-defmodule ExshomeClockTest.ClockSettingsTest do
+defmodule ExshomeClockTest.Settings.ClockSettingsTest do
   use Exshome.DataCase, async: true
   alias Exshome.Settings
-  alias ExshomeClock.ClockSettings
+  alias ExshomeClock.Settings.ClockSettings
 
   test "we can not save settings with invalid timezone" do
     settings = Settings.get_settings(ClockSettings)

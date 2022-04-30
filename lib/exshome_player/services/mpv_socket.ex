@@ -1,11 +1,11 @@
-defmodule ExshomePlayer.MpvSocket do
+defmodule ExshomePlayer.Services.MpvSocket do
   @moduledoc """
   Implementation for MPV socket. It allows to send you some commands to the MPV server.
   """
   use Exshome.Dependency.GenServerDependency, name: "mpv_socket"
   alias Exshome.Event
-  alias ExshomePlayer.Events.MpvSocketEvent
-  alias ExshomePlayer.MpvServer
+  alias ExshomePlayer.Events.MpvEvent
+  alias ExshomePlayer.Services.MpvServer
 
   @type command_response :: %{String.t() => term()}
 
@@ -117,7 +117,7 @@ defmodule ExshomePlayer.MpvSocket do
   def handle_message(%{"event" => _event} = message, %DependencyState{} = state) do
     {type, data} = Map.pop!(message, "event")
 
-    Event.broadcast(%MpvSocketEvent{type: type, data: data})
+    Event.broadcast(%MpvEvent{type: type, data: data})
     state
   end
 

@@ -1,17 +1,17 @@
-defmodule ExshomePlayer.PlayerState do
+defmodule ExshomePlayer.Services.PlayerState do
   @moduledoc """
   A module for storing a playback state for the MPV client.
   """
 
   alias __MODULE__
   alias Exshome.Event
-  alias ExshomePlayer.Events.{MpvSocketEvent, PlayerStateEvent}
-  alias ExshomePlayer.MpvSocket
+  alias ExshomePlayer.Events.{MpvEvent, PlayerStateEvent}
+  alias ExshomePlayer.Services.MpvSocket
 
   use Exshome.Dependency.GenServerDependency,
     name: "mpv_client",
     dependencies: [{MpvSocket, :socket}],
-    events: [MpvSocketEvent]
+    events: [MpvEvent]
 
   @keys [
     :path,
@@ -45,7 +45,7 @@ defmodule ExshomePlayer.PlayerState do
 
   @impl GenServerDependency
   def handle_event(
-        %MpvSocketEvent{type: "property-change", data: %{"name" => name} = event},
+        %MpvEvent{type: "property-change", data: %{"name" => name} = event},
         %DependencyState{value: %PlayerState{} = value} = state
       ) do
     new_value =
@@ -58,7 +58,7 @@ defmodule ExshomePlayer.PlayerState do
     update_value(state, new_value)
   end
 
-  def handle_event(%MpvSocketEvent{} = event, %DependencyState{} = state) do
+  def handle_event(%MpvEvent{} = event, %DependencyState{} = state) do
     Event.broadcast(%PlayerStateEvent{data: event.data, type: event.type})
     state
   end
