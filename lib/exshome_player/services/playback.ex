@@ -3,12 +3,12 @@ defmodule ExshomePlayer.Services.Playback do
   Store playback state.
   """
 
-  alias ExshomePlayer.Events.PlayerStateEvent
+  alias ExshomePlayer.Events.PlayerFileEnd
   alias ExshomePlayer.Services.{MpvServer, MpvSocket}
   alias ExshomePlayer.Services.Playback.{MissingPlaylistItem, PlaylistItem}
 
   use Exshome.Dependency.GenServerDependency,
-    events: [PlayerStateEvent],
+    events: [PlayerFileEnd],
     name: "playback"
 
   defmodule Data do
@@ -83,12 +83,9 @@ defmodule ExshomePlayer.Services.Playback do
   end
 
   @impl GenServerDependency
-  def handle_event(%PlayerStateEvent{type: "end-file"}, %DependencyState{} = state) do
+  def handle_event(PlayerFileEnd, %DependencyState{} = state) do
     update_value(state, &load_next_track/1)
   end
-
-  @impl GenServerDependency
-  def handle_event(%PlayerStateEvent{}, %DependencyState{} = state), do: state
 
   @impl GenServerDependency
   def handle_call(:playlist, _, %DependencyState{data: %Data{} = data} = state) do

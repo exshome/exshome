@@ -5,7 +5,7 @@ defmodule ExshomePlayer.Services.PlayerState do
 
   alias __MODULE__
   alias Exshome.Event
-  alias ExshomePlayer.Events.{MpvEvent, PlayerStateEvent}
+  alias ExshomePlayer.Events.{MpvEvent, PlayerFileEnd, PlayerStateEvent}
   alias ExshomePlayer.Services.MpvSocket
 
   use Exshome.Dependency.GenServerDependency,
@@ -56,6 +56,11 @@ defmodule ExshomePlayer.Services.PlayerState do
       )
 
     update_value(state, new_value)
+  end
+
+  def handle_event(%MpvEvent{type: "end-file"}, %DependencyState{} = state) do
+    Event.broadcast(PlayerFileEnd)
+    state
   end
 
   def handle_event(%MpvEvent{} = event, %DependencyState{} = state) do

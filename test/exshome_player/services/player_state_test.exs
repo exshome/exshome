@@ -6,13 +6,18 @@ defmodule ExshomePlayerTest.Services.PlayerStateTest do
   import ExshomeTest.TestMpvServer
 
   alias Exshome.Dependency
-  alias ExshomePlayer.Events.PlayerStateEvent
+  alias ExshomePlayer.Events.{PlayerFileEnd, PlayerStateEvent}
   alias ExshomePlayer.Services.{MpvSocket, PlayerState}
   alias ExshomeTest.TestRegistry
 
   describe "default mpv_socket opts" do
     setup do
       setup_with_opts(%{})
+    end
+
+    test "client sends event on track end" do
+      send_event(%{"event" => "end-file"})
+      assert_receive_event(PlayerFileEnd)
     end
 
     test "client can handle unexpected event" do
@@ -50,6 +55,7 @@ defmodule ExshomePlayerTest.Services.PlayerStateTest do
     assert Dependency.subscribe(MpvSocket) == :connected
 
     TestRegistry.start_dependency(PlayerState)
+    Exshome.Event.subscribe(PlayerFileEnd)
     Exshome.Event.subscribe(PlayerStateEvent)
 
     assert Dependency.subscribe(PlayerState) != Dependency.NotReady
