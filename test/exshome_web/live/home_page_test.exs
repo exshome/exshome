@@ -1,6 +1,6 @@
 defmodule ExshomeWebTest.Live.HomePageTest do
   use ExshomeWeb.ConnCase, async: true
-  alias ExshomeWeb.Live.App
+  alias Exshome.App
   import Phoenix.LiveViewTest
 
   test "home page works", %{conn: conn} do

@@ -21,7 +21,10 @@ defmodule Exshome.Dependency.GenServerDependency do
 
     @impl Supervisor
     def init(child_opts) do
-      GenServerDependency.modules()
+      Exshome.App.apps()
+      |> Enum.map(&GenServerDependency.modules/1)
+      |> Enum.map(&MapSet.to_list/1)
+      |> List.flatten()
       |> Enum.map(&{&1, child_opts})
       |> Supervisor.init(strategy: :one_for_one)
     end
@@ -257,8 +260,8 @@ defmodule Exshome.Dependency.GenServerDependency do
     )
   end
 
-  @spec modules() :: MapSet.t(Dependency.dependency())
-  def modules, do: Map.fetch!(Exshome.Tag.tag_mapping(), __MODULE__)
+  @spec modules(app :: atom()) :: MapSet.t(Dependency.dependency())
+  def modules(app) when is_atom(app), do: Map.fetch!(Exshome.Tag.tag_mapping(), {__MODULE__, app})
 
   defmacro __using__(config) do
     quote do
@@ -267,7 +270,14 @@ defmodule Exshome.Dependency.GenServerDependency do
       alias unquote(__MODULE__).DependencyState
       use Exshome.Dependency
       use Exshome.Named, "dependency:#{unquote(config[:name])}"
-      add_tag(GenServerDependency)
+
+      app_module =
+        __MODULE__
+        |> Module.split()
+        |> Enum.slice(0..0)
+        |> Module.safe_concat()
+
+      add_tag({GenServerDependency, app_module})
 
       @after_compile {GenServerDependency, :validate_module!}
       @behaviour GenServerDependency

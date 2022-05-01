@@ -1,4 +1,4 @@
-defmodule ExshomeWeb.Live.App do
+defmodule Exshome.App do
   @moduledoc """
   Generic module for live applications.
   """
@@ -23,7 +23,7 @@ defmodule ExshomeWeb.Live.App do
 
   defmacro __using__(config) do
     quote do
-      alias ExshomeWeb.Live.App
+      alias Exshome.App
       import Exshome.Tag, only: [add_tag: 1]
 
       @behaviour App

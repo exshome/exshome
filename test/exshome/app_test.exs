@@ -1,6 +1,6 @@
-defmodule ExshomeWebTest.Live.AppTest do
+defmodule ExshomeTest.AppTest do
   use ExUnit.Case, async: true
-  alias ExshomeWeb.Live.App
+  alias Exshome.App
 
   describe "validate_module!/2" do
     test "works fine with valid module" do

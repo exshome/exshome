@@ -5,7 +5,7 @@ defmodule ExshomeClock do
 
   alias ExshomeClock.Web.Live
 
-  use ExshomeWeb.Live.App,
+  use Exshome.App,
     pages: [Live.Index, Live.Settings],
     prefix: :clock,
     preview: Live.Preview

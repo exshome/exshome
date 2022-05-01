@@ -45,7 +45,12 @@ defmodule ExshomeTest.Dependency.GenServerDependencyTest do
         |> Enum.map(&elem(&1, 0))
         |> Enum.into(MapSet.new())
 
-      assert MapSet.equal?(GenServerDependency.modules(), modules)
+      all_modules =
+        Exshome.App.apps()
+        |> Enum.map(&GenServerDependency.modules/1)
+        |> Enum.reduce(MapSet.new(), &MapSet.union/2)
+
+      assert MapSet.equal?(all_modules, modules)
     end
   end
 end

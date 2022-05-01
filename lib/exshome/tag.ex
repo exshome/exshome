@@ -8,7 +8,7 @@ defmodule Exshome.Tag do
   @tag_mapping_key :tag_mapping
   @not_found :not_found
 
-  defmacro add_tag(tag) do
+  defmacro add_tag(tag, opts \\ []) do
     quote do
       unless Module.has_attribute?(__MODULE__, :tag) do
         Module.register_attribute(__MODULE__, :tag, persist: true, accumulate: true)
@@ -20,7 +20,7 @@ defmodule Exshome.Tag do
         end
       end
 
-      @tag unquote(tag)
+      @tag unquote({tag, opts})
     end
   end
 

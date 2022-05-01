@@ -32,11 +32,11 @@ defmodule Exshome.Tag.Mapping do
     end
   end
 
-  defp to_tag_data(module, tag) when is_atom(tag) do
+  defp to_tag_data(module, {tag, []}) do
     %__MODULE__{type: :simple, key: tag, value: module}
   end
 
-  defp to_tag_data(module, {parent_key, child_key}) when is_atom(child_key) do
+  defp to_tag_data(module, {parent_key, [key: child_key]}) when is_atom(child_key) do
     %__MODULE__{
       type: :nested_atom_map,
       key: parent_key,
@@ -45,7 +45,7 @@ defmodule Exshome.Tag.Mapping do
     }
   end
 
-  defp to_tag_data(module, {parent_key, child_key}) when is_binary(child_key) do
+  defp to_tag_data(module, {parent_key, [key: child_key]}) when is_binary(child_key) do
     %__MODULE__{
       type: :nested_binary_map,
       key: parent_key,

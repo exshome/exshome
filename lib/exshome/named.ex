@@ -14,10 +14,10 @@ defmodule Exshome.Named do
 
   defmacro __using__(name) do
     quote do
-      import Exshome.Tag, only: [add_tag: 1]
+      import Exshome.Tag, only: [add_tag: 1, add_tag: 2]
 
       alias Exshome.Named
-      add_tag({Named, unquote(name)})
+      add_tag(Named, key: unquote(name))
       @behaviour Named
 
       @impl Named
