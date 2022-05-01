@@ -15,13 +15,15 @@ defmodule Exshome.Dependency.GenServerDependency do
     use Supervisor, shutdown: :infinity
     alias Exshome.Dependency.GenServerDependency
 
-    def start_link(child_opts) do
+    def start_link(child_opts) when is_map(child_opts) do
       Supervisor.start_link(__MODULE__, child_opts, name: __MODULE__)
     end
 
     @impl Supervisor
-    def init(child_opts) do
-      Exshome.App.apps()
+    def init(child_opts) when is_map(child_opts) do
+      {apps, child_opts} = Map.pop(child_opts, :apps, Exshome.App.apps())
+
+      apps
       |> Enum.map(&GenServerDependency.modules/1)
       |> Enum.map(&MapSet.to_list/1)
       |> List.flatten()

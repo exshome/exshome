@@ -5,6 +5,7 @@ defmodule ExshomeTest.Dependency.GenServerDependencyTest do
   use Exshome.DataCase, async: true
   @moduletag :mpv_test_folder
 
+  alias Exshome.App
   alias Exshome.Dependency.GenServerDependency
 
   describe "validate_module!/2" do
@@ -46,11 +47,30 @@ defmodule ExshomeTest.Dependency.GenServerDependencyTest do
         |> Enum.into(MapSet.new())
 
       all_modules =
-        Exshome.App.apps()
+        App.apps()
         |> Enum.map(&GenServerDependency.modules/1)
         |> Enum.reduce(MapSet.new(), &MapSet.union/2)
 
       assert MapSet.equal?(all_modules, modules)
+    end
+
+    test "start_link/1 starts only selected apps" do
+      app = App.apps() |> Enum.random()
+
+      {:ok, pid} =
+        %{apps: [app]}
+        |> ExshomeTest.TestRegistry.prepare_child_opts()
+        |> DependencySupervisor.start_link()
+
+      modules =
+        pid
+        |> Supervisor.which_children()
+        |> Enum.map(&elem(&1, 0))
+        |> Enum.into(MapSet.new())
+
+      app_modules = GenServerDependency.modules(app)
+
+      assert MapSet.equal?(app_modules, modules)
     end
   end
 end
