@@ -15,8 +15,9 @@ defmodule Exshome.Dependency.GenServerDependency do
     use Supervisor, shutdown: :infinity
     alias Exshome.Dependency.GenServerDependency
 
-    def start_link(child_opts) when is_map(child_opts) do
-      Supervisor.start_link(__MODULE__, child_opts, name: __MODULE__)
+    def start_link(opts) when is_map(opts) do
+      {supervisor_opts, child_opts} = Map.pop(opts, :supervisor_opts, name: __MODULE__)
+      Supervisor.start_link(__MODULE__, child_opts, supervisor_opts)
     end
 
     @impl Supervisor

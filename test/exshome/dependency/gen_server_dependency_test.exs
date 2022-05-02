@@ -38,6 +38,7 @@ defmodule ExshomeTest.Dependency.GenServerDependencyTest do
       {:ok, pid} =
         %{}
         |> ExshomeTest.TestRegistry.prepare_child_opts()
+        |> Map.put(:supervisor_opts, name: nil)
         |> DependencySupervisor.start_link()
 
       modules =
@@ -60,6 +61,7 @@ defmodule ExshomeTest.Dependency.GenServerDependencyTest do
       {:ok, pid} =
         %{apps: [app]}
         |> ExshomeTest.TestRegistry.prepare_child_opts()
+        |> Map.put(:supervisor_opts, name: nil)
         |> DependencySupervisor.start_link()
 
       modules =
