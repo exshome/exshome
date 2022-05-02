@@ -2,7 +2,6 @@ defmodule ExshomePlayerTest.WebTest do
   use ExshomeWeb.ConnCase, async: true
   @moduletag :mpv_test_folder
 
-  alias Exshome.Dependency
   import ExshomeTest.Fixtures
   alias ExshomePlayer.Services.{MpvSocket, Playback, PlayerState}
   alias ExshomePlayer.Variables
@@ -41,18 +40,16 @@ defmodule ExshomePlayerTest.WebTest do
     end
 
     test "updates pause state", %{view: view} do
-      assert Dependency.subscribe(Variables.Pause) != Dependency.NotReady
-
       random_file = "some_file#{unique_integer()}"
       Playback.load_file(random_file)
 
-      assert_receive_dependency({Variables.Pause, false})
+      assert_receive_app_page_dependency({Variables.Pause, false})
       assert view |> element("[phx-click=pause]") |> render_click()
-      assert_receive_dependency({Variables.Pause, true})
+      assert_receive_app_page_dependency({Variables.Pause, true})
       assert view |> element("[phx-click=play]") |> render_click()
-      assert_receive_dependency({Variables.Pause, false})
+      assert_receive_app_page_dependency({Variables.Pause, false})
       assert view |> element("[phx-click=pause]") |> render_click()
-      assert_receive_dependency({Variables.Pause, true})
+      assert_receive_app_page_dependency({Variables.Pause, true})
     end
   end
 

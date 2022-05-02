@@ -126,4 +126,14 @@ defmodule ExshomeWeb.Live.AppPage do
       defdelegate render(assigns), to: AppPage
     end
   end
+
+  @hook_module Application.compile_env(:exshome, :app_page_hook_module)
+  if @hook_module do
+    defoverridable(handle_info: 2)
+
+    def handle_info(event, %Socket{} = socket) do
+      original_result = super(event, socket)
+      @hook_module.handle_info(event, socket, original_result)
+    end
+  end
 end

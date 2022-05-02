@@ -14,6 +14,7 @@ config :exshome, ExshomeWeb.Endpoint,
   server: false
 
 config :exshome, :environment, :test
+config :exshome, :app_page_hook_module, ExshomeTest.Hooks.AppPage
 config :exshome, :dependency_hook_module, ExshomeTest.Hooks.Dependency
 config :exshome, :file_utils_hook_module, ExshomeTest.Hooks.FileUtils
 config :exshome, :mpv_server_hook_module, ExshomeTest.Hooks.MpvServer
