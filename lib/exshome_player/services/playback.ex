@@ -31,8 +31,8 @@ defmodule ExshomePlayer.Services.Playback do
   @spec previous() :: :ok
   def previous, do: call(:previous)
 
-  @spec playlist() :: list(PlaylistItem.t())
-  def playlist, do: call(:playlist)
+  @spec tracklist() :: list(PlaylistItem.t())
+  def tracklist, do: call(:tracklist)
 
   @spec load_file(url :: String.t()) :: MpvSocket.command_response()
   def load_file(url) when is_binary(url) do
@@ -72,7 +72,7 @@ defmodule ExshomePlayer.Services.Playback do
   def on_init(%DependencyState{} = state) do
     {current, next} =
       List.pop_at(
-        load_playlist(),
+        load_tracklist(),
         0,
         MissingPlaylistItem
       )
@@ -88,8 +88,8 @@ defmodule ExshomePlayer.Services.Playback do
   end
 
   @impl GenServerDependency
-  def handle_call(:playlist, _, %DependencyState{data: %Data{} = data} = state) do
-    {:reply, compute_playlist(data), state}
+  def handle_call(:tracklist, _, %DependencyState{data: %Data{} = data} = state) do
+    {:reply, compute_tracklist(data), state}
   end
 
   def handle_call(:previous, _, %DependencyState{} = state) do
@@ -100,8 +100,8 @@ defmodule ExshomePlayer.Services.Playback do
     {:reply, :ok, update_data(state, &load_next_track/1)}
   end
 
-  @spec load_playlist() :: list(PlaylistItem.t())
-  defp load_playlist do
+  @spec load_tracklist() :: list(PlaylistItem.t())
+  defp load_tracklist do
     music_folder = MpvServer.music_folder()
 
     music_folder
@@ -118,7 +118,7 @@ defmodule ExshomePlayer.Services.Playback do
   defp load_next_track(%Data{next: []} = data) do
     {current, next} =
       data
-      |> compute_playlist()
+      |> compute_tracklist()
       |> List.pop_at(0, MissingPlaylistItem)
 
     %Data{data | current: current, next: next, previous: []}
@@ -149,9 +149,10 @@ defmodule ExshomePlayer.Services.Playback do
     }
   end
 
-  @spec compute_playlist(Data.t()) :: list(PlaylistItem.t())
-  def compute_playlist(%Data{} = data) do
+  @spec compute_tracklist(Data.t()) :: list(PlaylistItem.t())
+  def compute_tracklist(%Data{} = data) do
     current = if data.current == MissingPlaylistItem, do: [], else: [data.current]
+
     Enum.reverse(data.previous) ++ current ++ data.next
   end
 end
