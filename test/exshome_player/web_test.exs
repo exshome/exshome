@@ -1,6 +1,5 @@
 defmodule ExshomePlayerTest.WebTest do
   use ExshomeWeb.ConnCase, async: true
-  @moduletag :mpv_test_folder
 
   import ExshomeTest.Fixtures
   alias ExshomePlayer.Services.{MpvSocket, Playback, PlayerState}

@@ -3,9 +3,9 @@ defmodule ExshomeTest.FileUtilsTest do
   alias Exshome.FileUtils
   alias ExshomeTest.{TestFileUtils, TestRegistry}
 
-  setup tags do
+  setup do
     TestRegistry.allow(self(), self())
-    TestFileUtils.generate_test_folder(tags)
+    TestFileUtils.generate_test_folder()
     :ok
   end
 

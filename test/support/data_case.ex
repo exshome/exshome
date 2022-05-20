@@ -28,9 +28,9 @@ defmodule Exshome.DataCase do
     end
   end
 
-  setup tags do
+  setup do
     ExshomeTest.TestRegistry.allow(self(), self())
-    ExshomeTest.TestFileUtils.generate_test_folder(tags)
+    ExshomeTest.TestFileUtils.generate_test_folder()
     ExshomeTest.TestDbUtils.start_test_db()
     :ok
   end

@@ -3,7 +3,6 @@ defmodule ExshomeTest.Dependency.GenServerDependencyTest do
   Test GenServerDependency API.
   """
   use Exshome.DataCase, async: true
-  @moduletag :mpv_test_folder
 
   alias Exshome.App
   alias Exshome.Dependency.GenServerDependency

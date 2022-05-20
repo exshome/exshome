@@ -1,6 +1,5 @@
 defmodule ExshomePlayerTest.Services.MpvSocketTest do
   use Exshome.DataCase, async: true
-  @moduletag :mpv_test_folder
 
   import ExshomeTest.Fixtures
   import ExshomeTest.TestMpvServer
