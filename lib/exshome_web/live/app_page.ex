@@ -13,6 +13,7 @@ defmodule ExshomeWeb.Live.AppPage do
   @callback icon() :: String.t()
   @callback path() :: String.t()
   @callback dependencies() :: Keyword.t()
+  @callback dependencies_changed(Socket.t()) :: Socket.t()
 
   def on_mount(_, _params, _session, %Socket{} = socket) do
     socket =
@@ -35,7 +36,11 @@ defmodule ExshomeWeb.Live.AppPage do
     key = get_dependencies(socket)[module]
 
     if key do
-      socket = LiveView.update(socket, :deps, &Map.put(&1, key, value))
+      socket =
+        socket
+        |> LiveView.update(:deps, &Map.put(&1, key, value))
+        |> socket.view.dependencies_changed()
+
       {:halt, socket}
     else
       {:cont, socket}
@@ -117,6 +122,9 @@ defmodule ExshomeWeb.Live.AppPage do
       @impl AppPage
       def dependencies, do: unquote(config[:dependencies])
 
+      @impl AppPage
+      def dependencies_changed(socket), do: socket
+
       use ExshomeWeb, :live_view
       on_mount(AppPage)
 
@@ -124,6 +132,8 @@ defmodule ExshomeWeb.Live.AppPage do
 
       @impl Phoenix.LiveView
       defdelegate render(assigns), to: AppPage
+
+      defoverridable(dependencies_changed: 1)
     end
   end
 
