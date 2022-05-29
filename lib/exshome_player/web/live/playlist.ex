@@ -14,17 +14,12 @@ defmodule ExshomePlayer.Web.Live.Playlist do
   @impl LiveView
   def mount(_params, _session, %Socket{} = socket) do
     socket = assign(socket, :tracks, Playback.tracklist())
-    {:ok, socket, temporary_assigns: [tracks: []]}
+    {:ok, socket}
   end
 
   @impl LiveView
   def handle_event("load_track", %{"url" => url}, %Socket{} = socket) do
     Playback.load_file(url)
     {:noreply, socket}
-  end
-
-  @impl AppPage
-  def dependencies_changed(%Socket{} = socket) do
-    assign(socket, :tracks, Playback.tracklist())
   end
 end
