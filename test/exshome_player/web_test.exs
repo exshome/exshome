@@ -40,7 +40,7 @@ defmodule ExshomePlayerTest.WebTest do
 
     test "updates pause state", %{view: view} do
       random_file = "some_file#{unique_integer()}"
-      Playback.load_file(random_file)
+      Playback.load_url(random_file)
 
       assert_receive_app_page_dependency({Variables.Pause, false})
       assert view |> element("[phx-click=pause]") |> render_click()

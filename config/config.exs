@@ -13,6 +13,7 @@ config :exshome,
 
 # Configure your database
 config :exshome, Exshome.Repo,
+  migration_primary_key: [name: :id, type: :binary_id],
   migration_timestamps: [type: :utc_datetime_usec],
   cache_size: -2000
 

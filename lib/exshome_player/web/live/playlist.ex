@@ -2,24 +2,17 @@ defmodule ExshomePlayer.Web.Live.Playlist do
   @moduledoc """
   Playlist page.
   """
-  alias ExshomePlayer.Services.Playback
-  alias ExshomePlayer.Variables
+  alias ExshomePlayer.Services.Playlist
   alias Phoenix.LiveView
   alias Phoenix.LiveView.Socket
 
   use ExshomeWeb.Live.AppPage,
     icon: "📃",
-    dependencies: [{Variables.Path, :current_track}]
+    dependencies: [{Playlist, :playlist}]
 
   @impl LiveView
-  def mount(_params, _session, %Socket{} = socket) do
-    socket = assign(socket, :tracks, Playback.tracklist())
-    {:ok, socket}
-  end
-
-  @impl LiveView
-  def handle_event("load_track", %{"url" => url}, %Socket{} = socket) do
-    Playback.load_file(url)
+  def handle_event("play", %{"id" => id}, %Socket{} = socket) do
+    Playlist.play(id)
     {:noreply, socket}
   end
 end

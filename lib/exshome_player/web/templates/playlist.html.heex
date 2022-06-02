@@ -1,9 +1,9 @@
 <ul>
-  <%= for track <- @tracks do %>
-    <li id={"playlist-#{track.url}"}>
-      <button phx-click="load_track" phx-value-url={track.url}>
-        <%= if track.url == @deps.current_track, do: "⏸️", else: "▶️" %>
-        <%= track.name %>
+  <%= for track <- @deps.playlist do %>
+    <li>
+      <button phx-click="play" phx-value-id={track.id}>
+        <%= if String.trim(track.name) == "", do: "Unknown", else: track.name %>
+        <%= track.path %>
       </button>
     </li>
   <% end %>
