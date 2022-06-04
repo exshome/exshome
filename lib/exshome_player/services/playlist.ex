@@ -65,7 +65,7 @@ defmodule ExshomePlayer.Services.Playlist do
   @impl GenServerDependency
   def handle_event(%PlayerFileEnd{reason: "eof"}, %DependencyState{} = state) do
     state
-    |> update_data(&load_next_track/1)
+    |> update_playlist(&load_next_track/1)
     |> load_track()
   end
 
@@ -104,11 +104,11 @@ defmodule ExshomePlayer.Services.Playlist do
   defp update_playlist(%DependencyState{} = state, update_fn) do
     state
     |> update_data(update_fn)
-    |> compute_playlist()
+    |> refresh_playlist()
   end
 
-  @spec compute_playlist(DependencyState.t()) :: DependencyState.t()
-  defp compute_playlist(%DependencyState{data: %Data{next: [%Track{id: id} | _]} = data} = state) do
+  @spec refresh_playlist(DependencyState.t()) :: DependencyState.t()
+  defp refresh_playlist(%DependencyState{data: %Data{next: [%Track{id: id} | _]} = data} = state) do
     update_value(
       state,
       %__MODULE__{
@@ -118,7 +118,7 @@ defmodule ExshomePlayer.Services.Playlist do
     )
   end
 
-  defp compute_playlist(%DependencyState{data: %Data{} = data} = state) do
+  defp refresh_playlist(%DependencyState{data: %Data{} = data} = state) do
     update_value(
       state,
       %__MODULE__{
