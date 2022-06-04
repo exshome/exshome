@@ -39,4 +39,13 @@ defmodule ExshomePlayerTest.Services.PlaybackTest do
     Playback.seek(time_pos)
     assert %PlayerState{time_pos: ^time_pos} = Dependency.get_value(PlayerState)
   end
+
+  test "client can stop track" do
+    file_location = "test_file_#{unique_integer()}"
+    Playback.load_url(file_location)
+    assert %PlayerState{path: ^file_location, pause: false} = Dependency.get_value(PlayerState)
+    assert [file_location] == playlist()
+    Playback.stop()
+    assert [] == playlist()
+  end
 end

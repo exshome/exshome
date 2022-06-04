@@ -255,6 +255,12 @@ defmodule ExshomeTest.TestMpvServer do
     update_property(state, "time-pos", value)
   end
 
+  defp handle_command("stop", [], %State{} = state) do
+    for property <- state.observed_properties, reduce: %State{state | playlist: []} do
+      state -> update_property(state, property, nil)
+    end
+  end
+
   @spec update_property(state :: State.t(), property_name :: String.t(), value :: term()) ::
           State.t()
   defp update_property(%State{} = state, property_name, value) do

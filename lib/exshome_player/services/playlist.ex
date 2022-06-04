@@ -11,6 +11,13 @@ defmodule ExshomePlayer.Services.Playlist do
     events: [PlayerFileEnd, TrackEvent],
     name: "playlist"
 
+  defstruct [:current_id, tracks: []]
+
+  @type t() :: %__MODULE__{
+          current_id: String.t() | nil,
+          tracks: list(Track.t())
+        }
+
   defmodule Data do
     @moduledoc """
     Inner data format for playback.
@@ -31,12 +38,16 @@ defmodule ExshomePlayer.Services.Playlist do
 
   @impl GenServerDependency
   def on_init(%DependencyState{} = state),
-    do: update_playlist(state, fn _ -> %Data{next: Track.list()} end)
+    do: update_playlist(state, fn _ -> %Data{previous: Track.list()} end)
 
   @impl GenServerDependency
-  def handle_call({:play, id}, _from, %DependencyState{value: value} = state)
+  def handle_call(
+        {:play, id},
+        _from,
+        %DependencyState{value: %__MODULE__{tracks: tracks}} = state
+      )
       when is_binary(id) do
-    {previous, next} = Enum.split_while(value, &(&1.id != id))
+    {previous, next} = Enum.split_while(tracks, &(&1.id != id))
 
     state =
       state
@@ -59,7 +70,9 @@ defmodule ExshomePlayer.Services.Playlist do
   end
 
   def handle_event(%TrackEvent{action: :created, track: track}, %DependencyState{} = state) do
-    update_playlist(state, fn %Data{} = data -> %Data{data | next: data.next ++ [track]} end)
+    update_playlist(state, fn %Data{} = data ->
+      %Data{data | previous: data.previous ++ [track]}
+    end)
   end
 
   def handle_event(
@@ -67,7 +80,9 @@ defmodule ExshomePlayer.Services.Playlist do
         %DependencyState{data: %Data{next: [%Track{id: id} | next]}} = state
       ) do
     state
-    |> update_playlist(fn %Data{} = data -> %Data{data | next: next} end)
+    |> update_playlist(fn %Data{} = data ->
+      %Data{previous: data.previous ++ Enum.reverse(next), next: []}
+    end)
     |> load_track()
   end
 
@@ -91,15 +106,31 @@ defmodule ExshomePlayer.Services.Playlist do
   end
 
   @spec compute_playlist(DependencyState.t()) :: DependencyState.t()
+  defp compute_playlist(%DependencyState{data: %Data{next: [%Track{id: id} | _]} = data} = state) do
+    update_value(
+      state,
+      %__MODULE__{
+        current_id: id,
+        tracks: Enum.reverse(data.previous) ++ data.next
+      }
+    )
+  end
+
   defp compute_playlist(%DependencyState{data: %Data{} = data} = state) do
     update_value(
       state,
-      Enum.reverse(data.previous) ++ data.next
+      %__MODULE__{
+        current_id: nil,
+        tracks: Enum.reverse(data.previous) ++ data.next
+      }
     )
   end
 
   @spec load_track(DependencyState.t()) :: DependencyState.t()
-  defp load_track(%DependencyState{data: %Data{next: []}} = state), do: state
+  defp load_track(%DependencyState{data: %Data{next: []}} = state) do
+    Playback.stop()
+    state
+  end
 
   defp load_track(%DependencyState{data: %Data{next: [track | _]}} = state) do
     track

@@ -22,6 +22,11 @@ defmodule ExshomePlayer.Services.Playback do
     set_property("pause", true)
   end
 
+  @spec stop() :: MpvSocket.command_response()
+  def stop do
+    send_command(["stop"])
+  end
+
   @spec set_volume(level :: integer()) :: MpvSocket.command_response()
   def set_volume(level) when is_number(level) do
     set_property("volume", level)

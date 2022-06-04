@@ -12,7 +12,7 @@ defmodule ExshomePlayerTest.Services.PlaylistTest do
     end
 
     test "shows an empty tracklist" do
-      assert [] = Dependency.get_value(Playlist)
+      assert %Playlist{tracks: [], current_id: nil} = Dependency.get_value(Playlist)
     end
   end
 
@@ -23,9 +23,8 @@ defmodule ExshomePlayerTest.Services.PlaylistTest do
     end
 
     test "shows non-empty tracklist" do
-      assert Playlist
-             |> Dependency.get_value()
-             |> Enum.count() > 0
+      assert %Playlist{tracks: tracks} = Dependency.get_value(Playlist)
+      assert Enum.count(tracks) > 0
     end
   end
 
