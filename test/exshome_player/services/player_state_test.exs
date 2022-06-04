@@ -15,8 +15,9 @@ defmodule ExshomePlayerTest.Services.PlayerStateTest do
     end
 
     test "client sends event on track end" do
-      send_event(%{"event" => "end-file"})
-      assert_receive_event(PlayerFileEnd)
+      reason = "reason_#{unique_integer()}"
+      send_event(%{"event" => "end-file", "reason" => reason})
+      assert_receive_event(%PlayerFileEnd{reason: ^reason})
     end
 
     test "client can handle unexpected event" do

@@ -58,8 +58,11 @@ defmodule ExshomePlayer.Services.PlayerState do
     update_value(state, new_value)
   end
 
-  def handle_event(%MpvEvent{type: "end-file"}, %DependencyState{} = state) do
-    Event.broadcast(PlayerFileEnd)
+  def handle_event(
+        %MpvEvent{type: "end-file", data: %{"reason" => reason}},
+        %DependencyState{} = state
+      ) do
+    Event.broadcast(%PlayerFileEnd{reason: reason})
     state
   end
 

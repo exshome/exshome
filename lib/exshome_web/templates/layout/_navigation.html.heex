@@ -3,7 +3,7 @@
     <%= live_redirect(to: item.path) do %>
       <div class={
         ~s/
-          p-2 mx-1
+          p-2 m-1
           rounded-lg shadow-inner
           hover:bg-gray-200 hover:dark:bg-gray-600
           #{if item.selected, do: "bg-gray-300 dark:bg-gray-500", else: "bg-gray-50 dark:bg-gray-800"} /

@@ -5,5 +5,5 @@ defmodule ExshomeClock.Web.Live.Settings do
 
   use ExshomeWeb.Live.AppPage,
     dependencies: [{ExshomeClock.Settings.ClockSettings, :settings}],
-    icon: "⚙"
+    icon: "⚙️"
 end

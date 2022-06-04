@@ -1,10 +1,18 @@
-<ul>
+<ul class="mx-4 mb-2">
   <%= for track <- @deps.playlist.tracks do %>
     <li>
-      <button phx-click="play" phx-value-id={track.id}>
-        <%= if @deps.playlist.current_id == track.id, do: "🎧", else: "▶️" %>
-        <%= if String.trim(track.name) == "", do: "Unknown", else: track.name %>
-        <%= track.path %>
+      <button class="flex items-center my-4" phx-click="play" phx-value-id={track.id}>
+        <div class="text-4xl">
+          <%= if @deps.playlist.current_id == track.id, do: "🎧", else: "▶️" %>
+        </div>
+        <div class="inline-block pl-2 text-left">
+          <div class="text-xl">
+            <%= if String.trim(track.name) == "", do: "Unknown", else: track.name %>
+          </div>
+          <div class="text-xs">
+            <%= track.path %>
+          </div>
+        </div>
       </button>
     </li>
   <% end %>

@@ -1,4 +1,4 @@
-<main class="h-full flex flex-col">
+<main class="h-full flex flex-col justify-between">
   <%= render("_header.html", socket: @socket, live_action: @live_action) %>
 
   <%= if info_message = live_flash(@flash, :info) do %>

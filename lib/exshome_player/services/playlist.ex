@@ -63,11 +63,13 @@ defmodule ExshomePlayer.Services.Playlist do
   end
 
   @impl GenServerDependency
-  def handle_event(PlayerFileEnd, %DependencyState{} = state) do
+  def handle_event(%PlayerFileEnd{reason: "eof"}, %DependencyState{} = state) do
     state
     |> update_data(&load_next_track/1)
     |> load_track()
   end
+
+  def handle_event(%PlayerFileEnd{}, %DependencyState{} = state), do: state
 
   def handle_event(%TrackEvent{action: :created, track: track}, %DependencyState{} = state) do
     update_playlist(state, fn %Data{} = data ->

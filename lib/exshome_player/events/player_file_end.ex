@@ -4,4 +4,9 @@ defmodule ExshomePlayer.Events.PlayerFileEnd do
   """
 
   use Exshome.Event, name: "player_file_end"
+  defstruct [:reason]
+
+  @type t() :: %__MODULE__{
+          reason: String.t()
+        }
 end
