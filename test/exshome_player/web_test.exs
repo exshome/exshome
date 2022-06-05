@@ -2,7 +2,11 @@ defmodule ExshomePlayerTest.WebTest do
   use ExshomeWeb.ConnCase, async: true
 
   import ExshomeTest.Fixtures
-  alias ExshomePlayer.Services.{MpvSocket, Playback, PlayerState}
+  alias Exshome.Dependency
+  alias Exshome.Event
+  alias ExshomePlayer.Events.PlayerFileEnd
+  alias ExshomePlayer.Schemas.Track
+  alias ExshomePlayer.Services.{MpvSocket, Playback, PlayerState, Playlist}
   alias ExshomePlayer.Variables
   alias ExshomeTest.TestMpvServer
   alias ExshomeTest.TestRegistry
@@ -55,6 +59,57 @@ defmodule ExshomePlayerTest.WebTest do
   describe "player page preview" do
     test "renders without dependencies", %{conn: conn} do
       assert live_preview(conn, ExshomePlayer)
+    end
+  end
+
+  describe "playlist page without dependencies" do
+    test "renders fine", %{conn: conn} do
+      assert {:ok, _view, _html} = live(conn, ExshomePlayer.path(conn, :playlist))
+    end
+  end
+
+  describe "playlist page with dependencies" do
+    setup %{conn: conn} do
+      TestMpvServer.server_fixture()
+      TestRegistry.start_dependency(MpvSocket, %{})
+      TestMpvServer.generate_random_tracks(2..10)
+      view = live_with_dependencies(conn, ExshomePlayer, :playlist)
+      %Playlist{} = playlist = Dependency.get_value(Playlist)
+      %{view: view, playlist: playlist}
+    end
+
+    test "plays a track", %{view: view, playlist: %Playlist{tracks: tracks}} do
+      refute view |> element(".playing") |> has_element?()
+      track = List.first(tracks)
+      play_track(view, track)
+      assert view |> element(".playing") |> has_element?()
+    end
+
+    test "moves to another track", %{view: view, playlist: %Playlist{tracks: tracks}} do
+      first_track = List.first(tracks)
+      play_track(view, first_track)
+      assert view |> element("[phx-value-id=#{first_track.id}].playing") |> has_element?()
+
+      second_track = Enum.at(tracks, 1)
+      file_ended()
+      assert view |> element("[phx-value-id=#{second_track.id}].playing") |> has_element?()
+
+      last_track = List.last(tracks)
+      play_track(view, last_track)
+      assert view |> element("[phx-value-id=#{last_track.id}].playing") |> has_element?()
+      file_ended()
+      refute view |> element(".playing") |> has_element?()
+    end
+
+    defp play_track(view, %Track{id: id}) do
+      view |> element("button[phx-value-id=#{id}]") |> render_click()
+      assert view |> element(".playing") |> has_element?()
+      assert_receive_app_page_dependency({Playlist, %Playlist{current_id: ^id}})
+    end
+
+    defp file_ended do
+      Event.broadcast(%PlayerFileEnd{reason: "eof"})
+      assert_receive_app_page_dependency({Playlist, %Playlist{}})
     end
   end
 

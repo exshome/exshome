@@ -4,7 +4,11 @@
                rounded-xl flex items-center
                p-2 m-2 w-full sm:w-3/4 md:w-1/2
                ">
-      <button phx-click="play" phx-value-id={track.id} class="text-4xl">
+      <button
+        phx-click="play"
+        phx-value-id={track.id}
+        class={"text-4xl #{if @deps.playlist.current_id == track.id, do: 'playing'}"}
+      >
         <%= if @deps.playlist.current_id == track.id, do: "🎧", else: "▶️" %>
       </button>
       <div class="inline-block pl-4 text-left overflow-x-auto">

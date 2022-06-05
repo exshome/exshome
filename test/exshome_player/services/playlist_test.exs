@@ -2,9 +2,8 @@ defmodule ExshomePlayerTest.Services.PlaylistTest do
   use Exshome.DataCase, async: true
 
   alias Exshome.Dependency
-  alias ExshomePlayer.Schemas.Track
-  alias ExshomePlayer.Services.{MpvServer, Playlist}
-  import ExshomeTest.Fixtures
+  alias ExshomePlayer.Services.Playlist
+  import ExshomeTest.TestMpvServer
 
   describe "empty tracklist/0" do
     setup do
@@ -26,21 +25,5 @@ defmodule ExshomePlayerTest.Services.PlaylistTest do
       assert %Playlist{tracks: tracks} = Dependency.get_value(Playlist)
       assert Enum.count(tracks) > 0
     end
-  end
-
-  @spec generate_random_tracks() :: list(String.t())
-  defp generate_random_tracks do
-    amount = Enum.random(1..10)
-
-    for _ <- 1..amount do
-      file_name = "track_#{unique_integer()}.mp3"
-
-      :ok =
-        MpvServer.music_folder()
-        |> Path.join(file_name)
-        |> File.touch!()
-    end
-
-    Track.refresh_tracklist()
   end
 end

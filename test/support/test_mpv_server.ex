@@ -8,6 +8,7 @@ defmodule ExshomeTest.TestMpvServer do
   import ExUnit.Assertions
   alias ExshomeTest.Fixtures
   import ExshomeTest.TestHelpers, only: [assert_receive_dependency: 1]
+  alias ExshomePlayer.Schemas.Track
   alias ExshomePlayer.Services.{MpvServer, MpvSocket}
 
   defmodule State do
@@ -44,6 +45,22 @@ defmodule ExshomeTest.TestMpvServer do
   end
 
   @type response_fn() :: (request_id :: String.t(), data :: map() -> map())
+
+  @spec generate_random_tracks(Range.t()) :: :ok
+  def generate_random_tracks(amount \\ 1..10) do
+    amount = Enum.random(amount)
+
+    for _ <- 1..amount do
+      file_name = "track_#{Fixtures.unique_integer()}.mp3"
+
+      :ok =
+        MpvServer.music_folder()
+        |> Path.join(file_name)
+        |> File.touch!()
+    end
+
+    Track.refresh_tracklist()
+  end
 
   @spec received_messages() :: [map()]
   def received_messages do
