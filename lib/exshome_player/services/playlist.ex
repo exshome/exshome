@@ -45,8 +45,10 @@ defmodule ExshomePlayer.Services.Playlist do
   def previous, do: call(:previous)
 
   @impl GenServerDependency
-  def on_init(%DependencyState{} = state),
-    do: update_playlist(state, fn _ -> %Data{previous: Track.list()} end)
+  def on_init(%DependencyState{} = state) do
+    Track.refresh_tracklist()
+    update_playlist(state, fn _ -> %Data{previous: Track.list()} end)
+  end
 
   @impl GenServerDependency
   def handle_dependency_change(
