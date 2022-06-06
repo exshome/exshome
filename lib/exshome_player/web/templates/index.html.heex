@@ -3,16 +3,19 @@
     <marquee class="m-2 text-4xl font-bold">
       <%= @deps.title %>
     </marquee>
-    <% play = if @deps.pause, do: "play", else: "pause" %>
-    <button
-      phx-click={play}
-      type="button"
-      class="m-4 min-h-[5em] min-w-[5em] rounded-lg bg-gray-300 hover:bg-gray-400 dark:bg-gray-800 dark:hover:bg-gray-700 shadow-md dark:shadow-gray-600 relative border-2 border-blue-300 text-orange-600"
-    >
-      <div class={"icon mt-[-35%] #{play}"}>
-        <i />
-      </div>
-    </button>
+    <div>
+      <%= for button <- ["previous_track", (if @deps.pause, do: "play", else: "pause"), "next_track"] do %>
+        <button
+          phx-click={button}
+          type="button"
+          class="m-4 min-h-[5em] min-w-[5em] rounded-lg bg-gray-300 hover:bg-gray-400 dark:bg-gray-800 dark:hover:bg-gray-700 shadow-md dark:shadow-gray-600 relative border-2 border-blue-300 text-orange-600"
+        >
+          <div class={"icon mt-[-35%] #{button}"}>
+            <i />
+          </div>
+        </button>
+      <% end %>
+    </div>
     <input
       class="w-full rounded-full mt-2 bg-blue-300 text-blue-600 text-lg h-[0.7em] shadow-xl dark:shadow-gray-600"
       name="position"

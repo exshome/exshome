@@ -36,6 +36,12 @@ defmodule ExshomePlayer.Services.Playlist do
     call({:play, id})
   end
 
+  @spec next() :: :ok
+  def next, do: call(:next)
+
+  @spec previous() :: :ok
+  def previous, do: call(:previous)
+
   @impl GenServerDependency
   def on_init(%DependencyState{} = state),
     do: update_playlist(state, fn _ -> %Data{previous: Track.list()} end)
@@ -62,10 +68,28 @@ defmodule ExshomePlayer.Services.Playlist do
     {:reply, :ok, state}
   end
 
+  def handle_call(:next, _from, %DependencyState{} = state) do
+    state =
+      state
+      |> update_playlist(&move_to_next_track/1)
+      |> load_track()
+
+    {:reply, :ok, state}
+  end
+
+  def handle_call(:previous, _from, %DependencyState{} = state) do
+    state =
+      state
+      |> update_playlist(&move_to_previous_track/1)
+      |> load_track()
+
+    {:reply, :ok, state}
+  end
+
   @impl GenServerDependency
   def handle_event(%PlayerFileEnd{reason: "eof"}, %DependencyState{} = state) do
     state
-    |> update_playlist(&load_next_track/1)
+    |> update_playlist(&move_to_next_track/1)
     |> load_track()
   end
 
@@ -142,10 +166,17 @@ defmodule ExshomePlayer.Services.Playlist do
     state
   end
 
-  @spec load_next_track(Data.t()) :: Data.t()
-  defp load_next_track(%Data{next: []} = data), do: data
+  @spec move_to_next_track(Data.t()) :: Data.t()
+  defp move_to_next_track(%Data{next: []} = data), do: data
 
-  defp load_next_track(%Data{previous: previous, next: [current | next]}) do
+  defp move_to_next_track(%Data{previous: previous, next: [current | next]}) do
     %Data{previous: [current | previous], next: next}
+  end
+
+  @spec move_to_previous_track(Data.t()) :: Data.t()
+  defp move_to_previous_track(%Data{previous: []} = data), do: data
+
+  defp move_to_previous_track(%Data{previous: [current | previous], next: next}) do
+    %Data{previous: previous, next: [current | next]}
   end
 end

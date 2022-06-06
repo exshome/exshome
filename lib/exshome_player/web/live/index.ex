@@ -2,7 +2,7 @@ defmodule ExshomePlayer.Web.Live.Index do
   @moduledoc """
   Main player page.
   """
-  alias ExshomePlayer.Services.Playback
+  alias ExshomePlayer.Services.{Playback, Playlist}
   alias ExshomePlayer.Variables
   alias Phoenix.LiveView
   alias Phoenix.LiveView.Socket
@@ -45,6 +45,20 @@ defmodule ExshomePlayer.Web.Live.Index do
   @impl LiveView
   def handle_event("pause", _, %Socket{} = socket) do
     Playback.pause()
+
+    {:noreply, socket}
+  end
+
+  @impl LiveView
+  def handle_event("previous_track", _, %Socket{} = socket) do
+    Playlist.previous()
+
+    {:noreply, socket}
+  end
+
+  @impl LiveView
+  def handle_event("next_track", _, %Socket{} = socket) do
+    Playlist.next()
 
     {:noreply, socket}
   end
