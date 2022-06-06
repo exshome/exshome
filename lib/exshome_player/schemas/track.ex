@@ -14,7 +14,7 @@ defmodule ExshomePlayer.Schemas.Track do
   @types [:file, :url]
 
   schema "player_tracks" do
-    field(:name, :string, default: "")
+    field(:title, :string, default: "")
     field(:type, Ecto.Enum, values: @types, default: :file)
     field(:path, :string)
 
@@ -22,7 +22,7 @@ defmodule ExshomePlayer.Schemas.Track do
   end
 
   @type t() :: %__MODULE__{
-          name: String.t() | nil,
+          title: String.t() | nil,
           type: String.t() | :file,
           path: String.t()
         }
@@ -30,7 +30,7 @@ defmodule ExshomePlayer.Schemas.Track do
   @spec changeset(t(), map()) :: Ecto.Changeset.t()
   def changeset(struct, params \\ %{}) do
     struct
-    |> cast(params, [:name, :type, :path])
+    |> cast(params, [:title, :type, :path])
     |> validate_required([:type, :path])
     |> validate_inclusion(:type, @types)
   end
@@ -53,11 +53,22 @@ defmodule ExshomePlayer.Schemas.Track do
   def create!(%__MODULE__{} = data) do
     result =
       data
-      |> __MODULE__.changeset()
+      |> changeset()
       |> Repo.insert!()
 
     Event.broadcast(%TrackEvent{action: :created, track: result})
 
+    result
+  end
+
+  @spec update!(t(), map()) :: t()
+  def update!(%__MODULE__{} = track, %{} = data) do
+    result =
+      track
+      |> changeset(data)
+      |> Repo.update!()
+
+    Event.broadcast(%TrackEvent{action: :updated, track: result})
     result
   end
 

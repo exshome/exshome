@@ -3,7 +3,7 @@ defmodule Exshome.Repo.Migrations.CreatePlayerTracks do
 
   def change do
     create table(:player_tracks) do
-      add :name, :string, null: false, default: ""
+      add :title, :string, null: false, default: ""
       add :type, :string, null: false, default: "file"
       add :path, :string, null: false
 

@@ -14,7 +14,7 @@
       </button>
       <div class="inline-block pl-4 text-left overflow-x-auto">
         <div class="text-xl">
-          <%= if String.trim(track.name) == "", do: "Unknown", else: track.name %>
+          <%= if String.trim(track.title) == "", do: "Unknown", else: track.title %>
         </div>
         <div class="text-xs">
           <%= track.path %>

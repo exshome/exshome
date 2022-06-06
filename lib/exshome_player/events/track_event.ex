@@ -10,6 +10,6 @@ defmodule ExshomePlayer.Events.TrackEvent do
 
   @type t() :: %__MODULE__{
           track: Track.t(),
-          action: :created | :deleted
+          action: :created | :deleted | :updated
         }
 end

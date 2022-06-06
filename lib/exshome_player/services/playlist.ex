@@ -6,8 +6,10 @@ defmodule ExshomePlayer.Services.Playlist do
   alias ExshomePlayer.Events.{PlayerFileEnd, TrackEvent}
   alias ExshomePlayer.Schemas.Track
   alias ExshomePlayer.Services.Playback
+  alias ExshomePlayer.Variables.Title
 
   use Exshome.Dependency.GenServerDependency,
+    dependencies: [{Title, :title}],
     events: [PlayerFileEnd, TrackEvent],
     name: "playlist"
 
@@ -45,6 +47,20 @@ defmodule ExshomePlayer.Services.Playlist do
   @impl GenServerDependency
   def on_init(%DependencyState{} = state),
     do: update_playlist(state, fn _ -> %Data{previous: Track.list()} end)
+
+  @impl GenServerDependency
+  def handle_dependency_change(
+        %DependencyState{
+          data: %Data{next: [%Track{type: :file} = track | _]},
+          deps: %{title: title}
+        } = state
+      )
+      when title != "" do
+    Track.update!(track, %{title: title})
+    state
+  end
+
+  def handle_dependency_change(%DependencyState{} = state), do: state
 
   @impl GenServerDependency
   def handle_call(
@@ -122,6 +138,29 @@ defmodule ExshomePlayer.Services.Playlist do
         next: Enum.reject(data.next, &(&1.id == id))
       }
     end)
+  end
+
+  def handle_event(
+        %TrackEvent{action: :updated, track: %Track{} = track},
+        %DependencyState{} = state
+      ) do
+    update_fn = fn %Track{} = current ->
+      if current.id == track.id do
+        track
+      else
+        current
+      end
+    end
+
+    update_playlist(
+      state,
+      fn %Data{} = data ->
+        %Data{
+          previous: Enum.map(data.previous, update_fn),
+          next: Enum.map(data.next, update_fn)
+        }
+      end
+    )
   end
 
   @spec update_playlist(DependencyState.t(), (Data.t() -> Data.t())) :: DependencyState.t()
