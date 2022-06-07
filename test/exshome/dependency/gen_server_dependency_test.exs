@@ -52,6 +52,7 @@ defmodule ExshomeTest.Dependency.GenServerDependencyTest do
         |> Enum.reduce(MapSet.new(), &MapSet.union/2)
 
       assert MapSet.equal?(all_modules, modules)
+      Supervisor.stop(pid)
     end
 
     test "start_link/1 starts only selected apps" do
@@ -72,6 +73,7 @@ defmodule ExshomeTest.Dependency.GenServerDependencyTest do
       app_modules = GenServerDependency.modules(app)
 
       assert MapSet.equal?(app_modules, modules)
+      Supervisor.stop(pid)
     end
   end
 end
