@@ -54,6 +54,25 @@ defmodule ExshomePlayerTest.WebTest do
       assert view |> element("[phx-click=pause]") |> render_click()
       assert_receive_app_page_dependency({Variables.Pause, true})
     end
+
+    test "navigates through playlist", %{view: view} do
+      TestRegistry.start_dependency(Playlist)
+      TestMpvServer.generate_random_tracks(2..10)
+
+      %Playlist{
+        tracks: [
+          %Track{id: first_id},
+          %Track{id: second_id} | _
+        ]
+      } = Dependency.get_value(Playlist)
+
+      Playlist.play(first_id)
+      assert %Playlist{current_id: ^first_id} = Dependency.get_value(Playlist)
+      assert view |> element("[phx-click=next_track]") |> render_click()
+      assert %Playlist{current_id: ^second_id} = Dependency.get_value(Playlist)
+      assert view |> element("[phx-click=previous_track]") |> render_click()
+      assert %Playlist{current_id: ^first_id} = Dependency.get_value(Playlist)
+    end
   end
 
   describe "player page preview" do
