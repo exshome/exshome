@@ -32,7 +32,7 @@ defmodule ExshomePlayerTest.Services.PlaylistTest do
     end
   end
 
-  describe "playlist navigation" do
+  describe "playlist actions" do
     setup do
       server_fixture()
       generate_random_tracks(2..10)
@@ -96,6 +96,8 @@ defmodule ExshomePlayerTest.Services.PlaylistTest do
       Dependency.broadcast_value(Title, new_title)
 
       assert_receive_event(%TrackEvent{action: :updated, track: %Track{id: ^id}})
+
+      assert %Track{id: ^id, title: ^new_title} = Track.get!(id)
 
       assert %Playlist{tracks: [%Track{id: ^id, title: ^new_title} | _]} =
                Dependency.get_value(Playlist)
