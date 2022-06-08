@@ -54,9 +54,12 @@ defmodule ExshomeWeb do
         container: {:div, [class: "h-full"]},
         layout: {ExshomeWeb.LayoutView, "live.html"}
 
-      for module <- Application.compile_env(:exshome, :live_view_hooks, []) do
+      for module <-
+            Application.compile_env(:exshome, :live_view_hooks, []) ++ [ExshomeWeb.Live.Modal] do
         on_mount module
       end
+
+      import ExshomeWeb.Live.Modal, only: [open_modal: 3, open_modal: 2, close_modal: 0]
 
       unquote(view_helpers())
     end

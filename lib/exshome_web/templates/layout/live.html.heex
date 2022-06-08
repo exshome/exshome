@@ -1,3 +1,20 @@
+<%= if @modal do %>
+  <section id="modal" class="fixed z-50 inset-0 bg-black/40 dark:bg-gray-600/80 md:p-[20vmin]">
+    <div
+      id="modal-content"
+      class="relative h-full w-full md:rounded-xl bg-white dark:bg-gray-900 shadow-lg shadow-gray-700 dark:shadow-gray-400 p-4 overflow-hidden"
+      phx-click-away="modal:close"
+      phx-window-keydown="modal:close"
+      phx-key="escape"
+    >
+      <div id="modal-header" class="overflow-hidden">
+        <span class="cursor-pointer float-right" phx-click="modal:close">❌</span>
+      </div>
+      <.live_component module={@modal.module} id="modal-body" {@modal.assigns} />
+    </div>
+  </section>
+<% end %>
+
 <main class="h-full flex flex-col justify-between">
   <%= render("_header.html", socket: @socket, live_action: @live_action) %>
 

@@ -2,7 +2,7 @@
   <%= for app_module <- Exshome.App.apps() do %>
     <%= live_redirect to: app_module.path(@socket, List.first(app_module.pages()).action()) do %>
       <div class="
-          w-[40vw] h-[40vw] md:w-[25vw] md:h-[25vw] lg:w-[15vw] lg:h-[15vw]
+          w-[40vmin] h-[40vmin] md:w-[25vmin] md:h-[25vmin] lg:w-[20vmin] lg:h-[20vmin]
           p-2 m-2 relative
           border-2 border-gray-500 rounded-md overflow-hidden
           hover:bg-gray-200 dark:hover:bg-gray-800
