@@ -3,8 +3,6 @@ defmodule ExshomePlayer.Web.Live.Playlist do
   Playlist page.
   """
   alias ExshomePlayer.Services.Playlist
-  alias Phoenix.LiveView
-  alias Phoenix.LiveView.Socket
 
   use ExshomeWeb.Live.AppPage,
     icon: "📃",

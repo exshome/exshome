@@ -1,3 +1,32 @@
-<div>
-  modal content
-</div>
+<form phx-drop-target={@uploads.music.ref} phx-submit="save" phx-change="validate">
+  <%= live_file_input(@uploads.music) %>
+  <%= for entry <- @uploads.music.entries do %>
+    <article>
+      <figure>
+        <%= live_img_preview(entry) %>
+        <figcaption><%= entry.client_name %></figcaption>
+      </figure>
+
+      <progress value={entry.progress} max="100"><%= entry.progress %>%</progress>
+
+      <button
+        phx-click="cancel-upload"
+        phx-value-ref={entry.ref}
+        type="button"
+        aria-label="cancel"
+      >
+        &times;
+      </button>
+
+      <%= for err <- upload_errors(@uploads.music, entry) do %>
+        <p class="alert alert-danger"><%= error_to_string(err) %></p>
+      <% end %>
+    </article>
+  <% end %>
+
+  <%= for err <- upload_errors(@uploads.music) do %>
+    <p class="alert alert-danger"><%= error_to_string(err) %></p>
+  <% end %>
+
+  <button type="submit">Upload</button>
+</form>

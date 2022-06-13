@@ -96,6 +96,8 @@ defmodule ExshomeWeb.Live.AppPage do
                   |> Module.safe_concat()
 
       alias ExshomeWeb.Live.AppPage
+      alias Phoenix.LiveView
+      alias Phoenix.LiveView.Socket
 
       @afer_compile {AppPage, :validate_module!}
       @behaviour AppPage
@@ -123,7 +125,7 @@ defmodule ExshomeWeb.Live.AppPage do
 
       def __config__, do: unquote(config)
 
-      @impl Phoenix.LiveView
+      @impl LiveView
       defdelegate render(assigns), to: AppPage
     end
   end
