@@ -23,8 +23,7 @@ defmodule ExshomeWeb.Live.Modal do
   end
 
   def handle_event("modal:close", _params, %Socket{} = socket) do
-    close_modal()
-    {:halt, socket}
+    {:halt, close_modal(socket)}
   end
 
   def handle_event(_, _params, %Socket{} = socket), do: {:cont, socket}
@@ -40,30 +39,16 @@ defmodule ExshomeWeb.Live.Modal do
     LiveView.assign(socket, :modal, %__MODULE__{module: module, assigns: assigns})
   end
 
-  def close_modal do
-    send(self(), :close_modal)
+  @spec close_modal(Socket.t()) :: Socket.t()
+  def close_modal(%Socket{} = socket) do
+    socket
+    |> modal_view_pid()
+    |> send(:close_modal)
+
+    socket
   end
 
-  defmacro __using__(_) do
-    quote do
-      @view_module __MODULE__
-                   |> Module.split()
-                   |> Enum.slice(0..0)
-                   |> List.insert_at(-1, ["Web", "View"])
-                   |> List.flatten()
-                   |> Module.safe_concat()
-
-      @modal_template __ENV__.file
-                      |> Path.basename(".ex")
-                      |> then(&"#{&1}.html")
-
-      alias ExshomeWeb.Live.Modal
-      import Modal, only: [close_modal: 0]
-
-      use ExshomeWeb, :live_component
-
-      @impl Phoenix.LiveComponent
-      def render(assigns), do: @view_module.render(@modal_template, assigns)
-    end
-  end
+  @spec modal_view_pid(Socket.t()) :: pid()
+  defp modal_view_pid(%Socket{parent_pid: nil}), do: self()
+  defp modal_view_pid(%Socket{parent_pid: pid}) when is_pid(pid), do: pid
 end
