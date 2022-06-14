@@ -121,7 +121,7 @@ defmodule ExshomePlayerTest.WebTest do
     end
 
     defp play_track(view, %Track{id: id}) do
-      view |> element("button[phx-value-id=#{id}]") |> render_click()
+      view |> element("button[phx-value-id=#{id}][phx-click=play]") |> render_click()
       assert view |> element(".playing") |> has_element?()
       assert_receive_app_page_dependency({Playlist, %Playlist{current_id: ^id}})
     end

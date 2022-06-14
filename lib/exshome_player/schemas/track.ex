@@ -76,6 +76,7 @@ defmodule ExshomePlayer.Schemas.Track do
   def delete!(%__MODULE__{} = track) do
     Repo.delete!(track)
     Event.broadcast(%TrackEvent{track: track, action: :deleted})
+    on_delete(track)
   end
 
   @spec refresh_tracklist() :: :ok
@@ -105,4 +106,13 @@ defmodule ExshomePlayer.Schemas.Track do
   def url(%__MODULE__{type: :file, path: path}) do
     Path.join(MpvServer.music_folder(), path)
   end
+
+  @spec on_delete(t()) :: :ok
+  defp on_delete(%__MODULE__{type: :file} = track) do
+    track
+    |> url()
+    |> File.rm!()
+  end
+
+  defp on_delete(%__MODULE__{}), do: :ok
 end

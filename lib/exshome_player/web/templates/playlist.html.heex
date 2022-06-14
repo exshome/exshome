@@ -1,26 +1,42 @@
-<button phx-click="open_file_modal">upload file</button>
-<ul class="mx-2 flex flex-col items-center justify-center min-h-full">
-  <%= for track <- @deps.playlist.tracks do %>
-    <li class="bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700
+<section class="max-h-full flex flex-col">
+  <section class="flex items-center justify-center flex-col">
+    <button
+      class="p-2 m-2 rounded-xl
+             bg-gray-200 dark:bg-gray-600 hover:bg-gray-300 dark:hover:bg-gray-500
+             shadow-md shadow-gray-600 dark:shadow-gray-700"
+      phx-click="open_file_modal"
+    >
+      upload file
+    </button>
+  </section>
+  <section class="flex-grow h-full overflow-auto">
+    <ul class="mx-2 flex flex-col items-center justify-center">
+      <%= for track <- @deps.playlist.tracks do %>
+        <li class="bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700
                shadow-md shadow-gray-600 dark:shadow-gray-700
-               rounded-xl flex items-center
+               rounded-xl flex items-center justify-between
                p-2 m-2 w-full sm:w-3/4 md:w-1/2
                ">
-      <button
-        phx-click="play"
-        phx-value-id={track.id}
-        class={"text-4xl #{if @deps.playlist.current_id == track.id, do: 'playing'}"}
-      >
-        <%= if @deps.playlist.current_id == track.id, do: "🎧", else: "▶️" %>
-      </button>
-      <div class="inline-block pl-4 text-left overflow-x-auto">
-        <div class="text-xl">
-          <%= if String.trim(track.title) == "", do: "Unknown", else: track.title %>
-        </div>
-        <div class="text-xs">
-          <%= track.path %>
-        </div>
-      </div>
-    </li>
-  <% end %>
-</ul>
+          <button
+            phx-click="play"
+            phx-value-id={track.id}
+            class={"text-4xl #{if @deps.playlist.current_id == track.id, do: 'playing'}"}
+          >
+            <%= if @deps.playlist.current_id == track.id, do: "🎧", else: "▶️" %>
+          </button>
+          <div class="inline-block flex-grow pl-4 text-left overflow-x-auto">
+            <div class="text-xl">
+              <%= if String.trim(track.title) == "", do: "Unknown", else: track.title %>
+            </div>
+            <div class="text-xs">
+              <%= track.path %>
+            </div>
+          </div>
+          <button phx-click="delete" phx-value-id={track.id} class="text-4xl">
+            🗑️
+          </button>
+        </li>
+      <% end %>
+    </ul>
+  </section>
+</section>
