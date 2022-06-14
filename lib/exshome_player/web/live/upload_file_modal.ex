@@ -49,7 +49,7 @@ defmodule ExshomePlayer.Web.Live.UploadFileModal do
     file_name = "#{name}#{extension}"
 
     if file_name in File.ls!(music_folder) do
-      sanitize_file_name(music_folder, "#{name}_#{Ecto.UUID.generate()}#{extension}")
+      sanitize_file_name(music_folder, "#{name}_1#{extension}")
     else
       file_name
     end
