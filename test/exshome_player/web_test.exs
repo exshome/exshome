@@ -56,8 +56,8 @@ defmodule ExshomePlayerTest.WebTest do
     end
 
     test "navigates through playlist", %{view: view} do
-      TestRegistry.start_dependency(Playlist)
       TestMpvServer.generate_random_tracks(2..10)
+      TestRegistry.start_dependency(Playlist)
 
       %Playlist{
         tracks: [

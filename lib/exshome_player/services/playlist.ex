@@ -114,9 +114,13 @@ defmodule ExshomePlayer.Services.Playlist do
   def handle_event(%PlayerFileEnd{}, %DependencyState{} = state), do: state
 
   def handle_event(%TrackEvent{action: :created, track: track}, %DependencyState{} = state) do
-    update_playlist(state, fn %Data{} = data ->
-      %Data{data | previous: data.previous ++ [track]}
-    end)
+    if Enum.any?(state.value.tracks, &(&1.id == track.id)) do
+      state
+    else
+      update_playlist(state, fn %Data{} = data ->
+        %Data{data | previous: data.previous ++ [track]}
+      end)
+    end
   end
 
   def handle_event(

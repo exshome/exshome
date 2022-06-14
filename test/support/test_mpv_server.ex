@@ -8,7 +8,6 @@ defmodule ExshomeTest.TestMpvServer do
   import ExUnit.Assertions
   alias ExshomeTest.Fixtures
   import ExshomeTest.TestHelpers, only: [assert_receive_dependency: 1]
-  alias ExshomePlayer.Schemas.Track
   alias ExshomePlayer.Services.{MpvServer, MpvSocket}
 
   defmodule State do
@@ -59,7 +58,7 @@ defmodule ExshomeTest.TestMpvServer do
         |> File.touch!()
     end
 
-    Track.refresh_tracklist()
+    :ok
   end
 
   @spec received_messages() :: [map()]
