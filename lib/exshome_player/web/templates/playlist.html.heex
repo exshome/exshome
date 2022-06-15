@@ -1,4 +1,4 @@
-<section class="max-h-full flex flex-col">
+<section class="max-h-full h-full flex flex-col">
   <section class="flex items-center justify-center flex-col">
     <button
       class="p-2 m-2 rounded-xl
@@ -10,7 +10,7 @@
     </button>
   </section>
   <section class="flex-grow h-full overflow-auto">
-    <ul class="mx-2 flex flex-col items-center justify-center">
+    <ul class="mx-2 min-h-full flex flex-col items-center justify-center">
       <%= for track <- @deps.playlist.tracks do %>
         <li class="bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700
                shadow-md shadow-gray-600 dark:shadow-gray-700
