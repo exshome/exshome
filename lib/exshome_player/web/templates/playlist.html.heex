@@ -32,7 +32,12 @@
               <%= track.path %>
             </div>
           </div>
-          <button phx-click="delete" phx-value-id={track.id} class="text-4xl">
+          <button
+            phx-click="delete"
+            phx-value-id={track.id}
+            data-confirm="Do you really want to delete this track?"
+            class="text-4xl"
+          >
             🗑️
           </button>
         </li>
