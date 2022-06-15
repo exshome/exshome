@@ -48,6 +48,14 @@ defmodule ExshomePlayerTest.Web.PlaylistTest do
       refute view |> element(".playing") |> has_element?()
     end
 
+    test "deletes a track", %{view: view, playlist: %Playlist{tracks: tracks}} do
+      track = Enum.random(tracks)
+      assert track |> Track.url() |> File.exists?()
+      assert view |> element("[phx-value-id=#{track.id}][phx-click=delete]") |> render_click()
+      refute track |> Track.url() |> File.exists?()
+      refute render(view) =~ track.id
+    end
+
     defp play_track(view, %Track{id: id}) do
       view |> element("button[phx-value-id=#{id}][phx-click=play]") |> render_click()
       assert view |> element(".playing") |> has_element?()
