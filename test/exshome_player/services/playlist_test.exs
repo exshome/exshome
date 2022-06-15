@@ -80,6 +80,13 @@ defmodule ExshomePlayerTest.Services.PlaylistTest do
       assert %Playlist{current_id: nil} = Dependency.get_value(Playlist)
     end
 
+    test "playlist adds a track on new one", %{tracks: tracks} do
+      generate_random_tracks(1..1)
+      Track.refresh_tracklist()
+      %Playlist{tracks: new_tracks} = Dependency.get_value(Playlist)
+      assert length(new_tracks) == length(tracks) + 1
+    end
+
     test "playlist continues on deleting other track", %{
       tracks: [%Track{id: id}, second_track | _] = tracks
     } do

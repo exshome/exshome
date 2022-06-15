@@ -1,4 +1,9 @@
-<form phx-drop-target={@uploads.music.ref} phx-submit="save" phx-change="validate">
+<form
+  id="upload_files"
+  phx-drop-target={@uploads.music.ref}
+  phx-submit="save"
+  phx-change="validate"
+>
   <%= live_file_input(@uploads.music) %>
   <%= for entry <- @uploads.music.entries do %>
     <article>

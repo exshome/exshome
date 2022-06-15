@@ -10,7 +10,7 @@
     phx-key="escape"
   >
     <div id="modal-header" class="overflow-hidden">
-      <span class="cursor-pointer float-right" phx-click="modal:close">❌</span>
+      <button class="cursor-pointer float-right" phx-click="modal:close">❌</button>
     </div>
     <%= if @modal do %>
       <%= live_render(@socket, @modal.module,
