@@ -42,6 +42,14 @@ defmodule ExshomeTest.LiveViewHelpers do
     live_preview(conn, app_module)
   end
 
+  @doc """
+  Extracts value from input element by selector.
+  """
+  def get_value(view, selector) do
+    [value] = view |> render() |> Floki.attribute(selector, "value")
+    value
+  end
+
   @spec start_dependencies(module(), atom()) :: :ok
   def start_dependencies(app_module, action)
       when is_atom(app_module) and is_atom(action) do
