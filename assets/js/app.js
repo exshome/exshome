@@ -49,7 +49,13 @@ window.addEventListener("phx:page-loading-stop", (info) => {
   clearInterval(topBarScheduled);
   topBarScheduled = undefined;
   topbar.hide();
-})
+});
+
+// Listening to the js events
+window.addEventListener("phx:js-event", ({detail: {data}}) => {
+  liveSocket.execJS(document.documentElement, data);
+});
+
 
 // connect if there are any LiveViews on the page
 liveSocket.connect();

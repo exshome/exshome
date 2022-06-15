@@ -59,7 +59,8 @@ defmodule ExshomeWeb do
         on_mount module
       end
 
-      import ExshomeWeb.Live.Modal, only: [open_modal: 3, open_modal: 2, close_modal: 1]
+      import ExshomeWeb.Live.Modal,
+        only: [open_modal: 3, open_modal: 2, close_modal: 1, send_js: 2]
 
       unquote(view_helpers())
     end

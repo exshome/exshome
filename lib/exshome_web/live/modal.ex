@@ -3,6 +3,7 @@ defmodule ExshomeWeb.Live.Modal do
   Adds modal support for every live page.
   """
   alias Phoenix.LiveView
+  alias Phoenix.LiveView.JS
   alias Phoenix.LiveView.Socket
 
   defstruct [:module, :assigns]
@@ -11,6 +12,8 @@ defmodule ExshomeWeb.Live.Modal do
           module: module(),
           assigns: Keyword.t()
         }
+
+  @type js_t() :: %JS{ops: list()}
 
   def on_mount(:default, _params, _session, %Socket{} = socket) do
     socket =
@@ -36,7 +39,9 @@ defmodule ExshomeWeb.Live.Modal do
 
   @spec open_modal(Socket.t(), module(), Keyword.t()) :: Socket.t()
   def open_modal(%Socket{} = socket, module, assigns \\ []) when is_atom(module) do
-    LiveView.assign(socket, :modal, %__MODULE__{module: module, assigns: assigns})
+    socket
+    |> LiveView.assign(:modal, %__MODULE__{module: module, assigns: assigns})
+    |> send_js(opening_transition())
   end
 
   @spec close_modal(Socket.t()) :: Socket.t()
@@ -45,10 +50,27 @@ defmodule ExshomeWeb.Live.Modal do
     |> modal_view_pid()
     |> send(:close_modal)
 
-    socket
+    send_js(socket, closing_transition())
+  end
+
+  @spec send_js(Socket.t(), js_t()) :: Socket.t()
+  def send_js(%Socket{} = socket, %JS{ops: ops}) do
+    LiveView.push_event(socket, "js-event", %{data: Jason.encode!(ops)})
   end
 
   @spec modal_view_pid(Socket.t()) :: pid()
   defp modal_view_pid(%Socket{parent_pid: nil}), do: self()
   defp modal_view_pid(%Socket{parent_pid: pid}) when is_pid(pid), do: pid
+
+  defp opening_transition do
+    %JS{}
+    |> JS.show(to: "#modal", transition: "fade-in")
+    |> JS.show(to: "#modal-content", transition: "fade-in-scale")
+  end
+
+  defp closing_transition do
+    %JS{}
+    |> JS.hide(to: "#modal", transition: "fade-out")
+    |> JS.show(to: "#modal-content", transition: "fade-out-scale")
+  end
 end
