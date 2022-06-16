@@ -112,6 +112,7 @@ defmodule ExshomeWeb do
 
       import ExshomeWeb.ErrorHelpers
       import ExshomeWeb.Gettext
+      import ExshomeWeb.Components
       alias ExshomeWeb.Router.Helpers, as: Routes
     end
   end

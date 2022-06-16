@@ -1,37 +1,59 @@
 <form
   id="upload_files"
-  phx-drop-target={@uploads.music.ref}
   phx-submit="save"
   phx-change="validate"
+  class="h-full p-2 flex flex-col justify-between"
 >
-  <%= live_file_input(@uploads.music) %>
-  <%= for entry <- @uploads.music.entries do %>
-    <article>
-      <figure>
-        <%= live_img_preview(entry) %>
-        <figcaption><%= entry.client_name %></figcaption>
-      </figure>
-
-      <progress value={entry.progress} max="100"><%= entry.progress %>%</progress>
-
-      <button
-        phx-click="cancel-upload"
-        phx-value-ref={entry.ref}
-        type="button"
-        aria-label="cancel"
-      >
-        &times;
-      </button>
-
-      <%= for err <- upload_errors(@uploads.music, entry) do %>
+  <section class="flex flex-col items-center">
+    <label
+      for={@uploads.music.ref}
+      phx-drop-target={@uploads.music.ref}
+      class="flex flex-col justify-center items-center
+             w-full h-32 max-h-[20vmin] m-2
+             bg-gray-50 dark:bg-gray-800
+             border-2 border-dashed border-gray-300 dark:border-gray-700
+             hover:bg-gray-100 dark:hover:bg-gray-600
+             cursor-pointer rounded-lg
+             shadow-md shadow-gray-200 dark:shadow-gray-600"
+    >
+      <p class="text-center">Click to upload or drag and drop files.</p>
+      <%= live_file_input(@uploads.music, class: "hidden") %>
+    </label>
+    <.button type="submit">Upload</.button>
+  </section>
+  <section class="flex-grow overflow-hidden m-1">
+    <div class="h-full overflow-y-auto">
+      <%= for err <- upload_errors(@uploads.music) do %>
         <p class="alert alert-danger"><%= error_to_string(err) %></p>
       <% end %>
-    </article>
-  <% end %>
+      <%= for entry <- @uploads.music.entries do %>
+        <article class="mb-4 p-1 rounded-md bg-gray-200 dark:bg-gray-700 shadow-md shadow-gray-400 dark:shadow-gray-600">
+          <div class="flex justify-between items-center">
+            <progress
+              class="flex-grow rounded-xl bg-gray-400 text-green-400/50"
+              value={entry.progress}
+              max="100"
+            >
+              <%= entry.progress %>%
+            </progress>
+            <button
+              phx-click="cancel-upload"
+              phx-value-ref={entry.ref}
+              type="button"
+              aria-label="cancel"
+              class="p-1"
+            >
+              ❌
+            </button>
+          </div>
 
-  <%= for err <- upload_errors(@uploads.music) do %>
-    <p class="alert alert-danger"><%= error_to_string(err) %></p>
-  <% end %>
+          <p class="overflow-x-auto text-center"><%= entry.client_name %></p>
 
-  <button type="submit">Upload</button>
+          <%= for err <- upload_errors(@uploads.music, entry) do %>
+            <p class="alert alert-danger"><%= error_to_string(err) %></p>
+          <% end %>
+        </article>
+      <% end %>
+    </div>
+  </section>
 </form>

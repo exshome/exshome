@@ -2,6 +2,7 @@
 @import "tailwindcss/components";
 @import "tailwindcss/utilities";
 @import "./icons.css";
+@import "./inputs.css";
 
 /* Alerts and form errors used by phx.new */
 .alert {
@@ -86,38 +87,4 @@
 @keyframes fade-out-keys{
   0% { opacity: 1; }
   100% { opacity: 0; }
-}
-
-/* Range input */
-input[type=range] {
-  -webkit-appearance: none;
-  appearance: none;
-  outline: none;
-  opacity: 0.9;
-  -webkit-transition: .2s;
-  transition: opacity .2s;
-}
-
-input[type=range]:hover {
-  opacity: 1;
-}
-
-input[type=range]::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  appearance: none;
-  width: 1.5em;
-  height: 1.5em;
-  border-radius: 50%;
-  cursor: pointer;
-  background: radial-gradient(white, currentColor);
-  border: 0.2em solid currentColor;
-}
-
-input[type=range]::-moz-range-thumb {
-  width: 1.5em;
-  height: 1.5em;
-  border-radius: 50%;
-  cursor: pointer;
-  background: radial-gradient(white, currentColor);
-  border: 0.2em solid currentColor;
 }
