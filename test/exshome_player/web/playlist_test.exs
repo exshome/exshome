@@ -114,6 +114,14 @@ defmodule ExshomePlayerTest.Web.PlaylistTest do
       assert count_playlist_items(view) == playlist_items_number + 1
     end
 
+    test "opens and closes a modal", %{view: view} do
+      refute view |> element("#upload_files") |> has_element?()
+      open_file_modal(view)
+      assert view |> element("#upload_files") |> has_element?()
+      close_modal(view)
+      refute view |> element("#upload_files") |> has_element?()
+    end
+
     defp play_track(view, %Track{id: id}) do
       view |> element("button[phx-value-id=#{id}][phx-click=play]") |> render_click()
       assert view |> element(".playing") |> has_element?()
@@ -165,7 +173,6 @@ defmodule ExshomePlayerTest.Web.PlaylistTest do
       end
 
       assert modal_view |> form("form") |> render_submit(%{})
-      close_modal(view)
     end
   end
 end

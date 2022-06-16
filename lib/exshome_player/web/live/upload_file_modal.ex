@@ -38,7 +38,7 @@ defmodule ExshomePlayer.Web.Live.UploadFileModal do
       Track.refresh_tracklist()
     end
 
-    {:noreply, socket}
+    {:noreply, close_modal(socket)}
   end
 
   @spec sanitize_file_name(String.t(), String.t()) :: String.t()

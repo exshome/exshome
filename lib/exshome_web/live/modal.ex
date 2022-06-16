@@ -46,11 +46,13 @@ defmodule ExshomeWeb.Live.Modal do
 
   @spec close_modal(Socket.t()) :: Socket.t()
   def close_modal(%Socket{} = socket) do
+    socket = send_js(socket, closing_transition())
+
     socket
     |> modal_view_pid()
     |> send(:close_modal)
 
-    send_js(socket, closing_transition())
+    socket
   end
 
   @spec send_js(Socket.t(), js_t()) :: Socket.t()
