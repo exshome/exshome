@@ -105,7 +105,8 @@ defmodule ExshomePlayer.Services.Playlist do
   end
 
   @impl GenServerDependency
-  def handle_event(%PlayerFileEnd{reason: "eof"}, %DependencyState{} = state) do
+  def handle_event(%PlayerFileEnd{reason: reason}, %DependencyState{} = state)
+      when reason in ["eof", "error"] do
     state
     |> update_playlist(&move_to_next_track/1)
     |> load_track()

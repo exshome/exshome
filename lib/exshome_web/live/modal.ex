@@ -6,11 +6,11 @@ defmodule ExshomeWeb.Live.Modal do
   alias Phoenix.LiveView.JS
   alias Phoenix.LiveView.Socket
 
-  defstruct [:module, :assigns]
+  defstruct [:module, :params]
 
   @type t() :: %__MODULE__{
           module: module(),
-          assigns: Keyword.t()
+          params: %{String.t() => String.t()}
         }
 
   @type js_t() :: %JS{ops: list()}
@@ -37,10 +37,10 @@ defmodule ExshomeWeb.Live.Modal do
 
   def handle_info(_, %Socket{} = socket), do: {:cont, socket}
 
-  @spec open_modal(Socket.t(), module(), Keyword.t()) :: Socket.t()
-  def open_modal(%Socket{} = socket, module, assigns \\ []) when is_atom(module) do
+  @spec open_modal(Socket.t(), module(), map()) :: Socket.t()
+  def open_modal(%Socket{} = socket, module, params \\ %{}) when is_atom(module) do
     socket
-    |> LiveView.assign(:modal, %__MODULE__{module: module, assigns: assigns})
+    |> LiveView.assign(:modal, %__MODULE__{module: module, params: params})
     |> send_js(opening_transition())
   end
 

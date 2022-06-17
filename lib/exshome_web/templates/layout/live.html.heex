@@ -15,7 +15,7 @@
     <%= if @modal do %>
       <%= live_render(@socket, @modal.module,
         id: "modal-data",
-        assigns: @modal.assigns,
+        session: @modal.params,
         container: {:div, class: "w-full h-full"}
       ) %>
     <% end %>

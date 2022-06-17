@@ -6,6 +6,7 @@ defmodule ExshomePlayer.Schemas.Track do
   import Ecto.Query
   import Ecto.Changeset
   use Exshome.Schema
+  alias Ecto.Changeset
   alias Exshome.Event
   alias Exshome.Repo
   alias ExshomePlayer.Events.TrackEvent
@@ -23,16 +24,17 @@ defmodule ExshomePlayer.Schemas.Track do
 
   @type t() :: %__MODULE__{
           title: String.t() | nil,
-          type: String.t() | :file,
-          path: String.t()
+          type: :url | :file,
+          path: String.t() | nil
         }
 
-  @spec changeset(t(), map()) :: Ecto.Changeset.t()
+  @spec changeset(t() | Changeset.t(t()), map()) :: Changeset.t()
   def changeset(struct, params \\ %{}) do
     struct
     |> cast(params, [:title, :type, :path])
     |> validate_required([:type, :path])
     |> validate_inclusion(:type, @types)
+    |> validate_path_format()
   end
 
   @spec get!(String.t()) :: t()
@@ -45,20 +47,29 @@ defmodule ExshomePlayer.Schemas.Track do
   def get_or_create_by_path(path) when is_binary(path) do
     case Repo.get_by(__MODULE__, path: path) do
       %__MODULE__{} = result -> result
-      nil -> create!(%__MODULE__{path: path})
+      nil -> create!(%{path: path})
     end
   end
 
-  @spec create!(t()) :: t()
-  def create!(%__MODULE__{} = data) do
-    result =
-      data
-      |> changeset()
-      |> Repo.insert!()
-
-    Event.broadcast(%TrackEvent{action: :created, track: result})
-
+  @spec create!(map()) :: t()
+  def create!(data) do
+    {:ok, result} = create(data)
     result
+  end
+
+  @spec create(map()) :: {:ok, t()} | {:error, Changeset.t(t())}
+  def create(data) do
+    %__MODULE__{}
+    |> changeset(data)
+    |> Repo.insert()
+    |> case do
+      {:ok, result} ->
+        Event.broadcast(%TrackEvent{action: :created, track: result})
+        {:ok, result}
+
+      result ->
+        result
+    end
   end
 
   @spec update!(t(), map()) :: t()
@@ -115,4 +126,14 @@ defmodule ExshomePlayer.Schemas.Track do
   end
 
   defp on_delete(%__MODULE__{}), do: :ok
+
+  @spec validate_path_format(Changeset.t()) :: Changeset.t()
+  defp validate_path_format(%Changeset{} = changeset) do
+    type = get_field(changeset, :type)
+
+    case type do
+      :url -> validate_format(changeset, :path, ~r{^https?://})
+      _ -> changeset
+    end
+  end
 end

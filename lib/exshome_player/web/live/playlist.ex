@@ -26,4 +26,8 @@ defmodule ExshomePlayer.Web.Live.Playlist do
   def handle_event("open_file_modal", _, %Socket{} = socket) do
     {:noreply, open_modal(socket, ExshomePlayer.Web.Live.UploadFileModal)}
   end
+
+  def handle_event("open_new_link_modal", _, %Socket{} = socket) do
+    {:noreply, open_modal(socket, ExshomePlayer.Web.Live.EditLinkModal)}
+  end
 end

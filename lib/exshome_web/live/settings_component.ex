@@ -43,6 +43,10 @@ defmodule ExshomeWeb.Live.SettingsComponent do
 
   @impl Phoenix.LiveComponent
   def render(assigns) do
-    ExshomeWeb.SettingsComponentView.render("settings_component.html", assigns)
+    ~H"""
+    <div class="flex flex-grow h-full items-center justify-center">
+      <.live_form changeset={@changeset} phx-target={@myself} as="settings" fields={@module.fields()} />
+    </div>
+    """
   end
 end
