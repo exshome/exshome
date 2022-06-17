@@ -56,6 +56,6 @@ progress::-webkit-progress-value {
 }
 
 progress::-moz-progress-bar {
-  background-color: inherit;
+  background-color: currentColor;
   border-radius: 1em;
 }

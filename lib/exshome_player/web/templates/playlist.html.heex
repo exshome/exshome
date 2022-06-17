@@ -19,7 +19,7 @@
           >
             <%= if @deps.playlist.current_id == track.id, do: "🎧", else: "▶️" %>
           </button>
-          <div class="inline-block flex-grow pl-4 text-left overflow-x-auto">
+          <div class="inline-block flex-grow pl-4 text-left overflow-x-auto overflow-y-hidden">
             <div class="text-xl">
               <%= if String.trim(track.title) == "", do: "Unknown", else: track.title %>
             </div>
