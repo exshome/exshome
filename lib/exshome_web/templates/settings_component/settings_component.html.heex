@@ -15,9 +15,8 @@
       </span>
       <%= error_tag(f, field) %>
     <% end %>
-    <%= submit("Save",
-      phx_disable_with: "Saving...",
-      class: "block bg-gray-300 dark:bg-gray-500 rounded-lg p-2 my-2"
-    ) %>
+    <.button type="submit" phx_disable_with="Saving...">
+      Save
+    </.button>
   </.form>
 </div>

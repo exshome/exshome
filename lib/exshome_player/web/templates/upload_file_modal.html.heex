@@ -19,7 +19,7 @@
       <p class="text-center">Click to upload or drag and drop files.</p>
       <%= live_file_input(@uploads.music, class: "hidden") %>
     </label>
-    <.button type="submit">Upload</.button>
+    <.button phx_disable_with="Uploading..." type="submit">Upload</.button>
   </section>
   <section class="flex-grow overflow-hidden m-1">
     <div class="h-full overflow-y-auto">
