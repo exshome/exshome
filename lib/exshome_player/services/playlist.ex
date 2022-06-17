@@ -47,7 +47,7 @@ defmodule ExshomePlayer.Services.Playlist do
   @impl GenServerDependency
   def on_init(%DependencyState{} = state) do
     Track.refresh_tracklist()
-    update_playlist(state, fn _ -> %Data{previous: Track.list()} end)
+    update_playlist(state, fn _ -> %Data{previous: Enum.reverse(Track.list())} end)
   end
 
   @impl GenServerDependency

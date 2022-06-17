@@ -41,7 +41,7 @@ defmodule ExshomePlayer.Schemas.Track do
   def get!(id) when is_binary(id), do: Repo.get!(__MODULE__, id)
 
   @spec list() :: [t()]
-  def list, do: Repo.all(__MODULE__)
+  def list, do: from(__MODULE__, order_by: [desc: :type, asc: :path]) |> Repo.all()
 
   @spec get_or_create_by_path(String.t()) :: t()
   def get_or_create_by_path(path) when is_binary(path) do
