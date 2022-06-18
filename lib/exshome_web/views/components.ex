@@ -34,14 +34,14 @@ defmodule ExshomeWeb.Components do
       for={@changeset}
       phx-change="validate"
       phx-submit="save"
-      class="flex items-center flex-col"
+      class="flex items-center flex-col max-h-full w-full overflow-x-hidden overflow-y-auto my-2"
       {@extra}
     >
       <%= for {field, data} <- @fields do %>
-        <span>
-          <label><%= field %></label>
+        <div class="p-2 w-full md:w-3/4 lg:w-1/2">
+          <label class="block font-bold"><%= field %></label>
           <%= render_field(f, field, data) %>
-        </span>
+        </div>
         <%= error_tag(f, field) %>
       <% end %>
       <.button type="submit" phx_disable_with="Saving...">
@@ -57,10 +57,14 @@ defmodule ExshomeWeb.Components do
   end
 
   defp render_field(form, field, :select, data) do
-    select(form, field, data[:allowed_values].(), class: "dark:bg-black rounded-lg")
+    select(form, field, data[:allowed_values].(),
+      class: "w-full p-2 bg-gray-100 dark:bg-gray-800 rounded-lg shadow-md dark:shadow-gray-700"
+    )
   end
 
   defp render_field(form, field, :text, _data) do
-    text_input(form, field, class: "bg-red-200")
+    text_input(form, field,
+      class: "w-full p-2 rounded-lg bg-gray-100 dark:bg-gray-800 shadow-md dark:shadow-gray-700"
+    )
   end
 end
