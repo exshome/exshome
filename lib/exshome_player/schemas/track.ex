@@ -28,7 +28,7 @@ defmodule ExshomePlayer.Schemas.Track do
           path: String.t() | nil
         }
 
-  @spec changeset(t() | Changeset.t(t()), map()) :: Changeset.t()
+  @spec changeset(t(), map()) :: Changeset.t(t())
   def changeset(struct, params \\ %{}) do
     struct
     |> cast(params, [:title, :type, :path])
@@ -137,13 +137,18 @@ defmodule ExshomePlayer.Schemas.Track do
 
   defp on_delete(%__MODULE__{}), do: :ok
 
-  @spec validate_path_format(Changeset.t()) :: Changeset.t()
+  @spec validate_path_format(Changeset.t(t())) :: Changeset.t()
   defp validate_path_format(%Changeset{} = changeset) do
     type = get_field(changeset, :type)
 
     case type do
-      :url -> validate_format(changeset, :path, ~r{^https?://})
-      _ -> changeset
+      :url ->
+        validate_format(changeset, :path, ~r{^https?://},
+          message: "It should start with http:// or https://"
+        )
+
+      _ ->
+        changeset
     end
   end
 end

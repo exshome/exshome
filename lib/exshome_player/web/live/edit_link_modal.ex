@@ -25,7 +25,14 @@ defmodule ExshomePlayer.Web.Live.EditLinkModal do
   @impl LiveView
   def handle_event("validate", %{"data" => data}, %Socket{} = socket) do
     data = sanitize_data(data)
-    {:noreply, update(socket, :changeset, &Track.changeset(&1, data))}
+    changeset = socket.assigns.changeset
+
+    new_changeset =
+      changeset.data
+      |> Track.changeset(data)
+      |> Map.put(:action, changeset.action)
+
+    {:noreply, assign(socket, :changeset, new_changeset)}
   end
 
   @impl LiveView
