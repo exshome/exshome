@@ -3,7 +3,7 @@ defmodule ExshomePlayer.Schemas.Track do
   Player track data.
   """
 
-  import Ecto.Query
+  import Ecto.Query, only: [from: 2]
   import Ecto.Changeset
   use Exshome.Schema
   alias Ecto.Changeset
@@ -74,13 +74,23 @@ defmodule ExshomePlayer.Schemas.Track do
 
   @spec update!(t(), map()) :: t()
   def update!(%__MODULE__{} = track, %{} = data) do
-    result =
-      track
-      |> changeset(data)
-      |> Repo.update!()
-
-    Event.broadcast(%TrackEvent{action: :updated, track: result})
+    {:ok, result} = update(track, data)
     result
+  end
+
+  @spec update(t(), map()) :: {:ok, t()} | {:error, Changeset.t(t())}
+  def update(%__MODULE__{} = track, %{} = data) do
+    track
+    |> changeset(data)
+    |> Repo.update()
+    |> case do
+      {:ok, result} ->
+        Event.broadcast(%TrackEvent{action: :updated, track: result})
+        {:ok, result}
+
+      result ->
+        result
+    end
   end
 
   @spec delete!(t()) :: :ok

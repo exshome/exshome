@@ -15,6 +15,7 @@ defmodule ExshomePlayer.Web.Live.Playlist do
     {:noreply, socket}
   end
 
+  @impl LiveView
   def handle_event("delete", %{"id" => id}, %Socket{} = socket) do
     id
     |> Track.get!()
@@ -23,10 +24,16 @@ defmodule ExshomePlayer.Web.Live.Playlist do
     {:noreply, socket}
   end
 
+  def handle_event("edit", %{"id" => id}, %Socket{} = socket) do
+    {:noreply, open_modal(socket, ExshomePlayer.Web.Live.EditLinkModal, %{"track_id" => id})}
+  end
+
+  @impl LiveView
   def handle_event("open_file_modal", _, %Socket{} = socket) do
     {:noreply, open_modal(socket, ExshomePlayer.Web.Live.UploadFileModal)}
   end
 
+  @impl LiveView
   def handle_event("open_new_link_modal", _, %Socket{} = socket) do
     {:noreply, open_modal(socket, ExshomePlayer.Web.Live.EditLinkModal)}
   end

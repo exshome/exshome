@@ -22,7 +22,9 @@
           >
             <%= if @deps.playlist.current_id == track.id, do: "🎧", else: "▶️" %>
           </button>
-          <div class="inline-block flex-grow pl-4 text-left overflow-x-auto overflow-y-hidden">
+          <div class={
+            "#{if @deps.playlist.current_id == track.id, do: 'font-bold'} flex flex-col flex-grow pl-4 text-left justify-center overflow-x-auto overflow-y-hidden"
+          }>
             <div class="text-xl">
               <%= if String.trim(track.title) == "", do: "Unknown", else: track.title %>
             </div>
@@ -30,14 +32,21 @@
               <%= track.path %>
             </div>
           </div>
-          <button
-            phx-click="delete"
-            phx-value-id={track.id}
-            data-confirm="Do you really want to delete this track?"
-            class="text-4xl"
-          >
-            🗑️
-          </button>
+          <div class="pl-1 flex flex-col md:flex-row items-center justify-center">
+            <%= if track.type == :url do %>
+              <button phx-click="edit" phx-value-id={track.id} class="text-2xl md:text-4xl">
+                ️✏️
+              </button>
+            <% end %>
+            <button
+              phx-click="delete"
+              phx-value-id={track.id}
+              data-confirm="Do you really want to delete this track?"
+              class={if track.type == :url, do: "text-2xl md:text-4xl", else: "text-4xl"}
+            >
+              🗑️
+            </button>
+          </div>
         </li>
       <% end %>
     </ul>
