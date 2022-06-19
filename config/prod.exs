@@ -11,6 +11,12 @@ import Config
 # before starting your production server.
 config :exshome, ExshomeWeb.Endpoint, cache_static_manifest: "priv/static/cache_manifest.json"
 
+# Configure your database
+config :exshome, Exshome.Repo,
+  pool_size: 5,
+  show_sensitive_data_on_connection_error: false,
+  database_name: "exshome_prod.db"
+
 config :exshome, :environment, :prod
 
 # Do not print debug messages in production
