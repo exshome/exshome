@@ -2,7 +2,7 @@ defmodule Exshome.MixProject do
   use Mix.Project
 
   @source_url "https://github.com/exshome/exshome"
-  @version "0.1.0-dev"
+  @version "0.1.0"
 
   def project do
     [
