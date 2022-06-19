@@ -1,29 +1,38 @@
 defmodule Exshome.MixProject do
   use Mix.Project
 
+  @source_url "https://github.com/exshome/exshome"
+  @version "0.1.0-dev"
+
   def project do
     [
       aliases: aliases(),
       app: :exshome,
       compilers: [:gettext] ++ Mix.compilers(),
       deps: deps(),
+      description: description(),
       dialyzer: [
         check_plt: true,
         plt_add_apps: [:mix, :ex_unit]
       ],
+      docs: docs(),
       elixir: "~> 1.12",
       elixirc_paths: elixirc_paths(Mix.env()),
+      homepage_url: @source_url,
+      name: "Exshome - Elixir Smart Home",
+      package: package(),
       preferred_cli_env: [
         coveralls: :test,
         "coveralls.detail": :test,
         "coveralls.post": :test,
         "coveralls.html": :test
       ],
+      source_url: @source_url,
       start_permanent: Mix.env() == :prod,
       test_coverage: [
         tool: ExCoveralls
       ],
-      version: "0.1.0"
+      version: @version
     ]
   end
 
@@ -49,10 +58,11 @@ defmodule Exshome.MixProject do
       {:credo, "~> 1.6", only: [:dev, :test], runtime: false},
       {:dialyxir, "~> 1.0", only: [:dev, :test], runtime: false},
       {:ecto, "~> 3.7"},
-      {:erlexec, "~> 1.0"},
       {:ecto_sqlite3, "~> 0.7.3"},
+      {:erlexec, "~> 1.0"},
       {:esbuild, "~> 0.3", runtime: Mix.env() == :dev},
       {:excoveralls, "~> 0.10", only: :test},
+      {:ex_doc, "~> 0.27", only: :dev, runtime: false},
       {:floki, ">= 0.30.0", only: :test},
       {:gettext, "~> 0.18"},
       {:jason, "~> 1.2"},
@@ -70,6 +80,39 @@ defmodule Exshome.MixProject do
       {:telemetry_poller, "~> 1.0"},
       {:tz, "~> 0.20.1"},
       {:tz_extra, "~> 0.20.1"}
+    ]
+  end
+
+  defp description do
+    "DIY Elixir-based smart home."
+  end
+
+  defp docs do
+    [
+      main: "readme",
+      extras: [
+        "README.md",
+        "LICENSE",
+        "CHANGELOG.md"
+      ],
+      source_ref: "v#{@version}",
+      source_url: @source_url,
+      groups_for_modules: [
+        Core: ~r/(^(ExshomeWeb|Exshome\.))|^Exshome$/,
+        Clock: ~r/^ExshomeClock.*/,
+        Player: ~r/^ExshomePlayer.*/
+      ],
+      skip_undefined_reference_warnings_on: ["CHANGELOG.md"]
+    ]
+  end
+
+  defp package do
+    [
+      name: "exshome",
+      files:
+        ~w(config lib priv .formatter.exs mix.exs mix.lock README* LICENSE* CHANGELOG.md src),
+      licenses: ["MIT"],
+      links: %{"GitHub" => @source_url}
     ]
   end
 
