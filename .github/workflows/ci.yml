@@ -52,6 +52,9 @@ jobs:
     - name: Elixir check retired packages
       run: mix hex.audit
 
+    - name: Elixir check unused packages
+      run: mix deps.unlock --check-unused
+
     - name: Elixir check for security issues in dependencies
       run: mix deps.audit
 
