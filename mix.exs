@@ -109,8 +109,6 @@ defmodule Exshome.MixProject do
   defp package do
     [
       name: "exshome",
-      files:
-        ~w(config lib priv .formatter.exs mix.exs mix.lock README* LICENSE* CHANGELOG.md src),
       licenses: ["MIT"],
       links: %{"GitHub" => @source_url}
     ]
