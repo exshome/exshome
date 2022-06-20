@@ -2,7 +2,7 @@ defmodule Exshome.MixProject do
   use Mix.Project
 
   @source_url "https://github.com/exshome/exshome"
-  @version "0.1.0"
+  @version "0.1.1"
 
   def project do
     [
@@ -110,6 +110,8 @@ defmodule Exshome.MixProject do
     [
       name: "exshome",
       licenses: ["MIT"],
+      files:
+        ~w(assets config lib priv .formatter.exs mix.exs mix.lock README.md LICENSE CHANGELOG.md),
       links: %{"GitHub" => @source_url}
     ]
   end
@@ -126,7 +128,8 @@ defmodule Exshome.MixProject do
       "ecto.setup": ["ecto.create", "ecto.migrate", "run priv/repo/seeds.exs"],
       "ecto.reset": ["ecto.drop", "ecto.setup"],
       test: ["ecto.create --quiet", "ecto.migrate --quiet", "test"],
-      "assets.deploy": ["esbuild default --minify", "phx.digest"]
+      "assets.deploy": ["esbuild default --minify", "tailwind default --minify", "phx.digest"],
+      deploy: ["ecto.migrate", "tailwind.install", "esbuild.install", "assets.deploy"]
     ]
   end
 end

@@ -60,7 +60,7 @@ config :exshome, :application_children, [
   {Exshome.Dependency.GenServerDependency.DependencySupervisor, %{}}
 ]
 
-config :exshome, :apps, [
+config :exshome, Exshome.App, [
   ExshomeClock,
   ExshomePlayer
 ]
