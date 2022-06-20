@@ -38,4 +38,12 @@ defmodule ExshomeTest.TestHelpers do
       )
     end
   end
+
+  def flush_messages do
+    receive do
+      _ -> flush_messages()
+    after
+      0 -> nil
+    end
+  end
 end
