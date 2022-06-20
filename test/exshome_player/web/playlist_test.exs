@@ -21,7 +21,7 @@ defmodule ExshomePlayerTest.Web.PlaylistTest do
       TestRegistry.start_dependency(MpvSocket, %{})
       TestMpvServer.generate_random_tracks(2..10)
       view = live_with_dependencies(conn, ExshomePlayer, :playlist)
-      %Playlist{} = playlist = Dependency.get_value(Playlist)
+      %Playlist{} = playlist = Dependency.subscribe(Playlist)
       %{view: view, playlist: playlist}
     end
 
@@ -59,6 +59,7 @@ defmodule ExshomePlayerTest.Web.PlaylistTest do
     defp play_track(view, %Track{id: id}) do
       view |> element("button[phx-value-id=#{id}][phx-click=play]") |> render_click()
       assert view |> element(".playing") |> has_element?()
+      assert_receive_dependency({Playlist, %Playlist{current_id: ^id}})
       assert_receive_app_page_dependency({Playlist, %Playlist{current_id: ^id}})
     end
 
