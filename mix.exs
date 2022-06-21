@@ -25,7 +25,8 @@ defmodule Exshome.MixProject do
         coveralls: :test,
         "coveralls.detail": :test,
         "coveralls.post": :test,
-        "coveralls.html": :test
+        "coveralls.html": :test,
+        docs: :test
       ],
       source_url: @source_url,
       start_permanent: Mix.env() == :prod,
@@ -62,7 +63,7 @@ defmodule Exshome.MixProject do
       {:erlexec, "~> 1.0"},
       {:esbuild, "~> 0.3", runtime: Mix.env() == :dev},
       {:excoveralls, "~> 0.10", only: :test},
-      {:ex_doc, "~> 0.27", only: :dev, runtime: false},
+      {:ex_doc, "~> 0.27", only: :test, runtime: false},
       {:floki, ">= 0.30.0", only: :test},
       {:gettext, "~> 0.18"},
       {:jason, "~> 1.2"},
@@ -99,6 +100,7 @@ defmodule Exshome.MixProject do
       source_url: @source_url,
       groups_for_modules: [
         Core: ~r/(^(ExshomeWeb|Exshome\.))|^Exshome$/,
+        Tests: ~r/^ExshomeTest.*/,
         Clock: ~r/^ExshomeClock.*/,
         Player: ~r/^ExshomePlayer.*/
       ],
