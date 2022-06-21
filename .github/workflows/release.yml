@@ -2,7 +2,7 @@ name: Release
 
 on:
   push:
-    tars:
+    tags:
       - v*
 
 env:
