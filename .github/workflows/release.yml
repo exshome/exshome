@@ -10,7 +10,7 @@ env:
   MIX_ENV: test
 
 jobs:
-  test:
+  release:
     runs-on: ubuntu-latest
     steps:
 
