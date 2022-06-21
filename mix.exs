@@ -134,7 +134,12 @@ defmodule Exshome.MixProject do
       ],
       "ecto.setup": ["ecto.create", "ecto.migrate", "run priv/repo/seeds.exs"],
       "ecto.reset": ["ecto.drop", "ecto.setup"],
-      "hex.publish": ["assets.deploy", "format --check-formatted", "test", "hex.publish"],
+      "hex.publish": [
+        "assets.deploy",
+        "format --check-formatted",
+        "cmd MIX_ENV=test mix test",
+        "hex.publish"
+      ],
       setup: ["deps.get"],
       test: ["ecto.create --quiet", "ecto.migrate --quiet", "test"]
     ]
