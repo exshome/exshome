@@ -44,7 +44,6 @@ jobs:
         mix local.hex --force
         mix deps.get
         mix deps.compile
-        mix dialyzer.build
         mix compile --warnings-as-errors
 
     - name: Build hex package
