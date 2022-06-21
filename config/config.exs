@@ -56,10 +56,6 @@ config :tailwind,
     cd: Path.expand("../assets", __DIR__)
   ]
 
-config :exshome, :application_children, [
-  {Exshome.Dependency.GenServerDependency.DependencySupervisor, %{}}
-]
-
 config :exshome, Exshome.App, [
   ExshomeClock,
   ExshomePlayer

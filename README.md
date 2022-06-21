@@ -22,3 +22,6 @@ DIY Elixir-based smart home.
 
 ## Caveats
 - [UNIX domain socket length is limited to about 100 bytes](https://unix.stackexchange.com/questions/367008/why-is-socket-path-length-limited-to-a-hundred-chars). Application uses these sockets to communicate with MPV. It will not work if the path is larger.
+
+## Security considerations
+Right now Exshome is designed to run in a home network, so it has no auth. It can be dangerous to open it for a whole Internet.

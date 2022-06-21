@@ -19,7 +19,10 @@ defmodule Exshome.Application do
         ExshomeWeb.Endpoint
         # Start a worker by calling: Exshome.Worker.start_link(arg)
         # {Exshome.Worker, arg}
-      ] ++ Application.get_env(:exshome, :application_children, [])
+      ] ++
+        Application.get_env(:exshome, :application_children, [
+          {Exshome.Dependency.GenServerDependency.DependencySupervisor, %{}}
+        ])
 
     # See https://hexdocs.pm/elixir/Supervisor.html
     # for other strategies and supported options
