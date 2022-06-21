@@ -1,0 +1,54 @@
+name: CI
+
+on:
+  push:
+    tars:
+      - v*
+
+env:
+  SHELL: /bin/bash
+  MIX_ENV: test
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+
+    - name: Check HEX key
+      run: if [[ -z "${HEX_API_KEY}" ]]; then echo "HEX_API_KEY is not set" && exit 1; fi
+
+    - name: Checkout sources
+      uses: actions/checkout@v3
+      with:
+        fetch-depth: 1
+
+    - name: Cache dependencies
+      uses: actions/cache@v3
+      with:
+        path: |
+          deps
+          _build
+        key: ${{ runner.os }}-mix-${{ secrets.CACHE_VERSION }}-${{ hashFiles('**/mix.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-mix-
+
+    - name: Setup Elixir
+      uses: erlef/setup-beam@v1
+      with:
+        otp-version: 24
+        elixir-version: 1.13
+
+    - name: Build project
+      run: |
+        mix local.rebar --force
+        mix local.hex --force
+        mix deps.get
+        mix deps.compile
+        mix dialyzer.build
+        mix compile --warnings-as-errors
+
+    - name: Build hex package
+      run: mix hex.build
+
+    - name: Publish hex package
+      run: mix hex.publish --yes

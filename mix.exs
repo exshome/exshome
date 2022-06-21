@@ -2,7 +2,7 @@ defmodule Exshome.MixProject do
   use Mix.Project
 
   @source_url "https://github.com/exshome/exshome"
-  @version "0.1.2"
+  @version "0.1.3"
 
   def project do
     [
@@ -136,11 +136,11 @@ defmodule Exshome.MixProject do
       ],
       "ecto.setup": ["ecto.create", "ecto.migrate", "run priv/repo/seeds.exs"],
       "ecto.reset": ["ecto.drop", "ecto.setup"],
-      "hex.publish": [
+      "hex.build": [
         "assets.deploy",
         "format --check-formatted",
         "cmd MIX_ENV=test mix test",
-        "hex.publish"
+        "hex.build"
       ],
       setup: ["deps.get"],
       test: ["ecto.create --quiet", "ecto.migrate --quiet", "test"]
