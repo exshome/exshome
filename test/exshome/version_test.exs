@@ -11,7 +11,7 @@ defmodule ExshomeTest.VersionTest do
 
   test "changelog entry for a revision" do
     changelog = read_file!(["..", "..", "CHANGELOG.md"])
-    version_regex = ~r/^## v#{@app_version}$/m
+    version_regex = ~r/^## v#{@app_version}/m
     assert changelog =~ version_regex
   end
 

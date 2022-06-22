@@ -1,7 +1,10 @@
 #! /usr/bin/env elixir
 
-version = System.get_env("EXSHOME_VERSION", "0.1.3")
-{:ok, host} = "EXSHOME_HOST" |> System.get_env("0.0.0.0") |> String.to_charlist() |> :inet.parse_address()
+version = System.get_env("EXSHOME_VERSION", "0.1.4")
+
+{:ok, host} =
+  "EXSHOME_HOST" |> System.get_env("0.0.0.0") |> String.to_charlist() |> :inet.parse_address()
+
 port = "EXSHOME_PORT" |> System.get_env("5000") |> String.to_integer()
 
 default_root_folder = "HOME" |> System.get_env() |> Path.join(".exshome")
@@ -35,6 +38,7 @@ Application.put_all_env(
   ],
   phoenix: [json_library: Jason]
 )
+Calendar.put_time_zone_database(Tz.TimeZoneDatabase)
 
 Mix.install([{:exshome, version}])
 

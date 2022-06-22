@@ -11,6 +11,7 @@ DIY Elixir-based smart home.
 - [MPV](https://mpv.io/)
 
 ## Project goals
+- Mobile-friendly
 - Extensibility
 - Test coverage
 - Should support different Single Board Computers
