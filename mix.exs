@@ -93,7 +93,7 @@ defmodule Exshome.MixProject do
       main: "readme",
       extras: [
         "README.md",
-        "LICENSE",
+        "LICENSE.md",
         "CHANGELOG.md"
       ],
       source_ref: "v#{@version}",
@@ -113,7 +113,7 @@ defmodule Exshome.MixProject do
       name: "exshome",
       licenses: ["MIT"],
       files:
-        ~w(assets config lib priv .formatter.exs mix.exs mix.lock README.md LICENSE CHANGELOG.md),
+        ~w(assets config lib priv test/**/*.ex .formatter.exs mix.exs mix.lock README.md LICENSE.md CHANGELOG.md),
       links: %{"GitHub" => @source_url}
     ]
   end
