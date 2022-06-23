@@ -1,6 +1,6 @@
 #! /usr/bin/env elixir
 
-version = System.get_env("EXSHOME_VERSION", "0.1.4")
+version = System.get_env("EXSHOME_VERSION", "0.1.5")
 
 {:ok, host} =
   "EXSHOME_HOST" |> System.get_env("0.0.0.0") |> String.to_charlist() |> :inet.parse_address()
@@ -16,6 +16,7 @@ generate_random_string = fn bytes -> bytes |> :crypto.strong_rand_bytes() |> Bas
 Application.put_all_env(
   exshome: [
     {:ecto_repos, [Exshome.Repo]},
+    {:on_stop, fn _ -> System.halt(1) end},
     {:root_folder, root_folder},
     {Exshome.App, [ExshomeClock, ExshomePlayer]},
     {ExshomeWeb.Endpoint,
@@ -44,4 +45,4 @@ Mix.install([{:exshome, version}])
 
 Exshome.Release.migrate()
 Application.ensure_all_started(:exshome)
-Process.sleep(:infinity)
+System.no_halt(true)

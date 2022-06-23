@@ -5,7 +5,7 @@ defmodule Exshome.Application do
 
   use Application
 
-  @impl true
+  @impl Application
   def start(_type, _args) do
     children =
       [
@@ -32,9 +32,15 @@ defmodule Exshome.Application do
 
   # Tell Phoenix to update the endpoint configuration
   # whenever the application is updated.
-  @impl true
+  @impl Application
   def config_change(changed, _new, removed) do
     ExshomeWeb.Endpoint.config_change(changed, removed)
     :ok
+  end
+
+  @impl Application
+  def stop(state) do
+    on_stop = Application.get_env(:exshome, :on_stop, fn _ -> :ok end)
+    on_stop.(state)
   end
 end

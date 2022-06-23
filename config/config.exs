@@ -61,6 +61,8 @@ config :exshome, Exshome.App, [
   ExshomePlayer
 ]
 
+config :exshome, :on_stop, fn _ -> System.halt(1) end
+
 config :elixir, :time_zone_database, Tz.TimeZoneDatabase
 
 # Import environment specific config. This must remain at the bottom
