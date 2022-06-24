@@ -1,8 +1,9 @@
 # Changelog
 
-## v0.1.5 (2022-06-23)
+## v0.1.5 (2022-06-24)
   * Added ability to start launcher script with IEx via `System.no_halt/1`.
   * Stop the launcher if application crashes.
+  * Added installation guide for a Single Board Computer (SBC).
 
 ## v0.1.4 (2022-06-22)
   * Use timezone database in launcher script.

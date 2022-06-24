@@ -94,7 +94,8 @@ defmodule Exshome.MixProject do
       extras: [
         "README.md",
         "LICENSE.md",
-        "CHANGELOG.md"
+        "CHANGELOG.md",
+        "guides/install_sbc.md"
       ],
       source_ref: "v#{@version}",
       source_url: @source_url,
@@ -103,6 +104,9 @@ defmodule Exshome.MixProject do
         Tests: ~r/^ExshomeTest.*/,
         Clock: ~r/^ExshomeClock.*/,
         Player: ~r/^ExshomePlayer.*/
+      ],
+      groups_for_extras: [
+        Guides: ~r/guides\/[^\/]+\.md/
       ],
       skip_undefined_reference_warnings_on: ["CHANGELOG.md"]
     ]
