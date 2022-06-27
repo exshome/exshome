@@ -1,7 +1,8 @@
 # Changelog
 
-## v0.1.6
+## v0.2.0
   * Fixed manual track deletion.
+  * Created simple automation app.
 
 ## v0.1.5 (2022-06-24)
   * Added ability to start launcher script with IEx via `System.no_halt/1`.

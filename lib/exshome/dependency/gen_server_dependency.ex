@@ -264,7 +264,13 @@ defmodule Exshome.Dependency.GenServerDependency do
   end
 
   @spec modules(app :: atom()) :: MapSet.t(Dependency.dependency())
-  def modules(app) when is_atom(app), do: Map.fetch!(Exshome.Tag.tag_mapping(), {__MODULE__, app})
+  def modules(app) when is_atom(app) do
+    Map.get(
+      Exshome.Tag.tag_mapping(),
+      {__MODULE__, app},
+      MapSet.new()
+    )
+  end
 
   defmacro __using__(config) do
     quote do

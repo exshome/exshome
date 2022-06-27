@@ -58,7 +58,8 @@ config :tailwind,
 
 config :exshome, Exshome.App, [
   ExshomeClock,
-  ExshomePlayer
+  ExshomePlayer,
+  ExshomeAutomation
 ]
 
 config :exshome, :on_stop, fn _ -> System.halt(1) end
