@@ -130,9 +130,13 @@ defmodule ExshomePlayer.Schemas.Track do
 
   @spec on_delete(t()) :: :ok
   defp on_delete(%__MODULE__{type: :file} = track) do
-    track
-    |> url()
-    |> File.rm!()
+    file_path = url(track)
+
+    if File.exists?(file_path) do
+      File.rm!(file_path)
+    end
+
+    :ok
   end
 
   defp on_delete(%__MODULE__{}), do: :ok
