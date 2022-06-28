@@ -1,5 +1,8 @@
 # Changelog
 
+## v0.1.7 (2022-06-28)
+  * Create database if it does not exist before migraions.
+
 ## v0.1.6 (2022-06-28)
   * Fixed manual track deletion.
   * Created simple automation app.
