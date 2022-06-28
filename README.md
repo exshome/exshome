@@ -8,7 +8,7 @@
 DIY Elixir-based smart home.
 
 ## System dependencies
-- [MPV](https://mpv.io/)
+- [MPV](https://mpv.io/) - Exshome uses it as a player. You will not be able to play any track without it.
 
 ## Project goals
 - Mobile-friendly
@@ -39,6 +39,19 @@ This script supports these environment variables:
 
 ## Caveats
 - [UNIX domain socket length is limited to about 100 bytes](https://unix.stackexchange.com/questions/367008/why-is-socket-path-length-limited-to-a-hundred-chars). Application uses these sockets to communicate with MPV. It will not work if the path is larger.
+
+## Applications
+
+Exshome includes simple applications. Each application has own pages.
+
+### Clock (ExshomeClock)
+Simple clock.
+
+### Player (ExshomePlayer)
+Allows to play music. You can upload your files or add links to the remote resources.
+
+### Automation (ExshomeAutomation)
+It is early WIP. Responsible for automating workflows.
 
 ## Security considerations
 Right now Exshome is designed to run in a home network, so it has no auth. It can be dangerous to open it for a whole Internet.

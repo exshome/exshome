@@ -1,8 +1,10 @@
 # Changelog
 
-## v0.2.0
+## v0.1.6 (2022-06-28)
   * Fixed manual track deletion.
   * Created simple automation app.
+  * Allow to set secret_key_base and signing_salt via env variables.
+  * Run migrations before starting the app via launcher.
 
 ## v0.1.5 (2022-06-24)
   * Added ability to start launcher script with IEx via `System.no_halt/1`.

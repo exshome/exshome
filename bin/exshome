@@ -1,6 +1,6 @@
 #! /usr/bin/env elixir
 
-version = System.get_env("EXSHOME_VERSION", "0.1.5")
+version = System.get_env("EXSHOME_VERSION", "0.1.6")
 
 {:ok, host} =
   "EXSHOME_HOST" |> System.get_env("0.0.0.0") |> String.to_charlist() |> :inet.parse_address()
@@ -22,7 +22,10 @@ Application.put_all_env(
     {:ecto_repos, [Exshome.Repo]},
     {:on_stop, fn _ -> System.halt(1) end},
     {:root_folder, root_folder},
-    {Exshome.App, [ExshomeClock, ExshomePlayer]},
+    {Exshome.Application, [
+        apps: [ExshomeClock, ExshomePlayer],
+        on_init: &Exshome.Release.migrate/0
+      ]},
     {ExshomeWeb.Endpoint,
      [
        cache_static_manifest: {:exshome, "priv/static/cache_manifest.json"},
@@ -46,8 +49,7 @@ Application.put_all_env(
 
 Calendar.put_time_zone_database(Tz.TimeZoneDatabase)
 
+System.no_halt(true)
 Mix.install([{:exshome, version}])
 
-Exshome.Release.migrate()
-Application.ensure_all_started(:exshome)
-System.no_halt(true)
+{:ok, _} = Application.ensure_all_started(:exshome)

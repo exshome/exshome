@@ -56,13 +56,12 @@ config :tailwind,
     cd: Path.expand("../assets", __DIR__)
   ]
 
-config :exshome, Exshome.App, [
-  ExshomeClock,
-  ExshomePlayer,
-  ExshomeAutomation
-]
-
-config :exshome, :on_stop, fn _ -> System.halt(1) end
+config :exshome, Exshome.Application,
+  apps: [
+    ExshomeClock,
+    ExshomePlayer,
+    ExshomeAutomation
+  ]
 
 config :elixir, :time_zone_database, Tz.TimeZoneDatabase
 

@@ -7,6 +7,21 @@ defmodule Exshome.Application do
 
   @impl Application
   def start(_type, _args) do
+    on_init = Application.get_env(:exshome, __MODULE__, [])[:on_init]
+
+    on_init && on_init.()
+
+    exshome_children =
+      Application.get_env(
+        :exshome,
+        :application_children,
+        [
+          {Exshome.Dependency.GenServerDependency.DependencySupervisor, %{}}
+        ]
+      )
+
+    # See https://hexdocs.pm/elixir/Supervisor.html
+    # for other strategies and supported options
     children =
       [
         # Start the Ecto repository
@@ -14,19 +29,18 @@ defmodule Exshome.Application do
         # Start the Telemetry supervisor
         ExshomeWeb.Telemetry,
         # Start the PubSub system
-        {Phoenix.PubSub, name: Exshome.PubSub},
-        # Start the Endpoint (http/https)
-        ExshomeWeb.Endpoint
+        {Phoenix.PubSub, name: Exshome.PubSub}
         # Start a worker by calling: Exshome.Worker.start_link(arg)
         # {Exshome.Worker, arg}
       ] ++
-        Application.get_env(:exshome, :application_children, [
-          {Exshome.Dependency.GenServerDependency.DependencySupervisor, %{}}
-        ])
+        exshome_children ++
+        [
+          # Start the Endpoint (http/https)
+          ExshomeWeb.Endpoint
+        ]
 
-    # See https://hexdocs.pm/elixir/Supervisor.html
-    # for other strategies and supported options
     opts = [strategy: :one_for_one, name: Exshome.Supervisor]
+
     Supervisor.start_link(children, opts)
   end
 

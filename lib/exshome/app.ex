@@ -9,7 +9,7 @@ defmodule Exshome.App do
   @callback prefix() :: atom()
   @callback template_root() :: String.t()
 
-  @apps Application.compile_env!(:exshome, __MODULE__)
+  @apps Application.compile_env(:exshome, Exshome.Application, [])[:apps] || []
   def apps, do: @apps
 
   def validate_module!(%Macro.Env{module: module}, _bytecode) do
