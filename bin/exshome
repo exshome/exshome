@@ -13,6 +13,10 @@ root_folder = System.get_env("EXSHOME_ROOT", default_root_folder)
 
 generate_random_string = fn bytes -> bytes |> :crypto.strong_rand_bytes() |> Base.encode64() end
 
+signing_salt = System.get_env("EXSHOME_SIGNING_SALT", generate_random_string.(10))
+
+secret_key_base = System.get_env("EXSHOME_SECRET_KEY_BASE", generate_random_string.(64))
+
 Application.put_all_env(
   exshome: [
     {:ecto_repos, [Exshome.Repo]},
@@ -25,8 +29,8 @@ Application.put_all_env(
        http: [ip: host, port: port],
        check_origin: false,
        server: true,
-       live_view: [signing_salt: generate_random_string.(10)],
-       secret_key_base: generate_random_string.(64),
+       live_view: [signing_salt: signing_salt],
+       secret_key_base: secret_key_base,
        pubsub_server: Exshome.PubSub
      ]},
     {Exshome.Repo,
@@ -39,6 +43,7 @@ Application.put_all_env(
   ],
   phoenix: [json_library: Jason]
 )
+
 Calendar.put_time_zone_database(Tz.TimeZoneDatabase)
 
 Mix.install([{:exshome, version}])
