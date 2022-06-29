@@ -6,6 +6,7 @@ defmodule Exshome.Dependency.GenServerDependency do
 
   alias Exshome.Dependency
   alias Exshome.Dependency.GenServerDependency.DependencyState
+  alias Exshome.Dependency.GenServerDependency.Lifecycle
   alias Exshome.Event
 
   @callback parse_opts(map()) :: any()
@@ -42,13 +43,7 @@ defmodule Exshome.Dependency.GenServerDependency do
 
     parsed_opts = module.parse_opts(opts)
 
-    dependencies = module.__dependency_config__()[:dependencies] || []
-    events = module.__dependency_config__()[:events] || []
-
-    state =
-      %DependencyState{module: module, deps: %{}, opts: parsed_opts}
-      |> subscribe_to_dependencies(dependencies)
-      |> subscribe_to_events(events)
+    state = Lifecycle.on_init(%DependencyState{module: module, deps: %{}, opts: parsed_opts})
 
     {:ok, state, {:continue, :on_init}}
   end
@@ -60,34 +55,24 @@ defmodule Exshome.Dependency.GenServerDependency do
   end
 
   @impl GenServer
-  def handle_call(:get_value, _from, %DependencyState{} = state) do
-    {:reply, state.value, state}
-  end
-
-  @impl GenServer
   def handle_call(message, from, %DependencyState{} = state) do
-    state.module.handle_call(message, from, state)
-  end
-
-  @impl GenServer
-  def handle_info({Dependency, message}, %DependencyState{} = state) do
-    {:noreply, handle_dependency_info(message, state)}
-  end
-
-  @impl GenServer
-  def handle_info({Event, event}, %DependencyState{} = state) do
-    new_state = state.module.handle_event(event, state)
-    {:noreply, new_state}
+    case Lifecycle.handle_call(message, from, state) do
+      {:stop, {value, state}} -> {:reply, value, state}
+      {:cont, state} -> state.module.handle_call(message, from, state)
+    end
   end
 
   @impl GenServer
   def handle_info(message, %DependencyState{} = state) do
-    state.module.handle_info(message, state)
+    case Lifecycle.handle_info(message, state) do
+      {:stop, state} -> {:noreply, state}
+      {:cont, state} -> state.module.handle_info(message, state)
+    end
   end
 
   @impl GenServer
-  def terminate(_reason, %DependencyState{module: module}) do
-    Dependency.broadcast_value(module, Dependency.NotReady)
+  def terminate(reason, %DependencyState{} = state) do
+    Lifecycle.handle_stop(reason, state)
   end
 
   @spec get_pid(atom() | pid()) :: pid() | nil
@@ -138,41 +123,6 @@ defmodule Exshome.Dependency.GenServerDependency do
     else
       state.module.handle_dependency_change(state)
     end
-  end
-
-  @spec handle_dependency_info(any(), DependencyState.t()) :: DependencyState.t()
-  def handle_dependency_info({dependency, value}, %DependencyState{} = state) do
-    key =
-      state.module.__dependency_config__()[:dependencies]
-      |> Keyword.fetch!(dependency)
-
-    put_in(state.deps[key], value)
-    |> handle_dependency_change()
-  end
-
-  @spec subscribe_to_dependencies(DependencyState.t(), Enumerable.t()) :: DependencyState.t()
-  def subscribe_to_dependencies(%DependencyState{} = state, dependencies) do
-    deps =
-      for {dependency, key} <- dependencies, into: %{} do
-        {key, Dependency.subscribe(dependency)}
-      end
-
-    state = %DependencyState{state | deps: deps}
-
-    if Enum.empty?(deps) do
-      state
-    else
-      handle_dependency_change(state)
-    end
-  end
-
-  @spec subscribe_to_events(DependencyState.t(), Enumerable.t()) :: DependencyState.t()
-  def subscribe_to_events(%DependencyState{} = state, events) do
-    for event_module <- events do
-      :ok = Event.subscribe(event_module)
-    end
-
-    state
   end
 
   @hook_module Application.compile_env(:exshome, :dependency_hook_module)
@@ -238,6 +188,8 @@ defmodule Exshome.Dependency.GenServerDependency do
       alias unquote(__MODULE__).DependencyState
       use Exshome.Dependency
       use Exshome.Named, "dependency:#{unquote(config[:name])}"
+      import Exshome.Dependency.GenServerDependency.Lifecycle, only: [register_hook_module: 1]
+      register_hook_module(unquote(__MODULE__).Workflow)
 
       app_module =
         __MODULE__
