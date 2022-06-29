@@ -5,7 +5,7 @@ defmodule ExshomePlayer.Variables.Volume do
 
   alias ExshomePlayer.Services.PlayerState
 
-  use Exshome.Dependency.GenServerDependency,
+  use Exshome.Variable,
     name: "player_volume",
     dependencies: [{PlayerState, :player}]
 

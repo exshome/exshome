@@ -5,7 +5,7 @@ defmodule ExshomePlayer.Variables.Position do
 
   alias ExshomePlayer.Services.PlayerState
 
-  use Exshome.Dependency.GenServerDependency,
+  use Exshome.Variable,
     name: "player_position",
     dependencies: [{PlayerState, :player}]
 

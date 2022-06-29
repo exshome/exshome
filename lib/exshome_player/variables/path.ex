@@ -5,7 +5,7 @@ defmodule ExshomePlayer.Variables.Path do
 
   alias ExshomePlayer.Services.PlayerState
 
-  use Exshome.Dependency.GenServerDependency,
+  use Exshome.Variable,
     name: "player_path",
     dependencies: [{PlayerState, :player}]
 
