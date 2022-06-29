@@ -1,5 +1,6 @@
 defmodule ExshomeClockTest.Services.UtcTimeTest do
   use Exshome.DataCase, async: true
+  import ExshomeTest.TestHelpers
   alias Exshome.Dependency
   alias ExshomeClock.Services.UtcTime
   alias ExshomeTest.TestRegistry
@@ -13,16 +14,8 @@ defmodule ExshomeClockTest.Services.UtcTimeTest do
     initial_time = Dependency.subscribe(UtcTime)
     assert_receive_dependency({UtcTime, current_time})
     assert :gt = DateTime.compare(current_time, initial_time)
-    clear_received_messages()
+    flush_messages()
     Dependency.unsubscribe(UtcTime)
     refute_receive_dependency({UtcTime, _current_time}, 10)
-  end
-
-  defp clear_received_messages do
-    receive do
-      _ -> clear_received_messages()
-    after
-      0 -> nil
-    end
   end
 end
