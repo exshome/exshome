@@ -1,4 +1,4 @@
-defmodule Exshome.Dependency.GenServerDependencySupervisor do
+defmodule Exshome.Dependency.GenServerDependency.Supervisor do
   @moduledoc """
   Supervisor that starts all GenServerDependencies
   """
