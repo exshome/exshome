@@ -42,8 +42,8 @@ defmodule Exshome.Dependency.GenServerDependency do
 
     parsed_opts = module.parse_opts(opts)
 
-    dependencies = module.__config__()[:dependencies] || []
-    events = module.__config__()[:events] || []
+    dependencies = module.__dependency_config__()[:dependencies] || []
+    events = module.__dependency_config__()[:events] || []
 
     state =
       %DependencyState{module: module, deps: %{}, opts: parsed_opts}
@@ -143,7 +143,7 @@ defmodule Exshome.Dependency.GenServerDependency do
   @spec handle_dependency_info(any(), DependencyState.t()) :: DependencyState.t()
   def handle_dependency_info({dependency, value}, %DependencyState{} = state) do
     key =
-      state.module.__config__()[:dependencies]
+      state.module.__dependency_config__()[:dependencies]
       |> Keyword.fetch!(dependency)
 
     put_in(state.deps[key], value)
@@ -190,7 +190,7 @@ defmodule Exshome.Dependency.GenServerDependency do
 
   @spec validate_module!(Macro.Env.t(), String.t()) :: keyword()
   def validate_module!(%Macro.Env{} = env, _bytecode) do
-    validate_config!(env.module.__config__())
+    validate_dependency_config!(env.module.__dependency_config__())
   end
 
   @doc """
@@ -200,8 +200,8 @@ defmodule Exshome.Dependency.GenServerDependency do
   :dependencies (default []) - dependencies list
   :events (default []) - events to subscribe, where key is a module, and value is a topic
   """
-  @spec validate_config!(Keyword.t()) :: keyword()
-  def validate_config!(config) do
+  @spec validate_dependency_config!(Keyword.t()) :: keyword()
+  def validate_dependency_config!(config) do
     NimbleOptions.validate!(
       config,
       name: [
@@ -250,7 +250,7 @@ defmodule Exshome.Dependency.GenServerDependency do
       @after_compile {GenServerDependency, :validate_module!}
       @behaviour GenServerDependency
 
-      def __config__, do: unquote(config)
+      def __dependency_config__, do: unquote(config)
 
       @impl GenServerDependency
       defdelegate update_value(state, value), to: GenServerDependency
