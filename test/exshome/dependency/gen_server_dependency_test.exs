@@ -30,15 +30,15 @@ defmodule ExshomeTest.Dependency.GenServerDependencyTest do
     end
   end
 
-  describe "DependencySupervisor" do
-    alias GenServerDependency.DependencySupervisor
+  describe "GenServerDependencySupervisor" do
+    alias Exshome.Dependency.GenServerDependencySupervisor
 
     test "start_link/1 works fine" do
       {:ok, pid} =
         %{}
         |> ExshomeTest.TestRegistry.prepare_child_opts()
         |> Map.put(:supervisor_opts, name: nil)
-        |> DependencySupervisor.start_link()
+        |> GenServerDependencySupervisor.start_link()
 
       modules =
         pid
@@ -62,7 +62,7 @@ defmodule ExshomeTest.Dependency.GenServerDependencyTest do
         %{apps: [app]}
         |> ExshomeTest.TestRegistry.prepare_child_opts()
         |> Map.put(:supervisor_opts, name: nil)
-        |> DependencySupervisor.start_link()
+        |> GenServerDependencySupervisor.start_link()
 
       modules =
         pid
