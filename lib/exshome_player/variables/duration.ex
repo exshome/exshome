@@ -7,9 +7,11 @@ defmodule ExshomePlayer.Variables.Duration do
 
   use Exshome.Variable,
     name: "player_duration",
-    dependencies: [{PlayerState, :player}]
+    subscribe: [
+      dependencies: [{PlayerState, :player}]
+    ]
 
-  @impl Workflow
+  @impl Subscription
   def handle_dependency_change(%DependencyState{deps: %{player: %PlayerState{} = player}} = state) do
     duration = round(player.duration || 0)
 

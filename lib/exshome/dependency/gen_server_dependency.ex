@@ -103,7 +103,7 @@ defmodule Exshome.Dependency.GenServerDependency do
 
   @spec validate_module!(Macro.Env.t(), String.t()) :: keyword()
   def validate_module!(%Macro.Env{} = env, _bytecode) do
-    validate_dependency_config!(env.module.__dependency_config__())
+    validate_dependency_config!(env.module.__config__())
   end
 
   @doc """
@@ -121,16 +121,8 @@ defmodule Exshome.Dependency.GenServerDependency do
         type: :string,
         required: true
       ],
-      dependencies: [
-        type: :keyword_list,
-        keys: [
-          *: [
-            type: :atom
-          ]
-        ]
-      ],
-      events: [
-        type: {:list, :atom}
+      hooks: [
+        type: :keyword_list
       ]
     )
   end
@@ -149,11 +141,9 @@ defmodule Exshome.Dependency.GenServerDependency do
       require Logger
       alias Exshome.Dependency.GenServerDependency
       alias Exshome.Dependency.GenServerDependency.DependencyState
-      alias Exshome.Dependency.GenServerDependency.Workflow
+      use Exshome.Dependency.GenServerDependency.Subscription
       use Exshome.Dependency
       use Exshome.Named, "dependency:#{unquote(config[:name])}"
-      import Exshome.Dependency.GenServerDependency.Lifecycle, only: [register_hook_module: 1]
-      register_hook_module(Workflow)
 
       app_module =
         __MODULE__
@@ -165,14 +155,14 @@ defmodule Exshome.Dependency.GenServerDependency do
 
       @after_compile {GenServerDependency, :validate_module!}
       @behaviour GenServerDependency
-      @behaviour Workflow
 
-      def __dependency_config__, do: unquote(config)
-
-      @impl Workflow
-      defdelegate update_value(state, value), to: Workflow
-      @impl Workflow
-      defdelegate update_data(state, data_fn), to: Workflow
+      def __config__ do
+        unquote(
+          config
+          |> Keyword.pop!(:name)
+          |> then(fn {name, hooks} -> [name: name, hooks: hooks] end)
+        )
+      end
 
       @impl Exshome.Dependency
       def get_value, do: GenServerDependency.get_value(__MODULE__)
@@ -180,27 +170,7 @@ defmodule Exshome.Dependency.GenServerDependency do
       @impl GenServerDependency
       def on_init(state), do: state
 
-      @impl Workflow
-      def handle_dependency_change(state) do
-        Logger.warn("""
-        Some module dependency changed.
-        Please implement handle_dependency_change/1 callback for #{state.module}
-        """)
-
-        state
-      end
-
-      @impl Workflow
-      def handle_event(event, %DependencyState{} = state) do
-        Logger.warn("""
-        Received unexpected event #{inspect(event)},
-        Please implement handle_event/2 callback for #{state.module}
-        """)
-
-        state
-      end
-
-      defoverridable(on_init: 1, handle_dependency_change: 1, handle_event: 2)
+      defoverridable(on_init: 1)
 
       def call(message), do: GenServerDependency.call(__MODULE__, message)
 

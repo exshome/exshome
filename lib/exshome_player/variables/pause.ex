@@ -7,9 +7,11 @@ defmodule ExshomePlayer.Variables.Pause do
 
   use Exshome.Variable,
     name: "player_pause",
-    dependencies: [{PlayerState, :player}]
+    subscribe: [
+      dependencies: [{PlayerState, :player}]
+    ]
 
-  @impl Workflow
+  @impl Subscription
   def handle_dependency_change(%DependencyState{deps: %{player: %PlayerState{} = player}} = state) do
     player_has_track = !player.path
     update_value(state, player_has_track || player.pause)

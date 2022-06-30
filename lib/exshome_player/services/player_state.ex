@@ -10,8 +10,10 @@ defmodule ExshomePlayer.Services.PlayerState do
 
   use Exshome.Dependency.GenServerDependency,
     name: "mpv_client",
-    dependencies: [{MpvSocket, :socket}],
-    events: [MpvEvent]
+    subscribe: [
+      dependencies: [{MpvSocket, :socket}],
+      events: [MpvEvent]
+    ]
 
   @keys [
     :path,
@@ -33,7 +35,7 @@ defmodule ExshomePlayer.Services.PlayerState do
           metadata: map() | nil
         }
 
-  @impl Workflow
+  @impl Subscription
   def handle_dependency_change(%DependencyState{} = state) do
     if state.deps.socket == :connected do
       subscribe_to_player_state()
@@ -43,7 +45,7 @@ defmodule ExshomePlayer.Services.PlayerState do
     end
   end
 
-  @impl Workflow
+  @impl Subscription
   def handle_event(
         %MpvEvent{type: "property-change", data: %{"name" => name} = event},
         %DependencyState{value: %PlayerState{} = value} = state

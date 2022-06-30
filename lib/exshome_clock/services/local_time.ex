@@ -5,12 +5,14 @@ defmodule ExshomeClock.Services.LocalTime do
   """
   use Exshome.Dependency.GenServerDependency,
     name: "local_time",
-    dependencies: [
-      {ExshomeClock.Services.UtcTime, :utc_time},
-      {ExshomeClock.Settings.ClockSettings, :settings}
+    subscribe: [
+      dependencies: [
+        {ExshomeClock.Services.UtcTime, :utc_time},
+        {ExshomeClock.Settings.ClockSettings, :settings}
+      ]
     ]
 
-  @impl Workflow
+  @impl Subscription
   def handle_dependency_change(%DependencyState{deps: deps} = state) do
     value =
       DateTime.shift_zone!(

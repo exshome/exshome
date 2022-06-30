@@ -1,13 +1,13 @@
-defmodule Exshome.Dependency.GenServerDependency.Workflow do
+defmodule Exshome.Dependency.GenServerDependency.Subscription do
   @moduledoc """
-  Default workflow for GenServerDependency.
+  Subsription workflow for GenServerDependency.
   """
   alias Exshome.Dependency
   alias Exshome.Dependency.GenServerDependency.DependencyState
   alias Exshome.Dependency.GenServerDependency.Lifecycle
   alias Exshome.Event
 
-  @behaviour Lifecycle
+  use Lifecycle, key: :subscribe
 
   @callback update_data(DependencyState.t(), (any() -> any())) :: DependencyState.t()
   @callback update_value(DependencyState.t(), value :: any()) :: DependencyState.t()
@@ -16,8 +16,8 @@ defmodule Exshome.Dependency.GenServerDependency.Workflow do
 
   @impl Lifecycle
   def on_init(%DependencyState{module: module} = state) do
-    dependencies = module.__dependency_config__()[:dependencies] || []
-    events = module.__dependency_config__()[:events] || []
+    dependencies = get_config(module)[:dependencies] || []
+    events = get_config(module)[:events] || []
 
     state
     |> subscribe_to_dependencies(dependencies)
@@ -110,10 +110,68 @@ defmodule Exshome.Dependency.GenServerDependency.Workflow do
   @spec handle_dependency_info(any(), DependencyState.t()) :: DependencyState.t()
   def handle_dependency_info({dependency, value}, %DependencyState{} = state) do
     key =
-      state.module.__dependency_config__()[:dependencies]
+      state.module
+      |> get_config()
+      |> Keyword.fetch!(:dependencies)
       |> Keyword.fetch!(dependency)
 
     put_in(state.deps[key], value)
     |> handle_dependency_change()
+  end
+
+  def validate_module!(%Macro.Env{module: module}, _) do
+    module
+    |> get_config()
+    |> NimbleOptions.validate!(
+      dependencies: [
+        type: :keyword_list,
+        keys: [
+          *: [
+            type: :atom
+          ]
+        ]
+      ],
+      events: [
+        type: {:list, :atom}
+      ]
+    )
+  end
+
+  defmacro __using__(_opts) do
+    quote do
+      alias Exshome.Dependency.GenServerDependency.Subscription
+      import Exshome.Dependency.GenServerDependency.Lifecycle, only: [register_hook_module: 1]
+      register_hook_module(Subscription)
+
+      @after_compile {Subscription, :validate_module!}
+      @behaviour Subscription
+
+      @impl Subscription
+      defdelegate update_value(state, value), to: Subscription
+      @impl Subscription
+      defdelegate update_data(state, data_fn), to: Subscription
+
+      @impl Subscription
+      def handle_dependency_change(state) do
+        Logger.warn("""
+        Some module dependency changed.
+        Please implement handle_dependency_change/1 callback for #{state.module}
+        """)
+
+        state
+      end
+
+      @impl Subscription
+      def handle_event(event, %DependencyState{} = state) do
+        Logger.warn("""
+        Received unexpected event #{inspect(event)},
+        Please implement handle_event/2 callback for #{state.module}
+        """)
+
+        state
+      end
+
+      defoverridable(handle_dependency_change: 1, handle_event: 2)
+    end
   end
 end

@@ -9,9 +9,11 @@ defmodule ExshomePlayer.Services.Playlist do
   alias ExshomePlayer.Variables.Title
 
   use Exshome.Dependency.GenServerDependency,
-    dependencies: [{Title, :title}],
-    events: [PlayerFileEnd, TrackEvent],
-    name: "playlist"
+    name: "playlist",
+    subscribe: [
+      dependencies: [{Title, :title}],
+      events: [PlayerFileEnd, TrackEvent]
+    ]
 
   defstruct [:current_id, tracks: []]
 
@@ -50,7 +52,7 @@ defmodule ExshomePlayer.Services.Playlist do
     update_playlist(state, fn _ -> %Data{previous: Enum.reverse(Track.list())} end)
   end
 
-  @impl Workflow
+  @impl Subscription
   def handle_dependency_change(
         %DependencyState{
           data: %Data{next: [%Track{type: :file} = track | _]},
@@ -108,7 +110,7 @@ defmodule ExshomePlayer.Services.Playlist do
     {:reply, :ok, state}
   end
 
-  @impl Workflow
+  @impl Subscription
   def handle_event(%PlayerFileEnd{reason: reason}, %DependencyState{} = state)
       when reason in ["eof", "error"] do
     state

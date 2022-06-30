@@ -7,9 +7,11 @@ defmodule ExshomePlayer.Variables.Path do
 
   use Exshome.Variable,
     name: "player_path",
-    dependencies: [{PlayerState, :player}]
+    subscribe: [
+      dependencies: [{PlayerState, :player}]
+    ]
 
-  @impl Workflow
+  @impl Subscription
   def handle_dependency_change(%DependencyState{deps: %{player: %PlayerState{} = player}} = state) do
     update_value(state, player.path || "")
   end

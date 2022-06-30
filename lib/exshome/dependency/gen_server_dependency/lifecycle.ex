@@ -86,4 +86,19 @@ defmodule Exshome.Dependency.GenServerDependency.Lifecycle do
       {:stop, _response} = result -> result
     end
   end
+
+  defmacro __using__(key: key) when is_atom(key) do
+    if key == :name, do: raise("Unable to create lifecycle with key #{inspect(key)}")
+
+    quote do
+      alias Exshome.Dependency.GenServerDependency.Lifecycle
+      @behaviour Lifecycle
+
+      def get_config(module) do
+        module.__config__()
+        |> Keyword.get(:hooks, [])
+        |> Keyword.get(unquote(key), [])
+      end
+    end
+  end
 end

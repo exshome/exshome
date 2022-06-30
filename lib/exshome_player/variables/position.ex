@@ -7,9 +7,11 @@ defmodule ExshomePlayer.Variables.Position do
 
   use Exshome.Variable,
     name: "player_position",
-    dependencies: [{PlayerState, :player}]
+    subscribe: [
+      dependencies: [{PlayerState, :player}]
+    ]
 
-  @impl Workflow
+  @impl Subscription
   def handle_dependency_change(%DependencyState{deps: %{player: %PlayerState{} = player}} = state) do
     position = round(player.time_pos || 0)
 

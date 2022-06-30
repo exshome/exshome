@@ -7,9 +7,11 @@ defmodule ExshomePlayer.Variables.Volume do
 
   use Exshome.Variable,
     name: "player_volume",
-    dependencies: [{PlayerState, :player}]
+    subscribe: [
+      dependencies: [{PlayerState, :player}]
+    ]
 
-  @impl Workflow
+  @impl Subscription
   def handle_dependency_change(%DependencyState{deps: %{player: %PlayerState{} = player}} = state) do
     volume = round(player.volume || 0)
 
