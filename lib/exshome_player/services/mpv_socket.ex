@@ -23,15 +23,6 @@ defmodule ExshomePlayer.Services.MpvSocket do
     call({:send_command, data})
   end
 
-  defmodule Opts do
-    @moduledoc """
-    Initial arguments for MPV socket.
-    """
-    defstruct [:reconnect_interval]
-
-    @type t() :: %__MODULE__{reconnect_interval: non_neg_integer()}
-  end
-
   defmodule Data do
     @moduledoc """
     A structure for storing internal state for the MPV socket.
@@ -43,13 +34,6 @@ defmodule ExshomePlayer.Services.MpvSocket do
             counter: integer(),
             requests: %{integer() => GenServer.from()}
           }
-  end
-
-  @impl GenServerDependency
-  def parse_opts(%{} = opts) do
-    %Opts{
-      reconnect_interval: opts[:reconnect_interval] || 100
-    }
   end
 
   @impl GenServerDependency
@@ -171,7 +155,7 @@ defmodule ExshomePlayer.Services.MpvSocket do
     Process.send_after(
       self(),
       :reconnect,
-      state.opts.reconnect_interval
+      state.opts[:reconnect_interval] || 100
     )
 
     state

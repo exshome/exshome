@@ -9,7 +9,6 @@ defmodule Exshome.Dependency.GenServerDependency do
   alias Exshome.Dependency.GenServerDependency.Lifecycle
   alias Exshome.Event
 
-  @callback parse_opts(map()) :: any()
   @callback update_value(DependencyState.t(), value :: any()) :: DependencyState.t()
   @callback handle_dependency_change(DependencyState.t()) :: DependencyState.t()
   @callback handle_event(Event.event_message(), DependencyState.t()) :: DependencyState.t()
@@ -41,9 +40,7 @@ defmodule Exshome.Dependency.GenServerDependency do
 
     {module, opts} = Map.pop!(opts, :module)
 
-    parsed_opts = module.parse_opts(opts)
-
-    state = Lifecycle.on_init(%DependencyState{module: module, deps: %{}, opts: parsed_opts})
+    state = Lifecycle.on_init(%DependencyState{module: module, deps: %{}, opts: opts})
 
     {:ok, state, {:continue, :on_init}}
   end
@@ -212,8 +209,6 @@ defmodule Exshome.Dependency.GenServerDependency do
       def get_value, do: GenServerDependency.get_value(__MODULE__)
 
       @impl GenServerDependency
-      def parse_opts(opts), do: opts
-      @impl GenServerDependency
       def on_init(state), do: state
 
       @impl GenServerDependency
@@ -236,7 +231,7 @@ defmodule Exshome.Dependency.GenServerDependency do
         state
       end
 
-      defoverridable(parse_opts: 1, on_init: 1, handle_dependency_change: 1, handle_event: 2)
+      defoverridable(on_init: 1, handle_dependency_change: 1, handle_event: 2)
 
       def call(message), do: GenServerDependency.call(__MODULE__, message)
 

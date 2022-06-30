@@ -2,6 +2,8 @@
 
 ## v0.2.0
   * Move GenServerDependencySupervisor to own file.
+  * Create GenServerDependency hooks.
+  * Remove parse_opts/1 callback from GenServerDependency.
 
 ## v0.1.7 (2022-06-28)
   * Create database if it does not exist before migraions.

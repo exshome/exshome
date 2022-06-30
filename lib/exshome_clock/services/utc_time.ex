@@ -4,30 +4,9 @@ defmodule ExshomeClock.Services.UtcTime do
   """
   use Exshome.Dependency.GenServerDependency, name: "utc_time"
 
-  defmodule Opts do
-    @moduledoc """
-    UtcTimeService options.
-    """
-
-    defstruct [:refresh_interval, :precision]
-
-    @type t() :: %__MODULE__{
-            refresh_interval: non_neg_integer(),
-            precision: :microsecond | :millisecond | :second
-          }
-  end
-
   @impl GenServerDependency
   def on_init(state) do
     schedule_next_tick(state)
-  end
-
-  @impl GenServerDependency
-  def parse_opts(opts) do
-    %Opts{
-      refresh_interval: opts[:refresh_interval] || 200,
-      precision: opts[:precision] || :second
-    }
   end
 
   @impl GenServerDependency
@@ -36,13 +15,13 @@ defmodule ExshomeClock.Services.UtcTime do
     {:noreply, new_state}
   end
 
-  def schedule_next_tick(%DependencyState{opts: %Opts{} = opts} = state) do
-    update_interval = opts.refresh_interval
+  def schedule_next_tick(%DependencyState{} = state) do
+    update_interval = refresh_interval(state)
     Process.send_after(self(), :tick, update_interval)
-    update_value(state, prepare_value(opts))
+    new_value = DateTime.truncate(DateTime.utc_now(), precision(state))
+    update_value(state, new_value)
   end
 
-  def prepare_value(%Opts{precision: precision}) do
-    DateTime.truncate(DateTime.utc_now(), precision)
-  end
+  defp refresh_interval(%DependencyState{opts: opts}), do: opts[:refresh_interval] || 200
+  defp precision(%DependencyState{opts: opts}), do: opts[:precision] || :second
 end
