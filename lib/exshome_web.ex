@@ -54,8 +54,9 @@ defmodule ExshomeWeb do
         container: {:div, [class: "h-full"]},
         layout: {ExshomeWeb.LayoutView, "live.html"}
 
-      for module <-
-            Application.compile_env(:exshome, :live_view_hooks, []) ++ [ExshomeWeb.Live.Modal] do
+      extra_hooks = Application.compile_env(:exshome, :hooks, [])[:live_view] || []
+
+      for module <- extra_hooks ++ [ExshomeWeb.Live.Modal] do
         on_mount module
       end
 

@@ -3,7 +3,7 @@ defmodule Exshome.Repo do
     otp_app: :exshome,
     adapter: Ecto.Adapters.SQLite3
 
-  @hook_module Application.compile_env(:exshome, :repo_hook_module)
+  @hook_module Application.compile_env(:exshome, :hooks, [])[__MODULE__]
   if @hook_module do
     defoverridable(get_dynamic_repo: 0, put_dynamic_repo: 1)
 

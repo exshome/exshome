@@ -27,7 +27,7 @@ defmodule ExshomeTest.TestRegistry do
   end
 
   def get(key) do
-    lookup({__MODULE__, :value, get_parent(), key})
+    SystemRegistry.get({__MODULE__, :value, get_parent(), key})
   end
 
   @spec start_dependency(module :: module(), opts :: map()) :: :ok
@@ -48,24 +48,11 @@ defmodule ExshomeTest.TestRegistry do
     |> Map.put_new(:name, nil)
   end
 
-  @spec get_dependency_pid(module()) :: pid() | nil
-  def get_dependency_pid(module) do
-    case get({:dependency, module}) do
-      {:ok, value} -> value
-      _ -> nil
-    end
-  end
-
   @spec get_parent() :: pid()
   def get_parent do
     get_parent(self())
   end
 
   @spec get_parent(pid()) :: pid()
-  def get_parent(pid) do
-    {:ok, parent} = lookup({__MODULE__, :parent, pid})
-    parent
-  end
-
-  defp lookup(key), do: SystemRegistry.get(key)
+  def get_parent(pid), do: SystemRegistry.get!({__MODULE__, :parent, pid})
 end

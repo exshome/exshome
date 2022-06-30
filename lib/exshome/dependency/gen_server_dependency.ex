@@ -7,6 +7,7 @@ defmodule Exshome.Dependency.GenServerDependency do
   alias Exshome.Dependency
   alias Exshome.Dependency.GenServerDependency.DependencyState
   alias Exshome.Dependency.GenServerDependency.Lifecycle
+  alias Exshome.SystemRegistry
 
   @callback on_init(DependencyState.t()) :: DependencyState.t()
   @callback handle_info(message :: any(), DependencyState.t()) ::
@@ -36,6 +37,11 @@ defmodule Exshome.Dependency.GenServerDependency do
 
     {dependency, opts} = Map.pop!(opts, :dependency)
 
+    :ok =
+      dependency
+      |> dependency_key()
+      |> SystemRegistry.put!(self())
+
     state = Lifecycle.on_init(%DependencyState{dependency: dependency, deps: %{}, opts: opts})
 
     {:ok, state, {:continue, :on_init}}
@@ -44,6 +50,7 @@ defmodule Exshome.Dependency.GenServerDependency do
   @impl GenServer
   def handle_continue(:on_init, %DependencyState{} = state) do
     new_state = Dependency.dependency_module(state.dependency).on_init(state)
+
     {:noreply, new_state}
   end
 
@@ -71,16 +78,22 @@ defmodule Exshome.Dependency.GenServerDependency do
     Lifecycle.handle_stop(reason, state)
   end
 
-  @spec get_pid(atom() | pid()) :: pid() | nil
-  defp get_pid(server) when is_atom(server), do: Process.whereis(server)
-
-  defp get_pid(server) when is_pid(server) do
-    if Process.alive?(server), do: server, else: nil
+  @spec get_pid(Dependency.dependency()) :: pid() | nil
+  defp get_pid(dependency) do
+    dependency
+    |> dependency_key()
+    |> SystemRegistry.get()
+    |> case do
+      {:ok, pid} -> pid
+      _ -> nil
+    end
   end
 
-  @spec get_value(GenServer.server()) :: any()
-  def get_value(server) do
-    call(server, :get_value)
+  defp dependency_key(dependency), do: {__MODULE__, dependency}
+
+  @spec get_value(Dependency.dependency()) :: any()
+  def get_value(dependency) do
+    call(dependency, :get_value)
   end
 
   @spec call(GenServer.server(), any()) :: any()
@@ -91,10 +104,10 @@ defmodule Exshome.Dependency.GenServerDependency do
     end
   end
 
-  @hook_module Application.compile_env(:exshome, :dependency_hook_module)
+  @hook_module Application.compile_env(:exshome, :hooks, [])[__MODULE__]
   if @hook_module do
-    defoverridable(get_pid: 1)
-    defdelegate get_pid(server), to: @hook_module
+    defoverridable(dependency_key: 1)
+    defdelegate dependency_key(dependency), to: @hook_module
     defoverridable(init: 1)
 
     def init(opts) do

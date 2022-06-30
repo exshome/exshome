@@ -130,7 +130,7 @@ defmodule ExshomeWeb.Live.AppPage do
     end
   end
 
-  @hook_module Application.compile_env(:exshome, :app_page_hook_module)
+  @hook_module Application.compile_env(:exshome, :hooks, [])[__MODULE__]
   if @hook_module do
     defoverridable(handle_info: 2)
 

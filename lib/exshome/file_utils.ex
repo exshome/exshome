@@ -35,7 +35,7 @@ defmodule Exshome.FileUtils do
     expected_folder
   end
 
-  @hook_module Application.compile_env(:exshome, :file_utils_hook_module)
+  @hook_module Application.compile_env(:exshome, :hooks, [])[__MODULE__]
   if @hook_module do
     defoverridable(root_folder: 0)
     defdelegate root_folder, to: @hook_module

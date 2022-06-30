@@ -5,10 +5,9 @@ defmodule ExshomeTest.Hooks.Dependency do
 
   alias ExshomeTest.TestRegistry
 
-  def get_pid(server) when is_pid(server), do: server
-
-  def get_pid(server) when is_atom(server) do
-    TestRegistry.get_dependency_pid(server)
+  def dependency_key(dependency) do
+    parent = TestRegistry.get_parent()
+    {__MODULE__, parent, dependency}
   end
 
   def init(opts) do

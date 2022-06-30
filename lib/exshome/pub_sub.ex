@@ -24,7 +24,7 @@ defmodule Exshome.PubSub do
     topic
   end
 
-  @hook_module Application.compile_env(:exshome, :pub_sub_hook_module)
+  @hook_module Application.compile_env(:exshome, :hooks, [])[__MODULE__]
   if @hook_module do
     defoverridable(topic_name: 1)
     defdelegate topic_name(topic), to: @hook_module

@@ -14,13 +14,17 @@ config :exshome, ExshomeWeb.Endpoint,
   server: false
 
 config :exshome, :environment, :test
-config :exshome, :app_page_hook_module, ExshomeTest.Hooks.AppPage
-config :exshome, :dependency_hook_module, ExshomeTest.Hooks.Dependency
-config :exshome, :file_utils_hook_module, ExshomeTest.Hooks.FileUtils
-config :exshome, :mpv_server_hook_module, ExshomeTest.Hooks.MpvServer
-config :exshome, :pub_sub_hook_module, ExshomeTest.Hooks.PubSub
-config :exshome, :repo_hook_module, ExshomeTest.Hooks.Repo
-config :exshome, :live_view_hooks, [ExshomeTest.Hooks.LiveView]
+
+config :exshome,
+  hooks: [
+    {ExshomeWeb.Live.AppPage, ExshomeTest.Hooks.AppPage},
+    {Exshome.Dependency.GenServerDependency, ExshomeTest.Hooks.Dependency},
+    {Exshome.FileUtils, ExshomeTest.Hooks.FileUtils},
+    {ExshomePlayer.Services.MpvServer, ExshomeTest.Hooks.MpvServer},
+    {Exshome.PubSub, ExshomeTest.Hooks.PubSub},
+    {Exshome.Repo, ExshomeTest.Hooks.Repo},
+    {:live_view, [ExshomeTest.Hooks.LiveView]}
+  ]
 
 config :exshome, :application_children, []
 

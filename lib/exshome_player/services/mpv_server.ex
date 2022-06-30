@@ -85,7 +85,7 @@ defmodule ExshomePlayer.Services.MpvServer do
     ]
   end
 
-  @hook_module Application.compile_env(:exshome, :mpv_server_hook_module)
+  @hook_module Application.compile_env(:exshome, :hooks, [])[__MODULE__]
   if @hook_module do
     defoverridable(mpv_server_command: 1)
     defdelegate mpv_server_command(program), to: @hook_module
