@@ -64,7 +64,12 @@ defmodule ExshomePlayer.Services.Playlist do
     state
   end
 
-  def handle_dependency_change(%DependencyState{value: Dependency.NotReady} = state) do
+  def handle_dependency_change(
+        %DependencyState{
+          data: %Data{},
+          value: Dependency.NotReady
+        } = state
+      ) do
     refresh_playlist(state)
   end
 

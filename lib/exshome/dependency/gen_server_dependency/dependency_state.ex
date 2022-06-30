@@ -2,11 +2,12 @@ defmodule Exshome.Dependency.GenServerDependency.DependencyState do
   @moduledoc """
   Inner state for each dependency.
   """
+  alias Exshome.Dependency
 
-  defstruct [:module, :opts, :deps, :data, value: Dependency.NotReady]
+  defstruct [:dependency, :opts, :deps, :data, value: Dependency.NotReady]
 
   @type t() :: %__MODULE__{
-          module: module(),
+          dependency: Dependency.dependency(),
           deps: map(),
           data: any(),
           opts: any(),

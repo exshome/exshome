@@ -25,8 +25,8 @@ defmodule Exshome.Dependency.GenServerDependency do
   @optional_callbacks handle_info: 2, handle_call: 3
 
   @spec start_link(map()) :: GenServer.on_start()
-  def start_link(%{module: module} = opts) do
-    {name, opts} = Map.pop(opts, :name, module)
+  def start_link(%{dependency: dependency} = opts) do
+    {name, opts} = Map.pop(opts, :name, dependency)
     GenServer.start_link(__MODULE__, opts, name: name)
   end
 
@@ -34,24 +34,27 @@ defmodule Exshome.Dependency.GenServerDependency do
   def init(opts) do
     Process.flag(:trap_exit, true)
 
-    {module, opts} = Map.pop!(opts, :module)
+    {dependency, opts} = Map.pop!(opts, :dependency)
 
-    state = Lifecycle.on_init(%DependencyState{module: module, deps: %{}, opts: opts})
+    state = Lifecycle.on_init(%DependencyState{dependency: dependency, deps: %{}, opts: opts})
 
     {:ok, state, {:continue, :on_init}}
   end
 
   @impl GenServer
   def handle_continue(:on_init, %DependencyState{} = state) do
-    new_state = state.module.on_init(state)
+    new_state = Dependency.dependency_module(state.dependency).on_init(state)
     {:noreply, new_state}
   end
 
   @impl GenServer
   def handle_call(message, from, %DependencyState{} = state) do
     case Lifecycle.handle_call(message, from, state) do
-      {:stop, {value, state}} -> {:reply, value, state}
-      {:cont, state} -> state.module.handle_call(message, from, state)
+      {:stop, {value, state}} ->
+        {:reply, value, state}
+
+      {:cont, state} ->
+        Dependency.dependency_module(state.dependency).handle_call(message, from, state)
     end
   end
 
@@ -59,7 +62,7 @@ defmodule Exshome.Dependency.GenServerDependency do
   def handle_info(message, %DependencyState{} = state) do
     case Lifecycle.handle_info(message, state) do
       {:stop, state} -> {:noreply, state}
-      {:cont, state} -> state.module.handle_info(message, state)
+      {:cont, state} -> Dependency.dependency_module(state.dependency).handle_info(message, state)
     end
   end
 
@@ -184,7 +187,7 @@ defmodule Exshome.Dependency.GenServerDependency do
       end
 
       defp update_opts(%{} = opts) do
-        Map.merge(opts, %{module: __MODULE__})
+        Map.merge(opts, %{dependency: __MODULE__})
       end
     end
   end

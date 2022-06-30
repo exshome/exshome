@@ -15,9 +15,14 @@ defmodule Exshome.Dependency.GenServerDependency.Subscription do
   @callback handle_event(Event.event_message(), DependencyState.t()) :: DependencyState.t()
 
   @impl Lifecycle
-  def on_init(%DependencyState{module: module} = state) do
-    dependencies = get_config(module)[:dependencies] || []
-    events = get_config(module)[:events] || []
+  def on_init(%DependencyState{dependency: dependency} = state) do
+    config =
+      dependency
+      |> Dependency.dependency_module()
+      |> get_config()
+
+    dependencies = config[:dependencies] || []
+    events = config[:events] || []
 
     state
     |> subscribe_to_dependencies(dependencies)
@@ -39,7 +44,7 @@ defmodule Exshome.Dependency.GenServerDependency.Subscription do
 
   @impl Lifecycle
   def handle_info({Event, event}, %DependencyState{} = state) do
-    new_state = state.module.handle_event(event, state)
+    new_state = Dependency.dependency_module(state.dependency).handle_event(event, state)
     {:stop, new_state}
   end
 
@@ -47,8 +52,8 @@ defmodule Exshome.Dependency.GenServerDependency.Subscription do
   def handle_info(_message, %DependencyState{} = state), do: {:cont, state}
 
   @impl Lifecycle
-  def handle_stop(_reason, %DependencyState{module: module} = state) do
-    Dependency.broadcast_value(module, Dependency.NotReady)
+  def handle_stop(_reason, %DependencyState{dependency: dependency} = state) do
+    Dependency.broadcast_value(dependency, Dependency.NotReady)
     {:cont, state}
   end
 
@@ -87,7 +92,7 @@ defmodule Exshome.Dependency.GenServerDependency.Subscription do
     if missing_dependencies do
       update_value(state, Dependency.NotReady)
     else
-      state.module.handle_dependency_change(state)
+      Dependency.dependency_module(state.dependency).handle_dependency_change(state)
     end
   end
 
@@ -96,7 +101,7 @@ defmodule Exshome.Dependency.GenServerDependency.Subscription do
     old_value = state.value
 
     if value != old_value do
-      Dependency.broadcast_value(state.module, value)
+      Dependency.broadcast_value(state.dependency, value)
     end
 
     %DependencyState{state | value: value}
@@ -110,7 +115,8 @@ defmodule Exshome.Dependency.GenServerDependency.Subscription do
   @spec handle_dependency_info(any(), DependencyState.t()) :: DependencyState.t()
   def handle_dependency_info({dependency, value}, %DependencyState{} = state) do
     key =
-      state.module
+      state.dependency
+      |> Dependency.dependency_module()
       |> get_config()
       |> Keyword.fetch!(:dependencies)
       |> Keyword.fetch!(dependency)
@@ -153,9 +159,11 @@ defmodule Exshome.Dependency.GenServerDependency.Subscription do
 
       @impl Subscription
       def handle_dependency_change(state) do
+        module = Exshome.Dependency.dependency_module(state.dependency)
+
         Logger.warn("""
         Some module dependency changed.
-        Please implement handle_dependency_change/1 callback for #{state.module}
+        Please implement handle_dependency_change/1 callback for #{module}
         """)
 
         state
@@ -163,9 +171,11 @@ defmodule Exshome.Dependency.GenServerDependency.Subscription do
 
       @impl Subscription
       def handle_event(event, %DependencyState{} = state) do
+        module = Exshome.Dependency.dependency_module(state.dependency)
+
         Logger.warn("""
         Received unexpected event #{inspect(event)},
-        Please implement handle_event/2 callback for #{state.module}
+        Please implement handle_event/2 callback for #{module}
         """)
 
         state

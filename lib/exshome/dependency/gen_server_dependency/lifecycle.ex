@@ -2,6 +2,7 @@ defmodule Exshome.Dependency.GenServerDependency.Lifecycle do
   @moduledoc """
   GenServerDependency lifecycle hooks.
   """
+  alias Exshome.Dependency
   alias Exshome.Dependency.GenServerDependency.DependencyState
 
   @type default_response :: {:cont, DependencyState.t()} | {:stop, DependencyState.t()}
@@ -64,7 +65,9 @@ defmodule Exshome.Dependency.GenServerDependency.Lifecycle do
     )
   end
 
-  defp hook_modules(%DependencyState{module: module}) when is_atom(module) do
+  defp hook_modules(%DependencyState{dependency: dependency}) do
+    module = Dependency.dependency_module(dependency)
+
     :attributes
     |> module.__info__()
     |> Keyword.get_values(@lifecycle_hooks)

@@ -38,6 +38,9 @@ defmodule Exshome.Dependency do
     Exshome.PubSub.broadcast(dependency.name(), {__MODULE__, {dependency, value}})
   end
 
+  @spec dependency_module(dependency()) :: module()
+  def dependency_module(module) when is_atom(module), do: module
+
   defp raise_if_not_dependency!(module) do
     module_has_correct_behaviour =
       Exshome.Tag.tag_mapping()
