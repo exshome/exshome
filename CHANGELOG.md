@@ -1,12 +1,13 @@
 # Changelog
 
 ## v0.2.0
-  * Move GenServerDependencySupervisor to own file.
-  * Create GenServerDependency hooks.
-  * Remove parse_opts/1 callback from GenServerDependency.
+  * Moved GenServerDependencySupervisor to own file.
+  * Created GenServerDependency hooks.
+  * Removed parse_opts/1 callback from GenServerDependency.
+  * Added system-wide registry.
 
 ## v0.1.7 (2022-06-28)
-  * Create database if it does not exist before migraions.
+  * Created database if it does not exist before migraions.
 
 ## v0.1.6 (2022-06-28)
   * Fixed manual track deletion.

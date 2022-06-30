@@ -29,7 +29,9 @@ defmodule Exshome.Application do
         # Start the Telemetry supervisor
         ExshomeWeb.Telemetry,
         # Start the PubSub system
-        {Phoenix.PubSub, name: Exshome.PubSub}
+        {Phoenix.PubSub, name: Exshome.PubSub},
+        # Start the System Registry
+        Exshome.SystemRegistry
         # Start a worker by calling: Exshome.Worker.start_link(arg)
         # {Exshome.Worker, arg}
       ] ++

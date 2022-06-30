@@ -22,9 +22,7 @@ config :exshome, :pub_sub_hook_module, ExshomeTest.Hooks.PubSub
 config :exshome, :repo_hook_module, ExshomeTest.Hooks.Repo
 config :exshome, :live_view_hooks, [ExshomeTest.Hooks.LiveView]
 
-config :exshome, :application_children, [
-  ExshomeTest.TestRegistry
-]
+config :exshome, :application_children, []
 
 # Print only warnings and errors during test
 config :logger, level: :warn

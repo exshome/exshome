@@ -2,26 +2,20 @@ defmodule ExshomeTest.TestRegistry do
   @moduledoc """
   Registry for async tests.
   """
-
-  @spec child_spec(opts :: any()) :: Supervisor.child_spec()
-  def child_spec(_opts) do
-    Registry.child_spec(keys: :unique, name: __MODULE__)
-  end
+  alias Exshome.SystemRegistry
 
   @spec started?() :: boolean()
-  def started?, do: !!Process.whereis(__MODULE__)
+  def started?, do: !!Process.whereis(SystemRegistry)
 
   @spec allow(parent :: pid(), allow :: pid()) :: :ok
   def allow(parent, allow) when is_pid(parent) and is_pid(allow) do
-    {:ok, _} = Registry.register(__MODULE__, {:parent, allow}, parent)
-    :ok
+    :ok = SystemRegistry.put!({__MODULE__, :parent, allow}, parent)
   end
 
   @spec put(key :: any(), value :: any()) :: :ok
   def put(key, value) do
     parent = get_parent()
-    {:ok, _} = Registry.register(__MODULE__, {:value, parent, key}, value)
-    :ok
+    :ok = SystemRegistry.put!({__MODULE__, :value, parent, key}, value)
   end
 
   @spec get!(key :: any()) :: any()
@@ -33,7 +27,7 @@ defmodule ExshomeTest.TestRegistry do
   end
 
   def get(key) do
-    lookup({:value, get_parent(), key})
+    lookup({__MODULE__, :value, get_parent(), key})
   end
 
   @spec start_dependency(module :: module(), opts :: map()) :: :ok
@@ -69,14 +63,9 @@ defmodule ExshomeTest.TestRegistry do
 
   @spec get_parent(pid()) :: pid()
   def get_parent(pid) do
-    {:ok, parent} = lookup({:parent, pid})
+    {:ok, parent} = lookup({__MODULE__, :parent, pid})
     parent
   end
 
-  defp lookup(key) do
-    case Registry.lookup(__MODULE__, key) do
-      [{_, value}] -> {:ok, value}
-      _ -> {:error, "Unable to find a value for a key #{inspect(key)}"}
-    end
-  end
+  defp lookup(key), do: SystemRegistry.get(key)
 end
