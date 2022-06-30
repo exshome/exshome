@@ -6,6 +6,7 @@
   * Removed parse_opts/1 callback from GenServerDependency.
   * Added system-wide registry.
   * Added ExshomeDependency.dependency_module/1 function.
+  * Use SystemRegistry for TestRegistry.
 
 ## v0.1.7 (2022-06-28)
   * Created database if it does not exist before migraions.
