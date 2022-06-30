@@ -9,7 +9,7 @@ defmodule ExshomePlayer.Variables.Path do
     name: "player_path",
     dependencies: [{PlayerState, :player}]
 
-  @impl GenServerDependency
+  @impl Workflow
   def handle_dependency_change(%DependencyState{deps: %{player: %PlayerState{} = player}} = state) do
     update_value(state, player.path || "")
   end

@@ -9,6 +9,11 @@ defmodule Exshome.Dependency.GenServerDependency.Workflow do
 
   @behaviour Lifecycle
 
+  @callback update_data(DependencyState.t(), (map() -> map())) :: DependencyState.t()
+  @callback update_value(DependencyState.t(), value :: any()) :: DependencyState.t()
+  @callback handle_dependency_change(DependencyState.t()) :: DependencyState.t()
+  @callback handle_event(Event.event_message(), DependencyState.t()) :: DependencyState.t()
+
   @impl Lifecycle
   def on_init(%DependencyState{module: module} = state) do
     dependencies = module.__dependency_config__()[:dependencies] || []
@@ -95,6 +100,11 @@ defmodule Exshome.Dependency.GenServerDependency.Workflow do
     end
 
     %DependencyState{state | value: value}
+  end
+
+  @spec update_data(DependencyState.t(), (any() -> any())) :: DependencyState.t()
+  def update_data(%DependencyState{} = state, update_fn) do
+    %DependencyState{state | data: update_fn.(state.data)}
   end
 
   @spec handle_dependency_info(any(), DependencyState.t()) :: DependencyState.t()

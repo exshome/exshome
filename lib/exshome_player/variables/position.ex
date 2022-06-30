@@ -9,7 +9,7 @@ defmodule ExshomePlayer.Variables.Position do
     name: "player_position",
     dependencies: [{PlayerState, :player}]
 
-  @impl GenServerDependency
+  @impl Workflow
   def handle_dependency_change(%DependencyState{deps: %{player: %PlayerState{} = player}} = state) do
     position = round(player.time_pos || 0)
 

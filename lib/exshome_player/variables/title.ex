@@ -9,7 +9,7 @@ defmodule ExshomePlayer.Variables.Title do
     name: "player_title",
     dependencies: [{PlayerState, :player}]
 
-  @impl GenServerDependency
+  @impl Workflow
   def handle_dependency_change(%DependencyState{deps: %{player: %PlayerState{} = player}} = state) do
     title = extract_title(player.metadata)
     update_value(state, title)

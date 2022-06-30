@@ -7,11 +7,7 @@ defmodule Exshome.Dependency.GenServerDependency do
   alias Exshome.Dependency
   alias Exshome.Dependency.GenServerDependency.DependencyState
   alias Exshome.Dependency.GenServerDependency.Lifecycle
-  alias Exshome.Event
 
-  @callback update_value(DependencyState.t(), value :: any()) :: DependencyState.t()
-  @callback handle_dependency_change(DependencyState.t()) :: DependencyState.t()
-  @callback handle_event(Event.event_message(), DependencyState.t()) :: DependencyState.t()
   @callback on_init(DependencyState.t()) :: DependencyState.t()
   @callback handle_info(message :: any(), DependencyState.t()) ::
               {:noreply, new_state}
@@ -92,36 +88,6 @@ defmodule Exshome.Dependency.GenServerDependency do
     end
   end
 
-  @spec update_value(DependencyState.t(), value :: any()) :: DependencyState.t()
-  def update_value(%DependencyState{} = state, value) do
-    old_value = state.value
-
-    if value != old_value do
-      Dependency.broadcast_value(state.module, value)
-    end
-
-    %DependencyState{state | value: value}
-  end
-
-  @spec update_data(DependencyState.t(), (any() -> any())) :: DependencyState.t()
-  def update_data(%DependencyState{} = state, update_fn) do
-    %DependencyState{state | data: update_fn.(state.data)}
-  end
-
-  @spec handle_dependency_change(DependencyState.t()) :: DependencyState.t()
-  def handle_dependency_change(%DependencyState{deps: deps} = state) do
-    missing_dependencies =
-      deps
-      |> Map.values()
-      |> Enum.any?(&(&1 == Dependency.NotReady))
-
-    if missing_dependencies do
-      update_value(state, Dependency.NotReady)
-    else
-      state.module.handle_dependency_change(state)
-    end
-  end
-
   @hook_module Application.compile_env(:exshome, :dependency_hook_module)
   if @hook_module do
     defoverridable(get_pid: 1)
@@ -181,12 +147,13 @@ defmodule Exshome.Dependency.GenServerDependency do
   defmacro __using__(config) do
     quote do
       require Logger
-      alias unquote(__MODULE__)
-      alias unquote(__MODULE__).DependencyState
+      alias Exshome.Dependency.GenServerDependency
+      alias Exshome.Dependency.GenServerDependency.DependencyState
+      alias Exshome.Dependency.GenServerDependency.Workflow
       use Exshome.Dependency
       use Exshome.Named, "dependency:#{unquote(config[:name])}"
       import Exshome.Dependency.GenServerDependency.Lifecycle, only: [register_hook_module: 1]
-      register_hook_module(unquote(__MODULE__).Workflow)
+      register_hook_module(Workflow)
 
       app_module =
         __MODULE__
@@ -198,12 +165,14 @@ defmodule Exshome.Dependency.GenServerDependency do
 
       @after_compile {GenServerDependency, :validate_module!}
       @behaviour GenServerDependency
+      @behaviour Workflow
 
       def __dependency_config__, do: unquote(config)
 
-      @impl GenServerDependency
-      defdelegate update_value(state, value), to: GenServerDependency
-      defdelegate update_data(state, data_fn), to: GenServerDependency
+      @impl Workflow
+      defdelegate update_value(state, value), to: Workflow
+      @impl Workflow
+      defdelegate update_data(state, data_fn), to: Workflow
 
       @impl Exshome.Dependency
       def get_value, do: GenServerDependency.get_value(__MODULE__)
@@ -211,7 +180,7 @@ defmodule Exshome.Dependency.GenServerDependency do
       @impl GenServerDependency
       def on_init(state), do: state
 
-      @impl GenServerDependency
+      @impl Workflow
       def handle_dependency_change(state) do
         Logger.warn("""
         Some module dependency changed.
@@ -221,7 +190,7 @@ defmodule Exshome.Dependency.GenServerDependency do
         state
       end
 
-      @impl GenServerDependency
+      @impl Workflow
       def handle_event(event, %DependencyState{} = state) do
         Logger.warn("""
         Received unexpected event #{inspect(event)},

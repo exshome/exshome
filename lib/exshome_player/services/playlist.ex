@@ -50,7 +50,7 @@ defmodule ExshomePlayer.Services.Playlist do
     update_playlist(state, fn _ -> %Data{previous: Enum.reverse(Track.list())} end)
   end
 
-  @impl GenServerDependency
+  @impl Workflow
   def handle_dependency_change(
         %DependencyState{
           data: %Data{next: [%Track{type: :file} = track | _]},
@@ -104,7 +104,7 @@ defmodule ExshomePlayer.Services.Playlist do
     {:reply, :ok, state}
   end
 
-  @impl GenServerDependency
+  @impl Workflow
   def handle_event(%PlayerFileEnd{reason: reason}, %DependencyState{} = state)
       when reason in ["eof", "error"] do
     state

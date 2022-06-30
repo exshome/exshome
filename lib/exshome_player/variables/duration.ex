@@ -9,7 +9,7 @@ defmodule ExshomePlayer.Variables.Duration do
     name: "player_duration",
     dependencies: [{PlayerState, :player}]
 
-  @impl GenServerDependency
+  @impl Workflow
   def handle_dependency_change(%DependencyState{deps: %{player: %PlayerState{} = player}} = state) do
     duration = round(player.duration || 0)
 

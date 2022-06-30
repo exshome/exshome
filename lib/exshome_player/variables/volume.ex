@@ -9,7 +9,7 @@ defmodule ExshomePlayer.Variables.Volume do
     name: "player_volume",
     dependencies: [{PlayerState, :player}]
 
-  @impl GenServerDependency
+  @impl Workflow
   def handle_dependency_change(%DependencyState{deps: %{player: %PlayerState{} = player}} = state) do
     volume = round(player.volume || 0)
 
