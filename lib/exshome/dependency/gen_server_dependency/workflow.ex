@@ -9,7 +9,7 @@ defmodule Exshome.Dependency.GenServerDependency.Workflow do
 
   @behaviour Lifecycle
 
-  @callback update_data(DependencyState.t(), (map() -> map())) :: DependencyState.t()
+  @callback update_data(DependencyState.t(), (any() -> any())) :: DependencyState.t()
   @callback update_value(DependencyState.t(), value :: any()) :: DependencyState.t()
   @callback handle_dependency_change(DependencyState.t()) :: DependencyState.t()
   @callback handle_event(Event.event_message(), DependencyState.t()) :: DependencyState.t()

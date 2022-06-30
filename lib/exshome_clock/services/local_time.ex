@@ -10,7 +10,7 @@ defmodule ExshomeClock.Services.LocalTime do
       {ExshomeClock.Settings.ClockSettings, :settings}
     ]
 
-  @impl GenServerDependency
+  @impl Workflow
   def handle_dependency_change(%DependencyState{deps: deps} = state) do
     value =
       DateTime.shift_zone!(
