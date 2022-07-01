@@ -3,6 +3,7 @@ defmodule ExshomePlayer.Variables.Position do
   Playback position.
   """
 
+  alias ExshomePlayer.Services.Playback
   alias ExshomePlayer.Services.PlayerState
 
   use Exshome.Variable,
@@ -16,5 +17,11 @@ defmodule ExshomePlayer.Variables.Position do
     position = round(player.time_pos || 0)
 
     update_value(state, position)
+  end
+
+  @impl Variable
+  def set_value(%DependencyState{} = state, value) when is_integer(value) do
+    Playback.seek(value)
+    state
   end
 end

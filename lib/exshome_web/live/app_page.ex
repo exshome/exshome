@@ -59,6 +59,7 @@ defmodule ExshomeWeb.Live.AppPage do
     end
   end
 
+  @spec validate_module!(Macro.Env.t(), String.t()) :: keyword()
   def validate_module!(%Macro.Env{module: module}, _bytecode) do
     NimbleOptions.validate!(
       module.__config__(),

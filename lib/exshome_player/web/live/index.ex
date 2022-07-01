@@ -2,7 +2,8 @@ defmodule ExshomePlayer.Web.Live.Index do
   @moduledoc """
   Main player page.
   """
-  alias ExshomePlayer.Services.{Playback, Playlist}
+  alias Exshome.Variable
+  alias ExshomePlayer.Services.Playlist
   alias ExshomePlayer.Variables
 
   use ExshomeWeb.Live.AppPage,
@@ -17,32 +18,30 @@ defmodule ExshomePlayer.Web.Live.Index do
 
   @impl LiveView
   def handle_event("set_volume", %{"volume" => volume}, %Socket{} = socket) do
-    volume
-    |> String.to_integer()
-    |> Playback.set_volume()
+    value = String.to_integer(volume)
+    Variable.set_value!(Variables.Volume, value)
 
     {:noreply, socket}
   end
 
   @impl LiveView
   def handle_event("set_position", %{"position" => position}, %Socket{} = socket) do
-    position
-    |> String.to_integer()
-    |> Playback.seek()
+    value = String.to_integer(position)
+    Variable.set_value!(Variables.Position, value)
 
     {:noreply, socket}
   end
 
   @impl LiveView
   def handle_event("play", _, %Socket{} = socket) do
-    Playback.play()
+    Variable.set_value!(Variables.Pause, false)
 
     {:noreply, socket}
   end
 
   @impl LiveView
   def handle_event("pause", _, %Socket{} = socket) do
-    Playback.pause()
+    Variable.set_value!(Variables.Pause, true)
 
     {:noreply, socket}
   end

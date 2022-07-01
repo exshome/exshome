@@ -9,6 +9,9 @@ defmodule ExshomePlayer.Variables.Title do
     name: "player_title",
     subscribe: [
       dependencies: [{PlayerState, :player}]
+    ],
+    variable: [
+      readonly: true
     ]
 
   @impl Subscription

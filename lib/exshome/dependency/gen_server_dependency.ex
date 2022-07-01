@@ -96,9 +96,9 @@ defmodule Exshome.Dependency.GenServerDependency do
     call(dependency, :get_value)
   end
 
-  @spec call(GenServer.server(), any()) :: any()
-  def call(server, message, timeout \\ default_timeout()) do
-    case get_pid(server) do
+  @spec call(Dependency.dependency(), any()) :: any()
+  def call(dependency, message, timeout \\ default_timeout()) do
+    case get_pid(dependency) do
       nil -> Dependency.NotReady
       pid -> GenServer.call(pid, message, timeout)
     end

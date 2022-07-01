@@ -3,6 +3,7 @@ defmodule ExshomePlayer.Variables.Volume do
   Playback volume.
   """
 
+  alias ExshomePlayer.Services.Playback
   alias ExshomePlayer.Services.PlayerState
 
   use Exshome.Variable,
@@ -16,5 +17,11 @@ defmodule ExshomePlayer.Variables.Volume do
     volume = round(player.volume || 0)
 
     update_value(state, volume)
+  end
+
+  @impl Variable
+  def set_value(%DependencyState{} = state, value) when is_integer(value) do
+    Playback.set_volume(value)
+    state
   end
 end

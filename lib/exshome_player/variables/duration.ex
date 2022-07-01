@@ -9,6 +9,9 @@ defmodule ExshomePlayer.Variables.Duration do
     name: "player_duration",
     subscribe: [
       dependencies: [{PlayerState, :player}]
+    ],
+    variable: [
+      readonly: true
     ]
 
   @impl Subscription

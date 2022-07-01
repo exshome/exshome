@@ -9,6 +9,9 @@ defmodule ExshomePlayer.Variables.Path do
     name: "player_path",
     subscribe: [
       dependencies: [{PlayerState, :player}]
+    ],
+    variable: [
+      readonly: true
     ]
 
   @impl Subscription

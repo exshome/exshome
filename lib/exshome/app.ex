@@ -12,6 +12,7 @@ defmodule Exshome.App do
   @apps Application.compile_env(:exshome, Exshome.Application, [])[:apps] || []
   def apps, do: @apps
 
+  @spec validate_module!(Macro.Env.t(), String.t()) :: keyword()
   def validate_module!(%Macro.Env{module: module}, _bytecode) do
     NimbleOptions.validate!(
       module.__config__(),

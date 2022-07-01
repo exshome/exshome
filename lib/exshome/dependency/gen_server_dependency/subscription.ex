@@ -125,6 +125,7 @@ defmodule Exshome.Dependency.GenServerDependency.Subscription do
     |> handle_dependency_change()
   end
 
+  @spec validate_module!(Macro.Env.t(), String.t()) :: keyword()
   def validate_module!(%Macro.Env{module: module}, _) do
     module
     |> get_config()
