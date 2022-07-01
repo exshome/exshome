@@ -97,18 +97,20 @@ defmodule Exshome.Dependency.GenServerDependency do
   end
 
   @spec call(GenServer.server(), any()) :: any()
-  def call(server, message) do
+  def call(server, message, timeout \\ default_timeout()) do
     case get_pid(server) do
       nil -> Dependency.NotReady
-      pid -> GenServer.call(pid, message)
+      pid -> GenServer.call(pid, message, timeout)
     end
   end
 
+  defp default_timeout, do: 5000
+
   @hook_module Application.compile_env(:exshome, :hooks, [])[__MODULE__]
   if @hook_module do
-    defoverridable(dependency_key: 1)
+    defoverridable(dependency_key: 1, init: 1, default_timeout: 0)
     defdelegate dependency_key(dependency), to: @hook_module
-    defoverridable(init: 1)
+    defdelegate default_timeout(), to: @hook_module
 
     def init(opts) do
       @hook_module.init(opts)
