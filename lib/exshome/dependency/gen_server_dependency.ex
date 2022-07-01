@@ -89,7 +89,8 @@ defmodule Exshome.Dependency.GenServerDependency do
     end
   end
 
-  defp dependency_key(dependency), do: {__MODULE__, dependency}
+  @spec dependency_key(Dependency.dependency()) :: any()
+  def dependency_key(dependency), do: {__MODULE__, dependency}
 
   @spec get_value(Dependency.dependency()) :: any()
   def get_value(dependency) do

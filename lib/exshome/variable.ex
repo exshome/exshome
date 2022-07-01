@@ -6,12 +6,38 @@ defmodule Exshome.Variable do
   alias Exshome.Dependency.GenServerDependency
   alias Exshome.Dependency.GenServerDependency.DependencyState
   alias Exshome.Dependency.GenServerDependency.Lifecycle
+  alias Exshome.Event
+  alias Exshome.SystemRegistry
+  alias Exshome.Variable.VariableStateEvent
+
   use Lifecycle, key: :variable
+
+  defstruct [:dependency, :id, :readonly?]
+
+  @type t() :: %__MODULE__{
+          dependency: Dependency.dependency(),
+          id: String.t(),
+          readonly?: boolean()
+        }
 
   @callback set_value(DependencyState.t(), any()) :: DependencyState.t()
 
   @impl Lifecycle
   def on_init(%DependencyState{} = state) do
+    variable_data = variable_from_dependency_state(state)
+
+    :ok =
+      SystemRegistry.put!(
+        {__MODULE__, GenServerDependency.dependency_key(state.dependency)},
+        variable_data
+      )
+
+    :ok =
+      Event.broadcast(%VariableStateEvent{
+        data: variable_data,
+        type: :created
+      })
+
     state
   end
 
@@ -19,6 +45,17 @@ defmodule Exshome.Variable do
   def handle_call({:set_value, value}, _from, %DependencyState{} = state) do
     state = Dependency.dependency_module(state.dependency).set_value(state, value)
     {:stop, {:ok, state}}
+  end
+
+  @impl Lifecycle
+  def handle_stop(_reason, %DependencyState{} = state) do
+    :ok =
+      Event.broadcast(%VariableStateEvent{
+        data: variable_from_dependency_state(state),
+        type: :deleted
+      })
+
+    {:cont, state}
   end
 
   @spec set_value!(Dependency.dependency(), any()) :: :ok
@@ -48,7 +85,18 @@ defmodule Exshome.Variable do
     dependency
     |> Dependency.dependency_module()
     |> get_config()
-    |> Keyword.get(:readonly)
+    |> Keyword.get(:readonly, false)
+  end
+
+  @spec list() :: [t()]
+  def list do
+    SystemRegistry.select([
+      {
+        {{__MODULE__, :_}, :_, :"$1"},
+        [],
+        [:"$1"]
+      }
+    ])
   end
 
   @spec raise_if_not_variable!(Dependency.dependency()) :: any()
@@ -63,6 +111,14 @@ defmodule Exshome.Variable do
     if !module_is_variable do
       raise "#{inspect(dependency)} is not a Variable."
     end
+  end
+
+  defp variable_from_dependency_state(%DependencyState{dependency: dependency}) do
+    %__MODULE__{
+      dependency: dependency,
+      id: Dependency.dependency_id(dependency),
+      readonly?: readonly?(dependency)
+    }
   end
 
   defmacro __using__(config) do

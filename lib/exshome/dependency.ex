@@ -18,7 +18,11 @@ defmodule Exshome.Dependency do
   @spec subscribe(dependency()) :: value()
   def subscribe(dependency) do
     result = get_value(dependency)
-    :ok = Exshome.PubSub.subscribe(dependency.name())
+
+    :ok =
+      dependency
+      |> dependency_id()
+      |> Exshome.PubSub.subscribe()
 
     case result do
       NotReady -> get_value(dependency)
@@ -28,18 +32,26 @@ defmodule Exshome.Dependency do
 
   @spec unsubscribe(dependency()) :: :ok
   def unsubscribe(dependency) do
-    raise_if_not_dependency!(dependency)
-    Exshome.PubSub.unsubscribe(dependency.name())
+    dependency
+    |> dependency_id()
+    |> Exshome.PubSub.unsubscribe()
   end
 
   @spec broadcast_value(dependency(), value()) :: :ok
   def broadcast_value(dependency, value) do
-    raise_if_not_dependency!(dependency)
-    Exshome.PubSub.broadcast(dependency.name(), {__MODULE__, {dependency, value}})
+    dependency
+    |> dependency_id()
+    |> Exshome.PubSub.broadcast({__MODULE__, {dependency, value}})
   end
 
   @spec dependency_module(dependency()) :: module()
   def dependency_module(module) when is_atom(module), do: module
+
+  @spec dependency_id(dependency()) :: String.t()
+  def dependency_id(dependency) do
+    raise_if_not_dependency!(dependency)
+    dependency.name()
+  end
 
   defp raise_if_not_dependency!(module) do
     module_has_correct_behaviour =

@@ -10,6 +10,7 @@
   * Add default timeout to the GenServerDependency call function. Running tests with a `--trace` flag will allow you to debug your code without interruptions.
   * Allow to set value for all variables.
   * Add support for readonly variables.
+  * Implemented `Exshome.Variable.list/0` function.
 
 ## v0.1.7 (2022-06-28)
   * Created database if it does not exist before migraions.

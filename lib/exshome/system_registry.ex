@@ -26,4 +26,7 @@ defmodule Exshome.SystemRegistry do
       _ -> {:error, "Unable to find a value for a key #{inspect(key)}"}
     end
   end
+
+  @spec select(Registry.spec()) :: [term()]
+  def select(spec), do: Registry.select(__MODULE__, spec)
 end
