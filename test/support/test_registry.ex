@@ -37,6 +37,11 @@ defmodule ExshomeTest.TestRegistry do
     put({:dependency, module}, pid)
   end
 
+  @spec stop_dependency(module :: module()) :: :ok
+  def stop_dependency(module) do
+    :ok = ExUnit.Callbacks.stop_supervised!(module)
+  end
+
   def prepare_child_opts(opts) do
     current_pid = self()
 

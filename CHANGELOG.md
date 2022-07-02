@@ -11,6 +11,7 @@
   * Allow to set value for all variables.
   * Add support for readonly variables.
   * Implemented `Exshome.Variable.list/0` function.
+  * Added VariableRegistry for automation.
 
 ## v0.1.7 (2022-06-28)
   * Created database if it does not exist before migraions.
