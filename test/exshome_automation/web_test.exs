@@ -8,7 +8,7 @@ defmodule ExshomeAutomationTest.WebTest do
 
     test "renders with dependencies", %{conn: conn} do
       view = live_with_dependencies(conn, ExshomeAutomation, :index)
-      assert render(view) =~ "Automation"
+      assert render(view) =~ "Variables"
     end
   end
 

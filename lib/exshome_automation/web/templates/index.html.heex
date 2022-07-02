@@ -1,1 +1,9 @@
-Automation
+<h2 class="text-4xl">Variables</h2>
+<ul>
+  <%= for variable <- @deps.variables |> Map.values() |> Enum.sort_by(& &1.dependency) do %>
+    <li id={variable.id}>
+      <div><%= variable.dependency %></div>
+      <div>readonly = <%= variable.readonly? %></div>
+    </li>
+  <% end %>
+</ul>
