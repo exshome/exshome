@@ -4,13 +4,21 @@ defmodule Exshome.Dependency.GenServerDependency.DependencyState do
   """
   alias Exshome.Dependency
 
-  defstruct [:dependency, :opts, :deps, :data, value: Dependency.NotReady]
+  defstruct [
+    :data,
+    :dependency,
+    :opts,
+    deps: %{},
+    private: %{},
+    value: Dependency.NotReady
+  ]
 
   @type t() :: %__MODULE__{
+          data: any(),
           dependency: Dependency.dependency(),
           deps: map(),
-          data: any(),
           opts: any(),
+          private: map(),
           value: Exshome.Dependency.value()
         }
 end

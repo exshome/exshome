@@ -129,8 +129,6 @@ defmodule Exshome.Dependency.GenServerDependency do
   Validates configuration for the dependency and raises if it is invalid.
   Available configuration options:
   :name (required) - name of the dependency
-  :dependencies (default []) - dependencies list
-  :events (default []) - events to subscribe, where key is a module, and value is a topic
   """
   @spec validate_dependency_config!(Keyword.t()) :: keyword()
   def validate_dependency_config!(config) do

@@ -23,12 +23,7 @@ defmodule ExshomeWeb.Live.AppPage do
         &__MODULE__.handle_info/2
       )
 
-    deps =
-      for {dependency, key} <- get_dependencies(socket), into: %{} do
-        {key, Dependency.subscribe(dependency)}
-      end
-
-    {:cont, LiveView.assign(socket, deps: deps)}
+    {:cont, put_dependencies(socket, socket.view.dependencies())}
   end
 
   def handle_info({Dependency, {module, value}}, %Socket{} = socket) do
@@ -68,7 +63,23 @@ defmodule ExshomeWeb.Live.AppPage do
     )
   end
 
-  defp get_dependencies(%Socket{view: view}), do: view.dependencies()
+  @spec put_dependencies(Socket.t(), Dependency.depenency_mapping()) :: Socket.t()
+  defp put_dependencies(%Socket{} = socket, mapping) do
+    deps =
+      Dependency.change_dependencies(
+        socket.private[__MODULE__] || [],
+        mapping,
+        socket.assigns[:deps] || %{}
+      )
+
+    %Socket{
+      socket
+      | private: Map.put(socket.private, __MODULE__, mapping)
+    }
+    |> LiveView.assign(deps: deps)
+  end
+
+  defp get_dependencies(%Socket{private: private}), do: Map.fetch!(private, __MODULE__)
 
   defp view_module(%Socket{view: view}) do
     view.view_module()

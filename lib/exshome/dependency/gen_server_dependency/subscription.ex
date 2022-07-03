@@ -25,7 +25,7 @@ defmodule Exshome.Dependency.GenServerDependency.Subscription do
     events = config[:events] || []
 
     state
-    |> subscribe_to_dependencies(dependencies)
+    |> put_dependencies(dependencies)
     |> subscribe_to_events(events)
   end
 
@@ -57,14 +57,17 @@ defmodule Exshome.Dependency.GenServerDependency.Subscription do
     {:cont, state}
   end
 
-  @spec subscribe_to_dependencies(DependencyState.t(), Enumerable.t()) :: DependencyState.t()
-  def subscribe_to_dependencies(%DependencyState{} = state, dependencies) do
-    deps =
-      for {dependency, key} <- dependencies, into: %{} do
-        {key, Dependency.subscribe(dependency)}
-      end
+  @spec put_dependencies(DependencyState.t(), Dependency.depenency_mapping()) ::
+          DependencyState.t()
+  def put_dependencies(%DependencyState{} = state, mapping) do
+    old_mapping = Map.get(state.private, __MODULE__, [])
+    deps = Dependency.change_dependencies(old_mapping, mapping, state.deps)
 
-    state = %DependencyState{state | deps: deps}
+    state = %DependencyState{
+      state
+      | deps: deps,
+        private: Map.put(state.private, __MODULE__, mapping)
+    }
 
     if Enum.empty?(deps) do
       state
@@ -125,6 +128,12 @@ defmodule Exshome.Dependency.GenServerDependency.Subscription do
     |> handle_dependency_change()
   end
 
+  @doc """
+  Validates configuration for the dependency and raises if it is invalid.
+  Available configuration options:
+  :dependencies (default []) - dependencies list
+  :events (default []) - events to subscribe, where key is a module, and value is a topic
+  """
   @spec validate_module!(Macro.Env.t(), String.t()) :: keyword()
   def validate_module!(%Macro.Env{module: module}, _) do
     module

@@ -6,6 +6,9 @@ defmodule Exshome.Dependency do
 
   @type dependency() :: atom()
   @type value :: term() | NotReady
+  @type dependency_key :: atom()
+  @type depenency_mapping :: [{dependency(), dependency_key()}]
+  @type deps :: %{dependency_key() => value()}
 
   @callback get_value() :: value()
 
@@ -51,6 +54,33 @@ defmodule Exshome.Dependency do
   def dependency_id(dependency) do
     raise_if_not_dependency!(dependency)
     dependency.name()
+  end
+
+  @spec change_dependencies(depenency_mapping(), depenency_mapping(), deps()) :: deps()
+  def change_dependencies(old_mapping, new_mapping, deps) do
+    old_keys = for {k, _} <- old_mapping, into: MapSet.new(), do: k
+    new_keys = for {k, _} <- new_mapping, into: MapSet.new(), do: k
+
+    keys_to_unsubscribe = MapSet.difference(old_keys, new_keys)
+
+    deps =
+      for {dependency, mapping_key} <- old_mapping,
+          MapSet.member?(keys_to_unsubscribe, dependency),
+          reduce: deps do
+        acc ->
+          :ok = unsubscribe(dependency)
+          Map.delete(acc, mapping_key)
+      end
+
+    keys_to_subscribe = MapSet.difference(new_keys, old_keys)
+
+    for {dependency, mapping_key} <- new_mapping,
+        MapSet.member?(keys_to_subscribe, dependency),
+        reduce: deps do
+      acc ->
+        value = subscribe(dependency)
+        Map.put(acc, mapping_key, value)
+    end
   end
 
   defp raise_if_not_dependency!(module) do
