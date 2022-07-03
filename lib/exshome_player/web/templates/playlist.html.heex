@@ -8,47 +8,39 @@
     </.button>
   </section>
   <section class="flex-grow h-full overflow-auto">
-    <ul class="mx-2 min-h-full flex flex-col items-center justify-center">
-      <%= for track <- @deps.playlist.tracks do %>
-        <li class="bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700
-               shadow-md shadow-gray-600 dark:shadow-gray-700
-               rounded-xl flex items-center justify-between
-               p-4 m-2 w-full sm:w-3/4 md:w-1/2
-               ">
-          <button
-            phx-click="play"
-            phx-value-id={track.id}
-            class={"text-4xl #{if @deps.playlist.current_id == track.id, do: 'playing'}"}
-          >
-            <%= if @deps.playlist.current_id == track.id, do: "🎧", else: "▶️" %>
+    <.list rows={@deps.playlist.tracks} let={track}>
+      <:row_before let={track}>
+        <button
+          phx-click="play"
+          phx-value-id={track.id}
+          class={"text-4xl #{if @deps.playlist.current_id == track.id, do: 'playing'}"}
+        >
+          <%= if @deps.playlist.current_id == track.id, do: "🎧", else: "▶️" %>
+        </button>
+      </:row_before>
+      <:row_after let={track}>
+        <%= if track.type == :url do %>
+          <button phx-click="edit" phx-value-id={track.id} class="text-4xl">
+            ️✏️
           </button>
-          <div class={
-            "#{if @deps.playlist.current_id == track.id, do: 'font-bold dark:text-yellow-200'} flex flex-col flex-grow pl-4 text-left justify-center overflow-x-auto overflow-y-hidden"
-          }>
-            <div class="text-xl">
-              <%= if String.trim(track.title) == "", do: "Unknown", else: track.title %>
-            </div>
-            <div class="text-xs">
-              <%= track.path %>
-            </div>
-          </div>
-          <div class="pl-1 flex flex-row items-center justify-center">
-            <%= if track.type == :url do %>
-              <button phx-click="edit" phx-value-id={track.id} class="text-4xl">
-                ️✏️
-              </button>
-            <% end %>
-            <button
-              phx-click="delete"
-              phx-value-id={track.id}
-              data-confirm="Do you really want to delete this track?"
-              class="text-4xl"
-            >
-              🗑️
-            </button>
-          </div>
-        </li>
-      <% end %>
-    </ul>
+        <% end %>
+        <button
+          phx-click="delete"
+          phx-value-id={track.id}
+          data-confirm="Do you really want to delete this track?"
+          class="text-4xl"
+        >
+          🗑️
+        </button>
+      </:row_after>
+      <div class={if @deps.playlist.current_id == track.id, do: "font-bold dark:text-yellow-200"}>
+        <div class="text-xl">
+          <%= if String.trim(track.title) == "", do: "Unknown", else: track.title %>
+        </div>
+        <div class="text-xs">
+          <%= track.path %>
+        </div>
+      </div>
+    </.list>
   </section>
 </section>

@@ -67,4 +67,37 @@ defmodule ExshomeWeb.Components do
       class: "w-full p-2 rounded-lg bg-gray-100 dark:bg-gray-800 shadow-md dark:shadow-gray-700"
     )
   end
+
+  def list(assigns) do
+    assigns =
+      assigns
+      |> LiveView.assign_new(:row_before, fn -> [] end)
+      |> LiveView.assign_new(:row_after, fn -> [] end)
+
+    ~H"""
+    <ul class="mx-2 min-h-full flex flex-col items-center justify-center">
+      <%= for row <- @rows do %>
+        <li class="bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700
+               shadow-md shadow-gray-600 dark:shadow-gray-700
+               rounded-xl flex items-center justify-between
+               p-4 m-2 w-full sm:w-3/4 md:w-1/2
+               ">
+          <div>
+            <%= for row_before <- @row_before do %>
+              <%= render_slot(row_before, row) %>
+            <% end %>
+          </div>
+          <div class="flex flex-col flex-grow pl-4 text-left justify-center overflow-x-auto overflow-y-hidden">
+            <%= render_slot(@inner_block, row) %>
+          </div>
+          <div class="pl-1 flex flex-row items-center justify-center">
+            <%= for row_after <- @row_after do %>
+              <%= render_slot(row_after, row) %>
+            <% end %>
+          </div>
+        </li>
+      <% end %>
+    </ul>
+    """
+  end
 end
