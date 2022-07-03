@@ -12,11 +12,12 @@ defmodule Exshome.Variable do
 
   use Lifecycle, key: :variable
 
-  defstruct [:dependency, :id, :readonly?]
+  defstruct [:dependency, :id, :name, :readonly?]
 
   @type t() :: %__MODULE__{
           dependency: Dependency.dependency(),
           id: String.t(),
+          name: String.t(),
           readonly?: boolean()
         }
 
@@ -117,6 +118,7 @@ defmodule Exshome.Variable do
     %__MODULE__{
       dependency: dependency,
       id: Dependency.dependency_id(dependency),
+      name: Dependency.dependency_module(dependency).__config__[:name],
       readonly?: readonly?(dependency)
     }
   end

@@ -1,9 +1,11 @@
-<h2 class="text-4xl">Variables</h2>
-<ul>
-  <%= for variable <- @deps.variables |> Map.values() |> Enum.sort_by(& &1.dependency) do %>
-    <li id={variable.id}>
-      <div><%= variable.dependency %></div>
-      <div>readonly = <%= variable.readonly? %></div>
-    </li>
-  <% end %>
-</ul>
+<section class="max-h-full h-full flex flex-col">
+  <h2 class="text-4xl text-center">Variables</h2>
+  <section class="flex-grow h-full overflow-auto">
+    <.list rows={@deps.variables |> Map.values() |> Enum.sort_by(& &1.dependency)} let={variable}>
+      <:row_after let={variable}>
+        <button class="text-4xl">️👀️</button>
+      </:row_after>
+      <div><%= variable.name %></div>
+    </.list>
+  </section>
+</section>

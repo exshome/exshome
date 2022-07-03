@@ -6,5 +6,5 @@ defmodule ExshomeAutomation.Web.Live.Index do
 
   use ExshomeWeb.Live.AppPage,
     dependencies: [{VariableRegistry, :variables}],
-    icon: ""
+    icon: "📃"
 end
