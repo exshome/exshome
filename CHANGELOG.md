@@ -12,6 +12,8 @@
   * Add support for readonly variables.
   * Implemented `Exshome.Variable.list/0` function.
   * Added VariableRegistry for automation.
+  * Allow to change dependencies during runtime.
+  * Added modal to show variable.
 
 ## v0.1.7 (2022-06-28)
   * Created database if it does not exist before migraions.

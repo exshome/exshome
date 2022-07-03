@@ -3,7 +3,7 @@
   <section class="flex-grow h-full overflow-auto">
     <.list rows={@deps.variables |> Map.values() |> Enum.sort_by(& &1.dependency)} let={variable}>
       <:row_after let={variable}>
-        <button class="text-4xl">️👀️</button>
+        <button class="text-4xl" phx-click="show_variable" phx-value-id={variable.id}>️👀️</button>
       </:row_after>
       <div><%= variable.name %></div>
     </.list>

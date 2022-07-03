@@ -64,7 +64,7 @@ defmodule ExshomeWeb.Live.AppPage do
   end
 
   @spec put_dependencies(Socket.t(), Dependency.depenency_mapping()) :: Socket.t()
-  defp put_dependencies(%Socket{} = socket, mapping) do
+  def put_dependencies(%Socket{} = socket, mapping) do
     deps =
       Dependency.change_dependencies(
         socket.private[__MODULE__] || [],
@@ -139,6 +139,8 @@ defmodule ExshomeWeb.Live.AppPage do
 
       @impl LiveView
       defdelegate render(assigns), to: AppPage
+
+      defdelegate put_dependencies(socket, mapping), to: AppPage
     end
   end
 

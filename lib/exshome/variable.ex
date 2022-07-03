@@ -25,11 +25,11 @@ defmodule Exshome.Variable do
 
   @impl Lifecycle
   def on_init(%DependencyState{} = state) do
-    variable_data = variable_from_dependency_state(state)
+    %__MODULE__{} = variable_data = variable_from_dependency_state(state)
 
     :ok =
       SystemRegistry.put!(
-        {__MODULE__, GenServerDependency.dependency_key(state.dependency)},
+        {__MODULE__, variable_data.id, GenServerDependency.dependency_key(state.dependency)},
         variable_data
       )
 
@@ -93,11 +93,28 @@ defmodule Exshome.Variable do
   def list do
     SystemRegistry.select([
       {
-        {{__MODULE__, :_}, :_, :"$1"},
+        {{__MODULE__, :_, :_}, :_, :"$1"},
         [],
         [:"$1"]
       }
     ])
+  end
+
+  @spec find_by_id(String.t()) :: {:ok, t()} | {:error, :not_found}
+  def find_by_id(variable_id) do
+    result =
+      SystemRegistry.select([
+        {
+          {{__MODULE__, variable_id, :_}, :_, :"$1"},
+          [],
+          [:"$1"]
+        }
+      ])
+
+    case result do
+      [value] -> {:ok, value}
+      _ -> {:error, :not_found}
+    end
   end
 
   @spec raise_if_not_variable!(Dependency.dependency()) :: any()

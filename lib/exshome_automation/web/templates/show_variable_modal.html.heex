@@ -1,0 +1,12 @@
+<section class="flex flex-col items-center justify-center h-full">
+  <h2 class="text-4xl m-2">Variable data</h2>
+  <div class="text-xl">
+    Name: <span class="font-black"><%= @config.name %></span>
+  </div>
+  <div class="text-xl">
+    Readonly: <span class="font-black"><%= @config.readonly? %></span>
+  </div>
+  <div class="text-xl">
+    Value: <span class="font-black"><%= @deps.variable %></span>
+  </div>
+</section>
