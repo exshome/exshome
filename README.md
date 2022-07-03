@@ -36,6 +36,8 @@ This script supports these environment variables:
 - `EXSHOME_HOST` - Host to listnen on, default is "0.0.0.0".
 - `EXSHOME_PORT` - Application port, default is "5000".
 - `EXSHOME_ROOT` - Path where all application data resides, default is "${HOME}/.exshome".
+- `EXSHOME_SIGNING_SALT` - LiveView specific variable. Generates a random value on each launch by default.
+- `EXSHOME_SECRET_KEY_BASE` - Secret key for Phoenix framework. Generates a random value on each launch by default.
 
 ## Caveats
 - [UNIX domain socket length is limited to about 100 bytes](https://unix.stackexchange.com/questions/367008/why-is-socket-path-length-limited-to-a-hundred-chars). Application uses these sockets to communicate with MPV. It will not work if the path is larger.
