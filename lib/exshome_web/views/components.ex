@@ -75,7 +75,7 @@ defmodule ExshomeWeb.Components do
       |> LiveView.assign_new(:row_after, fn -> [] end)
 
     ~H"""
-    <ul class="mx-2 min-h-full flex flex-col items-center justify-center">
+    <ul class="mx-2 flex flex-col items-center justify-center">
       <%= for row <- @rows do %>
         <li class="bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700
                shadow-md shadow-gray-600 dark:shadow-gray-700
