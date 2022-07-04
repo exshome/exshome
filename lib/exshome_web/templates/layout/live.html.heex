@@ -1,24 +1,30 @@
-<section
-  id="modal"
-  class="fade-in hidden fixed z-50 inset-0 bg-black/40 dark:bg-gray-600/80 md:p-[15vmin]"
->
-  <div
-    id="modal-content"
-    class="fade-in-scale relative h-full w-full md:rounded-xl bg-white dark:bg-gray-900 shadow-lg shadow-gray-700 dark:shadow-gray-400 p-[1em] pb-[3.5em] overflow-hidden"
-    phx-click-away="modal:close"
-    phx-window-keydown="modal:close"
-    phx-key="escape"
-  >
-    <div id="modal-header" class="overflow-hidden">
-      <button class="cursor-pointer float-right" phx-click="modal:close">❌</button>
+<section id="modal" class="fade-in hidden fixed z-50 inset-0 bg-black/40 dark:bg-gray-600/80">
+  <div class="h-full w-full flex items-center justify-center">
+    <div
+      id="modal-content"
+      class="fade-in-scale relative rounded-xl
+             h-full md:h-auto w-full md:w-3/4 lg:w-1/2 max-h-full max-w-full
+             bg-white dark:bg-gray-900 shadow-lg shadow-gray-700 dark:shadow-gray-400
+             p-[1em] pb-[2em] overflow-hidden
+             flex flex-col items-center justify-between
+             "
+      phx-click-away="modal:close"
+      phx-window-keydown="modal:close"
+      phx-key="escape"
+    >
+      <div id="modal-header" class="overflow-hidden w-full min-h-[2em]">
+        <button class="cursor-pointer float-right" phx-click="modal:close">❌</button>
+      </div>
+      <div class="flex-grow w-full overflow-y-auto">
+        <%= if @modal do %>
+          <%= live_render(@socket, @modal.module,
+            id: "modal-data",
+            session: @modal.params,
+            container: {:div, class: "w-full h-full"}
+          ) %>
+        <% end %>
+      </div>
     </div>
-    <%= if @modal do %>
-      <%= live_render(@socket, @modal.module,
-        id: "modal-data",
-        session: @modal.params,
-        container: {:div, class: "w-full h-full"}
-      ) %>
-    <% end %>
   </div>
 </section>
 

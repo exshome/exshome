@@ -38,7 +38,7 @@ defmodule ExshomeWeb.Components do
       {@extra}
     >
       <%= for {field, data} <- @fields do %>
-        <div class="p-2 w-full md:w-3/4 lg:w-1/2">
+        <div class="p-2 w-full md:w-3/4">
           <label class="block font-bold"><%= field %></label>
           <%= render_field(f, field, data) %>
         </div>

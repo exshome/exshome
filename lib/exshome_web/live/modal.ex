@@ -66,8 +66,8 @@ defmodule ExshomeWeb.Live.Modal do
 
   defp opening_transition do
     %JS{}
-    |> JS.show(to: "#modal", transition: "fade-in")
-    |> JS.show(to: "#modal-content", transition: "fade-in-scale")
+    |> JS.show(to: "#modal")
+    |> JS.show(to: "#modal-content")
   end
 
   defp closing_transition do
