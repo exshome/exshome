@@ -1,5 +1,4 @@
 <section class="flex flex-col items-center justify-center h-full">
-  <h2 class="text-4xl m-2">Variable data</h2>
   <div class="text-xl">
     Name: <span class="font-black"><%= @config.name %></span>
   </div>
@@ -7,6 +6,12 @@
     Readonly: <span class="font-black"><%= @config.readonly? %></span>
   </div>
   <div class="text-xl">
-    Value: <span class="font-black"><%= @deps.variable %></span>
+    Current value: <span class="font-black"><%= @deps.variable %></span>
   </div>
+  <%= if !@config.readonly? do %>
+    <form phx-change="validate" phx-submit="save">
+      <input type="text" name="variable" value={@deps.variable} />
+      <.button type="submit">Save</.button>
+    </form>
+  <% end %>
 </section>

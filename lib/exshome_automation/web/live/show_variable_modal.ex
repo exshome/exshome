@@ -16,4 +16,15 @@ defmodule ExshomeAutomation.Web.Live.ShowVariableModal do
 
     {:ok, assign(socket, :config, config)}
   end
+
+  @impl LiveView
+  def handle_event("validate", _params, %Socket{} = socket) do
+    {:noreply, socket}
+  end
+
+  @impl LiveView
+  def handle_event("save", %{"variable" => value}, %Socket{} = socket) do
+    Variable.set_value!(socket.assigns.config.dependency, String.to_integer(value))
+    {:noreply, socket}
+  end
 end
