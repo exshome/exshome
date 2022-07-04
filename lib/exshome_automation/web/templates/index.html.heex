@@ -1,9 +1,11 @@
-<section class="h-full w-full p-4 flex flex-col">
-  <h2 class="text-4xl text-center">Variables</h2>
-  <.list rows={@deps.variables |> Map.values() |> Enum.sort_by(& &1.dependency)} let={variable}>
-    <:row_after let={variable}>
-      <button class="text-4xl" phx-click="show_variable" phx-value-id={variable.id}>️👀️</button>
-    </:row_after>
-    <div><%= variable.name %></div>
-  </.list>
+<section class="h-full w-full p-4 flex flex-col items-center justify-center">
+  <div class="w-full max-h-full">
+    <h2 class="text-4xl text-center">Variables</h2>
+    <.list rows={@deps.variables |> Map.values() |> Enum.sort_by(& &1.dependency)} let={variable}>
+      <:row_after let={variable}>
+        <button class="text-4xl" phx-click="show_variable" phx-value-id={variable.id}>️👀️</button>
+      </:row_after>
+      <div><%= variable.name %></div>
+    </.list>
+  </div>
 </section>

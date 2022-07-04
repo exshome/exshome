@@ -7,40 +7,44 @@
       add a link
     </.button>
   </section>
-  <section class="flex-grow h-full overflow-auto">
-    <.list rows={@deps.playlist.tracks} let={track}>
-      <:row_before let={track}>
-        <button
-          phx-click="play"
-          phx-value-id={track.id}
-          class={"text-4xl #{if @deps.playlist.current_id == track.id, do: 'playing'}"}
-        >
-          <%= if @deps.playlist.current_id == track.id, do: "🎧", else: "▶️" %>
-        </button>
-      </:row_before>
-      <:row_after let={track}>
-        <%= if track.type == :url do %>
-          <button phx-click="edit" phx-value-id={track.id} class="text-4xl">
-            ️✏️
+  <section class="flex-grow h-full overflow-auto flex items-center">
+    <div class="w-full max-h-full">
+      <.list rows={@deps.playlist.tracks} let={track}>
+        <:row_before let={track}>
+          <button
+            phx-click="play"
+            phx-value-id={track.id}
+            class={"text-4xl #{if @deps.playlist.current_id == track.id, do: 'playing'}"}
+          >
+            <%= if @deps.playlist.current_id == track.id, do: "🎧", else: "▶️" %>
           </button>
-        <% end %>
-        <button
-          phx-click="delete"
-          phx-value-id={track.id}
-          data-confirm="Do you really want to delete this track?"
-          class="text-4xl"
-        >
-          🗑️
-        </button>
-      </:row_after>
-      <div class={if @deps.playlist.current_id == track.id, do: "font-bold dark:text-yellow-200"}>
-        <div class="text-xl">
-          <%= if String.trim(track.title) == "", do: "Unknown", else: track.title %>
+        </:row_before>
+        <:row_after let={track}>
+          <%= if track.type == :url do %>
+            <button phx-click="edit" phx-value-id={track.id} class="text-4xl">
+              ️✏️
+            </button>
+          <% end %>
+          <button
+            phx-click="delete"
+            phx-value-id={track.id}
+            data-confirm="Do you really want to delete this track?"
+            class="text-4xl"
+          >
+            🗑️
+          </button>
+        </:row_after>
+        <div class={
+          if @deps.playlist.current_id == track.id, do: "font-bold dark:text-yellow-200"
+        }>
+          <div class="text-xl">
+            <%= if String.trim(track.title) == "", do: "Unknown", else: track.title %>
+          </div>
+          <div class="text-xs">
+            <%= track.path %>
+          </div>
         </div>
-        <div class="text-xs">
-          <%= track.path %>
-        </div>
-      </div>
-    </.list>
+      </.list>
+    </div>
   </section>
 </section>
