@@ -25,23 +25,6 @@ defmodule ExshomePlayerTest.VariablesTest do
     end
   end
 
-  describe "Variables.Path" do
-    setup do
-      TestRegistry.start_dependency(Variables.Path)
-    end
-
-    test "check default value" do
-      Dependency.broadcast_value(PlayerState, %PlayerState{})
-      assert Dependency.get_value(Variables.Path) == ""
-    end
-
-    test "non-empty value" do
-      path = "some path #{unique_integer()}"
-      Dependency.broadcast_value(PlayerState, %PlayerState{path: path})
-      assert Dependency.get_value(Variables.Path) == path
-    end
-  end
-
   describe "Variables.Pause" do
     setup do
       TestRegistry.start_dependency(Variables.Pause)
