@@ -11,28 +11,28 @@
     <div class="w-full max-h-full">
       <.list rows={@deps.playlist.tracks} let={track}>
         <:row_before let={track}>
-          <button
+          <.button
             phx-click="play"
             phx-value-id={track.id}
-            class={"text-4xl #{if @deps.playlist.current_id == track.id, do: 'playing'}"}
+            class={"md:text-3xl #{if @deps.playlist.current_id == track.id, do: 'playing'}"}
           >
             <%= if @deps.playlist.current_id == track.id, do: "🎧", else: "▶️" %>
-          </button>
+          </.button>
         </:row_before>
         <:row_after let={track}>
           <%= if track.type == :url do %>
-            <button phx-click="edit" phx-value-id={track.id} class="text-4xl">
+            <.button phx-click="edit" phx-value-id={track.id} class="md:text-2xl">
               ️✏️
-            </button>
+            </.button>
           <% end %>
-          <button
+          <.button
             phx-click="delete"
             phx-value-id={track.id}
             data-confirm="Do you really want to delete this track?"
-            class="text-4xl"
+            class="md:text-2xl"
           >
             🗑️
-          </button>
+          </.button>
         </:row_after>
         <div class={
           if @deps.playlist.current_id == track.id, do: "font-bold dark:text-yellow-200"

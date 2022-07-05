@@ -10,15 +10,13 @@ defmodule ExshomeWeb.Components do
 
   def button(assigns) do
     extra = assigns_to_attributes(assigns, [:class])
-    assigns = LiveView.assign(assigns, :extra, extra)
+    extra_classes = assigns[:class] || ""
+    assigns = LiveView.assign(assigns, extra: extra, extra_classes: extra_classes)
 
     ~H"""
-    <button
-      class="p-2 m-2 rounded-xl
+    <button class={"p-2 m-1 rounded-xl
              bg-gray-200 dark:bg-gray-600 hover:bg-gray-300 dark:hover:bg-gray-500
-             shadow-md shadow-gray-600 dark:shadow-gray-700"
-      {@extra}
-    >
+             shadow-md shadow-gray-600 dark:shadow-gray-700 #{@extra_classes}"} {@extra}>
       <%= render_slot(@inner_block) %>
     </button>
     """
@@ -80,14 +78,14 @@ defmodule ExshomeWeb.Components do
         <li class="bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700
                shadow-md shadow-gray-600 dark:shadow-gray-700
                rounded-xl flex items-center justify-between
-               p-4 m-2 w-full sm:w-3/4 md:w-1/2
+               py-4 px-2 m-2 w-full sm:w-3/4 md:w-1/2
                ">
           <div>
             <%= for row_before <- @row_before do %>
               <%= render_slot(row_before, row) %>
             <% end %>
           </div>
-          <div class="flex flex-col flex-grow pl-4 text-left justify-center overflow-x-auto overflow-y-hidden">
+          <div class="flex flex-col flex-grow pl-2 text-left justify-center overflow-x-auto overflow-y-hidden">
             <%= render_slot(@inner_block, row) %>
           </div>
           <div class="pl-1 flex flex-row items-center justify-center">
