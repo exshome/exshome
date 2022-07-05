@@ -11,7 +11,12 @@
           ️👀️
         </.button>
       </:row_after>
-      <div><%= variable.name %></div>
+      <div class="whitespace-nowrap">
+        <%= variable.name %>
+        <%= if variable.readonly? do %>
+          <span class="text-xl">🔒</span>
+        <% end %>
+      </div>
     </.list>
   </div>
 </section>
