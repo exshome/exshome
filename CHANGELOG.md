@@ -14,6 +14,7 @@
   * Added VariableRegistry for automation.
   * Allow to change dependencies during runtime.
   * Added modal to show variable.
+  * Added Automation preview.
 
 ## v0.1.7 (2022-06-28)
   * Created database if it does not exist before migraions.

@@ -28,10 +28,9 @@ defmodule Exshome.Variable do
     %__MODULE__{} = variable_data = variable_from_dependency_state(state)
 
     :ok =
-      SystemRegistry.put!(
-        {__MODULE__, variable_data.id, GenServerDependency.dependency_key(state.dependency)},
-        variable_data
-      )
+      variable_data.id
+      |> registry_key()
+      |> SystemRegistry.put!(variable_data)
 
     :ok =
       Event.broadcast(%VariableStateEvent{
@@ -93,7 +92,7 @@ defmodule Exshome.Variable do
   def list do
     SystemRegistry.select([
       {
-        {{__MODULE__, :_, :_}, :_, :"$1"},
+        {lookup_key(:_), :_, :"$1"},
         [],
         [:"$1"]
       }
@@ -105,7 +104,7 @@ defmodule Exshome.Variable do
     result =
       SystemRegistry.select([
         {
-          {{__MODULE__, variable_id, :_}, :_, :"$1"},
+          {lookup_key(variable_id), :_, :"$1"},
           [],
           [:"$1"]
         }
@@ -115,6 +114,16 @@ defmodule Exshome.Variable do
       [value] -> {:ok, value}
       _ -> {:error, :not_found}
     end
+  end
+
+  @spec registry_key(String.t()) :: tuple()
+  defp registry_key(variable_id) when is_binary(variable_id) do
+    {__MODULE__, variable_id}
+  end
+
+  @spec lookup_key(String.t() | :_) :: tuple()
+  defp lookup_key(variable_id) do
+    {__MODULE__, variable_id}
   end
 
   @spec raise_if_not_variable!(Dependency.dependency()) :: any()
@@ -138,6 +147,13 @@ defmodule Exshome.Variable do
       name: Dependency.dependency_module(dependency).__config__[:name],
       readonly?: readonly?(dependency)
     }
+  end
+
+  @hook_module Application.compile_env(:exshome, :hooks, [])[__MODULE__]
+  if @hook_module do
+    defoverridable(registry_key: 1, lookup_key: 1)
+    defdelegate registry_key(variable_id), to: @hook_module
+    defdelegate lookup_key(variable_id), to: @hook_module
   end
 
   defmacro __using__(config) do
