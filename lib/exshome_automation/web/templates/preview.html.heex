@@ -3,10 +3,12 @@
     <thead>
       <td></td>
       <td>🟢</td>
+      <td>🟠</td>
     </thead>
     <tr>
       <td>☑️</td>
-      <td type="total_variables"><%= @deps.status.variables %></td>
+      <td type="ready_variables"><%= @deps.status.ready_variables %></td>
+      <td type="not_ready_variables"><%= @deps.status.not_ready_variables %></td>
     </tr>
   </table>
   <p class="text-xl md:text-2xl lg:text-3xl">Automation</p>

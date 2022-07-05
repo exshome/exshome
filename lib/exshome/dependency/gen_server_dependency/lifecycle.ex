@@ -9,12 +9,19 @@ defmodule Exshome.Dependency.GenServerDependency.Lifecycle do
   @type handle_call_response ::
           {:cont, DependencyState.t()} | {:stop, {any(), DependencyState.t()}}
 
+  @callback before_init(DependencyState.t()) :: DependencyState.t()
   @callback on_init(DependencyState.t()) :: DependencyState.t()
   @callback handle_call(any(), GenServer.from(), DependencyState.t()) :: handle_call_response()
   @callback handle_info(any(), DependencyState.t()) :: default_response()
   @callback handle_stop(any(), DependencyState.t()) :: default_response()
+  @callback handle_readiness_changed(DependencyState.t()) :: default_response()
 
-  @optional_callbacks [handle_call: 3, handle_info: 2, handle_stop: 2]
+  @optional_callbacks [
+    handle_call: 3,
+    handle_info: 2,
+    handle_stop: 2,
+    handle_readiness_changed: 1
+  ]
 
   @lifecycle_hooks :dependency_lifecycle_hooks
 
@@ -29,6 +36,13 @@ defmodule Exshome.Dependency.GenServerDependency.Lifecycle do
 
       Module.put_attribute(__MODULE__, unquote(@lifecycle_hooks), unquote(module))
     end
+  end
+
+  @spec before_init(DependencyState.t()) :: DependencyState.t()
+  def before_init(%DependencyState{} = state) do
+    state
+    |> hook_modules()
+    |> Enum.reduce(state, fn module, old_state -> module.before_init(old_state) end)
   end
 
   @spec on_init(DependencyState.t()) :: DependencyState.t()
@@ -65,6 +79,45 @@ defmodule Exshome.Dependency.GenServerDependency.Lifecycle do
     )
   end
 
+  @spec update_value(DependencyState.t(), value :: any()) :: DependencyState.t()
+  def update_value(%DependencyState{} = state, value) do
+    old_value = state.value
+
+    state = %DependencyState{state | value: value}
+
+    if value != old_value do
+      handle_change(state, old_value)
+    else
+      state
+    end
+  end
+
+  @spec handle_change(DependencyState.t(), any()) :: DependencyState.t()
+  defp handle_change(%DependencyState{value: value} = state, old_value) do
+    {_, state} =
+      if Dependency.NotReady in [value, old_value] do
+        handle_readiness_changed(state)
+      else
+        {:ok, state}
+      end
+
+    Dependency.broadcast_value(state.dependency, state.value)
+    state
+  end
+
+  defp handle_readiness_changed(%DependencyState{} = state) do
+    handle_hooks(
+      state,
+      &function_exported?(&1, :handle_readiness_changed, 1),
+      fn state, module -> module.handle_readiness_changed(state) end
+    )
+  end
+
+  @spec update_data(DependencyState.t(), (any() -> any())) :: DependencyState.t()
+  def update_data(%DependencyState{} = state, update_fn) do
+    %DependencyState{state | data: update_fn.(state.data)}
+  end
+
   defp hook_modules(%DependencyState{dependency: dependency}) do
     module = Dependency.dependency_module(dependency)
 
@@ -96,6 +149,11 @@ defmodule Exshome.Dependency.GenServerDependency.Lifecycle do
     quote do
       alias Exshome.Dependency.GenServerDependency.Lifecycle
       @behaviour Lifecycle
+
+      @impl Lifecycle
+      def before_init(%DependencyState{} = state), do: state
+
+      defoverridable(before_init: 1)
 
       def get_config(module) do
         module.__config__()

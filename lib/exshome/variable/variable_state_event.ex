@@ -8,6 +8,6 @@ defmodule Exshome.Variable.VariableStateEvent do
 
   @type t() :: %__MODULE__{
           data: Exshome.Variable.t(),
-          type: :created | :deleted
+          type: :created | :deleted | :updated
         }
 end

@@ -11,6 +11,12 @@ defmodule Exshome.SystemRegistry do
     :ok
   end
 
+  @spec update!(key :: any(), value :: any()) :: :ok
+  def update!(key, value) do
+    {_, _} = Registry.update_value(__MODULE__, key, fn _ -> value end)
+    :ok
+  end
+
   @spec get!(key :: any()) :: any()
   def get!(key) do
     case get(key) do

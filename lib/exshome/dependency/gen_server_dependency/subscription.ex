@@ -9,8 +9,6 @@ defmodule Exshome.Dependency.GenServerDependency.Subscription do
 
   use Lifecycle, key: :subscribe
 
-  @callback update_data(DependencyState.t(), (any() -> any())) :: DependencyState.t()
-  @callback update_value(DependencyState.t(), value :: any()) :: DependencyState.t()
   @callback handle_dependency_change(DependencyState.t()) :: DependencyState.t()
   @callback handle_event(Event.event_message(), DependencyState.t()) :: DependencyState.t()
 
@@ -93,26 +91,10 @@ defmodule Exshome.Dependency.GenServerDependency.Subscription do
       |> Enum.any?(&(&1 == Dependency.NotReady))
 
     if missing_dependencies do
-      update_value(state, Dependency.NotReady)
+      Lifecycle.update_value(state, Dependency.NotReady)
     else
       Dependency.dependency_module(state.dependency).handle_dependency_change(state)
     end
-  end
-
-  @spec update_value(DependencyState.t(), value :: any()) :: DependencyState.t()
-  def update_value(%DependencyState{} = state, value) do
-    old_value = state.value
-
-    if value != old_value do
-      Dependency.broadcast_value(state.dependency, value)
-    end
-
-    %DependencyState{state | value: value}
-  end
-
-  @spec update_data(DependencyState.t(), (any() -> any())) :: DependencyState.t()
-  def update_data(%DependencyState{} = state, update_fn) do
-    %DependencyState{state | data: update_fn.(state.data)}
   end
 
   @spec handle_dependency_info(any(), DependencyState.t()) :: DependencyState.t()
@@ -161,11 +143,6 @@ defmodule Exshome.Dependency.GenServerDependency.Subscription do
 
       @after_compile {Subscription, :validate_module!}
       @behaviour Subscription
-
-      @impl Subscription
-      defdelegate update_value(state, value), to: Subscription
-      @impl Subscription
-      defdelegate update_data(state, data_fn), to: Subscription
 
       @impl Subscription
       def handle_dependency_change(state) do

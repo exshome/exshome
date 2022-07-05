@@ -2,6 +2,9 @@
   <div class="w-full max-h-full">
     <h2 class="text-4xl text-center">Variables</h2>
     <.list rows={@deps.variables |> Map.values() |> Enum.sort_by(& &1.dependency)} let={variable}>
+      <:row_before let={variable}>
+        <%= if variable.ready?, do: "🟢", else: "🟠" %>
+      </:row_before>
       <:row_after let={variable}>
         <.button
           class="md:text-2xl lg:text-4xl"

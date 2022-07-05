@@ -12,19 +12,20 @@ defmodule Exshome.Variable do
 
   use Lifecycle, key: :variable
 
-  defstruct [:dependency, :id, :name, :readonly?]
+  defstruct [:dependency, :id, :name, :ready?, :readonly?]
 
   @type t() :: %__MODULE__{
           dependency: Dependency.dependency(),
           id: String.t(),
           name: String.t(),
+          ready?: boolean(),
           readonly?: boolean()
         }
 
   @callback set_value(DependencyState.t(), any()) :: DependencyState.t()
 
   @impl Lifecycle
-  def on_init(%DependencyState{} = state) do
+  def before_init(%DependencyState{} = state) do
     %__MODULE__{} = variable_data = variable_from_dependency_state(state)
 
     :ok =
@@ -42,6 +43,9 @@ defmodule Exshome.Variable do
   end
 
   @impl Lifecycle
+  def on_init(%DependencyState{} = state), do: state
+
+  @impl Lifecycle
   def handle_call({:set_value, value}, _from, %DependencyState{} = state) do
     state = Dependency.dependency_module(state.dependency).set_value(state, value)
     {:stop, {:ok, state}}
@@ -53,6 +57,24 @@ defmodule Exshome.Variable do
       Event.broadcast(%VariableStateEvent{
         data: variable_from_dependency_state(state),
         type: :deleted
+      })
+
+    {:cont, state}
+  end
+
+  @impl Lifecycle
+  def handle_readiness_changed(%DependencyState{} = state) do
+    %__MODULE__{} = variable_data = variable_from_dependency_state(state)
+
+    :ok =
+      variable_data.id
+      |> registry_key()
+      |> SystemRegistry.update!(variable_data)
+
+    :ok =
+      Event.broadcast(%VariableStateEvent{
+        data: variable_data,
+        type: :updated
       })
 
     {:cont, state}
@@ -140,11 +162,12 @@ defmodule Exshome.Variable do
     end
   end
 
-  defp variable_from_dependency_state(%DependencyState{dependency: dependency}) do
+  defp variable_from_dependency_state(%DependencyState{dependency: dependency, value: value}) do
     %__MODULE__{
       dependency: dependency,
       id: Dependency.dependency_id(dependency),
       name: Dependency.dependency_module(dependency).__config__[:name],
+      ready?: value != Dependency.NotReady,
       readonly?: readonly?(dependency)
     }
   end

@@ -10,6 +10,8 @@ defmodule Exshome.Dependency.GenServerDependency do
   alias Exshome.SystemRegistry
 
   @callback on_init(DependencyState.t()) :: DependencyState.t()
+  @callback update_data(DependencyState.t(), (any() -> any())) :: DependencyState.t()
+  @callback update_value(DependencyState.t(), value :: any()) :: DependencyState.t()
   @callback handle_info(message :: any(), DependencyState.t()) ::
               {:noreply, new_state}
               | {:noreply, new_state, timeout() | :hibernate | {:continue, term()}}
@@ -42,7 +44,10 @@ defmodule Exshome.Dependency.GenServerDependency do
       |> dependency_key()
       |> SystemRegistry.put!(self())
 
-    state = Lifecycle.on_init(%DependencyState{dependency: dependency, deps: %{}, opts: opts})
+    state =
+      %DependencyState{dependency: dependency, deps: %{}, opts: opts}
+      |> Lifecycle.before_init()
+      |> Lifecycle.on_init()
 
     {:ok, state, {:continue, :on_init}}
   end
@@ -158,6 +163,7 @@ defmodule Exshome.Dependency.GenServerDependency do
       require Logger
       alias Exshome.Dependency.GenServerDependency
       alias Exshome.Dependency.GenServerDependency.DependencyState
+      alias Exshome.Dependency.GenServerDependency.Lifecycle
       use Exshome.Dependency.GenServerDependency.Subscription
       use Exshome.Dependency
       use Exshome.Named, "dependency:#{unquote(config[:name])}"
@@ -188,6 +194,11 @@ defmodule Exshome.Dependency.GenServerDependency do
       def on_init(state), do: state
 
       defoverridable(on_init: 1)
+
+      @impl GenServerDependency
+      defdelegate update_value(state, value), to: Lifecycle
+      @impl GenServerDependency
+      defdelegate update_data(state, data_fn), to: Lifecycle
 
       def call(message), do: GenServerDependency.call(__MODULE__, message)
 
