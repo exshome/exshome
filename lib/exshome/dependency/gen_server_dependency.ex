@@ -46,8 +46,8 @@ defmodule Exshome.Dependency.GenServerDependency do
 
     state =
       %DependencyState{dependency: dependency, deps: %{}, opts: opts}
-      |> Lifecycle.before_init()
-      |> Lifecycle.on_init()
+      |> Lifecycle.init_lifecycle()
+      |> Lifecycle.init_state()
 
     {:ok, state, {:continue, :on_init}}
   end

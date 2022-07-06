@@ -13,7 +13,7 @@ defmodule Exshome.Dependency.GenServerDependency.Subscription do
   @callback handle_event(Event.event_message(), DependencyState.t()) :: DependencyState.t()
 
   @impl Lifecycle
-  def on_init(%DependencyState{dependency: dependency} = state) do
+  def init_state(%DependencyState{dependency: dependency} = state) do
     config =
       dependency
       |> Dependency.dependency_module()

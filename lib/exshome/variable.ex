@@ -25,7 +25,7 @@ defmodule Exshome.Variable do
   @callback set_value(DependencyState.t(), any()) :: DependencyState.t()
 
   @impl Lifecycle
-  def before_init(%DependencyState{} = state) do
+  def init_lifecycle(%DependencyState{} = state) do
     %__MODULE__{} = variable_data = variable_from_dependency_state(state)
 
     :ok =
@@ -43,7 +43,7 @@ defmodule Exshome.Variable do
   end
 
   @impl Lifecycle
-  def on_init(%DependencyState{} = state), do: state
+  def init_state(%DependencyState{} = state), do: state
 
   @impl Lifecycle
   def handle_call({:set_value, value}, _from, %DependencyState{} = state) do

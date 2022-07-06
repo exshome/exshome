@@ -9,8 +9,8 @@ defmodule Exshome.Dependency.GenServerDependency.Lifecycle do
   @type handle_call_response ::
           {:cont, DependencyState.t()} | {:stop, {any(), DependencyState.t()}}
 
-  @callback before_init(DependencyState.t()) :: DependencyState.t()
-  @callback on_init(DependencyState.t()) :: DependencyState.t()
+  @callback init_lifecycle(DependencyState.t()) :: DependencyState.t()
+  @callback init_state(DependencyState.t()) :: DependencyState.t()
   @callback handle_call(any(), GenServer.from(), DependencyState.t()) :: handle_call_response()
   @callback handle_info(any(), DependencyState.t()) :: default_response()
   @callback handle_stop(any(), DependencyState.t()) :: default_response()
@@ -37,18 +37,18 @@ defmodule Exshome.Dependency.GenServerDependency.Lifecycle do
     end
   end
 
-  @spec before_init(DependencyState.t()) :: DependencyState.t()
-  def before_init(%DependencyState{} = state) do
+  @spec init_lifecycle(DependencyState.t()) :: DependencyState.t()
+  def init_lifecycle(%DependencyState{} = state) do
     state
     |> hook_modules()
-    |> Enum.reduce(state, fn module, old_state -> module.before_init(old_state) end)
+    |> Enum.reduce(state, fn module, old_state -> module.init_lifecycle(old_state) end)
   end
 
-  @spec on_init(DependencyState.t()) :: DependencyState.t()
-  def on_init(%DependencyState{} = state) do
+  @spec init_state(DependencyState.t()) :: DependencyState.t()
+  def init_state(%DependencyState{} = state) do
     state
     |> hook_modules()
-    |> Enum.reduce(state, fn module, old_state -> module.on_init(old_state) end)
+    |> Enum.reduce(state, fn module, old_state -> module.init_state(old_state) end)
   end
 
   @spec handle_call(any(), GenServer.from(), DependencyState.t()) :: handle_call_response()
@@ -85,9 +85,12 @@ defmodule Exshome.Dependency.GenServerDependency.Lifecycle do
     state = %DependencyState{state | value: value}
 
     if value != old_value do
-      for module <- hook_modules(state), reduce: state do
-        state -> module.handle_value_change(state, old_value)
-      end
+      state
+      |> hook_modules()
+      |> Enum.reduce(
+        state,
+        fn module, old_state -> module.handle_value_change(old_state, old_value) end
+      )
     else
       state
     end
@@ -131,12 +134,12 @@ defmodule Exshome.Dependency.GenServerDependency.Lifecycle do
       @behaviour Lifecycle
 
       @impl Lifecycle
-      def before_init(%DependencyState{} = state), do: state
+      def init_lifecycle(%DependencyState{} = state), do: state
 
       @impl Lifecycle
       def handle_value_change(%DependencyState{} = state, _), do: state
 
-      defoverridable(before_init: 1, handle_value_change: 2)
+      defoverridable(init_lifecycle: 1, handle_value_change: 2)
 
       def get_config(module) do
         module.__config__()
