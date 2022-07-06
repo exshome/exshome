@@ -1,4 +1,4 @@
-defmodule ExshomeAutomationTest.Web.IndexTest do
+defmodule ExshomeAutomationTest.Web.VariablesTest do
   use ExshomeWeb.ConnCase, async: true
 
   alias ExshomeAutomation.Services.VariableRegistry
@@ -7,13 +7,13 @@ defmodule ExshomeAutomationTest.Web.IndexTest do
 
   describe "render without dependencies" do
     test "renders without dependencies", %{conn: conn} do
-      assert {:ok, _view, _html} = live(conn, ExshomeAutomation.path(conn, :index))
+      assert {:ok, _view, _html} = live(conn, ExshomeAutomation.path(conn, :variables))
     end
   end
 
   describe "render with dependnencies" do
     test "works fine", %{conn: conn} do
-      view = live_with_dependencies(conn, ExshomeAutomation, :index)
+      view = live_with_dependencies(conn, ExshomeAutomation, :variables)
       assert render(view) =~ "Variables"
       assert count_variables(view) == 0
       start_variable()

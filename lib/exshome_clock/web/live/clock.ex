@@ -1,4 +1,4 @@
-defmodule ExshomeClock.Web.Live.Index do
+defmodule ExshomeClock.Web.Live.Clock do
   @moduledoc """
   Main clock page.
   """

@@ -6,7 +6,7 @@ defmodule ExshomePlayer do
   alias ExshomePlayer.Web.Live
 
   use Exshome.App,
-    pages: [Live.Index, Live.Playlist],
+    pages: [Live.Player, Live.Playlist],
     prefix: :player,
     preview: Live.Preview
 end

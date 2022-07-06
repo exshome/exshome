@@ -9,7 +9,7 @@ defmodule ExshomeTest.AppTest do
 
     test "raises for invalid module" do
       assert_raise NimbleOptions.ValidationError, fn ->
-        App.validate_module!(%Macro.Env{module: ExshomeClock.Web.Live.Index}, "some_bytecode")
+        App.validate_module!(%Macro.Env{module: ExshomeClock.Web.Live.Clock}, "some_bytecode")
       end
     end
   end

@@ -1,13 +1,13 @@
-defmodule ExshomeAutomation.Web.Live.Index do
+defmodule ExshomeAutomation.Web.Live.Variables do
   @moduledoc """
-  Main automation page.
+  Variables page.
   """
   alias ExshomeAutomation.Services.VariableRegistry
   alias ExshomeAutomation.Web.Live.ShowVariableModal
 
   use ExshomeWeb.Live.AppPage,
     dependencies: [{VariableRegistry, :variables}],
-    icon: "📃"
+    icon: "☑️"
 
   @impl LiveView
   def handle_event("show_variable", %{"id" => id}, socket) do

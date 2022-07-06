@@ -1,4 +1,4 @@
-defmodule ExshomePlayerTest.Web.IndexTest do
+defmodule ExshomePlayerTest.Web.PlayerTest do
   use ExshomeWeb.ConnCase, async: true
 
   import ExshomeTest.Fixtures
@@ -11,7 +11,7 @@ defmodule ExshomePlayerTest.Web.IndexTest do
 
   describe "render without dependencies" do
     test "renders fine", %{conn: conn} do
-      assert {:ok, _view, _html} = live(conn, ExshomePlayer.path(conn, :index))
+      assert {:ok, _view, _html} = live(conn, ExshomePlayer.path(conn, :player))
     end
   end
 
@@ -20,7 +20,7 @@ defmodule ExshomePlayerTest.Web.IndexTest do
       TestMpvServer.server_fixture()
       TestRegistry.start_dependency(MpvSocket, %{})
       TestRegistry.start_dependency(PlayerState, %{})
-      view = live_with_dependencies(conn, ExshomePlayer, :index)
+      view = live_with_dependencies(conn, ExshomePlayer, :player)
       %{view: view}
     end
 

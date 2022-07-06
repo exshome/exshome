@@ -4,7 +4,7 @@ defmodule ExshomeWebTest.Live.AppPageTest do
 
   describe "validate_module!/2" do
     test "works fine with valid module" do
-      AppPage.validate_module!(%Macro.Env{module: ExshomeClock.Web.Live.Index}, "some_bytecode")
+      AppPage.validate_module!(%Macro.Env{module: ExshomeClock.Web.Live.Clock}, "some_bytecode")
     end
 
     test "raises for invalid module" do
