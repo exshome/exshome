@@ -50,6 +50,12 @@ defmodule Exshome.Dependency.GenServerDependency.Subscription do
   def handle_info(_message, %DependencyState{} = state), do: {:cont, state}
 
   @impl Lifecycle
+  def handle_value_change(%DependencyState{} = state, _old_value) do
+    Dependency.broadcast_value(state.dependency, state.value)
+    state
+  end
+
+  @impl Lifecycle
   def handle_stop(_reason, %DependencyState{dependency: dependency} = state) do
     Dependency.broadcast_value(dependency, Dependency.NotReady)
     {:cont, state}

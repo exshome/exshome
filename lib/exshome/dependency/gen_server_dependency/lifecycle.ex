@@ -14,13 +14,12 @@ defmodule Exshome.Dependency.GenServerDependency.Lifecycle do
   @callback handle_call(any(), GenServer.from(), DependencyState.t()) :: handle_call_response()
   @callback handle_info(any(), DependencyState.t()) :: default_response()
   @callback handle_stop(any(), DependencyState.t()) :: default_response()
-  @callback handle_readiness_changed(DependencyState.t()) :: default_response()
+  @callback handle_value_change(DependencyState.t(), old_value :: any()) :: DependencyState.t()
 
   @optional_callbacks [
     handle_call: 3,
     handle_info: 2,
-    handle_stop: 2,
-    handle_readiness_changed: 1
+    handle_stop: 2
   ]
 
   @lifecycle_hooks :dependency_lifecycle_hooks
@@ -86,31 +85,12 @@ defmodule Exshome.Dependency.GenServerDependency.Lifecycle do
     state = %DependencyState{state | value: value}
 
     if value != old_value do
-      handle_change(state, old_value)
+      for module <- hook_modules(state), reduce: state do
+        state -> module.handle_value_change(state, old_value)
+      end
     else
       state
     end
-  end
-
-  @spec handle_change(DependencyState.t(), any()) :: DependencyState.t()
-  defp handle_change(%DependencyState{value: value} = state, old_value) do
-    {_, state} =
-      if Dependency.NotReady in [value, old_value] do
-        handle_readiness_changed(state)
-      else
-        {:ok, state}
-      end
-
-    Dependency.broadcast_value(state.dependency, state.value)
-    state
-  end
-
-  defp handle_readiness_changed(%DependencyState{} = state) do
-    handle_hooks(
-      state,
-      &function_exported?(&1, :handle_readiness_changed, 1),
-      fn state, module -> module.handle_readiness_changed(state) end
-    )
   end
 
   @spec update_data(DependencyState.t(), (any() -> any())) :: DependencyState.t()
@@ -153,7 +133,10 @@ defmodule Exshome.Dependency.GenServerDependency.Lifecycle do
       @impl Lifecycle
       def before_init(%DependencyState{} = state), do: state
 
-      defoverridable(before_init: 1)
+      @impl Lifecycle
+      def handle_value_change(%DependencyState{} = state, _), do: state
+
+      defoverridable(before_init: 1, handle_value_change: 2)
 
       def get_config(module) do
         module.__config__()

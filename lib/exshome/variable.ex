@@ -63,7 +63,8 @@ defmodule Exshome.Variable do
   end
 
   @impl Lifecycle
-  def handle_readiness_changed(%DependencyState{} = state) do
+  def handle_value_change(%DependencyState{value: value} = state, old_value)
+      when Dependency.NotReady in [value, old_value] do
     %__MODULE__{} = variable_data = variable_from_dependency_state(state)
 
     :ok =
@@ -77,8 +78,10 @@ defmodule Exshome.Variable do
         type: :updated
       })
 
-    {:cont, state}
+    state
   end
+
+  def handle_value_change(%DependencyState{} = state, _old_value), do: state
 
   @spec set_value!(Dependency.dependency(), any()) :: :ok
   def set_value!(dependency, value) do
