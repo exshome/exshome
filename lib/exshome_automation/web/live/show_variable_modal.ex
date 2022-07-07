@@ -7,7 +7,7 @@ defmodule ExshomeAutomation.Web.Live.ShowVariableModal do
 
   @impl LiveView
   def mount(_params, %{"variable_id" => variable_id}, %Socket{} = socket) do
-    {:ok, config} = Variable.find_by_id(variable_id)
+    {:ok, config} = Variable.get_by_id(variable_id)
 
     socket =
       socket

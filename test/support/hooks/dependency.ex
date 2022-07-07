@@ -5,11 +5,6 @@ defmodule ExshomeTest.Hooks.Dependency do
 
   alias ExshomeTest.TestRegistry
 
-  def dependency_key(dependency) do
-    parent = TestRegistry.get_parent()
-    {__MODULE__, parent, dependency}
-  end
-
   def default_timeout do
     if ExUnit.configuration()[:trace], do: :infinity, else: 5000
   end

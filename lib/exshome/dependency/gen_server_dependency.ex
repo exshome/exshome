@@ -39,10 +39,7 @@ defmodule Exshome.Dependency.GenServerDependency do
 
     {dependency, opts} = Map.pop!(opts, :dependency)
 
-    :ok =
-      dependency
-      |> dependency_key()
-      |> SystemRegistry.put!(self())
+    :ok = SystemRegistry.register!(__MODULE__, dependency, self())
 
     state =
       %DependencyState{dependency: dependency, deps: %{}, opts: opts}
@@ -85,17 +82,11 @@ defmodule Exshome.Dependency.GenServerDependency do
 
   @spec get_pid(Dependency.dependency()) :: pid() | nil
   defp get_pid(dependency) do
-    dependency
-    |> dependency_key()
-    |> SystemRegistry.get()
-    |> case do
+    case SystemRegistry.get_by_id(__MODULE__, dependency) do
       {:ok, pid} -> pid
       _ -> nil
     end
   end
-
-  @spec dependency_key(Dependency.dependency()) :: any()
-  defp dependency_key(dependency), do: {__MODULE__, dependency}
 
   @spec get_value(Dependency.dependency()) :: any()
   def get_value(dependency) do
@@ -114,8 +105,7 @@ defmodule Exshome.Dependency.GenServerDependency do
 
   @hook_module Application.compile_env(:exshome, :hooks, [])[__MODULE__]
   if @hook_module do
-    defoverridable(dependency_key: 1, init: 1, default_timeout: 0)
-    defdelegate dependency_key(dependency), to: @hook_module
+    defoverridable(init: 1, default_timeout: 0)
     defdelegate default_timeout(), to: @hook_module
 
     def init(opts) do

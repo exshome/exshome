@@ -23,7 +23,7 @@ config :exshome,
     {ExshomePlayer.Services.MpvServer, ExshomeTest.Hooks.MpvServer},
     {Exshome.PubSub, ExshomeTest.Hooks.PubSub},
     {Exshome.Repo, ExshomeTest.Hooks.Repo},
-    {Exshome.Variable, ExshomeTest.Hooks.Variable},
+    {Exshome.SystemRegistry, ExshomeTest.Hooks.SystemRegistry},
     {:live_view, [ExshomeTest.Hooks.LiveView]}
   ]
 

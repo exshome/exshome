@@ -28,10 +28,7 @@ defmodule Exshome.Variable do
   def init_lifecycle(%DependencyState{} = state) do
     %__MODULE__{} = variable_data = variable_from_dependency_state(state)
 
-    :ok =
-      variable_data.id
-      |> registry_key()
-      |> SystemRegistry.put!(variable_data)
+    :ok = SystemRegistry.register!(__MODULE__, variable_data.id, variable_data)
 
     :ok =
       Event.broadcast(%VariableStateEvent{
@@ -68,9 +65,11 @@ defmodule Exshome.Variable do
     %__MODULE__{} = variable_data = variable_from_dependency_state(state)
 
     :ok =
-      variable_data.id
-      |> registry_key()
-      |> SystemRegistry.update!(variable_data)
+      SystemRegistry.update_value!(
+        __MODULE__,
+        variable_data.id,
+        fn _ -> variable_data end
+      )
 
     :ok =
       Event.broadcast(%VariableStateEvent{
@@ -114,42 +113,10 @@ defmodule Exshome.Variable do
   end
 
   @spec list() :: [t()]
-  def list do
-    SystemRegistry.select([
-      {
-        {lookup_key(:_), :_, :"$1"},
-        [],
-        [:"$1"]
-      }
-    ])
-  end
+  def list, do: SystemRegistry.list(__MODULE__)
 
-  @spec find_by_id(String.t()) :: {:ok, t()} | {:error, :not_found}
-  def find_by_id(variable_id) do
-    result =
-      SystemRegistry.select([
-        {
-          {lookup_key(variable_id), :_, :"$1"},
-          [],
-          [:"$1"]
-        }
-      ])
-
-    case result do
-      [value] -> {:ok, value}
-      _ -> {:error, :not_found}
-    end
-  end
-
-  @spec registry_key(String.t()) :: tuple()
-  defp registry_key(variable_id) when is_binary(variable_id) do
-    {__MODULE__, variable_id}
-  end
-
-  @spec lookup_key(String.t() | :_) :: tuple()
-  defp lookup_key(variable_id) do
-    {__MODULE__, variable_id}
-  end
+  @spec get_by_id(String.t()) :: {:ok, t()} | {:error, String.t()}
+  def get_by_id(variable_id), do: SystemRegistry.get_by_id(__MODULE__, variable_id)
 
   @spec raise_if_not_variable!(Dependency.dependency()) :: any()
   defp raise_if_not_variable!(dependency) do
@@ -173,13 +140,6 @@ defmodule Exshome.Variable do
       ready?: value != Dependency.NotReady,
       readonly?: readonly?(dependency)
     }
-  end
-
-  @hook_module Application.compile_env(:exshome, :hooks, [])[__MODULE__]
-  if @hook_module do
-    defoverridable(registry_key: 1, lookup_key: 1)
-    defdelegate registry_key(variable_id), to: @hook_module
-    defdelegate lookup_key(variable_id), to: @hook_module
   end
 
   defmacro __using__(config) do
