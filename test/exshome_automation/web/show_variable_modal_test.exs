@@ -23,6 +23,7 @@ defmodule ExshomeAutomationTest.Web.ShowVariableModalTest do
     unique_volume = Enum.random(1..100)
     change_form(view, "invalid_value")
     submit_data(view, "#{unique_volume}")
+    assert_receive_app_page_dependency({Volume, _})
     assert Dependency.get_value(Volume) == unique_volume
   end
 
