@@ -15,7 +15,8 @@ defmodule ExshomeWeb.Components do
 
     ~H"""
     <button class={"p-2 m-1 rounded-xl
-             bg-gray-200 dark:bg-gray-600 hover:bg-gray-300 dark:hover:bg-gray-500
+             bg-gray-200 dark:bg-gray-600 enabled:hover:bg-gray-300 enabled:dark:hover:bg-gray-500
+             disabled:text-gray-300 disabled:dark:text-gray-500
              shadow-md shadow-gray-600 dark:shadow-gray-700 #{@extra_classes}"} {@extra}>
       <%= render_slot(@inner_block) %>
     </button>

@@ -92,7 +92,19 @@ defmodule Exshome.Variable do
       raise "Unable to set a value for #{inspect(dependency)}. It is readonly."
     end
 
+    value = DataType.parse!(datatype(dependency), value)
     GenServerDependency.call(dependency, {:set_value, value})
+  end
+
+  @spec validate_value(Dependency.dependency(), value :: any()) ::
+          {:ok, any()} | {:error, String.t()}
+  def validate_value(dependency, value) do
+    type = datatype(dependency)
+
+    case DataType.try_parse_value(type, value) do
+      {:ok, value} -> {:ok, value}
+      _ -> {:error, "Invalid value #{inspect(value)} for #{DataType.name(type)}"}
+    end
   end
 
   @spec validate_module!(Macro.Env.t(), String.t()) :: keyword()

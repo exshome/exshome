@@ -24,6 +24,18 @@ defmodule Exshome.DataType do
     )
   end
 
+  @spec parse!(t(), value :: any()) :: any()
+  def parse!(module, value) do
+    {:ok, value} = try_parse_value(module, value)
+    value
+  end
+
+  @spec try_parse_value(t(), value :: any()) :: {:ok, term()} | {:error, Keyword.t()} | :error
+  def try_parse_value(module, value) do
+    raise_if_not_datatype!(module)
+    Ecto.Type.cast(module, value)
+  end
+
   @spec icon(t()) :: String.t()
   def icon(module) do
     raise_if_not_datatype!(module)
