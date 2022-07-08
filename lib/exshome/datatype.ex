@@ -13,11 +13,38 @@ defmodule Exshome.DataType do
         type: :atom,
         required: true
       ],
+      icon: [
+        type: :string,
+        required: true
+      ],
       name: [
         type: :string,
         required: true
       ]
     )
+  end
+
+  @spec icon(t()) :: String.t()
+  def icon(module) do
+    raise_if_not_datatype!(module)
+    module.__config__()[:icon]
+  end
+
+  @spec name(t()) :: String.t()
+  def name(module) do
+    raise_if_not_datatype!(module)
+    module.__config__()[:name]
+  end
+
+  defp raise_if_not_datatype!(module) when is_atom(module) do
+    module_is_datatype =
+      Exshome.Tag.tag_mapping()
+      |> Map.fetch!(__MODULE__)
+      |> MapSet.member?(module)
+
+    if !module_is_datatype do
+      raise "#{inspect(module)} is not a DataType!"
+    end
   end
 
   defmacro __using__(config) do

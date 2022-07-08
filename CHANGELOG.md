@@ -16,6 +16,7 @@
   * Added modal to show variable.
   * Added Automation preview.
   * Added lifecycle hook for variable readiness.
+  * Added datatypes for variables.
 
 ## v0.1.7 (2022-06-28)
   * Created database if it does not exist before migraions.

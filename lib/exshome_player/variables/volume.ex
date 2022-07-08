@@ -10,6 +10,9 @@ defmodule ExshomePlayer.Variables.Volume do
     name: "player_volume",
     subscribe: [
       dependencies: [{PlayerState, :player}]
+    ],
+    variable: [
+      type: Exshome.DataType.Integer
     ]
 
   @impl Subscription

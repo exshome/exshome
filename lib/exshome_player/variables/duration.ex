@@ -11,7 +11,8 @@ defmodule ExshomePlayer.Variables.Duration do
       dependencies: [{PlayerState, :player}]
     ],
     variable: [
-      readonly: true
+      readonly: true,
+      type: Exshome.DataType.Integer
     ]
 
   @impl Subscription

@@ -6,6 +6,14 @@
     Readonly: <span class="font-black"><%= @config.readonly? %></span>
   </div>
   <div class="text-xl">
+    Datatype:
+    <span class="font-black">
+      <%= Exshome.DataType.icon(@config.type) %>
+      <%= Exshome.DataType.name(@config.type) %>
+    </span>
+  </div>
+
+  <div class="text-xl">
     Current value: <span class="font-black"><%= @deps.variable %></span>
   </div>
   <%= if !@config.readonly? do %>

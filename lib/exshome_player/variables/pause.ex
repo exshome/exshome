@@ -10,6 +10,9 @@ defmodule ExshomePlayer.Variables.Pause do
     name: "player_pause",
     subscribe: [
       dependencies: [{PlayerState, :player}]
+    ],
+    variable: [
+      type: Exshome.DataType.Boolean
     ]
 
   @impl Subscription

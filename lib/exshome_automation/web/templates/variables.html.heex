@@ -3,7 +3,10 @@
     <h2 class="text-4xl text-center">Variables</h2>
     <.list rows={@deps.variables |> Map.values() |> Enum.sort_by(& &1.dependency)} let={variable}>
       <:row_before let={variable}>
-        <%= if variable.ready?, do: "🟢", else: "🟠" %>
+        <div class="flex flex-col md:flex-row items-center justify-center">
+          <span><%= if variable.ready?, do: "🟢", else: "🟠" %></span>
+          <span><%= Exshome.DataType.icon(variable.type) %></span>
+        </div>
       </:row_before>
       <:row_after let={variable}>
         <.button

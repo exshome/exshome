@@ -2,6 +2,7 @@ defmodule Exshome.Variable do
   @moduledoc """
   Variable-related logic.
   """
+  alias Exshome.DataType
   alias Exshome.Dependency
   alias Exshome.Dependency.GenServerDependency
   alias Exshome.Dependency.GenServerDependency.DependencyState
@@ -12,14 +13,15 @@ defmodule Exshome.Variable do
 
   use Lifecycle, key: :variable
 
-  defstruct [:dependency, :id, :name, :ready?, :readonly?]
+  defstruct [:dependency, :id, :name, :ready?, :readonly?, :type]
 
   @type t() :: %__MODULE__{
           dependency: Dependency.dependency(),
           id: String.t(),
           name: String.t(),
           ready?: boolean(),
-          readonly?: boolean()
+          readonly?: boolean(),
+          type: DataType.t()
         }
 
   @callback set_value(DependencyState.t(), any()) :: DependencyState.t()
@@ -100,6 +102,10 @@ defmodule Exshome.Variable do
     |> NimbleOptions.validate!(
       readonly: [
         type: :boolean
+      ],
+      type: [
+        type: :atom,
+        required: true
       ]
     )
   end
@@ -110,6 +116,14 @@ defmodule Exshome.Variable do
     |> Dependency.dependency_module()
     |> get_config()
     |> Keyword.get(:readonly, false)
+  end
+
+  @spec datatype(Dependency.dependency()) :: DataType.t()
+  def datatype(dependency) do
+    dependency
+    |> Dependency.dependency_module()
+    |> get_config()
+    |> Keyword.fetch!(:type)
   end
 
   @spec list() :: [t()]
@@ -138,7 +152,8 @@ defmodule Exshome.Variable do
       id: Dependency.dependency_id(dependency),
       name: Dependency.dependency_module(dependency).__config__[:name],
       ready?: value != Dependency.NotReady,
-      readonly?: readonly?(dependency)
+      readonly?: readonly?(dependency),
+      type: datatype(dependency)
     }
   end
 

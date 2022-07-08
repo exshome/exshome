@@ -10,6 +10,9 @@ defmodule ExshomePlayer.Variables.Position do
     name: "player_position",
     subscribe: [
       dependencies: [{PlayerState, :player}]
+    ],
+    variable: [
+      type: Exshome.DataType.Integer
     ]
 
   @impl Subscription

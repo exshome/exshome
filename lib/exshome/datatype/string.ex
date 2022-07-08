@@ -3,5 +3,5 @@ defmodule Exshome.DataType.String do
   String datatype.
   """
 
-  use Exshome.DataType, base_type: :string, name: "string"
+  use Exshome.DataType, base_type: :string, icon: "🔤", name: "string"
 end
