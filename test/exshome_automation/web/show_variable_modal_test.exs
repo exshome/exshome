@@ -20,9 +20,11 @@ defmodule ExshomeAutomationTest.Web.ShowVariableModalTest do
   test "works fine", %{view: view} do
     assert Dependency.get_value(Volume) == 0
     open_modal(view)
-    unique_volume = Enum.random(1..100)
+
     assert change_form(view, "some_invalid_value") =~ "Invalid value"
     assert submit_data(view, "some_invalid_value") =~ "Invalid value"
+
+    unique_volume = Enum.random(1..100)
     submit_data(view, "#{unique_volume}")
     assert_receive_app_page_dependency({Volume, _})
     assert Dependency.get_value(Volume) == unique_volume

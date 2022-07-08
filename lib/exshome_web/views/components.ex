@@ -23,6 +23,14 @@ defmodule ExshomeWeb.Components do
     """
   end
 
+  def chip(assigns) do
+    ~H"""
+    <span class="inline-block bg-green-300/50 dark:bg-green-800/50 rounded-xl p-1 shadow-md">
+      <%= render_slot(@inner_block) %>
+    </span>
+    """
+  end
+
   def live_form(assigns) do
     extra = assigns_to_attributes(assigns, [:changeset, :fields])
     assigns = LiveView.assign(assigns, :extra, extra)
