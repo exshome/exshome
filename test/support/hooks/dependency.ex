@@ -3,8 +3,6 @@ defmodule ExshomeTest.Hooks.Dependency do
   Custom hooks for dependencies.
   """
 
-  alias ExshomeTest.TestRegistry
-
   def default_timeout do
     if ExUnit.configuration()[:trace], do: :infinity, else: 5000
   end
