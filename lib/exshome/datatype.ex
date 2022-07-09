@@ -48,6 +48,14 @@ defmodule Exshome.DataType do
     module.__config__()[:name]
   end
 
+  @spec available_types() :: MapSet.t()
+  def available_types do
+    Map.fetch!(
+      Exshome.Tag.tag_mapping(),
+      __MODULE__
+    )
+  end
+
   defp raise_if_not_datatype!(module) when is_atom(module) do
     module_is_datatype =
       Exshome.Tag.tag_mapping()

@@ -64,10 +64,12 @@ defmodule Exshome.Tag.Mapping do
         raise "#{key} has mixed types in modules: #{inspect(modules)}"
     end
 
-    duplicate_values = duplicated_by(values, :value)
+    if type == :simple do
+      duplicate_values = duplicated_by(values, :value)
 
-    unless duplicate_values == [] do
-      raise "#{key} has duplicate values: #{inspect(duplicate_values)}"
+      unless duplicate_values == [] do
+        raise "#{key} has duplicate values: #{inspect(duplicate_values)}"
+      end
     end
 
     unless type == :simple do

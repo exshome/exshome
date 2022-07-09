@@ -54,8 +54,8 @@ defmodule ExshomeTest.TagTest do
     test "tag_mapping with duplicate values" do
       assert_raise(RuntimeError, ~r/.*duplicate values.*/, fn ->
         Mapping.compute_tag_mapping(
-          module1: [tag: [key: :tag]],
-          module1: [tag: [key: :tag]]
+          module1: [tag: []],
+          module1: [tag: []]
         )
       end)
     end
