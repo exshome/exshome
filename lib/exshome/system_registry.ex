@@ -3,7 +3,13 @@ defmodule Exshome.SystemRegistry do
   System-wide registry.
   """
   @spec child_spec(opts :: any()) :: Supervisor.child_spec()
-  def child_spec(_opts), do: Registry.child_spec(keys: :unique, name: __MODULE__)
+  def child_spec(_opts) do
+    Registry.child_spec(
+      keys: :unique,
+      name: __MODULE__,
+      partitions: System.schedulers_online()
+    )
+  end
 
   @spec register!(module(), id :: any(), value :: any()) :: :ok
   def register!(module, id, value) when is_atom(module) do
