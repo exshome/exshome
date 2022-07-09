@@ -3,9 +3,6 @@
     Name: <span class="font-black"><%= @config.name %></span>
   </div>
   <div class="text-xl">
-    Readonly: <span class="font-black"><%= @config.readonly? %></span>
-  </div>
-  <div class="text-xl">
     Datatype:
     <span class="font-black">
       <%= Exshome.DataType.icon(@config.type) %>
@@ -14,11 +11,14 @@
   </div>
 
   <div class="text-xl">
-    Current value: <span class="font-black"><%= @deps.variable %></span>
+    Current value:
+    <span class="font-black">
+      <.render_datatype_value type={@config.type} value={@deps.variable} />
+    </span>
   </div>
   <%= if !@config.readonly? do %>
-    <form phx-change="validate" phx-submit="save">
-      <input type="text" name="variable" value={@deps.variable} />
+    <form class="p-1 w-full flex flex-col items-center" phx-change="validate" phx-submit="save">
+      <.render_datatype_input type={@config.type} value={@deps.variable} name="variable" />
       <%= if @error_message do %>
         <div type="error" class="text-red-300"><%= @error_message %></div>
       <% end %>
