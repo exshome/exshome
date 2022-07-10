@@ -1,13 +1,17 @@
 <section id="show_variable_modal" class="flex flex-col items-center justify-center h-full">
-  <div class="text-xl">
-    Name: <span class="font-black"><%= @config.name %></span>
-  </div>
-  <div class="text-xl">
-    Datatype:
-    <span class="font-black">
+  <h2 class="text-3xl font-black">
+    <%= @config.name %>
+  </h2>
+  <div class="text-xs mb-3">
+    <.chip>
       <%= Exshome.DataType.icon(@config.type) %>
       <%= Exshome.DataType.name(@config.type) %>
-    </span>
+    </.chip>
+    <%= if @config.readonly? do %>
+      <.chip>
+        🔒 readonly
+      </.chip>
+    <% end %>
   </div>
 
   <div class="text-xl">
