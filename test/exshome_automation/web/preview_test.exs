@@ -5,7 +5,7 @@ defmodule ExshomeAutomationTest.Web.PreviewTest do
   alias ExshomeAutomation.Services.AutomationStatus
   alias ExshomeAutomation.Services.VariableRegistry
   alias ExshomePlayer.Services.PlayerState
-  alias ExshomePlayer.Variables.Pause
+  alias ExshomePlayer.Variables.Volume
   alias ExshomeTest.TestRegistry
 
   describe "render without dependencies" do
@@ -38,13 +38,13 @@ defmodule ExshomeAutomationTest.Web.PreviewTest do
 
   defp start_variable do
     flush_messages()
-    TestRegistry.start_dependency(Pause)
+    TestRegistry.start_dependency(Volume)
     assert_receive_app_page_dependency({AutomationStatus, _})
   end
 
   defp stop_variable do
     flush_messages()
-    TestRegistry.stop_dependency(Pause)
+    TestRegistry.stop_dependency(Volume)
     assert_receive_app_page_dependency({AutomationStatus, _})
   end
 

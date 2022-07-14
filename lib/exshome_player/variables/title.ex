@@ -27,4 +27,11 @@ defmodule ExshomePlayer.Variables.Title do
   defp extract_title(%{"artist" => artist, "title" => title}), do: "#{artist} - #{title}"
   defp extract_title(%{"title" => title}), do: title
   defp extract_title(_), do: "Unknown title"
+
+  @impl Variable
+  def not_ready_reason(%DependencyState{deps: %{player: %PlayerState{path: nil}}}) do
+    "No track is playing"
+  end
+
+  def not_ready_reason(_), do: nil
 end

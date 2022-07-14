@@ -5,7 +5,7 @@ defmodule ExshomeAutomationTest.Services.AutomationStatusTest do
   alias ExshomeAutomation.Services.AutomationStatus
   alias ExshomeAutomation.Services.VariableRegistry
   alias ExshomePlayer.Services.PlayerState
-  alias ExshomePlayer.Variables.Pause
+  alias ExshomePlayer.Variables.Volume
   alias ExshomeTest.TestRegistry
 
   setup do
@@ -45,7 +45,7 @@ defmodule ExshomeAutomationTest.Services.AutomationStatusTest do
 
   defp start_variable do
     flush_messages()
-    TestRegistry.start_dependency(Pause)
+    TestRegistry.start_dependency(Volume)
     assert_receive_dependency({AutomationStatus, _})
   end
 
@@ -56,7 +56,7 @@ defmodule ExshomeAutomationTest.Services.AutomationStatusTest do
 
   defp stop_variable do
     flush_messages()
-    TestRegistry.stop_dependency(Pause)
+    TestRegistry.stop_dependency(Volume)
     assert_receive_dependency({AutomationStatus, _})
   end
 end

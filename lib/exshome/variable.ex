@@ -13,17 +13,19 @@ defmodule Exshome.Variable do
 
   use Lifecycle, key: :variable
 
-  defstruct [:dependency, :id, :name, :ready?, :readonly?, :type]
+  defstruct [:dependency, :id, :name, :not_ready_reason, :ready?, :readonly?, :type]
 
   @type t() :: %__MODULE__{
           dependency: Dependency.dependency(),
           id: String.t(),
           name: String.t(),
+          not_ready_reason: String.t() | nil,
           ready?: boolean(),
           readonly?: boolean(),
           type: DataType.t()
         }
 
+  @callback not_ready_reason(DependencyState.t()) :: String.t() | nil
   @callback set_value(DependencyState.t(), any()) :: DependencyState.t()
 
   @impl Lifecycle
@@ -150,18 +152,30 @@ defmodule Exshome.Variable do
 
   defp get_variable_data(%DependencyState{private: private}), do: Map.fetch!(private, __MODULE__)
 
-  defp variable_from_dependency_state(%DependencyState{dependency: dependency, value: value}) do
+  defp variable_from_dependency_state(%DependencyState{dependency: dependency} = state) do
     module = Dependency.dependency_module(dependency)
     config = get_config(module)
+
+    reason = not_ready_reason(state)
 
     %__MODULE__{
       dependency: dependency,
       id: Dependency.dependency_id(dependency),
       name: module.__config__[:name],
-      ready?: value != Dependency.NotReady,
+      ready?: !reason,
+      not_ready_reason: reason,
       readonly?: Keyword.get(config, :readonly, false),
       type: Keyword.fetch!(config, :type)
     }
+  end
+
+  defp not_ready_reason(%DependencyState{deps: deps, value: Dependency.NotReady}) do
+    missing_deps = for {key, Dependency.NotReady} <- deps, do: key
+    "Missing dependencies: #{inspect(missing_deps)}"
+  end
+
+  defp not_ready_reason(%DependencyState{dependency: dependency} = state) do
+    Dependency.dependency_module(dependency).not_ready_reason(state)
   end
 
   defmacro __using__(config) do
@@ -177,6 +191,9 @@ defmodule Exshome.Variable do
       @behaviour Variable
 
       @impl Variable
+      def not_ready_reason(_), do: nil
+
+      @impl Variable
       def set_value(%DependencyState{} = state, value) do
         module = Exshome.Dependency.dependency_module(state.dependency)
 
@@ -186,7 +203,7 @@ defmodule Exshome.Variable do
         """
       end
 
-      defoverridable(set_value: 2)
+      defoverridable(Variable)
     end
   end
 end

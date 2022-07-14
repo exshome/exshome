@@ -26,4 +26,11 @@ defmodule ExshomePlayer.Variables.Pause do
     if value, do: Playback.pause(), else: Playback.play()
     state
   end
+
+  @impl Variable
+  def not_ready_reason(%DependencyState{deps: %{player: %PlayerState{path: nil}}}) do
+    "No track is playing"
+  end
+
+  def not_ready_reason(_), do: nil
 end

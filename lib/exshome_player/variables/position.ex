@@ -27,4 +27,11 @@ defmodule ExshomePlayer.Variables.Position do
     Playback.seek(value)
     state
   end
+
+  @impl Variable
+  def not_ready_reason(%DependencyState{deps: %{player: %PlayerState{path: nil}}}) do
+    "No track is playing"
+  end
+
+  def not_ready_reason(_), do: nil
 end

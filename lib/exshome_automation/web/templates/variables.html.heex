@@ -19,7 +19,7 @@
       <div class="whitespace-nowrap text-xl">
         <%= variable.name %>
       </div>
-      <div class="text-xs whitespace-nowrap my-1">
+      <div class="text-xs whitespace-nowrap">
         <.chip>
           <%= Exshome.DataType.icon(variable.type) %>
           <%= Exshome.DataType.name(variable.type) %>
@@ -29,6 +29,9 @@
             🔒 readonly
           </.chip>
         <% end %>
+      </div>
+      <div class="whitespace-nowrap text-red-400/80">
+        <%= variable.not_ready_reason %>
       </div>
     </.list>
   </div>
