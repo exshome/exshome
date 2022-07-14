@@ -66,6 +66,8 @@ defmodule ExshomePlayerTest.Web.EditLinkModalTest do
       path: updated_link
     })
 
+    assert_receive_app_page_dependency({Playlist, _})
+
     assert render(view) =~ updated_link
   end
 
