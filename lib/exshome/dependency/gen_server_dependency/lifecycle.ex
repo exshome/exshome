@@ -84,16 +84,12 @@ defmodule Exshome.Dependency.GenServerDependency.Lifecycle do
 
     state = %DependencyState{state | value: value}
 
-    if value != old_value do
-      state
-      |> hook_modules()
-      |> Enum.reduce(
-        state,
-        fn module, old_state -> module.handle_value_change(old_state, old_value) end
-      )
-    else
-      state
-    end
+    state
+    |> hook_modules()
+    |> Enum.reduce(
+      state,
+      fn module, old_state -> module.handle_value_change(old_state, old_value) end
+    )
   end
 
   @spec update_data(DependencyState.t(), (any() -> any())) :: DependencyState.t()
