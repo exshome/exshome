@@ -12,7 +12,7 @@ defmodule ExshomeTest.TestHelpers do
     end
   end
 
-  defmacro assert_receive_app_page_dependency(message, timeout \\ nil) do
+  defmacro assert_receive_app_page_dependency(message, timeout \\ 5000) do
     quote do
       ExUnit.Assertions.assert_receive(
         {ExshomeTest.Hooks.AppPage, Exshome.Dependency, unquote(message)},
