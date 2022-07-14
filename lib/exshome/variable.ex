@@ -27,19 +27,7 @@ defmodule Exshome.Variable do
   @callback set_value(DependencyState.t(), any()) :: DependencyState.t()
 
   @impl Lifecycle
-  def init_lifecycle(%DependencyState{} = state) do
-    %__MODULE__{} = variable_data = variable_from_dependency_state(state)
-
-    :ok = SystemRegistry.register!(__MODULE__, variable_data.id, variable_data)
-
-    :ok =
-      Event.broadcast(%VariableStateEvent{
-        data: variable_data,
-        type: :created
-      })
-
-    state
-  end
+  def init_lifecycle(%DependencyState{} = state), do: update_variable_info(state)
 
   @impl Lifecycle
   def init_state(%DependencyState{} = state), do: state
@@ -54,7 +42,7 @@ defmodule Exshome.Variable do
   def handle_stop(_reason, %DependencyState{} = state) do
     :ok =
       Event.broadcast(%VariableStateEvent{
-        data: variable_from_dependency_state(state),
+        data: get_variable_data(state),
         type: :deleted
       })
 
@@ -62,44 +50,34 @@ defmodule Exshome.Variable do
   end
 
   @impl Lifecycle
-  def handle_value_change(%DependencyState{value: value} = state, old_value)
-      when Dependency.NotReady in [value, old_value] do
-    %__MODULE__{} = variable_data = variable_from_dependency_state(state)
-
-    :ok =
-      SystemRegistry.update_value!(
-        __MODULE__,
-        variable_data.id,
-        fn _ -> variable_data end
-      )
-
-    :ok =
-      Event.broadcast(%VariableStateEvent{
-        data: variable_data,
-        type: :updated
-      })
-
-    state
+  def handle_value_change(%DependencyState{} = state, _old_value) do
+    update_variable_info(state)
   end
-
-  def handle_value_change(%DependencyState{} = state, _old_value), do: state
 
   @spec set_value!(Dependency.dependency(), any()) :: :ok
   def set_value!(dependency, value) do
     raise_if_not_variable!(dependency)
 
-    if readonly?(dependency) do
+    {:ok, %__MODULE__{} = config} =
+      dependency
+      |> Dependency.dependency_id()
+      |> get_by_id()
+
+    if config.readonly? do
       raise "Unable to set a value for #{inspect(dependency)}. It is readonly."
     end
 
-    value = DataType.parse!(datatype(dependency), value)
+    value = DataType.parse!(config.type, value)
     GenServerDependency.call(dependency, {:set_value, value})
   end
 
   @spec validate_value(Dependency.dependency(), value :: any()) ::
           {:ok, any()} | {:error, String.t()}
   def validate_value(dependency, value) do
-    type = datatype(dependency)
+    {:ok, %__MODULE__{type: type}} =
+      dependency
+      |> Dependency.dependency_id()
+      |> get_by_id()
 
     case DataType.try_parse_value(type, value) do
       {:ok, value} -> {:ok, value}
@@ -122,22 +100,6 @@ defmodule Exshome.Variable do
     )
   end
 
-  @spec readonly?(Dependency.dependency()) :: boolean()
-  def readonly?(dependency) do
-    dependency
-    |> Dependency.dependency_module()
-    |> get_config()
-    |> Keyword.get(:readonly, false)
-  end
-
-  @spec datatype(Dependency.dependency()) :: DataType.t()
-  def datatype(dependency) do
-    dependency
-    |> Dependency.dependency_module()
-    |> get_config()
-    |> Keyword.fetch!(:type)
-  end
-
   @spec list() :: [t()]
   def list, do: SystemRegistry.list(__MODULE__)
 
@@ -158,14 +120,47 @@ defmodule Exshome.Variable do
     end
   end
 
+  @spec update_variable_info(DependencyState.t()) :: DependencyState.t()
+  defp update_variable_info(%DependencyState{} = state) do
+    %__MODULE__{} = variable_data = variable_from_dependency_state(state)
+
+    old_data = Map.get(state.private, __MODULE__)
+
+    case {old_data, variable_data} do
+      {value, value} ->
+        :ok
+
+      {nil, _} ->
+        :ok = SystemRegistry.register!(__MODULE__, variable_data.id, variable_data)
+
+        :ok = Event.broadcast(%VariableStateEvent{data: variable_data, type: :created})
+
+      _ ->
+        :ok =
+          SystemRegistry.update_value!(__MODULE__, variable_data.id, fn _ -> variable_data end)
+
+        :ok = Event.broadcast(%VariableStateEvent{data: variable_data, type: :updated})
+    end
+
+    %DependencyState{
+      state
+      | private: Map.put(state.private, __MODULE__, variable_data)
+    }
+  end
+
+  defp get_variable_data(%DependencyState{private: private}), do: Map.fetch!(private, __MODULE__)
+
   defp variable_from_dependency_state(%DependencyState{dependency: dependency, value: value}) do
+    module = Dependency.dependency_module(dependency)
+    config = get_config(module)
+
     %__MODULE__{
       dependency: dependency,
       id: Dependency.dependency_id(dependency),
-      name: Dependency.dependency_module(dependency).__config__[:name],
+      name: module.__config__[:name],
       ready?: value != Dependency.NotReady,
-      readonly?: readonly?(dependency),
-      type: datatype(dependency)
+      readonly?: Keyword.get(config, :readonly, false),
+      type: Keyword.fetch!(config, :type)
     }
   end
 

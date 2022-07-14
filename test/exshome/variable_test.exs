@@ -1,9 +1,10 @@
 defmodule ExshomeTest.VariableTest do
-  use ExUnit.Case, async: true
+  use Exshome.DataCase, async: true
 
   import ExshomeTest.Fixtures
   alias Exshome.Variable
   alias ExshomePlayer.Variables.Duration
+  alias ExshomeTest.TestRegistry
 
   describe "set_value!/2" do
     test "raises for invalid dependency" do
@@ -12,7 +13,15 @@ defmodule ExshomeTest.VariableTest do
       end)
     end
 
+    test "raises for not started variable" do
+      assert_raise(MatchError, ~r/.*Unable to find.*/, fn ->
+        Variable.set_value!(Duration, "some_path#{unique_integer()}")
+      end)
+    end
+
     test "raises for readonly dependency" do
+      TestRegistry.start_dependency(Duration)
+
       assert_raise(RuntimeError, ~r/.*readonly.*/, fn ->
         Variable.set_value!(Duration, "some_path#{unique_integer()}")
       end)
