@@ -19,13 +19,7 @@ defmodule ExshomeAutomation.Web.Live.ShowVariableModal do
   end
 
   @impl LiveView
-  def handle_event("validate", %{"variable" => value}, %Socket{} = socket) do
-    {_, socket} = validate_value(socket, value)
-    {:noreply, socket}
-  end
-
-  @impl LiveView
-  def handle_event("save", %{"variable" => value}, %Socket{} = socket) do
+  def handle_event("update_value", %{"variable" => value}, %Socket{} = socket) do
     socket =
       case validate_value(socket, value) do
         {:ok, socket} ->

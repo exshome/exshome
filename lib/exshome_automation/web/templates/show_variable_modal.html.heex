@@ -14,19 +14,25 @@
     <% end %>
   </div>
 
-  <div class="text-xl">
-    Current value:
-    <span class="font-black">
-      <.render_datatype_value type={@config.type} value={@deps.variable} />
-    </span>
-  </div>
-  <%= if !@config.readonly? do %>
-    <form class="p-1 w-full flex flex-col items-center" phx-change="validate" phx-submit="save">
-      <.render_datatype_input type={@config.type} value={@deps.variable} name="variable" />
-      <%= if @error_message do %>
-        <div type="error" class="text-red-300"><%= @error_message %></div>
-      <% end %>
-      <.button disabled={!!@error_message} type="submit">Save</.button>
-    </form>
+  <%= if @config.ready? do %>
+    <%= if !@config.readonly? do %>
+      <form class="p-1 w-full flex flex-col items-center" phx-change="update_value">
+        <.render_datatype_input type={@config.type} value={@deps.variable} name="variable" />
+        <%= if @error_message do %>
+          <div type="error" class="text-red-300"><%= @error_message %></div>
+        <% end %>
+      </form>
+    <% else %>
+      <div class="text-xl">
+        Value:
+        <span class="font-black">
+          <.render_datatype_value type={@config.type} value={@deps.variable} />
+        </span>
+      </div>
+    <% end %>
+  <% else %>
+    <div class="text-md text-red-400/80">
+      <%= @config.not_ready_reason %>
+    </div>
   <% end %>
 </section>

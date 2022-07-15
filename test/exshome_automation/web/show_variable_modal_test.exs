@@ -22,10 +22,9 @@ defmodule ExshomeAutomationTest.Web.ShowVariableModalTest do
     open_modal(view)
 
     assert change_form(view, "some_invalid_value") =~ "Invalid value"
-    assert submit_data(view, "some_invalid_value") =~ "Invalid value"
 
     unique_volume = Enum.random(1..100)
-    submit_data(view, "#{unique_volume}")
+    assert change_form(view, "#{unique_volume}")
     assert_receive_app_page_dependency({Volume, _})
     assert Dependency.get_value(Volume) == unique_volume
   end
@@ -40,12 +39,6 @@ defmodule ExshomeAutomationTest.Web.ShowVariableModalTest do
     view
     |> find_form()
     |> render_change(%{variable: data})
-  end
-
-  defp submit_data(view, data) do
-    view
-    |> find_form()
-    |> render_submit(%{variable: data})
   end
 
   defp find_form(view), do: view |> find_live_child("modal-data") |> form("form")
