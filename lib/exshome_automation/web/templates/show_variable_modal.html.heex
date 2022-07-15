@@ -17,7 +17,7 @@
   <%= if @config.ready? do %>
     <%= if !@config.readonly? do %>
       <form class="p-1 w-full flex flex-col items-center" phx-change="update_value">
-        <.render_datatype_input type={@config.type} value={@deps.variable} name="variable" />
+        <.datatype_input type={@config.type} value={@deps.variable} name="variable" />
         <%= if @error_message do %>
           <div type="error" class="text-red-300"><%= @error_message %></div>
         <% end %>
@@ -26,7 +26,7 @@
       <div class="text-xl">
         Value:
         <span class="font-black">
-          <.render_datatype_value type={@config.type} value={@deps.variable} />
+          <.datatype_value type={@config.type} value={@deps.variable} />
         </span>
       </div>
     <% end %>

@@ -12,14 +12,14 @@ defmodule ExshomeWeb.DataTypeView do
   @spec available_renderers() :: %{DataType.t() => module()}
   def available_renderers, do: Map.fetch!(Exshome.Tag.tag_mapping(), __MODULE__)
 
-  @spec render_datatype_value(assigns :: map()) :: Rendered.t()
-  def render_datatype_value(%{type: type} = assigns) when is_atom(type) do
+  @spec datatype_value(assigns :: map()) :: Rendered.t()
+  def datatype_value(%{type: type} = assigns) when is_atom(type) do
     renderer = Map.fetch!(available_renderers(), type)
     renderer.render_value(assigns)
   end
 
-  @spec render_datatype_input(assigns :: map()) :: Rendered.t()
-  def render_datatype_input(%{type: type} = assigns) when is_atom(type) do
+  @spec datatype_input(assigns :: map()) :: Rendered.t()
+  def datatype_input(%{type: type} = assigns) when is_atom(type) do
     renderer = Map.fetch!(available_renderers(), type)
     renderer.render_input(assigns)
   end
