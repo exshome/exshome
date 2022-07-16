@@ -11,11 +11,11 @@ defmodule ExshomeWeb.DefaultDatatypeView do
   @impl DataTypeView
   def render_input(%{type: Boolean} = assigns) do
     ~H"""
-    <select name={@name} class={"#{default_input_styles()} min-w-[5em]"}>
-      <%= for option <- [true, false] do %>
-        <option value={"#{option}"} selected={@value == option}><%= option %></option>
-      <% end %>
-    </select>
+    <label class="relative inline-block w-[4em] h-[2em] text-xl text-green-500/70 dark:text-green-600 select-none">
+      <input name={@name} type="hidden" value="false" />
+      <input class="w-0 h-0 opacity-0" name={@name} type="checkbox" value="true" checked={@value} />
+      <span class="toggle absolute cursor-pointer bg-gray-300 dark:bg-gray-500 inset-0 rounded-full shadow-md" />
+    </label>
     """
   end
 

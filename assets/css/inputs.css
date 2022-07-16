@@ -59,3 +59,33 @@ progress::-moz-progress-bar {
   background-color: currentColor;
   border-radius: 1em;
 }
+
+.toggle {
+  -webkit-transition: .4s;
+  transition: .4s;
+}
+
+.toggle:before {
+  position: absolute;
+  content: "";
+  height: 1.4em;
+  width: 1.4em;
+  left: 0.3em;
+  bottom: 0.3em;
+  opacity: 1;
+  background: radial-gradient(yellow, gray, black);
+  border-radius: 50%;
+  -webkit-transition: .4s;
+  transition: .4s;
+  box-shadow: 0.1em 0.1em 0.3em gray;
+}
+
+input:checked + .toggle {
+  background-color: currentColor;
+}
+
+input:checked + .toggle:before {
+  -webkit-transform: translateX(2em);
+  -ms-transform: translateX(2em);
+  transform: translateX(2em);
+}
