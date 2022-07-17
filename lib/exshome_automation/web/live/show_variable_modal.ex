@@ -20,23 +20,13 @@ defmodule ExshomeAutomation.Web.Live.ShowVariableModal do
 
   @impl LiveView
   def handle_event("update_value", %{"variable" => value}, %Socket{} = socket) do
-    socket =
-      case validate_value(socket, value) do
-        {:ok, socket} ->
-          Variable.set_value!(socket.assigns.config.dependency, value)
-          socket
-
-        {:error, socket} ->
-          socket
-      end
-
-    {:noreply, socket}
+    {:noreply, set_value(socket, value)}
   end
 
-  defp validate_value(%Socket{} = socket, value) do
-    case Variable.validate_value(socket.assigns.config.dependency, value) do
-      {:ok, _value} -> {:ok, put_error_message(socket, nil)}
-      {:error, error} -> {:error, put_error_message(socket, error)}
+  defp set_value(%Socket{} = socket, value) do
+    case Variable.set_value(socket.assigns.config.dependency, value) do
+      :ok -> put_error_message(socket, nil)
+      {:error, error} -> put_error_message(socket, error)
     end
   end
 

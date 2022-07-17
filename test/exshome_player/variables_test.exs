@@ -4,6 +4,7 @@ defmodule ExshomePlayerTest.VariablesTest do
   import ExshomeTest.Fixtures
 
   alias Exshome.Dependency
+  alias Exshome.Variable
   alias ExshomePlayer.Services.PlayerState
   alias ExshomePlayer.Variables
   alias ExshomeTest.TestRegistry
@@ -116,6 +117,16 @@ defmodule ExshomePlayerTest.VariablesTest do
       volume = unique_integer()
       Dependency.broadcast_value(PlayerState, %PlayerState{volume: volume})
       assert Dependency.get_value(Variables.Volume) == volume
+    end
+
+    test "max volume should be 100" do
+      {:error, reason} = Variable.set_value(Variables.Volume, 100 + unique_integer())
+      assert reason =~ "100"
+    end
+
+    test "min volume should be 0" do
+      {:error, reason} = Variable.set_value(Variables.Volume, 0 - unique_integer())
+      assert reason =~ "0"
     end
   end
 end

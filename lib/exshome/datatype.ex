@@ -4,6 +4,11 @@ defmodule Exshome.DataType do
   """
 
   @type t() :: atom()
+  @type parse_result() :: {:ok, any()} | {:error, String.t()}
+
+  @callback validate(value :: any(), validation :: atom(), opts :: any()) :: parse_result()
+
+  @optional_callbacks [validate: 3]
 
   @spec validate_module!(Macro.Env.t(), String.t()) :: keyword()
   def validate_module!(%Macro.Env{module: module}, _) do
@@ -20,20 +25,53 @@ defmodule Exshome.DataType do
       name: [
         type: :string,
         required: true
+      ],
+      validations: [
+        type: {:list, :atom}
       ]
     )
   end
 
-  @spec parse!(t(), value :: any()) :: any()
-  def parse!(module, value) do
-    {:ok, value} = try_parse_value(module, value)
-    value
+  @spec parse(t(), value :: any(), validations :: %{atom() => any()}) :: parse_result()
+  def parse(module, value, validations \\ %{}) do
+    raise_if_not_datatype!(module)
+
+    case Ecto.Type.cast(module, value) do
+      {:ok, value} ->
+        validate(module, value, validations)
+
+      _ ->
+        {:error, "Invalid value #{inspect(value)} for #{name(module)}"}
+    end
   end
 
-  @spec try_parse_value(t(), value :: any()) :: {:ok, term()} | {:error, Keyword.t()} | :error
-  def try_parse_value(module, value) do
-    raise_if_not_datatype!(module)
-    Ecto.Type.cast(module, value)
+  @spec validate(t(), value :: any(), %{atom() => any()}) :: parse_result()
+  defp validate(module, value, validations) do
+    available_validations = MapSet.new(module.__config__[:validations] || [])
+
+    {validations, unknown_validations} =
+      Enum.split_with(validations, fn {key, _opts} -> key in available_validations end)
+
+    case unknown_validations do
+      [] ->
+        reduce_validations(module, {:ok, value}, validations)
+
+      _ ->
+        {:error, "Unknown validations #{inspect(unknown_validations)} for #{name(module)}"}
+    end
+  end
+
+  @spec reduce_validations(t(), parse_result(), Keyword.t()) :: parse_result()
+  defp reduce_validations(_module, result, []), do: result
+
+  defp reduce_validations(_module, {:error, _reason} = result, _), do: result
+
+  defp reduce_validations(module, {:ok, value}, [{validation, opts} | validations]) do
+    reduce_validations(
+      module,
+      module.validate(value, validation, opts),
+      validations
+    )
   end
 
   @spec icon(t()) :: String.t()
@@ -81,6 +119,8 @@ defmodule Exshome.DataType do
       def __config__, do: unquote(config)
 
       @after_compile {DataType, :validate_module!}
+
+      @behaviour DataType
 
       @impl Ecto.Type
       def type, do: unquote(config[:base_type])

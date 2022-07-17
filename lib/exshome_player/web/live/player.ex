@@ -19,7 +19,7 @@ defmodule ExshomePlayer.Web.Live.Player do
   @impl LiveView
   def handle_event("set_volume", %{"volume" => volume}, %Socket{} = socket) do
     value = String.to_integer(volume)
-    Variable.set_value!(Variables.Volume, value)
+    :ok = Variable.set_value(Variables.Volume, value)
 
     {:noreply, socket}
   end
@@ -27,21 +27,21 @@ defmodule ExshomePlayer.Web.Live.Player do
   @impl LiveView
   def handle_event("set_position", %{"position" => position}, %Socket{} = socket) do
     value = String.to_integer(position)
-    Variable.set_value!(Variables.Position, value)
+    :ok = Variable.set_value(Variables.Position, value)
 
     {:noreply, socket}
   end
 
   @impl LiveView
   def handle_event("play", _, %Socket{} = socket) do
-    Variable.set_value!(Variables.Pause, false)
+    :ok = Variable.set_value(Variables.Pause, false)
 
     {:noreply, socket}
   end
 
   @impl LiveView
   def handle_event("pause", _, %Socket{} = socket) do
-    Variable.set_value!(Variables.Pause, true)
+    :ok = Variable.set_value(Variables.Pause, true)
 
     {:noreply, socket}
   end

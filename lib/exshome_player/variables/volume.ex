@@ -12,7 +12,11 @@ defmodule ExshomePlayer.Variables.Volume do
       dependencies: [{PlayerState, :player}]
     ],
     variable: [
-      type: Exshome.DataType.Integer
+      type: Exshome.DataType.Integer,
+      validate: [
+        min_value: 0,
+        max_value: 100
+      ]
     ]
 
   @impl Subscription

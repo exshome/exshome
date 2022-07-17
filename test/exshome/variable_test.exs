@@ -6,25 +6,24 @@ defmodule ExshomeTest.VariableTest do
   alias ExshomePlayer.Variables.Duration
   alias ExshomeTest.TestRegistry
 
-  describe "set_value!/2" do
+  describe "set_value/2" do
     test "raises for invalid dependency" do
       assert_raise(RuntimeError, ~r/.*not a Variable.*/, fn ->
-        Variable.set_value!(:invalid_dependency, :test)
+        Variable.set_value(:invalid_dependency, :test)
       end)
     end
 
     test "raises for not started variable" do
       assert_raise(MatchError, ~r/.*Unable to find.*/, fn ->
-        Variable.set_value!(Duration, "some_path#{unique_integer()}")
+        Variable.set_value(Duration, "some_path#{unique_integer()}")
       end)
     end
 
     test "raises for readonly dependency" do
       TestRegistry.start_dependency(Duration)
 
-      assert_raise(RuntimeError, ~r/.*readonly.*/, fn ->
-        Variable.set_value!(Duration, "some_path#{unique_integer()}")
-      end)
+      {:error, reason} = Variable.set_value(Duration, "some_path#{unique_integer()}")
+      assert reason =~ ~r/.*readonly.*/
     end
   end
 

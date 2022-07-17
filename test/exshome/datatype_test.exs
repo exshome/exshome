@@ -16,4 +16,17 @@ defmodule ExshomeTest.DatatypeTest do
       )
     end
   end
+
+  describe "parse/2" do
+    test "raises if not a valid datatype" do
+      assert_raise RuntimeError, ~r/.*:unknown_type*./, fn ->
+        DataType.parse(:unknown_type, 1)
+      end
+    end
+
+    test "does not allow unknown validations" do
+      {:error, reason} = DataType.parse(DataType.Integer, 1, unknown_validation: 1)
+      assert reason =~ "unknown_validation"
+    end
+  end
 end

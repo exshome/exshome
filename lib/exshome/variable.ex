@@ -13,7 +13,7 @@ defmodule Exshome.Variable do
 
   use Lifecycle, key: :variable
 
-  defstruct [:dependency, :id, :name, :not_ready_reason, :ready?, :readonly?, :type]
+  defstruct [:dependency, :id, :name, :not_ready_reason, :ready?, :readonly?, :type, :validations]
 
   @type t() :: %__MODULE__{
           dependency: Dependency.dependency(),
@@ -22,7 +22,8 @@ defmodule Exshome.Variable do
           not_ready_reason: String.t() | nil,
           ready?: boolean(),
           readonly?: boolean(),
-          type: DataType.t()
+          type: DataType.t(),
+          validations: %{atom() => any()}
         }
 
   @callback not_ready_reason(DependencyState.t()) :: String.t() | nil
@@ -56,8 +57,16 @@ defmodule Exshome.Variable do
     update_variable_info(state)
   end
 
-  @spec set_value!(Dependency.dependency(), any()) :: :ok
-  def set_value!(dependency, value) do
+  @spec set_value(Dependency.dependency(), any()) :: :ok | {:error, String.t()}
+  def set_value(dependency, value) do
+    case validate_value(dependency, value) do
+      {:ok, value} -> GenServerDependency.call(dependency, {:set_value, value})
+      {:error, reason} -> {:error, reason}
+    end
+  end
+
+  @spec validate_value(Dependency.dependency(), value :: any()) :: DataType.parse_result()
+  defp validate_value(dependency, value) do
     raise_if_not_variable!(dependency)
 
     {:ok, %__MODULE__{} = config} =
@@ -66,24 +75,9 @@ defmodule Exshome.Variable do
       |> get_by_id()
 
     if config.readonly? do
-      raise "Unable to set a value for #{inspect(dependency)}. It is readonly."
-    end
-
-    value = DataType.parse!(config.type, value)
-    GenServerDependency.call(dependency, {:set_value, value})
-  end
-
-  @spec validate_value(Dependency.dependency(), value :: any()) ::
-          {:ok, any()} | {:error, String.t()}
-  def validate_value(dependency, value) do
-    {:ok, %__MODULE__{type: type}} =
-      dependency
-      |> Dependency.dependency_id()
-      |> get_by_id()
-
-    case DataType.try_parse_value(type, value) do
-      {:ok, value} -> {:ok, value}
-      _ -> {:error, "Invalid value #{inspect(value)} for #{DataType.name(type)}"}
+      {:error, "Unable update a value for #{inspect(dependency)}. It is readonly."}
+    else
+      DataType.parse(config.type, value, config.validations)
     end
   end
 
@@ -98,6 +92,9 @@ defmodule Exshome.Variable do
       type: [
         type: :atom,
         required: true
+      ],
+      validate: [
+        type: :keyword_list
       ]
     )
   end
@@ -158,6 +155,11 @@ defmodule Exshome.Variable do
 
     reason = not_ready_reason(state)
 
+    validations =
+      config
+      |> Keyword.get(:validate, [])
+      |> Enum.into(%{})
+
     %__MODULE__{
       dependency: dependency,
       id: Dependency.dependency_id(dependency),
@@ -165,7 +167,8 @@ defmodule Exshome.Variable do
       ready?: !reason,
       not_ready_reason: reason,
       readonly?: Keyword.get(config, :readonly, false),
-      type: Keyword.fetch!(config, :type)
+      type: Keyword.fetch!(config, :type),
+      validations: validations
     }
   end
 
