@@ -60,7 +60,7 @@ defmodule Exshome.MixProject do
       {:dialyxir, "~> 1.0", only: [:dev, :test], runtime: false},
       {:ecto, "~> 3.7"},
       {:ecto_sqlite3, "~> 0.7.3"},
-      {:erlexec, "~> 1.0"},
+      {:erlexec, "~> 2.0"},
       {:esbuild, "~> 0.3", runtime: Mix.env() == :dev},
       {:excoveralls, "~> 0.10", only: :test},
       {:ex_doc, "~> 0.27", only: :test, runtime: false},
