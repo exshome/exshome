@@ -29,8 +29,13 @@ defmodule Exshome.Variable do
   @callback not_ready_reason(DependencyState.t()) :: String.t() | nil
   @callback set_value(DependencyState.t(), any()) :: DependencyState.t()
 
+  @validations_key {__MODULE__, :validations}
+
   @impl Lifecycle
-  def init_lifecycle(%DependencyState{} = state), do: update_variable_info(state)
+  def init_lifecycle(%DependencyState{} = state) do
+    default_validations = load_default_validations(state)
+    update_validations(state, fn _ -> default_validations end)
+  end
 
   @impl Lifecycle
   def init_state(%DependencyState{} = state), do: state
@@ -155,11 +160,6 @@ defmodule Exshome.Variable do
 
     reason = not_ready_reason(state)
 
-    validations =
-      config
-      |> Keyword.get(:validate, [])
-      |> Enum.into(%{})
-
     %__MODULE__{
       dependency: dependency,
       id: Dependency.dependency_id(dependency),
@@ -168,8 +168,34 @@ defmodule Exshome.Variable do
       not_ready_reason: reason,
       readonly?: Keyword.get(config, :readonly, false),
       type: Keyword.fetch!(config, :type),
-      validations: validations
+      validations: get_validations(state)
     }
+  end
+
+  @spec get_validations(DependencyState.t()) :: map()
+  defp get_validations(%DependencyState{} = state) do
+    Map.fetch!(state.private, @validations_key)
+  end
+
+  @spec update_validations(DependencyState.t(), (map() -> map())) :: DependencyState.t()
+  def update_validations(%DependencyState{} = state, update_fn) do
+    private =
+      state.private
+      |> Map.put_new(@validations_key, %{})
+      |> Map.update!(@validations_key, update_fn)
+
+    update_variable_info(%DependencyState{
+      state
+      | private: private
+    })
+  end
+
+  defp load_default_validations(%DependencyState{dependency: dependency}) do
+    dependency
+    |> Dependency.dependency_module()
+    |> get_config()
+    |> Keyword.get(:validate, [])
+    |> Enum.into(%{})
   end
 
   defp not_ready_reason(%DependencyState{deps: deps, value: Dependency.NotReady}) do
@@ -207,6 +233,8 @@ defmodule Exshome.Variable do
       end
 
       defoverridable(Variable)
+
+      defdelegate update_validations(state, update_fn), to: Variable
     end
   end
 end

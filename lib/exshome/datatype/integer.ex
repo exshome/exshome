@@ -7,10 +7,10 @@ defmodule Exshome.DataType.Integer do
     base_type: :integer,
     icon: "🔢",
     name: "integer",
-    validations: [:min_value, :max_value]
+    validations: [:min, :max]
 
   @impl DataType
-  def validate(value, :min_value, min_value) when is_integer(min_value) do
+  def validate(value, :min, min_value) when is_integer(min_value) do
     if value >= min_value do
       {:ok, value}
     else
@@ -18,7 +18,7 @@ defmodule Exshome.DataType.Integer do
     end
   end
 
-  def validate(value, :max_value, max_value) when is_integer(max_value) do
+  def validate(value, :max, max_value) when is_integer(max_value) do
     if value <= max_value do
       {:ok, value}
     else

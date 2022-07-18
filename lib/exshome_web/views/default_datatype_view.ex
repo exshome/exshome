@@ -19,9 +19,33 @@ defmodule ExshomeWeb.DefaultDatatypeView do
     """
   end
 
-  def render_input(%{type: Integer} = assigns) do
+  def render_input(%{type: Integer, validations: %{min: _, max: _}} = assigns) do
     ~H"""
-    <input class={default_input_styles()} type="number" value={@value} name={@name} />
+    <input
+      class="w-full my-2 h-[1em] rounded-full text-green-800 dark:text-green-700 bg-green-600 dark:bg-green-800 shadow-md dark:shadow-gray-600"
+      type="range"
+      min={@validations[:min]}
+      max={@validations[:max]}
+      value={@value}
+      name={@name}
+    />
+    """
+  end
+
+  def render_input(%{type: Integer, validations: validations} = assigns) do
+    extra_attributes =
+      for attr <- [:min, :max], value = Map.get(validations, attr), do: {attr, value}
+
+    assigns = LiveView.assign(assigns, :extra_attributes, extra_attributes)
+
+    ~H"""
+    <input
+      class={default_input_styles()}
+      type="number"
+      value={@value}
+      name={@name}
+      {@extra_attributes}
+    />
     """
   end
 

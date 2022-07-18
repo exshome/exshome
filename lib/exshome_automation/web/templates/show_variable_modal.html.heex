@@ -16,8 +16,13 @@
 
   <%= if @config.ready? do %>
     <%= if !@config.readonly? do %>
-      <form class="p-1 w-full flex flex-col items-center" phx-change="update_value">
-        <.datatype_input type={@config.type} value={@deps.variable} name="variable" />
+      <form class="p-1 w-full md:w-3/4 flex flex-col items-center" phx-change="update_value">
+        <.datatype_input
+          type={@config.type}
+          value={@deps.variable}
+          validations={@config.validations}
+          name="variable"
+        />
         <%= if @error_message do %>
           <div type="error" class="text-red-300"><%= @error_message %></div>
         <% end %>

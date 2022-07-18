@@ -12,14 +12,20 @@ defmodule ExshomePlayer.Variables.Position do
       dependencies: [{PlayerState, :player}]
     ],
     variable: [
-      type: Exshome.DataType.Integer
+      type: Exshome.DataType.Integer,
+      validate: [
+        min: 0
+      ]
     ]
 
   @impl Subscription
   def handle_dependency_change(%DependencyState{deps: %{player: %PlayerState{} = player}} = state) do
     position = round(player.time_pos || 0)
+    duration = round(player.duration || 0)
 
-    update_value(state, position)
+    state
+    |> update_value(position)
+    |> update_validations(&Map.put(&1, :max, duration))
   end
 
   @impl Variable

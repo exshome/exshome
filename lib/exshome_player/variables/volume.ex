@@ -14,8 +14,8 @@ defmodule ExshomePlayer.Variables.Volume do
     variable: [
       type: Exshome.DataType.Integer,
       validate: [
-        min_value: 0,
-        max_value: 100
+        min: 0,
+        max: 100
       ]
     ]
 

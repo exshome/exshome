@@ -4,6 +4,7 @@ defmodule ExshomeWeb.DataTypeView do
   """
 
   alias Exshome.DataType
+  alias Phoenix.LiveView
   alias Phoenix.LiveView.Rendered
 
   @callback render_value(assigns :: map()) :: Rendered.t()
@@ -21,13 +22,18 @@ defmodule ExshomeWeb.DataTypeView do
   @spec datatype_input(assigns :: map()) :: Rendered.t()
   def datatype_input(%{type: type} = assigns) when is_atom(type) do
     renderer = Map.fetch!(available_renderers(), type)
-    renderer.render_input(assigns)
+
+    assigns
+    |> LiveView.assign_new(:validations, fn _ -> %{} end)
+    |> renderer.render_input()
   end
 
   defmacro __using__(datatypes) do
     quote do
       import Exshome.Tag, only: [add_tag: 2]
       alias ExshomeWeb.DataTypeView
+      alias Phoenix.LiveView
+      import Phoenix.LiveView.Helpers
 
       for type <- unquote(datatypes) do
         add_tag(DataTypeView, key: type)

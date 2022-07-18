@@ -5,6 +5,7 @@ defmodule ExshomeWebTest.DefaultDatatypeViewTest do
 
   alias Exshome.DataType
   alias ExshomeWeb.DataTypeView
+  alias Phoenix.LiveView
 
   describe "Boolean" do
     test "render_value/1" do
@@ -49,7 +50,8 @@ defmodule ExshomeWebTest.DefaultDatatypeViewTest do
   end
 
   defp datatype_input(datatype, value, name \\ "name#{unique_integer()}") do
-    %{type: datatype, value: value, name: name}
+    %{__changed__: %{}}
+    |> LiveView.assign(type: datatype, value: value, name: name)
     |> DataTypeView.datatype_input()
     |> rendered_to_string()
   end
