@@ -3,6 +3,7 @@ defmodule ExshomeWeb.Live.AppPage do
   Generic module for app pages.
   """
   alias Exshome.Dependency
+  alias Exshome.Event
   alias Phoenix.LiveView
   alias Phoenix.LiveView.Socket
   import Phoenix.LiveView.Helpers
@@ -13,6 +14,8 @@ defmodule ExshomeWeb.Live.AppPage do
   @callback icon() :: String.t()
   @callback path() :: String.t()
   @callback dependencies() :: Keyword.t()
+  @callback on_app_event(Event.event_message(), Socket.t()) :: Socket.t()
+  @optional_callbacks [on_app_event: 2]
 
   def on_mount(_, _params, _session, %Socket{} = socket) do
     socket =
@@ -36,6 +39,11 @@ defmodule ExshomeWeb.Live.AppPage do
     else
       {:cont, socket}
     end
+  end
+
+  def handle_info({Event, event_message}, %Socket{} = socket) do
+    socket = socket.view.on_app_event(event_message, socket)
+    {:halt, socket}
   end
 
   def handle_info(_event, %Socket{} = socket), do: {:cont, socket}

@@ -28,7 +28,7 @@ defmodule ExshomePlayerTest.Web.PlayerTest do
       volume_selector = "[name=volume]"
       volume = Enum.random(0..100)
       view |> element(volume_selector) |> render_change(%{volume: volume})
-      assert_receive_dependency({Variables.Volume, volume})
+      assert_receive_app_page_dependency({Variables.Volume, volume})
       assert get_value(view, volume_selector) == Integer.to_string(volume)
     end
 

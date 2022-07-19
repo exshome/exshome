@@ -21,6 +21,15 @@ defmodule ExshomeTest.TestHelpers do
     end
   end
 
+  defmacro assert_receive_app_page_event(event, timeout \\ 2000) do
+    quote do
+      ExUnit.Assertions.assert_receive(
+        {ExshomeTest.Hooks.AppPage, Exshome.Event, unquote(event)},
+        unquote(timeout)
+      )
+    end
+  end
+
   defmacro assert_receive_event(event, timeout \\ nil) do
     quote do
       ExUnit.Assertions.assert_receive(

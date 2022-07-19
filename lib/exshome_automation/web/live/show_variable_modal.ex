@@ -2,7 +2,9 @@ defmodule ExshomeAutomation.Web.Live.ShowVariableModal do
   @moduledoc """
   Modal to show and edit variables.
   """
+  alias Exshome.Event
   alias Exshome.Variable
+  alias Exshome.Variable.VariableStateEvent
   use ExshomeWeb.Live.AppPage, dependencies: []
 
   @impl LiveView
@@ -15,6 +17,7 @@ defmodule ExshomeAutomation.Web.Live.ShowVariableModal do
       |> put_error_message(nil)
       |> put_dependencies([{config.dependency, :variable}])
 
+    :ok = Event.subscribe(VariableStateEvent, variable_id)
     {:ok, assign(socket, :config, config)}
   end
 
@@ -31,4 +34,9 @@ defmodule ExshomeAutomation.Web.Live.ShowVariableModal do
   end
 
   defp put_error_message(%Socket{} = socket, message), do: assign(socket, :error_message, message)
+
+  @impl AppPage
+  def on_app_event(%VariableStateEvent{data: data}, %Socket{} = socket) do
+    assign(socket, :config, data)
+  end
 end

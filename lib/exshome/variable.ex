@@ -137,19 +137,24 @@ defmodule Exshome.Variable do
       {nil, _} ->
         :ok = SystemRegistry.register!(__MODULE__, variable_data.id, variable_data)
 
-        :ok = Event.broadcast(%VariableStateEvent{data: variable_data, type: :created})
+        broadcast_event(%VariableStateEvent{data: variable_data, type: :created})
 
       _ ->
         :ok =
           SystemRegistry.update_value!(__MODULE__, variable_data.id, fn _ -> variable_data end)
 
-        :ok = Event.broadcast(%VariableStateEvent{data: variable_data, type: :updated})
+        broadcast_event(%VariableStateEvent{data: variable_data, type: :updated})
     end
 
     %DependencyState{
       state
       | private: Map.put(state.private, __MODULE__, variable_data)
     }
+  end
+
+  defp broadcast_event(%VariableStateEvent{} = event) do
+    :ok = Event.broadcast(event)
+    :ok = Event.broadcast(event, event.data.id)
   end
 
   defp get_variable_data(%DependencyState{private: private}), do: Map.fetch!(private, __MODULE__)

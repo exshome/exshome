@@ -18,6 +18,7 @@
   * Added lifecycle hook for variable readiness.
   * Added datatypes for variables.
   * Added a feature to render datatype.
+  * Implemented sending events by topics.
 
 ## v0.1.7 (2022-06-28)
   * Created database if it does not exist before migraions.
