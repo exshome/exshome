@@ -11,6 +11,7 @@ defmodule ExshomePlayer.Variables.Title do
       dependencies: [{PlayerState, :player}]
     ],
     variable: [
+      group: "player",
       readonly: true,
       type: Exshome.DataType.String
     ]

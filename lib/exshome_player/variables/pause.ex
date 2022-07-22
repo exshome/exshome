@@ -12,6 +12,7 @@ defmodule ExshomePlayer.Variables.Pause do
       dependencies: [{PlayerState, :player}]
     ],
     variable: [
+      group: "player",
       type: Exshome.DataType.Boolean
     ]
 

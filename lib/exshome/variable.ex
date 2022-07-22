@@ -13,12 +13,23 @@ defmodule Exshome.Variable do
 
   use Lifecycle, key: :variable
 
-  defstruct [:dependency, :id, :name, :not_ready_reason, :ready?, :readonly?, :type, :validations]
+  defstruct [
+    :dependency,
+    :id,
+    :name,
+    :group,
+    :not_ready_reason,
+    :ready?,
+    :readonly?,
+    :type,
+    :validations
+  ]
 
   @type t() :: %__MODULE__{
           dependency: Dependency.dependency(),
           id: String.t(),
           name: String.t(),
+          group: String.t(),
           not_ready_reason: String.t() | nil,
           ready?: boolean(),
           readonly?: boolean(),
@@ -91,6 +102,10 @@ defmodule Exshome.Variable do
     module
     |> get_config()
     |> NimbleOptions.validate!(
+      group: [
+        type: :string,
+        required: true
+      ],
       readonly: [
         type: :boolean
       ],
@@ -169,6 +184,7 @@ defmodule Exshome.Variable do
       dependency: dependency,
       id: Dependency.dependency_id(dependency),
       name: module.__config__[:name],
+      group: Keyword.fetch!(config, :group),
       ready?: !reason,
       not_ready_reason: reason,
       readonly?: Keyword.get(config, :readonly, false),

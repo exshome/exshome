@@ -57,7 +57,6 @@ defmodule ExshomePlayerTest.Web.PlaylistTest do
     end
 
     defp play_track(view, %Track{id: id}) do
-      flush_messages()
       view |> element("button[phx-value-id=#{id}][phx-click=play]") |> render_click()
       assert_receive_app_page_dependency({Playlist, %Playlist{current_id: ^id}})
       assert view |> element(".playing") |> has_element?()

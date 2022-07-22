@@ -14,9 +14,10 @@ defmodule ExshomeAutomationTest.Web.VariablesTest do
   describe "render with dependnencies" do
     test "works fine", %{conn: conn} do
       view = live_with_dependencies(conn, ExshomeAutomation, :variables)
-      assert render(view) =~ "Variables"
+      refute render(view) =~ "player"
       assert count_variables(view) == 0
       start_variable()
+      assert render(view) =~ "player"
       assert count_variables(view) == 1
       stop_variable()
       assert count_variables(view) == 0
