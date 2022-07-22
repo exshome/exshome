@@ -8,7 +8,7 @@ defmodule Exshome.MixProject do
     [
       aliases: aliases(),
       app: :exshome,
-      compilers: [:gettext] ++ Mix.compilers(),
+      compilers: Mix.compilers(),
       deps: deps(),
       description: description(),
       dialyzer: [
