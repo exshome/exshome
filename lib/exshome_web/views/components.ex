@@ -31,6 +31,21 @@ defmodule ExshomeWeb.Components do
     """
   end
 
+  def custom_select(assigns) do
+    ~H"""
+    <select
+      class="p-3 w-full md:w-1/6 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-xl shadow-lg dark:shadow-gray-700"
+      name={@name}
+    >
+      <%= for value <- @values do %>
+        <option value={render_slot(@value, value)}>
+          <%= render_slot(@label, value) %>
+        </option>
+      <% end %>
+    </select>
+    """
+  end
+
   def live_form(assigns) do
     extra = assigns_to_attributes(assigns, [:changeset, :fields])
     assigns = LiveView.assign(assigns, :extra, extra)

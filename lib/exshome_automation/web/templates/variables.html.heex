@@ -1,40 +1,54 @@
-<section class="h-full w-full p-4 flex flex-col items-center justify-center">
-  <div class="w-full max-h-full">
-    <%= for {group, variables} <- @deps.variables |> Map.values() |> Enum.group_by(& &1.group) |> Enum.sort_by(&elem(&1, 0)) do %>
-      <h2 class="text-4xl text-center mt-5 first:mt-0"><%= group %></h2>
-      <.list rows={Enum.sort_by(variables, & &1.dependency)} let={variable}>
-        <:row_before let={variable}>
-          <div class="flex flex-col md:flex-row items-center justify-center">
-            <span><%= if variable.ready?, do: "🟢", else: "🟠" %></span>
+<section class="h-full max-h-full w-full p-4 flex flex-col overflow-hidden">
+  <form class="mb-3 w-full flex items-center justify-center" phx-submit="new_variable">
+    <.custom_select name="type" values={Enum.sort(Exshome.DataType.available_types())}>
+      <:value let={type}><%= type.name() %></:value>
+      <:label let={type}>
+        <%= Exshome.DataType.icon(type) %>
+        <%= Exshome.DataType.name(type) %>
+      </:label>
+    </.custom_select>
+    <.button type="submit" phx-disable-with="Creating..." class="whitespace-nowrap">
+      New Variable
+    </.button>
+  </form>
+  <section class="flex-grow h-full flex items-center overflow-auto">
+    <div class="w-full max-h-full">
+      <%= for {group, variables} <- @deps.variables |> Map.values() |> Enum.group_by(& &1.group) |> Enum.sort_by(&elem(&1, 0)) do %>
+        <h2 class="text-4xl text-center mt-5 first:mt-0"><%= group %></h2>
+        <.list rows={Enum.sort_by(variables, & &1.dependency)} let={variable}>
+          <:row_before let={variable}>
+            <div class="flex flex-col md:flex-row items-center justify-center">
+              <span><%= if variable.ready?, do: "🟢", else: "🟠" %></span>
+            </div>
+          </:row_before>
+          <:row_after let={variable}>
+            <.button
+              class="md:text-2xl lg:text-4xl"
+              phx-click="show_variable"
+              phx-value-id={variable.id}
+            >
+              ️👀️
+            </.button>
+          </:row_after>
+          <div class="whitespace-nowrap text-xl">
+            <%= variable.name %>
           </div>
-        </:row_before>
-        <:row_after let={variable}>
-          <.button
-            class="md:text-2xl lg:text-4xl"
-            phx-click="show_variable"
-            phx-value-id={variable.id}
-          >
-            ️👀️
-          </.button>
-        </:row_after>
-        <div class="whitespace-nowrap text-xl">
-          <%= variable.name %>
-        </div>
-        <div class="text-xs whitespace-nowrap">
-          <.chip>
-            <%= Exshome.DataType.icon(variable.type) %>
-            <%= Exshome.DataType.name(variable.type) %>
-          </.chip>
-          <%= if variable.readonly? do %>
+          <div class="text-xs whitespace-nowrap">
             <.chip>
-              🔒 readonly
+              <%= Exshome.DataType.icon(variable.type) %>
+              <%= Exshome.DataType.name(variable.type) %>
             </.chip>
-          <% end %>
-        </div>
-        <div class="whitespace-nowrap text-red-400/80">
-          <%= variable.not_ready_reason %>
-        </div>
-      </.list>
-    <% end %>
-  </div>
+            <%= if variable.readonly? do %>
+              <.chip>
+                🔒 readonly
+              </.chip>
+            <% end %>
+          </div>
+          <div class="whitespace-nowrap text-red-400/80">
+            <%= variable.not_ready_reason %>
+          </div>
+        </.list>
+      <% end %>
+    </div>
+  </section>
 </section>
