@@ -22,7 +22,7 @@ defmodule ExshomeAutomation.Services.AutomationStatus do
     {ready, not_ready} =
       state.deps.variables
       |> Map.values()
-      |> Enum.split_with(& &1.ready?)
+      |> Enum.split_with(&(!&1.not_ready_reason))
 
     update_value(
       state,

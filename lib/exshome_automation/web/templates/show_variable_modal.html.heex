@@ -14,7 +14,11 @@
     <% end %>
   </div>
 
-  <%= if @config.ready? do %>
+  <%= if @config.not_ready_reason do %>
+    <div class="text-md text-red-400/80">
+      <%= @config.not_ready_reason %>
+    </div>
+  <% else %>
     <%= if !@config.readonly? do %>
       <form class="p-1 w-full md:w-3/4 flex flex-col items-center" phx-change="update_value">
         <.datatype_input
@@ -35,9 +39,5 @@
         </span>
       </div>
     <% end %>
-  <% else %>
-    <div class="text-md text-red-400/80">
-      <%= @config.not_ready_reason %>
-    </div>
   <% end %>
 </section>

@@ -6,7 +6,7 @@ defmodule ExshomePlayer.Variables.Volume do
   alias ExshomePlayer.Services.Playback
   alias ExshomePlayer.Services.PlayerState
 
-  use Exshome.Variable,
+  use Exshome.Variable.GenServerVariable,
     name: "player_volume",
     subscribe: [
       dependencies: [{PlayerState, :player}]
@@ -27,8 +27,8 @@ defmodule ExshomePlayer.Variables.Volume do
     update_value(state, volume)
   end
 
-  @impl Variable
-  def set_value(%DependencyState{} = state, value) when is_integer(value) do
+  @impl GenServerVariable
+  def handle_set_value(%DependencyState{} = state, value) when is_integer(value) do
     Playback.set_volume(value)
     state
   end

@@ -25,6 +25,12 @@ defmodule Exshome.SystemRegistry do
     :ok
   end
 
+  @spec remove!(module(), id :: any()) :: :ok
+  def remove!(module, id) do
+    key = registry_key(module, id)
+    Registry.unregister(__MODULE__, key)
+  end
+
   @spec list(module()) :: list()
   def list(module) when is_atom(module) do
     Registry.select(

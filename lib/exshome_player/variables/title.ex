@@ -5,7 +5,7 @@ defmodule ExshomePlayer.Variables.Title do
 
   alias ExshomePlayer.Services.PlayerState
 
-  use Exshome.Variable,
+  use Exshome.Variable.GenServerVariable,
     name: "player_title",
     subscribe: [
       dependencies: [{PlayerState, :player}]
@@ -29,7 +29,7 @@ defmodule ExshomePlayer.Variables.Title do
   defp extract_title(%{"title" => title}), do: title
   defp extract_title(_), do: "Unknown title"
 
-  @impl Variable
+  @impl GenServerVariable
   def not_ready_reason(%DependencyState{deps: %{player: %PlayerState{path: nil}}}) do
     "No track is playing"
   end
