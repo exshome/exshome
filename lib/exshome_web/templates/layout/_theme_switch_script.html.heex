@@ -38,7 +38,10 @@
     }
   }
 
-  window.Theme.useTheme(localStorage.theme);
+  window.Theme.useTheme(
+      new URLSearchParams(window.location.search).get('setTheme')
+      || localStorage.theme
+  );
   window.Theme.matchDarkColorMedia().addEventListener('change', function() {
     window.Theme.refreshTheme();
   });

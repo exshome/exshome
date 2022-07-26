@@ -19,6 +19,7 @@
   * Added datatypes for variables.
   * Added a feature to render datatype.
   * Implemented sending events by topics.
+  * Added ability to set a theme via URL `setTheme` search parameter.
 
 ## v0.1.7 (2022-06-28)
   * Created database if it does not exist before migraions.
