@@ -26,6 +26,9 @@ defmodule Exshome.Variable.DynamicVariable.Schema do
           version: integer()
         }
 
+  @spec get!(String.t()) :: t()
+  def get!(id) when is_binary(id), do: Repo.get!(__MODULE__, id)
+
   @spec list() :: [t()]
   def list, do: Repo.all(__MODULE__)
 

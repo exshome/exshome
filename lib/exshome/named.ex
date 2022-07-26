@@ -5,11 +5,18 @@ defmodule Exshome.Named do
 
   @callback name() :: String.t()
 
-  @spec get_module_by_name(String.t()) :: module()
+  @spec get_module_by_name(String.t()) :: {:ok, module()} | {:error, :not_found}
   def get_module_by_name(name) when is_binary(name) do
-    Exshome.Tag.tag_mapping()
-    |> Map.fetch!(__MODULE__)
-    |> Map.fetch!(name)
+    module =
+      Exshome.Tag.tag_mapping()
+      |> Map.fetch!(__MODULE__)
+      |> Map.get(name)
+
+    if module do
+      {:ok, module}
+    else
+      {:error, :not_found}
+    end
   end
 
   defmacro __using__(name) do

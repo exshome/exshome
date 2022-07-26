@@ -1,4 +1,4 @@
-defmodule Exshome.Datatype.Unknown do
+defmodule Exshome.DataType.Unknown do
   @moduledoc """
   A type that system does not know.
   """

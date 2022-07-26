@@ -13,6 +13,7 @@ defmodule Exshome.Variable.GenServerVariable do
 
   @callback not_ready_reason(DependencyState.t()) :: String.t() | nil
   @callback handle_set_value(DependencyState.t(), any()) :: DependencyState.t()
+  @callback variable_from_dependency_state(DependencyState.t()) :: Variable.t()
 
   @validations_key {__MODULE__, :validations}
 
@@ -75,7 +76,9 @@ defmodule Exshome.Variable.GenServerVariable do
 
   @spec update_variable_info(DependencyState.t()) :: DependencyState.t()
   defp update_variable_info(%DependencyState{} = state) do
-    %Variable{} = variable_data = variable_from_dependency_state(state)
+    %Variable{} =
+      variable_data =
+      Dependency.dependency_module(state.dependency).variable_from_dependency_state(state)
 
     old_data = Map.get(state.private, __MODULE__)
 
@@ -98,7 +101,7 @@ defmodule Exshome.Variable.GenServerVariable do
 
   defp get_variable_data(%DependencyState{private: private}), do: Map.fetch!(private, __MODULE__)
 
-  defp variable_from_dependency_state(%DependencyState{dependency: dependency} = state) do
+  def variable_from_dependency_state(%DependencyState{dependency: dependency} = state) do
     module = Dependency.dependency_module(dependency)
     config = get_config(module)
 
@@ -176,6 +179,9 @@ defmodule Exshome.Variable.GenServerVariable do
         Please implement handle_set_value/2 callback for #{module}
         """
       end
+
+      @impl GenServerVariable
+      defdelegate variable_from_dependency_state(state), to: GenServerVariable
 
       defoverridable(GenServerVariable)
 

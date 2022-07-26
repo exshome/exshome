@@ -99,15 +99,27 @@ defmodule Exshome.DataType do
     )
   end
 
-  defp raise_if_not_datatype!(module) when is_atom(module) do
-    module_is_datatype =
-      Exshome.Tag.tag_mapping()
-      |> Map.fetch!(__MODULE__)
-      |> MapSet.member?(module)
+  @spec get_by_name(String.t()) :: t()
+  def get_by_name(name) when is_binary(name) do
+    case Exshome.Named.get_module_by_name(name) do
+      {:ok, module} ->
+        if module_is_datatype?(module), do: module, else: Unknown
 
-    if !module_is_datatype do
+      _ ->
+        Unknown
+    end
+  end
+
+  defp raise_if_not_datatype!(module) when is_atom(module) do
+    unless module_is_datatype?(module) do
       raise "#{inspect(module)} is not a DataType!"
     end
+  end
+
+  defp module_is_datatype?(module) do
+    Exshome.Tag.tag_mapping()
+    |> Map.fetch!(__MODULE__)
+    |> MapSet.member?(module)
   end
 
   defmacro __using__(config) do
