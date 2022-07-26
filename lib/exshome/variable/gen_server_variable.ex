@@ -154,14 +154,12 @@ defmodule Exshome.Variable.GenServerVariable do
     Dependency.dependency_module(dependency).not_ready_reason(state)
   end
 
-  defmacro __using__(config) do
+  defmacro __using__(_) do
     quote do
-      alias Exshome.Dependency.GenServerDependency
-      use GenServerDependency, unquote(config)
-      import Exshome.Dependency.GenServerDependency.Lifecycle, only: [register_hook_module: 1]
-      use Exshome.Variable
       alias Exshome.Variable.GenServerVariable
+      import Exshome.Dependency.GenServerDependency.Lifecycle, only: [register_hook_module: 1]
       register_hook_module(GenServerVariable)
+      alias Exshome.Variable
 
       @after_compile {GenServerVariable, :validate_module!}
       @behaviour GenServerVariable

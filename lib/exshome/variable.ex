@@ -99,13 +99,15 @@ defmodule Exshome.Variable do
     :ok = Event.broadcast(event, event.data.id)
   end
 
-  defmacro __using__(_) do
+  defmacro __using__(config) do
     quote do
+      use Exshome.Dependency.GenServerDependency, unquote(config)
       import Exshome.Tag, only: [add_tag: 1]
       alias Exshome.Variable
       add_tag(Variable)
 
       @behaviour Variable
+      use Variable.GenServerVariable
     end
   end
 end

@@ -5,7 +5,7 @@ defmodule ExshomePlayer.Variables.Duration do
 
   alias ExshomePlayer.Services.PlayerState
 
-  use Exshome.Variable.GenServerVariable,
+  use Exshome.Variable,
     name: "player_duration",
     subscribe: [
       dependencies: [{PlayerState, :player}]
