@@ -28,7 +28,7 @@ defmodule ExshomeClockTest.WebTest do
     test "renders clock settings", %{conn: conn} do
       view = live_with_dependencies(conn, ExshomeClock, :settings)
 
-      compare_timezone(view, ClockSettings.get_value().timezone)
+      compare_timezone(view, Dependency.get_value(ClockSettings).timezone)
     end
 
     test "updates clock settings", %{conn: conn} do

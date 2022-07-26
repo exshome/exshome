@@ -4,18 +4,18 @@ defmodule Exshome.Dependency do
   """
   alias Exshome.Dependency.NotReady
 
-  @type dependency() :: atom()
+  @type dependency() :: atom() | {atom(), String.t()}
   @type value :: term() | NotReady
   @type dependency_key :: atom()
   @type depenency_mapping :: [{dependency(), dependency_key()}]
   @type deps :: %{dependency_key() => value()}
 
-  @callback get_value() :: value()
+  @callback get_value(dependency()) :: value()
 
   @spec get_value(dependency()) :: value()
   def get_value(dependency) do
     raise_if_not_dependency!(dependency)
-    dependency.get_value()
+    dependency_module(dependency).get_value(dependency)
   end
 
   @spec subscribe(dependency()) :: value()
@@ -48,9 +48,15 @@ defmodule Exshome.Dependency do
   end
 
   @spec dependency_module(dependency()) :: module()
+  def dependency_module({module, id}) when is_binary(id), do: dependency_module(module)
+
   def dependency_module(module) when is_atom(module), do: module
 
   @spec dependency_id(dependency()) :: String.t()
+  def dependency_id({module, id}) when is_binary(id) do
+    Enum.join([dependency_id(module), id], ":")
+  end
+
   def dependency_id(dependency) do
     raise_if_not_dependency!(dependency)
     dependency.name()
@@ -81,6 +87,10 @@ defmodule Exshome.Dependency do
         value = subscribe(dependency)
         Map.put(acc, mapping_key, value)
     end
+  end
+
+  defp raise_if_not_dependency!({module, id}) when is_atom(module) and is_binary(id) do
+    raise_if_not_dependency!(module)
   end
 
   defp raise_if_not_dependency!(module) do

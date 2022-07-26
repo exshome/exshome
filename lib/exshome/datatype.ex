@@ -2,8 +2,9 @@ defmodule Exshome.DataType do
   @moduledoc """
   Stores generic ways to work with custom datatypes.
   """
+  alias Exshome.DataType.Unknown
 
-  @type t() :: atom()
+  @type t() :: atom() | Unknown
   @type parse_result() :: {:ok, any()} | {:error, String.t()}
 
   @callback validate(value :: any(), validation :: atom(), opts :: any()) :: parse_result()
@@ -75,12 +76,16 @@ defmodule Exshome.DataType do
   end
 
   @spec icon(t()) :: String.t()
+  def icon(Unknown), do: "⚠️"
+
   def icon(module) do
     raise_if_not_datatype!(module)
     module.__config__()[:icon]
   end
 
   @spec name(t()) :: String.t()
+  def name(Unknown), do: "unknown"
+
   def name(module) do
     raise_if_not_datatype!(module)
     module.__config__()[:name]

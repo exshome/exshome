@@ -149,7 +149,7 @@ defmodule Exshome.Settings do
       add_tag(Settings)
 
       @impl Exshome.Dependency
-      def get_value, do: Settings.get_settings(__MODULE__)
+      def get_value(_), do: Settings.get_settings(__MODULE__)
 
       @impl Settings
       def fields, do: unquote(fields)

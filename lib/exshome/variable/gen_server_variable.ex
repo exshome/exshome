@@ -142,7 +142,12 @@ defmodule Exshome.Variable.GenServerVariable do
 
   defp not_ready_reason(%DependencyState{deps: deps, value: Dependency.NotReady}) do
     missing_deps = for {key, Dependency.NotReady} <- deps, do: key
-    "Missing dependencies: #{inspect(missing_deps)}"
+
+    if Enum.any?(missing_deps) do
+      "Missing dependencies: #{inspect(missing_deps)}"
+    else
+      "Variable has not started yet"
+    end
   end
 
   defp not_ready_reason(%DependencyState{dependency: dependency} = state) do

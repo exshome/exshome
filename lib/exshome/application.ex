@@ -16,7 +16,8 @@ defmodule Exshome.Application do
         :exshome,
         :application_children,
         [
-          {Exshome.Dependency.GenServerDependency.Supervisor, %{}}
+          {Exshome.Dependency.GenServerDependency.Supervisor, %{}},
+          {Exshome.Variable.DynamicVariable.Supervisor, %{}}
         ]
       )
 

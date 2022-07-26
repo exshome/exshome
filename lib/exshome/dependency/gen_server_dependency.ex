@@ -178,7 +178,7 @@ defmodule Exshome.Dependency.GenServerDependency do
       end
 
       @impl Exshome.Dependency
-      def get_value, do: GenServerDependency.get_value(__MODULE__)
+      def get_value(dependency), do: GenServerDependency.get_value(dependency)
 
       @impl GenServerDependency
       def on_init(state), do: state
@@ -195,14 +195,15 @@ defmodule Exshome.Dependency.GenServerDependency do
       def start_link(opts), do: opts |> update_opts() |> GenServerDependency.start_link()
 
       def child_spec(opts) do
+        %{dependency: dependency} = opts = update_opts(opts)
+
         opts
-        |> update_opts()
         |> GenServerDependency.child_spec()
-        |> Map.merge(%{id: __MODULE__})
+        |> Map.merge(%{id: dependency})
       end
 
       defp update_opts(%{} = opts) do
-        Map.merge(opts, %{dependency: __MODULE__})
+        Map.put_new(opts, :dependency, __MODULE__)
       end
     end
   end
