@@ -4,9 +4,9 @@ defmodule ExshomeAutomation.Web.Live.Variables do
   """
   alias Exshome.Event
   alias Exshome.Variable
-  alias Exshome.Variable.DynamicVariable
   alias Exshome.Variable.VariableStateEvent
   alias ExshomeAutomation.Services.VariableRegistry
+  alias ExshomeAutomation.Variables.DynamicVariable
   alias ExshomeAutomation.Web.Live.ShowVariableModal
 
   use ExshomeWeb.Live.AppPage,

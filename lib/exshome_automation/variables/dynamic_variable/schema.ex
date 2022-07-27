@@ -1,4 +1,4 @@
-defmodule Exshome.Variable.DynamicVariable.Schema do
+defmodule ExshomeAutomation.Variables.DynamicVariable.Schema do
   @moduledoc """
   Schema for storing dynamic variable data.
   """

@@ -1,18 +1,19 @@
-defmodule Exshome.Variable.DynamicVariable do
+defmodule ExshomeAutomation.Variables.DynamicVariable do
   @moduledoc """
   A module for user-defined variables.
   """
   alias Exshome.DataType
-  alias Exshome.Variable.DynamicVariable.Schema
-  alias Exshome.Variable.DynamicVariable.Supervisor, as: VariableSupervisor
+  alias ExshomeAutomation.Variables.DynamicVariable.Schema
+  alias ExshomeAutomation.Variables.DynamicVariable.VariableSupervisor
 
-  @group "custom_variables"
+  @group "automation"
 
   use Exshome.Variable,
     name: "dynamic_variable",
+    child_module: VariableSupervisor,
     variable: [
       group: @group,
-      type: Exshome.DataType.Unknown
+      type: DataType.Unknown
     ]
 
   @impl GenServerDependency
@@ -50,9 +51,6 @@ defmodule Exshome.Variable.DynamicVariable do
 
   def create_variable!(type) do
     %Schema{id: id} = Schema.create!(type.name())
-
-    spec = child_spec(%{dependency: {__MODULE__, id}, name: nil})
-    {:ok, _} = Supervisor.start_child(VariableSupervisor, spec)
-    :ok
+    VariableSupervisor.start_child_with_id(id)
   end
 end

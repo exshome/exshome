@@ -133,6 +133,9 @@ defmodule Exshome.Dependency.GenServerDependency do
         type: :string,
         required: true
       ],
+      child_module: [
+        type: :atom
+      ],
       hooks: [
         type: :keyword_list
       ]
@@ -172,8 +175,8 @@ defmodule Exshome.Dependency.GenServerDependency do
       def __config__ do
         unquote(
           config
-          |> Keyword.pop!(:name)
-          |> then(fn {name, hooks} -> [name: name, hooks: hooks] end)
+          |> Keyword.split([:name, :child_module])
+          |> then(fn {root_config, hooks} -> Keyword.put(root_config, :hooks, hooks) end)
         )
       end
 
@@ -189,6 +192,8 @@ defmodule Exshome.Dependency.GenServerDependency do
       defdelegate update_value(state, value), to: Lifecycle
       @impl GenServerDependency
       defdelegate update_data(state, data_fn), to: Lifecycle
+
+      def get_child_module, do: unquote(Keyword.get(config, :child_module, __CALLER__.module))
 
       def call(message), do: GenServerDependency.call(__MODULE__, message)
 

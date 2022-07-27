@@ -19,7 +19,7 @@ defmodule Exshome.Dependency.GenServerDependency.Supervisor do
     |> Enum.map(&GenServerDependency.modules/1)
     |> Enum.map(&MapSet.to_list/1)
     |> List.flatten()
-    |> Enum.map(&{&1, child_opts})
+    |> Enum.map(&{&1.get_child_module(), child_opts})
     |> Supervisor.init(strategy: :one_for_one)
   end
 end

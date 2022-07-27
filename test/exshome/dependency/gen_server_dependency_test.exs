@@ -47,7 +47,9 @@ defmodule ExshomeTest.Dependency.GenServerDependencyTest do
       all_modules =
         App.apps()
         |> Enum.map(&GenServerDependency.modules/1)
-        |> Enum.reduce(MapSet.new(), &MapSet.union/2)
+        |> Enum.flat_map(&MapSet.to_list/1)
+        |> Enum.map(& &1.get_child_module())
+        |> Enum.into(MapSet.new())
 
       assert MapSet.equal?(all_modules, modules)
       Supervisor.stop(pid)
