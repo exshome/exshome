@@ -22,7 +22,7 @@ defmodule ExshomeAutomation.Variables.DynamicVariable do
 
     state
     |> update_data(fn _ -> data end)
-    |> update_value("")
+    |> update_value(data.value)
   end
 
   @impl GenServerVariable
@@ -45,6 +45,11 @@ defmodule ExshomeAutomation.Variables.DynamicVariable do
   end
 
   def variable_from_dependency_state(state), do: super(state)
+
+  @impl GenServerVariable
+  def handle_set_value(%DependencyState{} = state, value) do
+    update_value(state, value)
+  end
 
   @spec create_variable!(type :: DataType.t()) :: :ok
   def create_variable!(DataType.Unknown), do: raise("Unable to create variable for unknown type")

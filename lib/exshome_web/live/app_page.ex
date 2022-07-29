@@ -73,9 +73,11 @@ defmodule ExshomeWeb.Live.AppPage do
 
   @spec put_dependencies(Socket.t(), Dependency.depenency_mapping()) :: Socket.t()
   def put_dependencies(%Socket{} = socket, mapping) do
+    mapping = Enum.into(mapping, %{})
+
     deps =
       Dependency.change_dependencies(
-        socket.private[__MODULE__] || [],
+        socket.private[__MODULE__] || %{},
         mapping,
         socket.assigns[:deps] || %{}
       )
