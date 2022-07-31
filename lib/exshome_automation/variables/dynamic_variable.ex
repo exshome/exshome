@@ -73,4 +73,13 @@ defmodule ExshomeAutomation.Variables.DynamicVariable do
 
     update_value(state, value)
   end
+
+  @spec delete_variable!(String.t()) :: :ok
+  def delete_variable!(id) when is_binary(id) do
+    id
+    |> Schema.get!()
+    |> Schema.delete!()
+
+    :ok = VariableSupervisor.termintate_child_with_id(id)
+  end
 end

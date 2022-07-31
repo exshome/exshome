@@ -33,4 +33,10 @@ defmodule ExshomeAutomation.Variables.DynamicVariable.VariableSupervisor do
     {:ok, _} = Supervisor.start_child(__MODULE__, spec)
     :ok
   end
+
+  @spec termintate_child_with_id(String.t()) :: :ok | {:error, :not_found}
+  def termintate_child_with_id(id) do
+    %{id: supervisor_id} = child_spec_for_id(%{}, id)
+    Supervisor.terminate_child(__MODULE__, supervisor_id)
+  end
 end
