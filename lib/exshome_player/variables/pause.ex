@@ -13,7 +13,7 @@ defmodule ExshomePlayer.Variables.Pause do
     ],
     variable: [
       group: "player",
-      type: Exshome.DataType.Boolean
+      type: Exshome.Datatype.Boolean
     ]
 
   @impl Subscription

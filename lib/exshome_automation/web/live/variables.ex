@@ -20,7 +20,7 @@ defmodule ExshomeAutomation.Web.Live.Variables do
 
   @impl LiveView
   def handle_event("new_variable", %{"type" => type}, %Socket{} = socket) do
-    type = Exshome.DataType.get_by_name(type)
+    type = Exshome.Datatype.get_by_name(type)
     :ok = Event.subscribe(VariableStateEvent)
     :ok = DynamicVariable.create_variable!(type)
     {:noreply, socket}

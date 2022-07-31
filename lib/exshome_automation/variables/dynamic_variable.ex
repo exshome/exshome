@@ -2,7 +2,7 @@ defmodule ExshomeAutomation.Variables.DynamicVariable do
   @moduledoc """
   A module for user-defined variables.
   """
-  alias Exshome.DataType
+  alias Exshome.Datatype
   alias ExshomeAutomation.Variables.DynamicVariable.Schema
   alias ExshomeAutomation.Variables.DynamicVariable.VariableSupervisor
 
@@ -13,16 +13,14 @@ defmodule ExshomeAutomation.Variables.DynamicVariable do
     child_module: VariableSupervisor,
     variable: [
       group: @group,
-      type: DataType.Unknown
+      type: Datatype.Unknown
     ]
 
   @impl GenServerDependency
   def on_init(%DependencyState{dependency: {__MODULE__, id}} = state) when is_binary(id) do
-    data = Schema.get!(id)
-
-    state
-    |> update_data(fn _ -> data end)
-    |> update_value(data.value)
+    id
+    |> Schema.get!()
+    |> set_state_from_schema(state)
   end
 
   @impl GenServerVariable
@@ -30,7 +28,7 @@ defmodule ExshomeAutomation.Variables.DynamicVariable do
         data: %Schema{} = schema,
         dependency: dependency
       }) do
-    type = DataType.get_by_name(schema.type)
+    type = Datatype.get_by_name(schema.type)
 
     %Variable{
       dependency: dependency,
@@ -38,7 +36,7 @@ defmodule ExshomeAutomation.Variables.DynamicVariable do
       name: schema.name,
       group: @group,
       not_ready_reason: nil,
-      readonly?: type == DataType.Unknown,
+      readonly?: type == Datatype.Unknown,
       type: type,
       validations: schema.opts
     }
@@ -47,15 +45,32 @@ defmodule ExshomeAutomation.Variables.DynamicVariable do
   def variable_from_dependency_state(state), do: super(state)
 
   @impl GenServerVariable
-  def handle_set_value(%DependencyState{} = state, value) do
-    update_value(state, value)
+  def handle_set_value(%DependencyState{data: %Schema{}} = state, value) do
+    state.data
+    |> Schema.update_value!(value)
+    |> set_state_from_schema(state)
   end
 
-  @spec create_variable!(type :: DataType.t()) :: :ok
-  def create_variable!(DataType.Unknown), do: raise("Unable to create variable for unknown type")
+  @spec create_variable!(type :: Datatype.t()) :: :ok
+  def create_variable!(Datatype.Unknown), do: raise("Unable to create variable for unknown type")
 
   def create_variable!(type) do
     %Schema{id: id} = Schema.create!(type.name())
     VariableSupervisor.start_child_with_id(id)
+  end
+
+  defp set_state_from_schema(%Schema{} = data, %DependencyState{} = state) do
+    state
+    |> update_data(fn _ -> data end)
+    |> update_value_from_schema()
+  end
+
+  defp update_value_from_schema(%DependencyState{data: %Schema{} = schema} = state) do
+    {:ok, value} =
+      schema.type
+      |> Datatype.get_by_name()
+      |> Ecto.Type.cast(schema.value)
+
+    update_value(state, value)
   end
 end

@@ -1,16 +1,16 @@
-defmodule ExshomeWeb.DataTypeView do
+defmodule ExshomeWeb.DatatypeView do
   @moduledoc """
   Renders datatypes.
   """
 
-  alias Exshome.DataType
+  alias Exshome.Datatype
   alias Phoenix.LiveView
   alias Phoenix.LiveView.Rendered
 
   @callback render_value(assigns :: map()) :: Rendered.t()
   @callback render_input(assigns :: map()) :: Rendered.t()
 
-  @spec available_renderers() :: %{DataType.t() => module()}
+  @spec available_renderers() :: %{Datatype.t() => module()}
   def available_renderers, do: Map.fetch!(Exshome.Tag.tag_mapping(), __MODULE__)
 
   @spec datatype_value(assigns :: map()) :: Rendered.t()
@@ -31,17 +31,17 @@ defmodule ExshomeWeb.DataTypeView do
   defmacro __using__(datatypes) do
     quote do
       import Exshome.Tag, only: [add_tag: 2]
-      alias ExshomeWeb.DataTypeView
+      alias ExshomeWeb.DatatypeView
       alias Phoenix.LiveView
       import Phoenix.LiveView.Helpers
 
       for type <- unquote(datatypes) do
-        add_tag(DataTypeView, key: type)
+        add_tag(DatatypeView, key: type)
       end
 
       use ExshomeWeb, :view
 
-      @behaviour DataTypeView
+      @behaviour DatatypeView
     end
   end
 end

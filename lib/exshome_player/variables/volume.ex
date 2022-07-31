@@ -13,7 +13,7 @@ defmodule ExshomePlayer.Variables.Volume do
     ],
     variable: [
       group: "player",
-      type: Exshome.DataType.Integer,
+      type: Exshome.Datatype.Integer,
       validate: [
         min: 0,
         max: 100

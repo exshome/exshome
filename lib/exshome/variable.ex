@@ -2,7 +2,7 @@ defmodule Exshome.Variable do
   @moduledoc """
   Variable-related logic.
   """
-  alias Exshome.DataType
+  alias Exshome.Datatype
   alias Exshome.Dependency
   alias Exshome.Event
   alias Exshome.SystemRegistry
@@ -26,7 +26,7 @@ defmodule Exshome.Variable do
           group: String.t(),
           not_ready_reason: String.t() | nil,
           readonly?: boolean(),
-          type: DataType.t(),
+          type: Datatype.t(),
           validations: %{atom() => any()}
         }
 
@@ -40,7 +40,7 @@ defmodule Exshome.Variable do
     end
   end
 
-  @spec validate_value(Dependency.dependency(), value :: any()) :: DataType.parse_result()
+  @spec validate_value(Dependency.dependency(), value :: any()) :: Datatype.parse_result()
   defp validate_value(dependency, value) do
     raise_if_not_variable!(dependency)
 
@@ -52,7 +52,7 @@ defmodule Exshome.Variable do
     if config.readonly? do
       {:error, "Unable update a value for #{inspect(dependency)}. It is readonly."}
     else
-      DataType.parse(config.type, value, config.validations)
+      Datatype.parse(config.type, value, config.validations)
     end
   end
 

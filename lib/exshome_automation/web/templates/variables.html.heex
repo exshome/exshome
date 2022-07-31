@@ -1,10 +1,10 @@
 <section class="h-full max-h-full w-full p-4 flex flex-col overflow-hidden">
   <form class="mb-3 w-full flex items-center justify-center" phx-submit="new_variable">
-    <.custom_select name="type" values={Enum.sort(Exshome.DataType.available_types())}>
+    <.custom_select name="type" values={Enum.sort(Exshome.Datatype.available_types())}>
       <:value let={type}><%= type.name() %></:value>
       <:label let={type}>
-        <%= Exshome.DataType.icon(type) %>
-        <%= Exshome.DataType.name(type) %>
+        <%= Exshome.Datatype.icon(type) %>
+        <%= Exshome.Datatype.name(type) %>
       </:label>
     </.custom_select>
     <.button type="submit" phx-disable-with="Creating..." class="whitespace-nowrap">
@@ -35,8 +35,8 @@
           </div>
           <div class="text-xs whitespace-nowrap">
             <.chip>
-              <%= Exshome.DataType.icon(variable.type) %>
-              <%= Exshome.DataType.name(variable.type) %>
+              <%= Exshome.Datatype.icon(variable.type) %>
+              <%= Exshome.Datatype.name(variable.type) %>
             </.chip>
             <%= if variable.readonly? do %>
               <.chip>

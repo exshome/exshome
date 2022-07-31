@@ -1,12 +1,13 @@
-defmodule Exshome.DataType do
+defmodule Exshome.Datatype do
   @moduledoc """
   Stores generic ways to work with custom datatypes.
   """
-  alias Exshome.DataType.Unknown
+  alias Exshome.Datatype.Unknown
 
   @type t() :: atom() | Unknown
   @type parse_result() :: {:ok, any()} | {:error, String.t()}
 
+  @callback to_string(value :: any()) :: parse_result()
   @callback validate(value :: any(), validation :: atom(), opts :: any()) :: parse_result()
 
   @optional_callbacks [validate: 3]
@@ -91,6 +92,12 @@ defmodule Exshome.DataType do
     module.__config__()[:name]
   end
 
+  @spec to_string(t(), any()) :: parse_result()
+  def to_string(module, value) do
+    raise_if_not_datatype!(module)
+    module.to_string(value)
+  end
+
   @spec available_types() :: MapSet.t()
   def available_types do
     Map.fetch!(
@@ -124,20 +131,20 @@ defmodule Exshome.DataType do
 
   defmacro __using__(config) do
     quote do
-      alias Exshome.DataType
+      alias Exshome.Datatype
 
       import Exshome.Tag, only: [add_tag: 1]
 
       use Exshome.Named, "datatype:#{unquote(config[:name])}"
       use Ecto.Type
 
-      add_tag(DataType)
+      add_tag(Datatype)
 
       def __config__, do: unquote(config)
 
-      @after_compile {DataType, :validate_module!}
+      @after_compile {Datatype, :validate_module!}
 
-      @behaviour DataType
+      @behaviour Datatype
 
       @impl Ecto.Type
       def type, do: unquote(config[:base_type])

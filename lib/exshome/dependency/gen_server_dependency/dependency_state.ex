@@ -19,6 +19,6 @@ defmodule Exshome.Dependency.GenServerDependency.DependencyState do
           deps: map(),
           opts: any(),
           private: map(),
-          value: Exshome.Dependency.value()
+          value: Dependency.value()
         }
 end

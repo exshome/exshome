@@ -13,7 +13,7 @@ defmodule ExshomePlayer.Variables.Position do
     ],
     variable: [
       group: "player",
-      type: Exshome.DataType.Integer,
+      type: Exshome.Datatype.Integer,
       validate: [
         min: 0
       ]

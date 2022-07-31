@@ -3,43 +3,43 @@ defmodule ExshomeWebTest.DefaultDatatypeViewTest do
 
   import ExshomeTest.Fixtures
 
-  alias Exshome.DataType
-  alias ExshomeWeb.DataTypeView
+  alias Exshome.Datatype
+  alias ExshomeWeb.DatatypeView
   alias Phoenix.LiveView
 
   describe "Boolean" do
     test "render_value/1" do
       value = Enum.random([true, false])
-      assert datatype_value(DataType.Boolean, value) == "#{value}"
+      assert datatype_value(Datatype.Boolean, value) == "#{value}"
     end
 
     test "render_input/1" do
       value = Enum.random([true, false])
-      assert datatype_input(DataType.Boolean, value) =~ "checkbox"
+      assert datatype_input(Datatype.Boolean, value) =~ "checkbox"
     end
   end
 
   describe "String" do
     test "render_value/1" do
       value = "random_string#{unique_integer()}"
-      assert datatype_value(DataType.String, value) == value
+      assert datatype_value(Datatype.String, value) == value
     end
 
     test "render_input/1" do
       value = "random_string#{unique_integer()}"
-      assert datatype_input(DataType.String, value) =~ ~r/value="#{value}"/
+      assert datatype_input(Datatype.String, value) =~ ~r/value="#{value}"/
     end
   end
 
   describe "Integer" do
     test "render_value/1" do
       value = unique_integer()
-      assert datatype_value(DataType.Integer, value) == "#{value}"
+      assert datatype_value(Datatype.Integer, value) == "#{value}"
     end
 
     test "render_input/1" do
       value = unique_integer()
-      assert datatype_input(DataType.Integer, value) =~ ~r/value="#{value}"/
+      assert datatype_input(Datatype.Integer, value) =~ ~r/value="#{value}"/
     end
 
     test "render_input/1 with min and max value" do
@@ -47,7 +47,7 @@ defmodule ExshomeWebTest.DefaultDatatypeViewTest do
       value = unique_integer()
       max = unique_integer()
 
-      input_html = datatype_input(DataType.Integer, value, validations: %{min: min, max: max})
+      input_html = datatype_input(Datatype.Integer, value, validations: %{min: min, max: max})
 
       assert input_html =~ ~r/type="range"/
       assert input_html =~ ~r/value="#{value}"/
@@ -56,7 +56,7 @@ defmodule ExshomeWebTest.DefaultDatatypeViewTest do
 
   defp datatype_value(datatype, value) do
     %{type: datatype, value: value}
-    |> DataTypeView.datatype_value()
+    |> DatatypeView.datatype_value()
     |> rendered_to_string()
   end
 
@@ -67,7 +67,7 @@ defmodule ExshomeWebTest.DefaultDatatypeViewTest do
 
     %{__changed__: %{}}
     |> LiveView.assign(assigns)
-    |> DataTypeView.datatype_input()
+    |> DatatypeView.datatype_input()
     |> rendered_to_string()
   end
 end

@@ -5,6 +5,8 @@ defmodule ExshomeAutomation.Variables.DynamicVariable.Schema do
 
   use Exshome.Schema
   import Ecto.Query, warn: false
+  alias Ecto.Changeset
+  alias Exshome.Datatype
   alias Exshome.Repo
 
   schema "dynamic_variables" do
@@ -39,6 +41,24 @@ defmodule ExshomeAutomation.Variables.DynamicVariable.Schema do
       type: type,
       version: 1
     })
+  end
+
+  @spec update_value!(t(), any()) :: t()
+  def update_value!(%__MODULE__{} = data, value) do
+    {:ok, value} =
+      data.type
+      |> Datatype.get_by_name()
+      |> Datatype.to_string(value)
+
+    update!(data, %{value: value})
+  end
+
+  @spec update!(t(), map()) :: t()
+  def update!(%__MODULE__{} = data, %{} = params) do
+    data
+    |> Changeset.cast(params, [:name, :opts, :value])
+    |> Changeset.optimistic_lock(:version)
+    |> Repo.update!()
   end
 
   @spec delete!(t()) :: t()

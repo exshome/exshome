@@ -1,7 +1,11 @@
-defmodule Exshome.DataType.Boolean do
+defmodule Exshome.Datatype.Boolean do
   @moduledoc """
   Boolean datatype.
   """
 
-  use Exshome.DataType, base_type: :boolean, icon: "✅", name: "boolean"
+  use Exshome.Datatype, base_type: :boolean, icon: "✅", name: "boolean"
+
+  @impl Datatype
+  def to_string(value) when is_boolean(value), do: {:ok, "#{value}"}
+  def to_string(_), do: :error
 end

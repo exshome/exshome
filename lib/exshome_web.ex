@@ -114,7 +114,7 @@ defmodule ExshomeWeb do
       import ExshomeWeb.ErrorHelpers
       import ExshomeWeb.Gettext
       import ExshomeWeb.Components
-      import ExshomeWeb.DataTypeView, only: [datatype_value: 1, datatype_input: 1]
+      import ExshomeWeb.DatatypeView, only: [datatype_value: 1, datatype_input: 1]
       alias ExshomeWeb.Router.Helpers, as: Routes
     end
   end

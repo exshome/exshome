@@ -13,7 +13,7 @@ defmodule ExshomePlayer.Variables.Title do
     variable: [
       group: "player",
       readonly: true,
-      type: Exshome.DataType.String
+      type: Exshome.Datatype.String
     ]
 
   @impl Subscription

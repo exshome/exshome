@@ -13,7 +13,7 @@ defmodule ExshomePlayer.Variables.Duration do
     variable: [
       group: "player",
       readonly: true,
-      type: Exshome.DataType.Integer
+      type: Exshome.Datatype.Integer
     ]
 
   @impl Subscription
