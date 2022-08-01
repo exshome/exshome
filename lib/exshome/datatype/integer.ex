@@ -5,6 +5,7 @@ defmodule Exshome.Datatype.Integer do
 
   use Exshome.Datatype,
     base_type: :integer,
+    default: 0,
     icon: "🔢",
     name: "integer",
     validations: [:min, :max]

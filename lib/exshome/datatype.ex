@@ -20,6 +20,10 @@ defmodule Exshome.Datatype do
         type: :atom,
         required: true
       ],
+      default: [
+        type: :any,
+        required: true
+      ],
       icon: [
         type: :string,
         required: true

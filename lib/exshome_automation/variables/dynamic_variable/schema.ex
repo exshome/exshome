@@ -36,9 +36,13 @@ defmodule ExshomeAutomation.Variables.DynamicVariable.Schema do
 
   @spec create!(type :: String.t()) :: t()
   def create!(type) when is_binary(type) do
+    datatype = Datatype.get_by_name(type)
+    {:ok, value} = Datatype.to_string(datatype, datatype.__config__[:default])
+
     Repo.insert!(%__MODULE__{
       opts: %{},
       type: type,
+      value: value,
       version: 1
     })
   end
