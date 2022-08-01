@@ -56,24 +56,28 @@ defmodule ExshomeTest.Dependency.GenServerDependencyTest do
     end
 
     test "start_link/1 starts only selected apps" do
-      app = App.apps() |> Enum.random()
+      for app <- App.apps() do
+        {:ok, pid} =
+          %{apps: [app]}
+          |> ExshomeTest.TestRegistry.prepare_child_opts()
+          |> Map.put(:supervisor_opts, name: nil)
+          |> GenServerDependency.Supervisor.start_link()
 
-      {:ok, pid} =
-        %{apps: [app]}
-        |> ExshomeTest.TestRegistry.prepare_child_opts()
-        |> Map.put(:supervisor_opts, name: nil)
-        |> GenServerDependency.Supervisor.start_link()
+        modules =
+          pid
+          |> Supervisor.which_children()
+          |> Enum.map(&elem(&1, 0))
+          |> Enum.into(MapSet.new())
 
-      modules =
-        pid
-        |> Supervisor.which_children()
-        |> Enum.map(&elem(&1, 0))
-        |> Enum.into(MapSet.new())
+        app_modules =
+          app
+          |> GenServerDependency.modules()
+          |> Enum.map(& &1.get_child_module())
+          |> Enum.into(MapSet.new())
 
-      app_modules = GenServerDependency.modules(app)
-
-      assert MapSet.equal?(app_modules, modules)
-      Supervisor.stop(pid)
+        assert MapSet.equal?(app_modules, modules)
+        Supervisor.stop(pid)
+      end
     end
   end
 end
