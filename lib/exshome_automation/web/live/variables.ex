@@ -26,6 +26,11 @@ defmodule ExshomeAutomation.Web.Live.Variables do
     {:noreply, socket}
   end
 
+  def handle_event("delete_variable", %{"id" => id}, %Socket{} = socket) do
+    :ok = Variable.delete_by_id!(id)
+    {:noreply, socket}
+  end
+
   @impl AppPage
   def on_app_event(
         %VariableStateEvent{type: :created, data: %Variable{id: id}},

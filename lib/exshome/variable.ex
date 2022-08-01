@@ -15,6 +15,7 @@ defmodule Exshome.Variable do
     :group,
     :not_ready_reason,
     :readonly?,
+    :can_delete?,
     :type,
     :validations
   ]
@@ -26,11 +27,14 @@ defmodule Exshome.Variable do
           group: String.t(),
           not_ready_reason: String.t() | nil,
           readonly?: boolean(),
+          can_delete?: boolean(),
           type: Datatype.t(),
           validations: %{atom() => any()}
         }
 
   @callback set_value(Dependency.dependency(), any()) :: :ok | {:error, String.t()}
+  @callback delete(Dependency.dependency()) :: :ok
+  @optional_callbacks [delete: 1]
 
   @spec set_value(Dependency.dependency(), any()) :: :ok | {:error, String.t()}
   def set_value(dependency, value) do
@@ -61,6 +65,19 @@ defmodule Exshome.Variable do
 
   @spec get_by_id(String.t()) :: {:ok, t()} | {:error, String.t()}
   def get_by_id(variable_id), do: SystemRegistry.get_by_id(__MODULE__, variable_id)
+
+  @spec delete_by_id!(String.t()) :: :ok
+  def delete_by_id!(id) do
+    {:ok, %__MODULE__{} = variable} = get_by_id(id)
+
+    unless variable.can_delete? do
+      raise "Unable to delete #{variable.name}"
+    end
+
+    %__MODULE__{dependency: dependency} = variable
+
+    Dependency.dependency_module(dependency).delete(dependency)
+  end
 
   @spec raise_if_not_variable!(Dependency.dependency()) :: any()
   defp raise_if_not_variable!(dependency) do

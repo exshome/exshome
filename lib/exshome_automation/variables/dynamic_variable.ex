@@ -37,6 +37,7 @@ defmodule ExshomeAutomation.Variables.DynamicVariable do
       group: @group,
       not_ready_reason: nil,
       readonly?: type == Datatype.Unknown,
+      can_delete?: true,
       type: type,
       validations: schema.opts
     }
@@ -74,8 +75,8 @@ defmodule ExshomeAutomation.Variables.DynamicVariable do
     update_value(state, value)
   end
 
-  @spec delete_variable!(String.t()) :: :ok
-  def delete_variable!(id) when is_binary(id) do
+  @impl Variable
+  def delete({__MODULE__, id}) when is_binary(id) do
     id
     |> Schema.get!()
     |> Schema.delete!()

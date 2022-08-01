@@ -29,6 +29,16 @@
             >
               ️👀️
             </.button>
+            <%= if variable.can_delete? do %>
+              <.button
+                class="md:text-2xl lg:text-4xl"
+                phx-click="delete_variable"
+                phx-value-id={variable.id}
+                data-confirm="Do you really want to delete this variable?"
+              >
+                ️️🗑️
+              </.button>
+            <% end %>
           </:row_after>
           <div class="whitespace-nowrap text-xl">
             <%= variable.name %>

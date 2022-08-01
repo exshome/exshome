@@ -61,8 +61,8 @@ defmodule Exshome.Variable.GenServerVariable do
         type: :string,
         required: true
       ],
-      readonly: [
-        type: :boolean
+      features: [
+        type: {:list, {:in, [:readonly, :delete]}}
       ],
       type: [
         type: :atom,
@@ -104,6 +104,7 @@ defmodule Exshome.Variable.GenServerVariable do
   def variable_from_dependency_state(%DependencyState{dependency: dependency} = state) do
     module = Dependency.dependency_module(dependency)
     config = get_config(module)
+    features = Keyword.get(config, :features, [])
 
     %Variable{
       dependency: dependency,
@@ -111,7 +112,8 @@ defmodule Exshome.Variable.GenServerVariable do
       name: module.__config__[:name],
       group: Keyword.fetch!(config, :group),
       not_ready_reason: not_ready_reason(state),
-      readonly?: Keyword.get(config, :readonly, false),
+      can_delete?: :delete in features,
+      readonly?: :readonly in features,
       type: Keyword.fetch!(config, :type),
       validations: get_validations(state)
     }
