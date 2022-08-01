@@ -31,13 +31,12 @@
           <div type="error" class="text-red-300"><%= @error_message %></div>
         <% end %>
       </form>
-    <% else %>
-      <div class="text-xl">
-        Value:
-        <span class="font-black">
-          <.datatype_value type={@config.type} value={@deps.variable} />
-        </span>
-      </div>
     <% end %>
+    <div class="text-xl">
+      Value:
+      <span class="font-black">
+        <.datatype_value type={@config.type} value={@deps.variable} />
+      </span>
+    </div>
   <% end %>
 </section>
