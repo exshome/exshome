@@ -53,7 +53,10 @@ defmodule ExshomePlayerTest.Web.EditLinkModalTest do
   end
 
   test "edits a track", %{view: view} do
+    flush_messages()
     create_valid_track(view)
+
+    assert_receive_app_page_dependency({Playlist, _})
 
     view
     |> element("[phx-click=edit]")

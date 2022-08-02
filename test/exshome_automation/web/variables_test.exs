@@ -33,6 +33,7 @@ defmodule ExshomeAutomationTest.Web.VariablesTest do
     test "renders fine", %{conn: conn} do
       %Schema{id: id} = create_dynamic_variable_with_unknown_type()
       start_dynamic_variable_supervisor()
+      assert get_dynamic_variable_value(id) != Dependency.NotReady
       view = render_variables_list(conn)
       assert count_variables(view) == 1
       delete_dynamic_variable(view, id)
@@ -51,9 +52,8 @@ defmodule ExshomeAutomationTest.Web.VariablesTest do
       for type <- Datatype.available_types() do
         assert count_variables(view) == 0
         create_new_variable(view, type)
+        assert_receive_dependency({VariableRegistry, _})
         assert count_variables(view) == 1
-
-        assert_receive_app_page_dependency({VariableRegistry, _})
 
         variable_id =
           VariableRegistry
