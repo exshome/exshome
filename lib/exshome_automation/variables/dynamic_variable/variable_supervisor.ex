@@ -30,13 +30,27 @@ defmodule ExshomeAutomation.Variables.DynamicVariable.VariableSupervisor do
   @spec start_child_with_id(id :: String.t()) :: :ok
   def start_child_with_id(id) when is_binary(id) do
     spec = child_spec_for_id(%{}, id)
-    {:ok, _} = Supervisor.start_child(__MODULE__, spec)
+    {:ok, _} = Supervisor.start_child(supervisor_pid(), spec)
     :ok
   end
 
   @spec termintate_child_with_id(String.t()) :: :ok | {:error, :not_found}
   def termintate_child_with_id(id) do
     %{id: supervisor_id} = child_spec_for_id(%{}, id)
-    Supervisor.terminate_child(__MODULE__, supervisor_id)
+    Supervisor.terminate_child(supervisor_pid(), supervisor_id)
+  end
+
+  defp supervisor_pid, do: __MODULE__
+
+  @hook_module Application.compile_env(:exshome, :hooks, [])[__MODULE__]
+  if @hook_module do
+    defoverridable(supervisor_pid: 0, child_spec_for_id: 2)
+    defdelegate supervisor_pid(), to: @hook_module
+
+    def child_spec_for_id(child_opts, id) do
+      child_opts
+      |> @hook_module.child_spec_for_id(id)
+      |> super(id)
+    end
   end
 end

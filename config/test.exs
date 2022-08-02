@@ -17,13 +17,15 @@ config :exshome, :environment, :test
 
 config :exshome,
   hooks: [
-    {ExshomeWeb.Live.AppPage, ExshomeTest.Hooks.AppPage},
+    {ExshomeAutomation.Variables.DynamicVariable.VariableSupervisor,
+     ExshomeTest.Hooks.DynamicVariableSupervisor},
     {Exshome.Dependency.GenServerDependency, ExshomeTest.Hooks.Dependency},
     {Exshome.FileUtils, ExshomeTest.Hooks.FileUtils},
-    {ExshomePlayer.Services.MpvServer, ExshomeTest.Hooks.MpvServer},
     {Exshome.PubSub, ExshomeTest.Hooks.PubSub},
     {Exshome.Repo, ExshomeTest.Hooks.Repo},
     {Exshome.SystemRegistry, ExshomeTest.Hooks.SystemRegistry},
+    {ExshomePlayer.Services.MpvServer, ExshomeTest.Hooks.MpvServer},
+    {ExshomeWeb.Live.AppPage, ExshomeTest.Hooks.AppPage},
     {:live_view, [ExshomeTest.Hooks.LiveView]}
   ]
 

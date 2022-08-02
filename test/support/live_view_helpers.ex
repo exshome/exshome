@@ -59,6 +59,7 @@ defmodule ExshomeTest.LiveViewHelpers do
       |> then(& &1.dependencies())
       |> Keyword.keys()
       |> Enum.into(MapSet.new())
+      |> Enum.map(&Code.ensure_loaded!/1)
       |> Enum.filter(&function_exported?(&1, :child_spec, 1))
 
     for dependency <- supervised_dependencies do

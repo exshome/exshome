@@ -13,6 +13,7 @@ defmodule ExshomeAutomation.Variables.DynamicVariable do
     child_module: VariableSupervisor,
     variable: [
       group: @group,
+      features: [:readonly],
       type: Datatype.Unknown
     ]
 

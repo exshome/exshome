@@ -43,7 +43,7 @@ defmodule ExshomeTest.TestRegistry do
   end
 
   def prepare_child_opts(opts) do
-    current_pid = self()
+    current_pid = get_parent()
 
     opts
     |> Map.put(
