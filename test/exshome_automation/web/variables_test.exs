@@ -61,7 +61,9 @@ defmodule ExshomeAutomationTest.Web.VariablesTest do
           |> Map.keys()
           |> List.first()
 
+        flush_messages()
         delete_dynamic_variable(view, variable_id)
+        assert_receive_app_page_dependency({VariableRegistry, _})
         assert count_variables(view) == 0
       end
     end
