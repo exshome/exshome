@@ -23,7 +23,7 @@ defmodule Exshome.Datatype.Integer do
     if value <= max_value do
       {:ok, value}
     else
-      {:error, "Should less then or equal to #{max_value}"}
+      {:error, "Should less than or equal to #{max_value}"}
     end
   end
 

@@ -35,6 +35,7 @@ defmodule ExshomePlayerTest.Web.PlayerTest do
     test "updates position", %{view: view} do
       duration = unique_integer()
       Dependency.broadcast_value(PlayerState, %PlayerState{duration: duration})
+      assert_receive_app_page_dependency({Variables.Duration, ^duration})
       position = Enum.random(0..duration)
       position_selector = "[name=position]"
       view |> element(position_selector) |> render_change(%{position: position})
