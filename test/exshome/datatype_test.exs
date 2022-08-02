@@ -29,4 +29,21 @@ defmodule ExshomeTest.DatatypeTest do
       assert reason =~ "unknown_validation"
     end
   end
+
+  describe "to_string/2" do
+    test "returns error for unknown value" do
+      for type <- Datatype.available_types() do
+        assert :error == Datatype.to_string(type, Datatype.Unknown)
+      end
+    end
+
+    test "returns valid string for default value" do
+      for type <- Datatype.available_types() do
+        default_value = type.__config__()[:default]
+
+        {:ok, value} = Datatype.to_string(type, default_value)
+        assert is_binary(value)
+      end
+    end
+  end
 end

@@ -29,4 +29,5 @@ defmodule Exshome.Datatype.Integer do
 
   @impl Datatype
   def to_string(value) when is_integer(value), do: {:ok, "#{value}"}
+  def to_string(_value), do: :error
 end
