@@ -34,8 +34,11 @@ defmodule ExshomeClockTest.WebTest do
     test "updates clock settings", %{conn: conn} do
       view = live_with_dependencies(conn, ExshomeClock, :settings)
 
+      default_value = Settings.default_values(ClockSettings).timezone
+
       random_value =
         Settings.allowed_values(ClockSettings).timezone
+        |> Enum.reject(fn value -> value == default_value end)
         |> Enum.random()
 
       value = [
