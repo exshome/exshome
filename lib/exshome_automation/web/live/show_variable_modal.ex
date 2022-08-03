@@ -8,22 +8,36 @@ defmodule ExshomeAutomation.Web.Live.ShowVariableModal do
   use ExshomeWeb.Live.AppPage, dependencies: []
 
   @impl LiveView
-  def mount(_params, %{"variable_id" => variable_id}, %Socket{} = socket) do
+  def mount(_params, %{"variable_id" => variable_id} = data, %Socket{} = socket) do
+    :ok = Event.subscribe(VariableStateEvent, variable_id)
     {:ok, config} = Variable.get_by_id(variable_id)
 
     socket =
       socket
       |> assign(:config, config)
+      |> assign(:rename, data["rename"] == "true")
       |> put_error_message(nil)
       |> put_dependencies([{config.dependency, :variable}])
 
-    :ok = Event.subscribe(VariableStateEvent, variable_id)
     {:ok, assign(socket, :config, config)}
   end
 
   @impl LiveView
   def handle_event("update_value", %{"variable" => value}, %Socket{} = socket) do
     {:noreply, set_value(socket, value)}
+  end
+
+  def handle_event("toggle_rename", _, %Socket{} = socket) do
+    {:noreply, assign(socket, :rename, !socket.assigns.rename)}
+  end
+
+  def handle_event(
+        "rename",
+        %{"name" => name},
+        %Socket{assigns: %{config: %Variable{can_rename?: true}}} = socket
+      ) do
+    :ok = Variable.rename_by_id!(socket.assigns.config.id, name)
+    {:noreply, socket}
   end
 
   defp set_value(%Socket{} = socket, value) do

@@ -42,6 +42,7 @@ defmodule ExshomeAutomation.Variables.DynamicVariable.Schema do
     Repo.insert!(%__MODULE__{
       opts: %{},
       type: type,
+      name: "new variable",
       value: value,
       version: 1
     })
@@ -55,6 +56,11 @@ defmodule ExshomeAutomation.Variables.DynamicVariable.Schema do
       |> Datatype.to_string(value)
 
     update!(data, %{value: value})
+  end
+
+  @spec rename!(t(), String.t()) :: t()
+  def rename!(%__MODULE__{} = data, name) when is_binary(name) do
+    update!(data, %{name: name})
   end
 
   @spec update!(t(), map()) :: t()

@@ -37,6 +37,8 @@ defmodule Exshome.Variable.GenServerVariable do
     {:stop, {:ok, state}}
   end
 
+  def handle_call(_, _, %DependencyState{} = state), do: {:cont, state}
+
   @impl Lifecycle
   def handle_stop(_reason, %DependencyState{} = state) do
     :ok =
@@ -61,8 +63,8 @@ defmodule Exshome.Variable.GenServerVariable do
         type: :string,
         required: true
       ],
-      features: [
-        type: {:list, {:in, [:readonly, :delete]}}
+      readonly?: [
+        type: :boolean
       ],
       type: [
         type: :atom,
@@ -104,7 +106,6 @@ defmodule Exshome.Variable.GenServerVariable do
   def variable_from_dependency_state(%DependencyState{dependency: dependency} = state) do
     module = Dependency.dependency_module(dependency)
     config = get_config(module)
-    features = Keyword.get(config, :features, [])
 
     %Variable{
       dependency: dependency,
@@ -112,8 +113,9 @@ defmodule Exshome.Variable.GenServerVariable do
       name: module.__config__[:name],
       group: Keyword.fetch!(config, :group),
       not_ready_reason: not_ready_reason(state),
-      can_delete?: :delete in features,
-      readonly?: :readonly in features,
+      can_delete?: false,
+      can_rename?: false,
+      readonly?: Keyword.get(config, :readonly?, false),
       type: Keyword.fetch!(config, :type),
       validations: get_validations(state)
     }

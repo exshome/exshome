@@ -1,7 +1,23 @@
 <section id="show_variable_modal" class="flex flex-col items-center justify-center h-full">
-  <h2 class="text-3xl font-black">
-    <%= @config.name %>
-  </h2>
+  <form class="w-full md:w-3/4 flex items-center justify-center" phx-change="rename">
+    <%= if @rename do %>
+      <.datatype_input
+        type={Exshome.Datatype.String}
+        value={@config.name}
+        validations={%{}}
+        name="name"
+      />
+    <% else %>
+      <h2 class="text-lg md:text-3xl font-black">
+        <%= @config.name %>
+      </h2>
+    <% end %>
+    <%= if @config.can_rename? do %>
+      <.button class="text-xs mb-2" phx-click="toggle_rename" type="button">
+        <%= if @rename, do: "❌", else: "️✏️" %>
+      </.button>
+    <% end %>
+  </form>
   <div class="text-xs mb-3">
     <.chip>
       <%= Exshome.Datatype.icon(@config.type) %>

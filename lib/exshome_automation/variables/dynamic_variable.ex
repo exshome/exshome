@@ -13,7 +13,7 @@ defmodule ExshomeAutomation.Variables.DynamicVariable do
     child_module: VariableSupervisor,
     variable: [
       group: @group,
-      features: [:readonly],
+      readonly?: true,
       type: Datatype.Unknown
     ]
 
@@ -39,12 +39,23 @@ defmodule ExshomeAutomation.Variables.DynamicVariable do
       not_ready_reason: nil,
       readonly?: type == Datatype.Unknown,
       can_delete?: true,
+      can_rename?: true,
       type: type,
       validations: schema.opts
     }
   end
 
   def variable_from_dependency_state(state), do: super(state)
+
+  @impl GenServerDependency
+  def handle_call({:rename, name}, _, %DependencyState{} = state) do
+    state =
+      state.data
+      |> Schema.rename!(name)
+      |> set_state_from_schema(state)
+
+    {:reply, :ok, state}
+  end
 
   @impl GenServerVariable
   def handle_set_value(%DependencyState{data: %Schema{}} = state, value) do
@@ -83,5 +94,10 @@ defmodule ExshomeAutomation.Variables.DynamicVariable do
     |> Schema.delete!()
 
     :ok = VariableSupervisor.termintate_child_with_id(id)
+  end
+
+  @impl Variable
+  def rename(dependency, name) when is_binary(name) do
+    GenServerDependency.call(dependency, {:rename, name})
   end
 end

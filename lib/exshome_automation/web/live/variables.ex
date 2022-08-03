@@ -37,12 +37,12 @@ defmodule ExshomeAutomation.Web.Live.Variables do
         %Socket{} = socket
       ) do
     Event.unsubscribe(VariableStateEvent)
-    open_variable_modal(socket, id)
+    open_variable_modal(socket, id, %{"rename" => "true"})
   end
 
   def on_app_event(_, %Socket{} = socket), do: socket
 
-  defp open_variable_modal(%Socket{} = socket, id) when is_binary(id) do
-    open_modal(socket, ShowVariableModal, %{"variable_id" => id})
+  defp open_variable_modal(%Socket{} = socket, id, params \\ %{}) when is_binary(id) do
+    open_modal(socket, ShowVariableModal, Map.merge(params, %{"variable_id" => id}))
   end
 end

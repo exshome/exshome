@@ -12,7 +12,7 @@ defmodule ExshomePlayer.Variables.Title do
     ],
     variable: [
       group: "player",
-      features: [:readonly],
+      readonly?: true,
       type: Exshome.Datatype.String
     ]
 

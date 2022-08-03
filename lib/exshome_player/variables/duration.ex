@@ -12,7 +12,7 @@ defmodule ExshomePlayer.Variables.Duration do
     ],
     variable: [
       group: "player",
-      features: [:readonly],
+      readonly?: true,
       type: Exshome.Datatype.Integer
     ]
 

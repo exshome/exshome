@@ -16,6 +16,7 @@ defmodule Exshome.Variable do
     :not_ready_reason,
     :readonly?,
     :can_delete?,
+    :can_rename?,
     :type,
     :validations
   ]
@@ -28,13 +29,15 @@ defmodule Exshome.Variable do
           not_ready_reason: String.t() | nil,
           readonly?: boolean(),
           can_delete?: boolean(),
+          can_rename?: boolean(),
           type: Datatype.t(),
           validations: %{atom() => any()}
         }
 
   @callback set_value(Dependency.dependency(), any()) :: :ok | {:error, String.t()}
+  @callback rename(Dependency.dependency(), name :: String.t()) :: :ok
   @callback delete(Dependency.dependency()) :: :ok
-  @optional_callbacks [delete: 1]
+  @optional_callbacks [delete: 1, rename: 2]
 
   @spec set_value(Dependency.dependency(), any()) :: :ok | {:error, String.t()}
   def set_value(dependency, value) do
@@ -77,6 +80,19 @@ defmodule Exshome.Variable do
     %__MODULE__{dependency: dependency} = variable
 
     Dependency.dependency_module(dependency).delete(dependency)
+  end
+
+  @spec rename_by_id!(id :: String.t(), name :: String.t()) :: :ok
+  def rename_by_id!(id, name) when is_binary(name) do
+    {:ok, %__MODULE__{} = variable} = get_by_id(id)
+
+    unless variable.can_rename? do
+      raise "Unable to rename #{variable.name}"
+    end
+
+    %__MODULE__{dependency: dependency} = variable
+
+    Dependency.dependency_module(dependency).rename(dependency, name)
   end
 
   @spec raise_if_not_variable!(Dependency.dependency()) :: any()
