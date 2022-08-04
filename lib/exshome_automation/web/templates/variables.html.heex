@@ -27,7 +27,7 @@
               phx-click="show_variable"
               phx-value-id={variable.id}
             >
-              ️👀️
+              <span>👀</span>
             </.button>
             <%= if variable.can_delete? do %>
               <.button
@@ -36,7 +36,7 @@
                 phx-value-id={variable.id}
                 data-confirm="Do you really want to delete this variable?"
               >
-                ️️🗑️
+                <span>🗑</span>
               </.button>
             <% end %>
           </:row_after>
