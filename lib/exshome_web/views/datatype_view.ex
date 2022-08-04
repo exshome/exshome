@@ -25,6 +25,7 @@ defmodule ExshomeWeb.DatatypeView do
 
     assigns
     |> LiveView.assign_new(:validations, fn _ -> %{} end)
+    |> LiveView.assign_new(:class, fn _ -> "" end)
     |> renderer.render_input()
   end
 

@@ -40,7 +40,7 @@ defmodule ExshomeWeb.DefaultDatatypeView do
 
     ~H"""
     <input
-      class={default_input_styles()}
+      class={"#{default_input_styles()} #{@class}"}
       type="number"
       value={@value}
       name={@name}
@@ -51,7 +51,7 @@ defmodule ExshomeWeb.DefaultDatatypeView do
 
   def render_input(%{type: String} = assigns) do
     ~H"""
-    <input class={default_input_styles()} type="text" value={@value} name={@name} />
+    <input class={"#{default_input_styles()} #{@class}"} type="text" value={@value} name={@name} />
     """
   end
 

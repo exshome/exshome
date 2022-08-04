@@ -2,23 +2,26 @@
   <form class="w-full md:w-3/4 flex items-center justify-center" phx-change="rename">
     <%= if @rename do %>
       <.datatype_input
+        class="md:ml-8"
         type={Exshome.Datatype.String}
         value={@config.name}
         validations={%{}}
         name="name"
       />
     <% else %>
-      <h2 class="text-lg md:text-3xl font-black">
+      <h2 class={
+        "text-lg inline md:text-3xl font-black [word-break:break-word] text-center #{if @config.can_rename?, do: 'pl-8'}"
+      }>
         <%= @config.name %>
       </h2>
     <% end %>
     <%= if @config.can_rename? do %>
-      <.button class="text-xs mb-2" phx-click="toggle_rename" type="button">
+      <.button class="text-xs inline" phx-click="toggle_rename" type="button">
         <%= if @rename, do: "❌", else: "️✏️" %>
       </.button>
     <% end %>
   </form>
-  <div class="text-xs mb-3">
+  <div class="text-xs mb-5">
     <.chip>
       <%= Exshome.Datatype.icon(@config.type) %>
       <%= Exshome.Datatype.name(@config.type) %>
@@ -36,7 +39,7 @@
     </div>
   <% else %>
     <%= if !@config.readonly? do %>
-      <form class="p-1 w-full md:w-3/4 flex flex-col items-center" phx-change="update_value">
+      <form class="w-full md:w-3/4 flex flex-col items-center" phx-change="update_value">
         <.datatype_input
           type={@config.type}
           value={@deps.variable}
@@ -48,11 +51,8 @@
         <% end %>
       </form>
     <% end %>
-    <div class="text-xl">
-      Value:
-      <span class="font-black">
-        <.datatype_value type={@config.type} value={@deps.variable} />
-      </span>
+    <div class="text-md [word-break:break-word] font-black text-center">
+      <.datatype_value type={@config.type} value={@deps.variable} />
     </div>
   <% end %>
 </section>
