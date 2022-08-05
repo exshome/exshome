@@ -25,6 +25,7 @@ import "phoenix_html";
 import {Socket} from "phoenix";
 import {LiveSocket} from "phoenix_live_view";
 import topbar from "../vendor/topbar";
+import { Automation } from './automation';
 
 let topBarScheduled = undefined;
 
@@ -34,7 +35,8 @@ let Hooks = {
     mounted() {
       window.Theme.updateThemeSwitch();
     }
-  }
+  },
+  Automation: Automation,
 };
 let liveSocket = new LiveSocket("/live", Socket, {params: {_csrf_token: csrfToken}, hooks: Hooks});
 

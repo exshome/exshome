@@ -1,0 +1,21 @@
+<section class="flex flex-col items-center justify-center h-full">
+  <svg
+    id="automation-screen"
+    class="h-full w-full select-none"
+    viewBox="0 0 100 100"
+    xmlns="http://www.w3.org/2000/svg"
+    phx-hook="Automation"
+    phx-update="append"
+  >
+    <%= for component <- @components do %>
+      <rect
+        id={"component-#{component.id}"}
+        x={component.x}
+        y={component.y}
+        width={component.width}
+        height={component.height}
+        class={"draggable cursor-move #{component.class}"}
+      />
+    <% end %>
+  </svg>
+</section>
