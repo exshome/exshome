@@ -1,14 +1,24 @@
 // Drag and drop inspiration from https://www.petercollingridge.co.uk/tutorials/svg/interactive/dragging/
 
+
+const debounce = (func, timeout = 200) => {
+  let timer;
+  return function(...args) {
+    clearTimeout(timer);
+    timer = setTimeout(() => func.apply(this, args), timeout);
+  }
+}
+
 export const Automation = {
   selectedElement: null,
   offset: {x: 0, y: 0},
 
   mounted() {
+    const drag = debounce(this.drag.bind(this), 10);
     this.el.addEventListener("mousedown", this.startDrag.bind(this));
     this.el.addEventListener("touchstart", this.startDrag.bind(this));
-    this.el.addEventListener("mousemove", this.drag.bind(this));
-    this.el.addEventListener("touchmove", this.drag.bind(this));
+    this.el.addEventListener("mousemove", drag);
+    this.el.addEventListener("touchmove", drag);
     this.el.addEventListener("mouseup", this.endDrag.bind(this));
     this.el.addEventListener("mouseleave", this.endDrag.bind(this));
     this.el.addEventListener("touchend", this.endDrag.bind(this));
