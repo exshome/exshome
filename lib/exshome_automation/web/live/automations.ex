@@ -14,6 +14,7 @@ defmodule ExshomeAutomation.Web.Live.Automations do
     socket =
       assign(
         socket,
+        class: "opacity-0",
         components: components,
         selected: nil,
         viewbox: %{x: 0, y: 0, height: 500, width: 500},
@@ -96,8 +97,9 @@ defmodule ExshomeAutomation.Web.Live.Automations do
   defp handle_zoom(width, height, %Socket{} = socket) do
     zoom = socket.assigns.zoom
 
-    update(
-      socket,
+    socket
+    |> assign(class: "")
+    |> update(
       :viewbox,
       fn view ->
         %{view | height: height / zoom, width: width / zoom}

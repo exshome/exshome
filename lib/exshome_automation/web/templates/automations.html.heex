@@ -1,7 +1,7 @@
 <section class="flex flex-col items-center justify-center h-full">
   <svg
     id="automation-screen"
-    class="h-full w-full select-none"
+    class={"h-full w-full select-none #{@class}"}
     viewBox={"#{@viewbox.x} #{@viewbox.y} #{@viewbox.width} #{@viewbox.height}"}
     xmlns="http://www.w3.org/2000/svg"
     phx-hook="Automation"
@@ -20,6 +20,9 @@
     <% end %>
     <%= if @viewbox.width < @screen.width do %>
       <rect
+        class="fill-gray-200 dark:fill-gray-700"
+        rx="1"
+        ry="1"
         x={@viewbox.x + @viewbox.width / @screen.width * @viewbox.x}
         y={@viewbox.y + @viewbox.height - @zoom}
         height={@zoom}
@@ -31,6 +34,9 @@
     <%= if @viewbox.height < @screen.height do %>
       <rect
         x={@viewbox.x + @viewbox.width - @zoom}
+        class="fill-gray-200 dark:fill-gray-700"
+        rx="1"
+        ry="1"
         y={@viewbox.y + @viewbox.height / @screen.height * @viewbox.y}
         height={@viewbox.height / @screen.height * @viewbox.height}
         width={@zoom}
