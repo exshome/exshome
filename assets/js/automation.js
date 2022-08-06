@@ -14,9 +14,13 @@ export const Automation = {
   offset: {x: 0, y: 0},
 
   mounted() {
-    const drag = debounce(this.drag.bind(this), 10);
+    this.sendElementSize = this.sendElementSize.bind(this);
+    this.sendElementSize();
+    window.addEventListener("resize", this.sendElementSize);
+
     this.el.addEventListener("mousedown", this.startDrag.bind(this));
     this.el.addEventListener("touchstart", this.startDrag.bind(this));
+    const drag = debounce(this.drag.bind(this), 5);
     this.el.addEventListener("mousemove", drag);
     this.el.addEventListener("touchmove", drag);
     this.el.addEventListener("mouseup", this.endDrag.bind(this));
@@ -26,8 +30,16 @@ export const Automation = {
     this.el.addEventListener("touchcancel", this.endDrag.bind(this));
   },
 
+  destroyed() {
+    window.removeEventListener("resize", this.sendElementSize);
+  },
+
+  sendElementSize() {
+    this.pushEvent("resize", {height: this.el.clientHeight, width: this.el.clientWidth});
+  },
+
   startDrag(e) {
-    if (e.target.classList.contains("draggable")) {
+    if (e.target.dataset["drag"]) {
       e.preventDefault();
       this.pushEvent("select", {id: e.target.id});
       this.selectedElement = e.target;
@@ -42,13 +54,20 @@ export const Automation = {
     if (this.selectedElement) {
       e.preventDefault();
       const coord = this.getMousePosition(e);
-      this.pushEvent("drag", {x: coord.x - this.offset.x, y: coord.y - this.offset.y});
+      this.pushEvent(
+        this.selectedElement.dataset["drag"],
+        {
+          id: this.selectedElement.id,
+          x: coord.x - this.offset.x,
+          y: coord.y - this.offset.y
+        }
+      );
     }
   },
 
   endDrag(e) {
     this.selectedElement = null;
-    this.pushEvent("deselect", {});
+    this.pushEvent("dragend", {});
   },
 
   getMousePosition(e) {
