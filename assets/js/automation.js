@@ -71,7 +71,9 @@ export const Automation = {
   },
 
   getMousePosition(e) {
-    const CTM = this.el.getScreenCTM();
+    const CTM = document.getElementById(
+        this.selectedElement.dataset["parent"]
+    ).getScreenCTM()
     if (e.touches) {
       e = e.touches[0];
     }
