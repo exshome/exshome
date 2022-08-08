@@ -21,7 +21,17 @@ defmodule ExshomeAutomation.Web.Live.Automations do
         components: components,
         name: @name,
         screen: %{width: 100, height: 100},
-        scroll: %{x: 0, y: 0, ratio_x: 0, ratio_y: 0, height: 30, width_x: 40, width_y: 40},
+        scroll: %{
+          x: 0,
+          y: 0,
+          ratio_x: 0,
+          ratio_y: 0,
+          height: 30,
+          width_x: 40,
+          width_y: 40,
+          original_x: 0,
+          original_y: 0
+        },
         selected: nil,
         viewbox: %{x: 0, y: 0, height: 10, width: 10},
         zoom: 7
@@ -41,11 +51,20 @@ defmodule ExshomeAutomation.Web.Live.Automations do
     {:noreply, socket}
   end
 
-  def handle_event("select", _, %Socket{} = socket) do
+  def handle_event("select", data, %Socket{} = socket) do
+    socket =
+      socket
+      |> assign(selected: data)
+      |> update(:scroll, &%{&1 | original_x: &1.x, original_y: &1.y})
+
     {:noreply, socket}
   end
 
-  def handle_event("move", %{"x" => x, "y" => y, "id" => "component-" <> id}, %Socket{} = socket) do
+  def handle_event(
+        "move",
+        %{"x" => x, "y" => y, "id" => "#{@name}-component-" <> id},
+        %Socket{} = socket
+      ) do
     component = generate_component(id)
 
     socket =
@@ -68,7 +87,21 @@ defmodule ExshomeAutomation.Web.Live.Automations do
     {:noreply, assign(socket, selected: nil)}
   end
 
-  def handle_event("move-background", %{"x" => _x, "y" => _y}, %Socket{} = socket) do
+  def handle_event("move-background", %{"x" => x, "y" => y}, %Socket{} = socket) do
+    %{screen: screen, viewbox: viewbox} = socket.assigns
+
+    socket =
+      socket
+      |> update(
+        :scroll,
+        &%{
+          &1
+          | x: &1.original_x - x * viewbox.width / screen.width / &1.ratio_x,
+            y: &1.original_y - y * viewbox.height / screen.height / &1.ratio_y
+        }
+      )
+      |> normalize_scroll()
+
     {:noreply, socket}
   end
 
@@ -114,7 +147,9 @@ defmodule ExshomeAutomation.Web.Live.Automations do
       |> max(0)
       |> min(screen.height - scroll.height - scroll.width_y)
 
-    update(socket, :scroll, &%{&1 | x: new_x, y: new_y})
+    socket
+    |> update(:scroll, &%{&1 | x: new_x, y: new_y})
+    |> update(:viewbox, &%{&1 | x: scroll.ratio_x * new_x, y: scroll.ratio_y * new_y})
   end
 
   defp handle_zoom(%Socket{} = socket) do

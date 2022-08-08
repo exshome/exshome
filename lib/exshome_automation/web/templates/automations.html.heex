@@ -9,9 +9,7 @@
     <svg
       id={"#{@name}-body"}
       class={"h-full w-full select-none #{@class}"}
-      viewBox={
-        "#{@scroll.x * @scroll.ratio_x} #{@scroll.y * @scroll.ratio_y} #{@viewbox.width} #{@viewbox.height}"
-      }
+      viewBox={"#{@viewbox.x} #{@viewbox.y} #{@viewbox.width} #{@viewbox.height}"}
       xmlns="http://www.w3.org/2000/svg"
       phx-update="append"
     >
@@ -21,13 +19,13 @@
         y="0"
         height={@canvas.height}
         width={@canvas.width}
-        data-parent={"#{@name}-body"}
+        data-parent={"#{@name}-screen"}
         data-drag="move-background"
         class="fill-transparent"
       />
       <%= for component <- @components do %>
         <rect
-          id={"component-#{component.id}"}
+          id={"#{@name}-component-#{component.id}"}
           x={component.x}
           y={component.y}
           width={component.width}
