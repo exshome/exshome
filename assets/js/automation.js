@@ -42,10 +42,14 @@ export const Automation = {
       e.preventDefault();
       this.selectedElement = e.target;
       const offset = this.getMousePosition(e);
-      offset.x -= parseFloat(this.selectedElement.getAttributeNS(null, "x"));
-      offset.y -= parseFloat(this.selectedElement.getAttributeNS(null, "y"));
+      const position = {
+        x: parseFloat(this.selectedElement.getAttributeNS(null, "x")),
+        y: parseFloat(this.selectedElement.getAttributeNS(null, "y"))
+      }
+      offset.x -= position.x;
+      offset.y -= position.y;
       this.offset = offset;
-      this.pushEvent("select", {id: e.target.id});
+      this.pushEvent("select", {id: e.target.id, position});
     }
   },
 

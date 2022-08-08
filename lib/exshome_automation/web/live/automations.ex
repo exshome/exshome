@@ -51,10 +51,14 @@ defmodule ExshomeAutomation.Web.Live.Automations do
     {:noreply, socket}
   end
 
-  def handle_event("select", data, %Socket{} = socket) do
+  def handle_event(
+        "select",
+        %{"id" => id, "position" => %{"x" => x, "y" => y}},
+        %Socket{} = socket
+      ) do
     socket =
       socket
-      |> assign(selected: data)
+      |> assign(selected: %{id: id, original_x: x, original_y: y})
       |> update(:scroll, &%{&1 | original_x: &1.x, original_y: &1.y})
 
     {:noreply, socket}
@@ -65,14 +69,23 @@ defmodule ExshomeAutomation.Web.Live.Automations do
         %{"x" => x, "y" => y, "id" => "#{@name}-component-" <> id},
         %Socket{} = socket
       ) do
+    %{
+      viewbox: viewbox,
+      screen: screen,
+      selected: %{original_x: original_x, original_y: original_y}
+    } = socket.assigns
+
+    new_x = original_x + (x - original_x) * viewbox.width / screen.width
+    new_y = original_y + (y - original_y) * viewbox.height / screen.height
+
     component = generate_component(id)
 
     socket =
       assign(socket, :components, [
         %{
           component
-          | x: fit_in_box(x, socket.assigns.canvas.width),
-            y: fit_in_box(y, socket.assigns.canvas.height)
+          | x: fit_in_box(new_x, socket.assigns.canvas.width - component.width),
+            y: fit_in_box(new_y, socket.assigns.canvas.height - component.height)
         }
       ])
 
