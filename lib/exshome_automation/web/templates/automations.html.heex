@@ -19,7 +19,6 @@
         y="0"
         height={@canvas.height}
         width={@canvas.width}
-        data-parent={"#{@name}-screen"}
         data-drag="move-background"
         class="fill-transparent"
       />
@@ -32,7 +31,6 @@
           height={component.height}
           class={"draggable cursor-move #{component.class}"}
           data-drag="move"
-          data-parent={"#{@name}-body"}
         />
       <% end %>
     </svg>
@@ -46,7 +44,6 @@
         height={@scroll.height}
         width={@scroll.width_x}
         data-drag="scroll"
-        data-parent={"#{@name}-screen"}
         id={"#{@name}-scroll-x"}
       />
     <% end %>
@@ -60,7 +57,6 @@
         height={@scroll.width_y}
         width={@scroll.height}
         data-drag="scroll"
-        data-parent={"#{@name}-screen"}
         id={"#{@name}-scroll-y"}
       />
     <% end %>

@@ -1,6 +1,5 @@
 // Drag and drop inspiration from https://www.petercollingridge.co.uk/tutorials/svg/interactive/dragging/
 
-
 const debounce = (func, timeout = 200) => {
   let timer;
   return function(...args) {
@@ -41,12 +40,12 @@ export const Automation = {
   startDrag(e) {
     if (e.target.dataset["drag"]) {
       e.preventDefault();
-      this.pushEvent("select", {id: e.target.id});
       this.selectedElement = e.target;
       const offset = this.getMousePosition(e);
       offset.x -= parseFloat(this.selectedElement.getAttributeNS(null, "x"));
       offset.y -= parseFloat(this.selectedElement.getAttributeNS(null, "y"));
       this.offset = offset;
+      this.pushEvent("select", {id: e.target.id});
     }
   },
 
@@ -71,15 +70,12 @@ export const Automation = {
   },
 
   getMousePosition(e) {
-    const CTM = document.getElementById(
-        this.selectedElement.dataset["parent"]
-    ).getScreenCTM()
     if (e.touches) {
       e = e.touches[0];
     }
     return {
-      x: ((e.clientX - CTM.e) / CTM.a),
-      y: ((e.clientY - CTM.f) / CTM.d)
+      x: e.clientX,
+      y: e.clientY
     }
   }
 }
