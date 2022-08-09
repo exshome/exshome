@@ -33,6 +33,10 @@ export const Automation = {
     window.removeEventListener("resize", this.sendElementSize);
   },
 
+  remounted() {
+    this.sendElementSize();
+  },
+
   sendElementSize() {
     this.pushEvent("resize", {height: this.el.clientHeight, width: this.el.clientWidth});
   },
