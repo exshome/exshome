@@ -28,9 +28,7 @@ defmodule ExshomeAutomation.Web.Live.Automations do
           ratio_y: 0,
           height: 30,
           width_x: 40,
-          width_y: 40,
-          original_x: 0,
-          original_y: 0
+          width_y: 40
         },
         selected: nil,
         viewbox: %{x: 0, y: 0, height: 10, width: 10},
@@ -56,10 +54,7 @@ defmodule ExshomeAutomation.Web.Live.Automations do
         %{"id" => id, "position" => %{"x" => x, "y" => y}},
         %Socket{} = socket
       ) do
-    socket =
-      socket
-      |> assign(selected: %{id: id, original_x: x, original_y: y})
-      |> update(:scroll, &%{&1 | original_x: &1.x, original_y: &1.y})
+    socket = assign(socket, selected: %{id: id, original_x: x, original_y: y})
 
     {:noreply, socket}
   end
@@ -101,7 +96,7 @@ defmodule ExshomeAutomation.Web.Live.Automations do
   end
 
   def handle_event("move-background", %{"x" => x, "y" => y}, %Socket{} = socket) do
-    %{screen: screen, viewbox: viewbox} = socket.assigns
+    %{screen: screen, viewbox: viewbox, selected: selected} = socket.assigns
 
     socket =
       socket
@@ -109,8 +104,8 @@ defmodule ExshomeAutomation.Web.Live.Automations do
         :scroll,
         &%{
           &1
-          | x: &1.original_x - x * viewbox.width / screen.width / &1.ratio_x,
-            y: &1.original_y - y * viewbox.height / screen.height / &1.ratio_y
+          | x: selected.original_x - x * viewbox.width / screen.width / &1.ratio_x,
+            y: selected.original_y - y * viewbox.height / screen.height / &1.ratio_y
         }
       )
       |> normalize_scroll()
