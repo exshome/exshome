@@ -32,7 +32,7 @@ defmodule ExshomeAutomation.Web.Live.Automations do
         },
         selected: nil,
         viewbox: %{x: 0, y: 0, height: 10, width: 10},
-        zoom: 7
+        zoom: %{value: 5, min_value: 1, max_value: 10}
       )
 
     {:ok, socket, temporary_assigns: [components: []]}
@@ -44,7 +44,6 @@ defmodule ExshomeAutomation.Web.Live.Automations do
       socket
       |> assign(:screen, %{height: height, width: width})
       |> handle_zoom()
-      |> update_scrollbars()
 
     {:noreply, socket}
   end
@@ -113,6 +112,15 @@ defmodule ExshomeAutomation.Web.Live.Automations do
     {:noreply, socket}
   end
 
+  def handle_event("zoom-desktop", %{"delta" => delta}, %Socket{} = socket) do
+    socket =
+      socket
+      |> update(:zoom, &%{&1 | value: min(&1.max_value, max(&1.min_value, &1.value + delta))})
+      |> handle_zoom()
+
+    {:noreply, socket}
+  end
+
   defp generate_component(id) do
     %{
       id: id,
@@ -167,25 +175,31 @@ defmodule ExshomeAutomation.Web.Live.Automations do
     |> assign(class: "")
     |> update(
       :viewbox,
-      fn view ->
-        %{view | height: screen.height / zoom, width: screen.width / zoom}
+      fn viewbox ->
+        %{viewbox | height: screen.height / zoom.value, width: screen.width / zoom.value}
       end
     )
+    |> update(
+      :zoom,
+      &%{&1 | value: min(&1.max_value, max(&1.value, &1.min_value))}
+    )
+    |> update_scrollbars()
   end
 
   defp update_scrollbars(%Socket{} = socket) do
-    %{viewbox: view, canvas: canvas, screen: screen, scroll: scroll} = socket.assigns
+    %{viewbox: viewbox, canvas: canvas, screen: screen, scroll: scroll} = socket.assigns
 
-    scroll_width_x = (screen.width - scroll.height) * (view.width / canvas.width)
+    scroll_width_x = (screen.width - scroll.height) * (viewbox.width / canvas.width)
     scroll_width_x = max(scroll_width_x, screen.width / 3)
 
-    scroll_width_y = (screen.height - scroll.height) * (view.height / canvas.height)
+    scroll_width_y = (screen.height - scroll.height) * (viewbox.height / canvas.height)
     scroll_width_y = max(scroll_width_y, screen.height / 3)
 
-    scroll_ratio_x = (canvas.width - view.width) / (screen.width - scroll_width_x - scroll.height)
+    scroll_ratio_x =
+      (canvas.width - viewbox.width) / (screen.width - scroll_width_x - scroll.height)
 
     scroll_ratio_y =
-      (canvas.height - view.height) / (screen.height - scroll_width_y - scroll.height)
+      (canvas.height - viewbox.height) / (screen.height - scroll_width_y - scroll.height)
 
     update(
       socket,

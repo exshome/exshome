@@ -19,14 +19,20 @@ export const Automation = {
 
     this.el.addEventListener("mousedown", this.startDrag.bind(this));
     this.el.addEventListener("touchstart", this.startDrag.bind(this));
+
     const drag = debounce(this.drag.bind(this), 5);
     this.el.addEventListener("mousemove", drag);
     this.el.addEventListener("touchmove", drag);
+
     this.el.addEventListener("mouseup", this.endDrag.bind(this));
     this.el.addEventListener("mouseleave", this.endDrag.bind(this));
     this.el.addEventListener("touchend", this.endDrag.bind(this));
     this.el.addEventListener("touchleave", this.endDrag.bind(this));
     this.el.addEventListener("touchcancel", this.endDrag.bind(this));
+
+    const zoomDesktop = debounce(this.zoomDesktop.bind(this), 10);
+    this.el.addEventListener("mousewheel", zoomDesktop);
+    this.el.addEventListener("DOMMouseScroll", zoomDesktop);
   },
 
   destroyed() {
@@ -85,5 +91,14 @@ export const Automation = {
       x: e.clientX,
       y: e.clientY
     }
-  }
+  },
+
+  zoomDesktop(e) {
+    const position = this.getMousePosition(e);
+    const delta = Math.max(
+      -1,
+      Math.min(1, e.wheelDelta || -e.detail)
+    );
+    this.pushEvent("zoom-desktop", {position, delta});
+  },
 }
