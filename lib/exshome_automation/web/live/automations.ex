@@ -112,11 +112,35 @@ defmodule ExshomeAutomation.Web.Live.Automations do
     {:noreply, socket}
   end
 
-  def handle_event("zoom-desktop", %{"delta" => delta}, %Socket{} = socket) do
+  def handle_event(
+        "zoom-desktop",
+        %{"delta" => delta, "position" => %{"x" => x, "y" => y}},
+        %Socket{} = socket
+      ) do
+    %{viewbox: old_viewbox, screen: screen, scroll: old_scroll} = socket.assigns
+
     socket =
       socket
-      |> update(:zoom, &%{&1 | value: min(&1.max_value, max(&1.min_value, &1.value + delta))})
+      |> update(
+        :zoom,
+        &%{&1 | value: min(&1.max_value, max(&1.min_value, &1.value + delta * 0.1))}
+      )
       |> handle_zoom()
+
+    %{viewbox: viewbox, scroll: scroll} = socket.assigns
+
+    old_x = x * old_viewbox.width / screen.width / old_scroll.ratio_x
+    new_x = x * viewbox.width / screen.width / scroll.ratio_x
+    delta_x = new_x - old_x
+
+    old_y = y * old_viewbox.height / screen.height / old_scroll.ratio_y
+    new_y = y * viewbox.height / screen.height / scroll.ratio_y
+    delta_y = new_y - old_y
+
+    socket =
+      socket
+      |> update(:scroll, &%{&1 | x: &1.x - delta_x, y: &1.y - delta_y})
+      |> normalize_scroll()
 
     {:noreply, socket}
   end
