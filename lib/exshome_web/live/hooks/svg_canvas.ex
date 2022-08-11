@@ -170,10 +170,17 @@ defmodule ExshomeWeb.Live.Hooks.SvgCanvas do
     }
   end
 
-  defp on_zoom_desktop(%__MODULE__{} = data, delta, _x, _y) do
-    data
-    |> Map.update!(:zoom, &%{&1 | value: &1.value + delta})
-    |> refresh_zoom()
+  defp on_zoom_desktop(%__MODULE__{viewbox: old_viewbox, zoom: old_zoom} = data, delta, x, y) do
+    data =
+      %__MODULE__{zoom: new_zoom} =
+      data
+      |> Map.update!(:zoom, &%{&1 | value: &1.value + delta})
+      |> refresh_zoom()
+
+    set_viewbox_position(data, %{
+      x: old_viewbox.x + x / old_zoom.value - x / new_zoom.value,
+      y: old_viewbox.y + y / old_zoom.value - y / new_zoom.value
+    })
   end
 
   defp compute_element_position(%Socket{} = socket, x, y) do
