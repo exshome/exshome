@@ -1,30 +1,33 @@
+<% svg_meta = @__svg_meta__ %>
 <section class="flex flex-col items-center justify-center h-full">
   <svg
-    id={"#{@name}-screen"}
-    class={"h-full w-full select-none relative #{@class}"}
-    viewBox={"0 0 #{@screen.width} #{@screen.height}"}
+    id={"#{svg_meta.name}-screen"}
+    class={"h-full w-full select-none relative #{svg_meta.class}"}
+    viewBox={"0 0 #{svg_meta.screen.width} #{svg_meta.screen.height}"}
     xmlns="http://www.w3.org/2000/svg"
     phx-hook="Automation"
   >
     <svg
-      id={"#{@name}-body"}
-      class={"h-full w-full select-none #{@class}"}
-      viewBox={"#{@viewbox.x} #{@viewbox.y} #{@viewbox.width} #{@viewbox.height}"}
+      id={"#{svg_meta.name}-body"}
+      class="h-full w-full select-none"
+      viewBox={
+        "#{svg_meta.viewbox.x} #{svg_meta.viewbox.y} #{svg_meta.viewbox.width} #{svg_meta.viewbox.height}"
+      }
       xmlns="http://www.w3.org/2000/svg"
       phx-update="append"
     >
       <rect
-        id={"#{@name}-canvas-background"}
-        x="0"
-        y="0"
-        height={@canvas.height}
-        width={@canvas.width}
+        id={"#{svg_meta.name}-canvas-background"}
+        x={svg_meta.viewbox.x}
+        y={svg_meta.viewbox.y}
+        height={svg_meta.viewbox.height}
+        width={svg_meta.viewbox.width}
         data-drag="move-background"
         class="fill-transparent"
       />
       <%= for component <- @components do %>
         <rect
-          id={"#{@name}-component-#{component.id}"}
+          id={component.id}
           x={component.x}
           y={component.y}
           width={component.width}
@@ -34,30 +37,30 @@
         />
       <% end %>
     </svg>
-    <%= if @viewbox.width < @canvas.width do %>
+    <%= if svg_meta.viewbox.width < svg_meta.canvas.width do %>
       <rect
         class="fill-gray-200/80 dark:fill-gray-700/80"
         rx="10"
         ry="10"
-        x={@scroll.x}
-        y={@screen.height - @scroll.height}
-        height={@scroll.height}
-        width={@scroll.width_x}
-        data-drag="scroll"
-        id={"#{@name}-scroll-x"}
+        x={svg_meta.scroll.x}
+        y={svg_meta.screen.height - svg_meta.scroll.height}
+        height={svg_meta.scroll.height}
+        width={svg_meta.scroll.size_x}
+        data-drag="scroll-body-x"
+        id={"#{svg_meta.name}-scroll-body-x"}
       />
     <% end %>
-    <%= if @viewbox.width < @canvas.width do %>
+    <%= if svg_meta.viewbox.width < svg_meta.canvas.width do %>
       <rect
         class="fill-gray-200/80 dark:fill-gray-700/80"
         rx="10"
         ry="10"
-        x={@screen.width - @scroll.height}
-        y={@scroll.y}
-        height={@scroll.width_y}
-        width={@scroll.height}
-        data-drag="scroll"
-        id={"#{@name}-scroll-y"}
+        x={svg_meta.screen.width - svg_meta.scroll.height}
+        y={svg_meta.scroll.y}
+        height={svg_meta.scroll.size_y}
+        width={svg_meta.scroll.height}
+        data-drag="scroll-body-y"
+        id={"#{svg_meta.name}-scroll-body-y"}
       />
     <% end %>
   </svg>
