@@ -39,7 +39,7 @@ export const Automation = {
     window.removeEventListener("resize", this.sendElementSize);
   },
 
-  remounted() {
+  reconnected() {
     this.sendElementSize();
   },
 
