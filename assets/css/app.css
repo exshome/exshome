@@ -4,6 +4,14 @@
 @import "./icons.css";
 @import "./inputs.css";
 
+html {
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  padding-bottom: env(safe-area-inset-bottom, 0);
+}
+
 /* Alerts and form errors used by phx.new */
 .alert {
   padding: 15px;
