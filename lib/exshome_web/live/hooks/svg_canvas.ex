@@ -21,7 +21,7 @@ defmodule ExshomeWeb.Live.Hooks.SvgCanvas do
       size_y: 40
     },
     viewbox: %{x: 0, y: 0, height: 10, width: 10},
-    zoom: %{value: 5, min_value: 1, max_value: 10}
+    zoom: %{value: 5, min: 1, max: 10}
   ]
 
   @type t() :: %__MODULE__{
@@ -59,8 +59,8 @@ defmodule ExshomeWeb.Live.Hooks.SvgCanvas do
           },
           zoom: %{
             value: number(),
-            max_value: number(),
-            min_value: number()
+            max: number(),
+            min: number()
           }
         }
 
@@ -154,12 +154,16 @@ defmodule ExshomeWeb.Live.Hooks.SvgCanvas do
     %__MODULE__{data | selected: nil}
   end
 
-  defp on_resize(%__MODULE__{} = data, height, width) do
+  defp on_resize(%__MODULE__{zoom: zoom} = data, height, width) do
     %__MODULE__{
       data
       | class: "",
         screen: %{height: height, width: width}
     }
+    |> Map.update!(
+      :canvas,
+      &%{&1 | width: max(&1.width, width / zoom.min), height: max(&1.height, height / zoom.min)}
+    )
     |> refresh_zoom()
   end
 
@@ -196,7 +200,7 @@ defmodule ExshomeWeb.Live.Hooks.SvgCanvas do
   end
 
   defp refresh_zoom(%__MODULE__{zoom: zoom, screen: screen} = data) do
-    zoom = %{zoom | value: min(zoom.max_value, max(zoom.value, zoom.min_value))}
+    zoom = %{zoom | value: min(zoom.max, max(zoom.value, zoom.min))}
 
     data
     |> Map.put(:zoom, zoom)
@@ -221,10 +225,18 @@ defmodule ExshomeWeb.Live.Hooks.SvgCanvas do
     scroll_size_y = max(computed_scroll_size_y, screen.height / 3)
 
     scroll_ratio_x =
-      (canvas.width - viewbox.width) / (screen.width - scroll_size_x - scroll.height)
+      if canvas.width == screen.width do
+        1
+      else
+        (canvas.width - viewbox.width) / (screen.width - scroll_size_x - scroll.height)
+      end
 
     scroll_ratio_y =
-      (canvas.height - viewbox.height) / (screen.height - scroll_size_y - scroll.height)
+      if canvas.height == screen.height do
+        1
+      else
+        (canvas.height - viewbox.height) / (screen.height - scroll_size_y - scroll.height)
+      end
 
     %__MODULE__{
       data
