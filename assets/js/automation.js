@@ -10,6 +10,7 @@ const debounce = (func, timeout = 200) => {
 
 export const Automation = {
   selectedElement: null,
+  originalTouches: null,
   offset: {x: 0, y: 0},
 
   mounted() {
@@ -20,9 +21,11 @@ export const Automation = {
     this.el.addEventListener("mousedown", this.startDrag.bind(this));
     this.el.addEventListener("touchstart", this.startDrag.bind(this));
 
-    const drag = debounce(this.drag.bind(this), 5);
-    this.el.addEventListener("mousemove", drag);
-    this.el.addEventListener("touchmove", drag);
+    const dragDesktop = debounce(this.dragDesktop.bind(this), 5);
+    this.el.addEventListener("mousemove", dragDesktop);
+
+    const dragMobile = debounce(this.dragMobile.bind(this), 5);
+    this.el.addEventListener("touchmove", dragMobile);
 
     this.el.addEventListener("mouseup", this.endDrag.bind(this));
     this.el.addEventListener("mouseleave", this.endDrag.bind(this));
@@ -60,26 +63,51 @@ export const Automation = {
       offset.y -= position.y;
       this.offset = offset;
       this.pushEvent("select", {id: e.target.id, position});
+
+      if (e.touches && e.touches.length > 1) {
+        this.originalTouches = {
+          position,
+          touches: [e.touches[0], e.touches[1]].map(this.getMousePosition)
+        };
+      }
     }
   },
 
-  drag(e) {
+  dragDesktop(e) {
     if (this.selectedElement) {
       e.preventDefault();
-      const coord = this.getMousePosition(e);
-      this.pushEvent(
-        this.selectedElement.dataset["drag"],
-        {
-          id: this.selectedElement.id,
-          x: coord.x - this.offset.x,
-          y: coord.y - this.offset.y
-        }
-      );
+      this.sendDragEvent(e);
     }
+  },
+
+  dragMobile(e) {
+    if (e.touches.length > 1) {
+      e.preventDefault();
+      const touches = [e.touches[0], e.touches[1]].map(this.getMousePosition);
+      this.zoomMobile(touches);
+      return;
+    }
+    if (this.selectedElement) {
+      e.preventDefault();
+      this.sendDragEvent(e.touches[0]);
+    }
+  },
+
+  sendDragEvent(e) {
+    const coord = this.getMousePosition(e);
+    this.pushEvent(
+      this.selectedElement.dataset["drag"],
+      {
+        id: this.selectedElement.id,
+        x: coord.x - this.offset.x,
+        y: coord.y - this.offset.y
+      }
+    );
   },
 
   endDrag(e) {
     this.selectedElement = null;
+    this.originalTouches = null;
     this.pushEvent("dragend", {});
   },
 
@@ -100,5 +128,11 @@ export const Automation = {
       Math.min(1, e.wheelDelta || -e.detail)
     );
     this.pushEvent("zoom-desktop", {position, delta});
+  },
+
+  zoomMobile(touches) {
+    if (this.originalTouches) {
+      this.pushEvent("zoom-mobile", {original: this.originalTouches, current: touches});
+    }
   },
 }

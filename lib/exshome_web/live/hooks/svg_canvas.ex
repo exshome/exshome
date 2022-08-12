@@ -21,7 +21,7 @@ defmodule ExshomeWeb.Live.Hooks.SvgCanvas do
       size_y: 40
     },
     viewbox: %{x: 0, y: 0, height: 10, width: 10},
-    zoom: %{value: 5, min: 1, max: 10}
+    zoom: %{value: 5, min: 1, max: 10, original_mobile: nil}
   ]
 
   @type t() :: %__MODULE__{
@@ -60,7 +60,8 @@ defmodule ExshomeWeb.Live.Hooks.SvgCanvas do
           zoom: %{
             value: number(),
             max: number(),
-            min: number()
+            min: number(),
+            original_mobile: nil | number()
           }
         }
 
@@ -138,6 +139,24 @@ defmodule ExshomeWeb.Live.Hooks.SvgCanvas do
     update_svg_meta_response(socket, &on_zoom_desktop(&1, delta, x, y))
   end
 
+  def handle_event(
+        "zoom-mobile",
+        %{
+          "original" => %{"position" => original_position, "touches" => original_touches},
+          "current" => current_touches
+        },
+        %Socket{} = socket
+      ) do
+    original_position = to_point(original_position)
+    original_touches = Enum.map(original_touches, &to_point/1)
+    current_touches = Enum.map(current_touches, &to_point/1)
+
+    update_svg_meta_response(
+      socket,
+      &on_zoom_mobile(&1, original_position, original_touches, current_touches)
+    )
+  end
+
   def handle_event(_event, _params, %Socket{} = socket) do
     {:cont, socket}
   end
@@ -151,7 +170,9 @@ defmodule ExshomeWeb.Live.Hooks.SvgCanvas do
   end
 
   defp on_dragend(%__MODULE__{} = data) do
-    %__MODULE__{data | selected: nil}
+    data
+    |> Map.put(:selected, nil)
+    |> Map.update!(:zoom, &%{&1 | original_mobile: nil})
   end
 
   defp on_resize(%__MODULE__{zoom: zoom} = data, height, width) do
@@ -185,6 +206,48 @@ defmodule ExshomeWeb.Live.Hooks.SvgCanvas do
       x: old_viewbox.x + x / old_zoom.value - x / new_zoom.value,
       y: old_viewbox.y + y / old_zoom.value - y / new_zoom.value
     })
+  end
+
+  defp on_zoom_mobile(
+         %__MODULE__{zoom: %{original_mobile: nil}} = data,
+         original_position,
+         original_touches,
+         current_touches
+       ) do
+    data
+    |> Map.update!(:zoom, &%{&1 | original_mobile: &1.value})
+    |> on_zoom_mobile(original_position, original_touches, current_touches)
+  end
+
+  defp on_zoom_mobile(
+         %__MODULE__{zoom: %{original_mobile: old_zoom}} = data,
+         original_position,
+         original_touches,
+         current_touches
+       ) do
+    computed_zoom =
+      compute_distance(current_touches) * old_zoom / compute_distance(original_touches)
+
+    data =
+      %__MODULE__{zoom: %{value: new_zoom}} =
+      data
+      |> Map.update!(:zoom, &%{&1 | value: computed_zoom})
+      |> refresh_zoom()
+
+    %{x: x, y: y} = compute_center(original_touches)
+
+    set_viewbox_position(data, %{
+      x: original_position.x + x / old_zoom - x / new_zoom,
+      y: original_position.y + y / old_zoom - y / new_zoom
+    })
+  end
+
+  defp compute_center([%{x: x1, y: y1}, %{x: x2, y: y2}]) do
+    %{x: (x1 + x2) / 2, y: (y1 + y2) / 2}
+  end
+
+  defp compute_distance([%{x: x1, y: y1}, %{x: x2, y: y2}]) do
+    :math.sqrt(:math.pow(x1 - x2, 2) + :math.pow(y1 - y2, 2))
   end
 
   defp compute_element_position(%Socket{} = socket, x, y) do
@@ -262,6 +325,10 @@ defmodule ExshomeWeb.Live.Hooks.SvgCanvas do
       | viewbox: %{viewbox | x: viewbox_x, y: viewbox_y},
         scroll: %{scroll | x: viewbox_x / scroll.ratio_x, y: viewbox_y / scroll.ratio_y}
     }
+  end
+
+  defp to_point(%{"x" => x, "y" => y}) when is_number(x) and is_number(y) do
+    %{x: x, y: y}
   end
 
   defp update_svg_meta_response(%Socket{} = socket, fun) do
