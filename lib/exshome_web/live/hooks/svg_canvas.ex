@@ -234,11 +234,15 @@ defmodule ExshomeWeb.Live.Hooks.SvgCanvas do
       |> Map.update!(:zoom, &%{&1 | value: computed_zoom})
       |> refresh_zoom()
 
-    %{x: x, y: y} = compute_center(original_touches)
+    original_center = compute_center(original_touches)
+    current_center = compute_center(current_touches)
+
+    x = original_center.x / old_zoom - current_center.x / new_zoom
+    y = original_center.y / old_zoom - current_center.y / new_zoom
 
     set_viewbox_position(data, %{
-      x: original_position.x + x / old_zoom - x / new_zoom,
-      y: original_position.y + y / old_zoom - y / new_zoom
+      x: original_position.x + x,
+      y: original_position.y + y
     })
   end
 

@@ -46,33 +46,6 @@ export const Automation = {
     this.sendElementSize();
   },
 
-  sendElementSize() {
-    this.pushEvent("resize", {height: this.el.clientHeight, width: this.el.clientWidth});
-  },
-
-  startDrag(e) {
-    if (e.target.dataset["drag"]) {
-      e.preventDefault();
-      this.selectedElement = e.target;
-      const offset = this.getMousePosition(e);
-      const position = {
-        x: parseFloat(this.selectedElement.getAttributeNS(null, "x")),
-        y: parseFloat(this.selectedElement.getAttributeNS(null, "y"))
-      }
-      offset.x -= position.x;
-      offset.y -= position.y;
-      this.offset = offset;
-      this.pushEvent("select", {id: e.target.id, position});
-
-      if (e.touches && e.touches.length > 1) {
-        this.originalTouches = {
-          position,
-          touches: [e.touches[0], e.touches[1]].map(this.getMousePosition)
-        };
-      }
-    }
-  },
-
   dragDesktop(e) {
     if (this.selectedElement) {
       e.preventDefault();
@@ -93,18 +66,6 @@ export const Automation = {
     }
   },
 
-  sendDragEvent(e) {
-    const coord = this.getMousePosition(e);
-    this.pushEvent(
-      this.selectedElement.dataset["drag"],
-      {
-        id: this.selectedElement.id,
-        x: coord.x - this.offset.x,
-        y: coord.y - this.offset.y
-      }
-    );
-  },
-
   endDrag(e) {
     this.selectedElement = null;
     this.originalTouches = null;
@@ -118,6 +79,52 @@ export const Automation = {
     return {
       x: e.clientX,
       y: e.clientY
+    }
+  },
+
+  sendDragEvent(e) {
+    const coord = this.getMousePosition(e);
+    this.pushEvent(
+      this.selectedElement.dataset["drag"],
+      {
+        id: this.selectedElement.id,
+        x: coord.x - this.offset.x,
+        y: coord.y - this.offset.y
+      }
+    );
+  },
+
+  sendElementSize() {
+    this.pushEvent("resize", {height: this.el.clientHeight, width: this.el.clientWidth});
+  },
+
+  setMobileTouches(e) {
+    if (e.touches && e.touches.length > 1) {
+      const position = {
+        x: parseFloat(this.el.dataset.viewboxX),
+        y: parseFloat(this.el.dataset.viewboxY)
+      }
+      this.originalTouches = {
+        position,
+        touches: [e.touches[0], e.touches[1]].map(this.getMousePosition)
+      };
+    }
+  },
+
+  startDrag(e) {
+    if (e.target.dataset["drag"]) {
+      e.preventDefault();
+      this.selectedElement = e.target;
+      const offset = this.getMousePosition(e);
+      const position = {
+        x: parseFloat(this.selectedElement.getAttributeNS(null, "x")),
+        y: parseFloat(this.selectedElement.getAttributeNS(null, "y"))
+      }
+      offset.x -= position.x;
+      offset.y -= position.y;
+      this.offset = offset;
+      this.pushEvent("select", {id: e.target.id, position});
+      this.setMobileTouches(e);
     }
   },
 
