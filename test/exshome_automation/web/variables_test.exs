@@ -11,7 +11,7 @@ defmodule ExshomeAutomationTest.Web.VariablesTest do
   import ExshomeTest.DynamicVariableHelpers
 
   describe "render without dependencies" do
-    test "renders without dependencies", %{conn: conn} do
+    test "renders fine", %{conn: conn} do
       assert {:ok, _view, _html} = live(conn, ExshomeAutomation.path(conn, :variables))
     end
   end
