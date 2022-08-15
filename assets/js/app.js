@@ -25,18 +25,18 @@ import "phoenix_html";
 import {Socket} from "phoenix";
 import {LiveSocket} from "phoenix_live_view";
 import topbar from "../vendor/topbar";
-import { Automation } from './automation';
+import { SvgCanvas } from './svg_canvas';
 
 let topBarScheduled = undefined;
 
 let csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("content");
 let Hooks = {
+  SvgCanvas,
   ThemeSwitch: {
     mounted() {
       window.Theme.updateThemeSwitch();
     }
   },
-  Automation: Automation,
 };
 let liveSocket = new LiveSocket("/live", Socket, {params: {_csrf_token: csrfToken}, hooks: Hooks});
 

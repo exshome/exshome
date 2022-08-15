@@ -8,7 +8,7 @@ const debounce = (func, timeout = 200) => {
   }
 }
 
-export const Automation = {
+export const SvgCanvas = {
   selectedElement: null,
   originalTouches: null,
   offset: {x: 0, y: 0},
