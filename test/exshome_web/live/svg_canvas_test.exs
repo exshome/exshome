@@ -1,5 +1,6 @@
 defmodule ExshomeWebTest.SvgCanvasTest do
   use ExshomeWeb.ConnCase, async: true
+  import ExshomeTest.SvgCanvasHelpers
 
   @default_width 100
   @default_height 100
@@ -118,53 +119,12 @@ defmodule ExshomeWebTest.SvgCanvasTest do
     end
   end
 
-  defp get_viewbox(view) do
-    [{x, ""}, {y, ""}, {width, ""}, {height, ""}] =
-      view
-      |> render()
-      |> Floki.attribute("#default-body", "viewbox")
-      |> List.first()
-      |> String.split(~r/\s+/)
-      |> Enum.map(&Float.parse/1)
-
-    %{x: x, y: y, height: height, width: width}
-  end
-
   defp render_automations(conn) do
     live_with_dependencies(conn, ExshomeAutomation, :automations)
   end
 
-  defp render_dragend(view) do
-    assert render_hook(view, "dragend", %{})
-  end
-
-  defp resize(view, %{height: height, width: width}) do
-    assert render_hook(view, "resize", %{height: height, width: width})
-  end
-
   defp select_background(view) do
     select_element(view, "default-canvas-background")
-  end
-
-  defp select_element(view, id) do
-    assert selected =
-             view
-             |> render()
-             |> Floki.find("##{id}")
-
-    assert {x, ""} =
-             selected
-             |> Floki.attribute("x")
-             |> List.first()
-             |> Float.parse()
-
-    assert {y, ""} =
-             selected
-             |> Floki.attribute("x")
-             |> List.first()
-             |> Float.parse()
-
-    assert render_hook(view, "select", %{id: id, position: %{x: x, y: y}})
   end
 
   defp setup_page(conn) do
