@@ -251,7 +251,12 @@ defmodule ExshomeWeb.Live.Hooks.SvgCanvas do
   end
 
   defp compute_distance([%{x: x1, y: y1}, %{x: x2, y: y2}]) do
-    :math.sqrt(:math.pow(x1 - x2, 2) + :math.pow(y1 - y2, 2))
+    result = :math.sqrt(:math.pow(x1 - x2, 2) + :math.pow(y1 - y2, 2))
+
+    case result do
+      0.0 -> 1
+      _ -> result
+    end
   end
 
   defp compute_element_position(%Socket{} = socket, x, y) do
