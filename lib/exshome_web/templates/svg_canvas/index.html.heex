@@ -1,3 +1,4 @@
+<% bin_size = 70 %>
 <section class="flex flex-col items-center justify-center h-full">
   <svg
     id={"#{@svg_meta.name}-screen"}
@@ -8,6 +9,11 @@
     xmlns="http://www.w3.org/2000/svg"
     phx-hook="SvgCanvas"
   >
+    w <%= render("trashbin.html",
+      x: @svg_meta.screen.width - bin_size - @svg_meta.scroll.height,
+      y: @svg_meta.screen.height - @svg_meta.scroll.height - bin_size,
+      size: bin_size
+    ) %>
     <svg
       id={"#{@svg_meta.name}-body"}
       class="h-full w-full select-none"
