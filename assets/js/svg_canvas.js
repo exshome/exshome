@@ -14,6 +14,8 @@ export const SvgCanvas = {
   offset: {x: 0, y: 0},
 
   mounted() {
+    this.getMousePosition = this.getMousePosition.bind(this);
+
     this.sendElementSize = this.sendElementSize.bind(this);
     this.sendElementSize();
     window.addEventListener("resize", this.sendElementSize);
@@ -76,9 +78,10 @@ export const SvgCanvas = {
     if (e.touches) {
       e = e.touches[0];
     }
+    const boundingRect = this.el.getBoundingClientRect()
     return {
-      x: e.clientX,
-      y: e.clientY
+      x: e.clientX - boundingRect.left,
+      y: e.clientY - boundingRect.top
     }
   },
 
@@ -89,7 +92,8 @@ export const SvgCanvas = {
       {
         id: this.selectedElement.id,
         x: coord.x - this.offset.x,
-        y: coord.y - this.offset.y
+        y: coord.y - this.offset.y,
+        mouse: coord,
       }
     );
   },

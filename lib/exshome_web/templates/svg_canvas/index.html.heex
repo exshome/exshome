@@ -1,4 +1,3 @@
-<% bin_size = 70 %>
 <section class="flex flex-col items-center justify-center h-full">
   <svg
     id={"#{@svg_meta.name}-screen"}
@@ -65,10 +64,6 @@
         id={"#{@svg_meta.name}-scroll-body-y"}
       />
     <% end %>
-    <%= render("trashbin.html",
-      x: @svg_meta.screen.width - bin_size - @svg_meta.scroll.height,
-      y: @svg_meta.screen.height - @svg_meta.scroll.height - bin_size,
-      size: bin_size
-    ) %>
+    <%= render("trashbin.html", id: "#{@svg_meta.name}-trashbin", trashbin: @svg_meta.trashbin) %>
   </svg>
 </section>

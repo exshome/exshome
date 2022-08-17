@@ -20,6 +20,12 @@ defmodule ExshomeWeb.Live.Hooks.SvgCanvas do
       size_x: 40,
       size_y: 40
     },
+    trashbin: %{
+      open?: false,
+      x: 0,
+      y: 0,
+      size: 70
+    },
     viewbox: %{x: 0, y: 0, height: 10, width: 10},
     zoom: %{value: 5, min: 1, max: 10, original_mobile: nil}
   ]
@@ -57,6 +63,12 @@ defmodule ExshomeWeb.Live.Hooks.SvgCanvas do
             height: number(),
             width: number()
           },
+          trashbin: %{
+            open?: boolean(),
+            x: number(),
+            y: number(),
+            size: number()
+          },
           zoom: %{
             value: number(),
             max: number(),
@@ -66,6 +78,7 @@ defmodule ExshomeWeb.Live.Hooks.SvgCanvas do
         }
 
   @callback handle_move(Socket.t(), id :: String.t(), %{x: number(), y: number()}) :: Socket.t()
+  @callback handle_delete(Socket.t(), id :: String.t()) :: Socket.t()
 
   @assigns_key :__svg_meta__
 
@@ -88,11 +101,28 @@ defmodule ExshomeWeb.Live.Hooks.SvgCanvas do
   end
 
   def handle_event("dragend", _, %Socket{} = socket) do
+    %__MODULE__{trashbin: trashbin, selected: selected} = get_svg_meta(socket)
+
+    socket =
+      case {trashbin.open?, selected} do
+        {true, %{id: id}} ->
+          socket.view.handle_delete(socket, id)
+
+        _ ->
+          socket
+      end
+
     update_svg_meta_response(socket, &on_dragend/1)
   end
 
-  def handle_event("move", %{"x" => x, "y" => y, "id" => id}, %Socket{} = socket)
-      when is_number(x) and is_number(y) and is_binary(id) do
+  def handle_event(
+        "move",
+        %{"x" => x, "y" => y, "id" => id, "mouse" => %{"x" => mouse_x, "y" => mouse_y}},
+        %Socket{} = socket
+      )
+      when is_number(x) and is_number(y) and is_binary(id) and is_number(mouse_x) and
+             is_number(mouse_y) do
+    socket = update(socket, @assigns_key, &on_drag(&1, %{x: mouse_x, y: mouse_y}))
     new_position = compute_element_position(socket, x, y)
     {:halt, socket.view.handle_move(socket, id, new_position)}
   end
@@ -169,10 +199,18 @@ defmodule ExshomeWeb.Live.Hooks.SvgCanvas do
     set_viewbox_position(data, %{x: viewbox.x, y: y * ratio_y})
   end
 
+  defp on_drag(%__MODULE__{trashbin: trashbin} = data, %{x: x, y: y} = _mouse_position) do
+    mouse_over_trashbin_x = x > trashbin.x && x < trashbin.x + trashbin.size
+    mouse_over_trashbin_y = y > trashbin.y && y < trashbin.y + trashbin.size
+    mouse_over_trashbin = mouse_over_trashbin_x && mouse_over_trashbin_y
+    Map.update!(data, :trashbin, &%{&1 | open?: mouse_over_trashbin})
+  end
+
   defp on_dragend(%__MODULE__{} = data) do
     data
     |> Map.put(:selected, nil)
     |> Map.update!(:zoom, &%{&1 | original_mobile: nil})
+    |> Map.update!(:trashbin, &%{&1 | open?: false})
   end
 
   defp on_resize(%__MODULE__{zoom: zoom} = data, height, width) do
@@ -186,6 +224,7 @@ defmodule ExshomeWeb.Live.Hooks.SvgCanvas do
       &%{&1 | width: max(&1.width, width / zoom.min), height: max(&1.height, height / zoom.min)}
     )
     |> refresh_zoom()
+    |> refresh_trashbin_position()
   end
 
   defp on_select(%__MODULE__{} = data, id, x, y) do
@@ -269,6 +308,18 @@ defmodule ExshomeWeb.Live.Hooks.SvgCanvas do
     new_y = original_y + (y - original_y) / zoom
 
     %{x: new_x, y: new_y}
+  end
+
+  defp refresh_trashbin_position(%__MODULE__{screen: screen, scroll: scroll} = data) do
+    Map.update!(
+      data,
+      :trashbin,
+      &%{
+        &1
+        | x: screen.width - scroll.height - &1.size,
+          y: screen.height - scroll.height - &1.size
+      }
+    )
   end
 
   defp refresh_zoom(%__MODULE__{zoom: zoom, screen: screen} = data) do

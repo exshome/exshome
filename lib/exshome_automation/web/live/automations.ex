@@ -19,6 +19,16 @@ defmodule ExshomeAutomation.Web.Live.Automations do
   end
 
   @impl SvgCanvas
+  def handle_delete(%Socket{} = socket, id) do
+    component =
+      id
+      |> generate_component()
+      |> Map.update!(:class, &"#{&1} hidden")
+
+    assign(socket, components: [component])
+  end
+
+  @impl SvgCanvas
   def handle_move(%Socket{} = socket, id, %{x: x, y: y}) do
     %SvgCanvas{canvas: canvas} = get_svg_meta(socket)
     component = generate_component(id)
