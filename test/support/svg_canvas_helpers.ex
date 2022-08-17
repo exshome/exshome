@@ -10,9 +10,15 @@ defmodule ExshomeTest.SvgCanvasHelpers do
     Struct for svg elements.
     """
 
-    defstruct [:id, :x, :y]
+    defstruct [:id, :height, :width, :x, :y]
 
-    @type t() :: %__MODULE__{id: String.t(), x: number(), y: number()}
+    @type t() :: %__MODULE__{
+            id: String.t(),
+            height: number(),
+            width: number(),
+            x: number(),
+            y: number()
+          }
   end
 
   @typep live_view() :: %{:__struct__ => Phoenix.LiveViewTest.View}
@@ -62,23 +68,28 @@ defmodule ExshomeTest.SvgCanvasHelpers do
 
   @spec to_element(Floki.html_tree()) :: Element.t()
   defp to_element(svg_element) do
-    {x, ""} =
-      svg_element
-      |> Floki.attribute("x")
-      |> List.first()
-      |> Float.parse()
-
-    {y, ""} =
-      svg_element
-      |> Floki.attribute("y")
-      |> List.first()
-      |> Float.parse()
-
     id =
       svg_element
       |> Floki.attribute("id")
       |> List.first()
 
-    %Element{id: id, x: x, y: y}
+    %Element{
+      id: id,
+      height: float_attribute(svg_element, "height"),
+      width: float_attribute(svg_element, "width"),
+      x: float_attribute(svg_element, "x"),
+      y: float_attribute(svg_element, "y")
+    }
+  end
+
+  @spec float_attribute(Floki.html_tree(), String.t()) :: number()
+  defp float_attribute(svg_element, name) do
+    {value, ""} =
+      svg_element
+      |> Floki.attribute(name)
+      |> List.first()
+      |> Float.parse()
+
+    value
   end
 end

@@ -297,14 +297,14 @@ defmodule ExshomeWeb.Live.Hooks.SvgCanvas do
     scroll_size_y = max(computed_scroll_size_y, screen.height / 3)
 
     scroll_ratio_x =
-      if canvas.width == screen.width do
+      if canvas.width == viewbox.width do
         1
       else
         (canvas.width - viewbox.width) / (screen.width - scroll_size_x - scroll.height)
       end
 
     scroll_ratio_y =
-      if canvas.height == screen.height do
+      if canvas.height == viewbox.height do
         1
       else
         (canvas.height - viewbox.height) / (screen.height - scroll_size_y - scroll.height)
