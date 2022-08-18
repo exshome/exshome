@@ -7,7 +7,7 @@ defmodule ExshomeAutomation.Web.Live.Automations do
     dependencies: [],
     icon: "🤖️"
 
-  use ExshomeWeb.Live.Hooks.SvgCanvas
+  use ExshomeWeb.Live.SvgCanvas
 
   @impl LiveView
   def mount(_params, _session, socket) do

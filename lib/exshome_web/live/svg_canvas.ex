@@ -1,4 +1,4 @@
-defmodule ExshomeWeb.Live.Hooks.SvgCanvas do
+defmodule ExshomeWeb.Live.SvgCanvas do
   @moduledoc """
   Generic functions to interact with svg canvas.
   """
@@ -397,7 +397,7 @@ defmodule ExshomeWeb.Live.Hooks.SvgCanvas do
 
   defmacro __using__(_) do
     quote do
-      alias ExshomeWeb.Live.Hooks.SvgCanvas
+      alias ExshomeWeb.Live.SvgCanvas
       on_mount(SvgCanvas)
       @behaviour SvgCanvas
 
