@@ -80,22 +80,36 @@ defmodule ExshomeWeb.Live.SvgCanvas do
   @callback handle_move(Socket.t(), id :: String.t(), %{x: number(), y: number()}) :: Socket.t()
   @callback handle_delete(Socket.t(), id :: String.t()) :: Socket.t()
 
-  @assigns_key :__svg_meta__
+  @meta_key :__svg_meta__
+  @components_key :__components__
 
   @spec get_svg_meta(Socket.t()) :: t()
-  def get_svg_meta(%Socket{assigns: %{@assigns_key => %__MODULE__{} = svg_meta}}), do: svg_meta
+  def get_svg_meta(%Socket{assigns: %{@meta_key => %__MODULE__{} = svg_meta}}), do: svg_meta
 
   def on_mount(name, _params, _session, %Socket{} = socket) do
     canvas_name = Atom.to_string(name)
 
-    socket =
+    %Socket{private: private} =
+      socket =
       socket
-      |> assign(@assigns_key, %__MODULE__{name: canvas_name})
+      |> assign(@meta_key, %__MODULE__{name: canvas_name})
+      |> assign(@components_key, [])
       |> attach_hook(
         __MODULE__,
         :handle_event,
         Function.capture(__MODULE__, :handle_event, 3)
       )
+
+    socket = %Socket{
+      socket
+      | private:
+          Map.update(
+            private,
+            :temporary_assigns,
+            %{@components_key => []},
+            &Map.put(&1, @components_key, [])
+          )
+    }
 
     {:cont, socket}
   end
@@ -122,7 +136,7 @@ defmodule ExshomeWeb.Live.SvgCanvas do
       )
       when is_number(x) and is_number(y) and is_binary(id) and is_number(mouse_x) and
              is_number(mouse_y) do
-    socket = update(socket, @assigns_key, &on_drag(&1, %{x: mouse_x, y: mouse_y}))
+    socket = update(socket, @meta_key, &on_drag(&1, %{x: mouse_x, y: mouse_y}))
     new_position = compute_element_position(socket, x, y)
     {:halt, socket.view.handle_move(socket, id, new_position)}
   end
@@ -189,6 +203,11 @@ defmodule ExshomeWeb.Live.SvgCanvas do
 
   def handle_event(_event, _params, %Socket{} = socket) do
     {:cont, socket}
+  end
+
+  @spec render_components(Socket.t(), list()) :: Socket.t()
+  def render_components(%Socket{} = socket, components) do
+    assign(socket, @components_key, components)
   end
 
   defp on_body_scroll_x(%__MODULE__{scroll: %{ratio_x: ratio_x}, viewbox: viewbox} = data, x) do
@@ -302,7 +321,7 @@ defmodule ExshomeWeb.Live.SvgCanvas do
     %__MODULE__{
       selected: %{original_x: original_x, original_y: original_y},
       zoom: %{value: zoom}
-    } = socket.assigns[@assigns_key]
+    } = socket.assigns[@meta_key]
 
     new_x = original_x + (x - original_x) / zoom
     new_y = original_y + (y - original_y) / zoom
@@ -392,7 +411,7 @@ defmodule ExshomeWeb.Live.SvgCanvas do
   end
 
   defp update_svg_meta_response(%Socket{} = socket, fun) do
-    {:halt, update(socket, @assigns_key, fun)}
+    {:halt, update(socket, @meta_key, fun)}
   end
 
   defmacro __using__(_) do
@@ -400,8 +419,6 @@ defmodule ExshomeWeb.Live.SvgCanvas do
       alias ExshomeWeb.Live.SvgCanvas
       on_mount(SvgCanvas)
       @behaviour SvgCanvas
-
-      defdelegate get_svg_meta(socket), to: SvgCanvas
     end
   end
 end

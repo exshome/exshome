@@ -25,7 +25,7 @@
         data-drag="move-background"
         class="fill-transparent"
       />
-      <%= for component <- @components do %>
+      <%= for component <- @__components__ do %>
         <rect
           id={component.id}
           x={component.x}

@@ -13,9 +13,7 @@ defmodule ExshomeAutomation.Web.Live.Automations do
   def mount(_params, _session, socket) do
     components = for x <- 1..5, do: generate_component("rect-#{x}")
 
-    socket = assign(socket, components: components)
-
-    {:ok, socket, temporary_assigns: [components: []]}
+    {:ok, SvgCanvas.render_components(socket, components)}
   end
 
   @impl SvgCanvas
@@ -25,21 +23,21 @@ defmodule ExshomeAutomation.Web.Live.Automations do
       |> generate_component()
       |> Map.update!(:class, &"#{&1} hidden")
 
-    assign(socket, components: [component])
+    SvgCanvas.render_components(socket, [component])
   end
 
   @impl SvgCanvas
   def handle_move(%Socket{} = socket, id, %{x: x, y: y}) do
-    %SvgCanvas{canvas: canvas} = get_svg_meta(socket)
+    %SvgCanvas{canvas: canvas} = SvgCanvas.get_svg_meta(socket)
     component = generate_component(id)
 
-    assign(socket, :components, [
-      %{
-        component
-        | x: fit_in_box(x, canvas.width - component.width),
-          y: fit_in_box(y, canvas.height - component.height)
-      }
-    ])
+    component = %{
+      component
+      | x: fit_in_box(x, canvas.width - component.width),
+        y: fit_in_box(y, canvas.height - component.height)
+    }
+
+    SvgCanvas.render_components(socket, [component])
   end
 
   defp generate_component(id) do
