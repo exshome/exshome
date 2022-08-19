@@ -26,15 +26,7 @@
         class="fill-transparent"
       />
       <%= for component <- @__components__ do %>
-        <rect
-          id={component.id}
-          x={component.x}
-          y={component.y}
-          width={component.width}
-          height={component.height}
-          class={"draggable cursor-move #{component.class}"}
-          data-drag="move"
-        />
+        <.render_component component={component} />
       <% end %>
     </svg>
     <%= if meta.viewbox.width < meta.canvas.width do %>
