@@ -3,23 +3,16 @@ defmodule ExshomeWeb.Live.SvgCanvas.CanvasComponent do
   Generic SvgCanvas component.
   """
 
-  defstruct [:id, :height, :width, :x, :y]
-
-  @type t() :: %__MODULE__{
-          id: String.t(),
-          height: number(),
-          width: number(),
-          x: number(),
-          y: number()
-        }
-
-  @callback to_component(any()) :: t()
-  @callback render(any()) :: Phoenix.LiveView.Rendered.t()
+  @callback id(any()) :: String.t()
+  @callback render(map()) :: Phoenix.LiveView.Rendered.t()
 
   defmacro __using__(_) do
     quote do
+      import Phoenix.LiveView
       import Phoenix.LiveView.Helpers
       alias ExshomeWeb.Live.SvgCanvas.CanvasComponent
+      alias ExshomeWeb.SvgCanvasView
+
       @behaviour CanvasComponent
     end
   end

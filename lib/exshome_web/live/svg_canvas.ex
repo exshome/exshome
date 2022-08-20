@@ -120,6 +120,7 @@ defmodule ExshomeWeb.Live.SvgCanvas do
     socket =
       case {trashbin.open?, selected} do
         {true, %{id: id}} ->
+          id = component_id(socket, id, "move")
           socket.view.handle_delete(socket, id)
 
         _ ->
@@ -138,6 +139,8 @@ defmodule ExshomeWeb.Live.SvgCanvas do
              is_number(mouse_y) do
     socket = update(socket, @meta_key, &on_drag(&1, %{x: mouse_x, y: mouse_y}))
     new_position = compute_element_position(socket, x, y)
+
+    id = component_id(socket, id, "move")
     {:halt, socket.view.handle_move(socket, id, new_position)}
   end
 
@@ -302,6 +305,11 @@ defmodule ExshomeWeb.Live.SvgCanvas do
       x: original_position.x + x,
       y: original_position.y + y
     })
+  end
+
+  defp component_id(%Socket{} = socket, id, action) do
+    prefix = "#{get_svg_meta(socket).name}-#{action}-"
+    String.replace(id, prefix, "")
   end
 
   defp compute_center([%{x: x1, y: y1}, %{x: x2, y: y2}]) do

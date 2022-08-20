@@ -2,8 +2,7 @@ defmodule ExshomeAutomation.Web.Live.Automations do
   @moduledoc """
   Automations page
   """
-  alias ExshomeAutomation.Web.Live.Automation.Component
-  alias ExshomeWeb.Live.SvgCanvas.CanvasComponent
+  alias ExshomeAutomation.Web.Live.Automation.AutomationBlock
 
   use ExshomeWeb.Live.AppPage,
     dependencies: [],
@@ -33,30 +32,23 @@ defmodule ExshomeAutomation.Web.Live.Automations do
     %SvgCanvas{canvas: canvas} = SvgCanvas.get_svg_meta(socket)
     component = generate_component(id)
 
-    component =
-      Map.update!(
-        component,
-        :canvas_data,
-        &%{
-          &1
-          | x: fit_in_box(x, canvas.width - component.canvas_data.width),
-            y: fit_in_box(y, canvas.height - component.canvas_data.height)
-        }
-      )
+    component = %AutomationBlock{
+      component
+      | x: fit_in_box(x, canvas.width - component.width),
+        y: fit_in_box(y, canvas.height - component.height)
+    }
 
     SvgCanvas.render_components(socket, [component])
   end
 
   defp generate_component(id) do
-    %Component{
-      canvas_data: %CanvasComponent{
-        id: id,
-        x: 0,
-        y: 0,
-        height: 25,
-        width: 25
-      },
-      class: "fill-green-200"
+    %AutomationBlock{
+      id: id,
+      class: "fill-green-200",
+      height: 25,
+      width: 25,
+      x: 0,
+      y: 0
     }
   end
 
