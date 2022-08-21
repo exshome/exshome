@@ -21,7 +21,7 @@ defmodule ExshomeAutomationTest.Web.AutomationsTest do
     test "moves element", %{view: view} do
       id = get_random_component_id(view)
       move_component(view, id, %{x: 1, y: 2})
-      render_dragend(view)
+      render_dragend(view, id, %{x: 1, y: 2})
       assert %{x: 1.0, y: 2.0} = find_element_by_id(view, id)
     end
 
@@ -32,7 +32,7 @@ defmodule ExshomeAutomationTest.Web.AutomationsTest do
       assert [] == find_elements(view, "#default-trashbin[data-open='true']")
       move_component(view, id, %{x: x + 1, y: y + 1})
       assert [_] = find_elements(view, "#default-trashbin[data-open='true']")
-      render_dragend(view)
+      render_dragend(view, id, %{x: x + 1, y: y + 1})
       assert [_] = find_elements(view, "##{id}.hidden")
     end
   end
@@ -49,7 +49,7 @@ defmodule ExshomeAutomationTest.Web.AutomationsTest do
   end
 
   defp list_components(view) do
-    find_elements(view, "[id^='default-move-rect'")
+    find_elements(view, "[id^='component-default-move-rect'")
   end
 
   def get_random_component_id(view) do

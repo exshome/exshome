@@ -77,8 +77,12 @@ defmodule ExshomeWeb.Live.SvgCanvas do
           }
         }
 
-  @callback handle_move(Socket.t(), id :: String.t(), %{x: number(), y: number()}) :: Socket.t()
+  @type component_t() :: %{id: String.t(), position: %{x: number(), y: number()}}
+
   @callback handle_delete(Socket.t(), id :: String.t()) :: Socket.t()
+  @callback handle_dragend(Socket.t(), component_t()) :: Socket.t()
+  @callback handle_move(Socket.t(), component_t()) :: Socket.t()
+  @callback handle_select(Socket.t(), component_t()) :: Socket.t()
 
   @meta_key :__svg_meta__
   @components_key :__components__
@@ -114,14 +118,32 @@ defmodule ExshomeWeb.Live.SvgCanvas do
     {:cont, socket}
   end
 
-  def handle_event("dragend", _, %Socket{} = socket) do
-    %__MODULE__{trashbin: trashbin, selected: selected} = get_svg_meta(socket)
+  def handle_event(
+        "dragend",
+        %{"id" => id, "position" => %{"x" => x, "y" => y}},
+        %Socket{} = socket
+      )
+      when is_binary(id) and is_number(x) and is_number(y) do
+    %__MODULE__{trashbin: trashbin} = get_svg_meta(socket)
 
     socket =
-      case {trashbin.open?, selected} do
-        {true, %{id: id}} ->
+      case {component?(id), trashbin.open?} do
+        {true, true} ->
           id = component_id(socket, id, "move")
-          socket.view.handle_delete(socket, id)
+
+          socket.view.handle_delete(
+            socket,
+            component_id(socket, id, "move")
+          )
+
+        {true, false} ->
+          socket.view.handle_dragend(
+            socket,
+            %{
+              id: component_id(socket, id, "move"),
+              position: %{x: x, y: y}
+            }
+          )
 
         _ ->
           socket
@@ -137,11 +159,11 @@ defmodule ExshomeWeb.Live.SvgCanvas do
       )
       when is_number(x) and is_number(y) and is_binary(id) and is_number(mouse_x) and
              is_number(mouse_y) do
-    socket = update(socket, @meta_key, &on_drag(&1, %{x: mouse_x, y: mouse_y}))
+    socket = update_svg_meta(socket, &on_drag(&1, %{x: mouse_x, y: mouse_y}))
     new_position = compute_element_position(socket, x, y)
 
     id = component_id(socket, id, "move")
-    {:halt, socket.view.handle_move(socket, id, new_position)}
+    {:halt, socket.view.handle_move(socket, %{id: id, position: new_position})}
   end
 
   def handle_event("move-background", %{"x" => x, "y" => y}, %Socket{} = socket)
@@ -174,7 +196,24 @@ defmodule ExshomeWeb.Live.SvgCanvas do
         %Socket{} = socket
       )
       when is_number(x) and is_number(y) and is_binary(id) do
-    update_svg_meta_response(socket, &on_select(&1, id, x, y))
+    socket =
+      socket
+      |> update_svg_meta(&on_select(&1, id, x, y))
+
+    socket =
+      if component?(id) do
+        socket.view.handle_select(
+          socket,
+          %{
+            id: component_id(socket, id, "move"),
+            position: compute_element_position(socket, x, y)
+          }
+        )
+      else
+        socket
+      end
+
+    {:halt, socket}
   end
 
   def handle_event(
@@ -308,9 +347,11 @@ defmodule ExshomeWeb.Live.SvgCanvas do
   end
 
   defp component_id(%Socket{} = socket, id, action) do
-    prefix = "#{get_svg_meta(socket).name}-#{action}-"
+    prefix = "component-#{get_svg_meta(socket).name}-#{action}-"
     String.replace(id, prefix, "")
   end
+
+  defp component?(id), do: String.starts_with?(id, "component-")
 
   defp compute_center([%{x: x1, y: y1}, %{x: x2, y: y2}]) do
     %{x: (x1 + x2) / 2, y: (y1 + y2) / 2}
@@ -419,8 +460,10 @@ defmodule ExshomeWeb.Live.SvgCanvas do
   end
 
   defp update_svg_meta_response(%Socket{} = socket, fun) do
-    {:halt, update(socket, @meta_key, fun)}
+    {:halt, update_svg_meta(socket, fun)}
   end
+
+  defp update_svg_meta(%Socket{} = socket, fun), do: update(socket, @meta_key, fun)
 
   defmacro __using__(_) do
     quote do

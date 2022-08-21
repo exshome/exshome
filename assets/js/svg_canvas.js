@@ -69,9 +69,24 @@ export const SvgCanvas = {
   },
 
   endDrag(e) {
+    if (this.selectedElement) {
+      this.pushEvent(
+        "dragend",
+        {
+          id: this.selectedElement.id,
+          position: this.getSelectedElementPosition(),
+        }
+      );
+    }
     this.selectedElement = null;
     this.originalTouches = null;
-    this.pushEvent("dragend", {});
+  },
+
+  getSelectedElementPosition() {
+    return {
+      x: parseFloat(this.selectedElement.getAttributeNS(null, "x")),
+      y: parseFloat(this.selectedElement.getAttributeNS(null, "y"))
+    }
   },
 
   getMousePosition(e) {
@@ -120,10 +135,7 @@ export const SvgCanvas = {
       e.preventDefault();
       this.selectedElement = e.target;
       const offset = this.getMousePosition(e);
-      const position = {
-        x: parseFloat(this.selectedElement.getAttributeNS(null, "x")),
-        y: parseFloat(this.selectedElement.getAttributeNS(null, "y"))
-      }
+      const position = this.getSelectedElementPosition();
       offset.x -= position.x;
       offset.y -= position.y;
       this.offset = offset;

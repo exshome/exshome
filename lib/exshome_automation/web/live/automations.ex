@@ -12,7 +12,8 @@ defmodule ExshomeAutomation.Web.Live.Automations do
 
   @impl LiveView
   def mount(_params, _session, socket) do
-    components = for x <- 1..5, do: generate_component("rect-#{x}")
+    socket = assign(socket, selected: nil, drag: false)
+    components = for x <- 1..5, do: generate_component("rect-#{x}", socket)
 
     {:ok, SvgCanvas.render_components(socket, components)}
   end
@@ -21,34 +22,70 @@ defmodule ExshomeAutomation.Web.Live.Automations do
   def handle_delete(%Socket{} = socket, id) do
     component =
       id
-      |> generate_component()
+      |> generate_component(socket)
       |> Map.update!(:class, &"#{&1} hidden")
 
+    socket
+    |> assign(selected: nil, drag: false)
+    |> SvgCanvas.render_components([component])
+  end
+
+  @impl SvgCanvas
+  def handle_dragend(%Socket{} = socket, %{id: id, position: position}) do
+    socket = assign(socket, :drag, false)
+    component = generate_component(id, socket, position)
     SvgCanvas.render_components(socket, [component])
   end
 
   @impl SvgCanvas
-  def handle_move(%Socket{} = socket, id, %{x: x, y: y}) do
+  def handle_move(%Socket{} = socket, %{id: id, position: position}) do
     %SvgCanvas{canvas: canvas} = SvgCanvas.get_svg_meta(socket)
-    component = generate_component(id)
+    socket = assign(socket, drag: true)
+    component = generate_component(id, socket, position)
 
     component = %AutomationBlock{
       component
-      | x: fit_in_box(x, canvas.width - component.width),
-        y: fit_in_box(y, canvas.height - component.height)
+      | x: fit_in_box(component.x, canvas.width - component.width),
+        y: fit_in_box(component.y, canvas.height - component.height)
     }
 
-    SvgCanvas.render_components(socket, [component])
+    socket
+    |> update(:selected, &%{&1 | position: %{x: component.x, y: component.y}})
+    |> SvgCanvas.render_components([component])
   end
 
-  defp generate_component(id) do
+  @impl SvgCanvas
+  def handle_select(%Socket{} = socket, %{} = selected) do
+    old_selected = socket.assigns.selected
+    socket = assign(socket, :selected, selected)
+
+    components =
+      case {old_selected, selected} do
+        {nil, selected} -> [selected]
+        {%{id: id}, %{id: id}} -> [selected]
+        _ -> [old_selected, selected]
+      end
+      |> Enum.map(&generate_component(&1.id, socket, &1.position))
+
+    SvgCanvas.render_components(socket, components)
+  end
+
+  defp generate_component(id, socket, position \\ %{x: 0, y: 0}) do
+    %{x: x, y: y} = position
+    %{selected: selected, drag: drag} = socket.assigns
+    selected? = selected && selected.id == id
+
     %AutomationBlock{
       id: id,
-      class: "fill-green-200",
+      class: """
+      fill-green-200
+      #{if selected? && drag, do: "opacity-75"}
+      #{if selected?, do: "stroke-yellow-200 dark:stroke-yellow-400"}
+      """,
       height: 25,
       width: 25,
-      x: 0,
-      y: 0
+      x: x,
+      y: y
     }
   end
 

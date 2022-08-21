@@ -35,11 +35,11 @@ defmodule ExshomeWebTest.SvgCanvasTest do
       assert match?(%{x: 20.0, y: 20.0}, get_viewbox(view))
       render_hook(view, "move-background", %{x: -50, y: -50})
       assert match?(%{x: 10.0, y: 10.0}, get_viewbox(view))
-      render_dragend(view)
+      render_dragend(view, "default-background", %{x: 10, y: 10})
 
       select_background(view)
       render_hook(view, "move-background", %{x: -100, y: -100})
-      render_dragend(view)
+      render_dragend(view, "default-backgound", %{x: 10, y: 10})
       assert match?(%{x: 32.0, y: 32.0}, get_viewbox(view))
     end
 

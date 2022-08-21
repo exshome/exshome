@@ -50,9 +50,10 @@ defmodule ExshomeTest.SvgCanvasHelpers do
     %{x: x, y: y, height: height, width: width}
   end
 
-  @spec render_dragend(live_view()) :: String.t()
-  def render_dragend(view) do
-    assert render_hook(view, "dragend", %{})
+  @spec render_dragend(live_view(), id :: String.t(), position :: %{x: number(), y: number()}) ::
+          String.t()
+  def render_dragend(view, id, position) do
+    assert render_hook(view, "dragend", %{id: id, position: position})
   end
 
   @spec resize(live_view(), %{height: number(), width: number()}) :: String.t()
