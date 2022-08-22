@@ -10,6 +10,12 @@ defmodule ExshomeWeb.Live.SvgCanvas do
     :selected,
     canvas: %{height: 500, width: 500},
     class: "opacity-0",
+    menu: %{
+      open?: false,
+      size: 50,
+      x: 0,
+      y: 0
+    },
     screen: %{height: 100, width: 100},
     scroll: %{
       x: 0,
@@ -22,13 +28,20 @@ defmodule ExshomeWeb.Live.SvgCanvas do
     },
     trashbin: %{
       open?: false,
+      size: 70,
       x: 0,
-      y: 0,
-      size: 70
+      y: 0
     },
     viewbox: %{x: 0, y: 0, height: 10, width: 10},
     zoom: %{value: 5, min: 1, max: 10, original_mobile: nil}
   ]
+
+  @typep icon_t() :: %{
+           open?: boolean(),
+           x: number(),
+           y: number(),
+           size: number()
+         }
 
   @type t() :: %__MODULE__{
           name: String.t(),
@@ -37,6 +50,7 @@ defmodule ExshomeWeb.Live.SvgCanvas do
             width: number()
           },
           class: String.t(),
+          menu: icon_t(),
           screen: %{
             height: number(),
             width: number()
@@ -63,12 +77,7 @@ defmodule ExshomeWeb.Live.SvgCanvas do
             height: number(),
             width: number()
           },
-          trashbin: %{
-            open?: boolean(),
-            x: number(),
-            y: number(),
-            size: number()
-          },
+          trashbin: icon_t(),
           zoom: %{
             value: number(),
             max: number(),
@@ -175,6 +184,10 @@ defmodule ExshomeWeb.Live.SvgCanvas do
     %{x: new_x, y: new_y} = compute_element_position(socket, x, y)
     delta = %{x: 2 * original_x - new_x, y: 2 * original_y - new_y}
     update_svg_meta_response(socket, &set_viewbox_position(&1, delta))
+  end
+
+  def handle_event("toggle-menu-" <> _name, _, %Socket{} = socket) do
+    update_svg_meta_response(socket, &on_toggle_menu(&1))
   end
 
   def handle_event("resize", %{"height" => height, "width" => width}, %Socket{} = socket)
@@ -286,6 +299,7 @@ defmodule ExshomeWeb.Live.SvgCanvas do
     )
     |> refresh_zoom()
     |> refresh_trashbin_position()
+    |> refresh_menu_position()
   end
 
   defp on_select(%__MODULE__{} = data, id, x, y) do
@@ -293,6 +307,10 @@ defmodule ExshomeWeb.Live.SvgCanvas do
       data
       | selected: %{id: id, original_x: x, original_y: y}
     }
+  end
+
+  defp on_toggle_menu(%__MODULE__{} = data) do
+    Map.update!(data, :menu, &%{&1 | open?: !&1.open?})
   end
 
   defp on_zoom_desktop(%__MODULE__{viewbox: old_viewbox, zoom: old_zoom} = data, delta, x, y) do
@@ -376,6 +394,17 @@ defmodule ExshomeWeb.Live.SvgCanvas do
     new_y = original_y + (y - original_y) / zoom
 
     %{x: new_x, y: new_y}
+  end
+
+  defp refresh_menu_position(%__MODULE__{screen: screen, scroll: scroll} = data) do
+    Map.update!(
+      data,
+      :menu,
+      &%{
+        &1
+        | y: screen.height - scroll.height - &1.size
+      }
+    )
   end
 
   defp refresh_trashbin_position(%__MODULE__{screen: screen, scroll: scroll} = data) do
