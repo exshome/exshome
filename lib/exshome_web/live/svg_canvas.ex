@@ -12,6 +12,7 @@ defmodule ExshomeWeb.Live.SvgCanvas do
     class: "opacity-0",
     menu: %{
       open?: false,
+      panel_width: "100%",
       size: 50,
       x: 0,
       y: 0
@@ -36,13 +37,6 @@ defmodule ExshomeWeb.Live.SvgCanvas do
     zoom: %{value: 5, min: 1, max: 10, original_mobile: nil}
   ]
 
-  @typep icon_t() :: %{
-           open?: boolean(),
-           x: number(),
-           y: number(),
-           size: number()
-         }
-
   @type t() :: %__MODULE__{
           name: String.t(),
           canvas: %{
@@ -50,7 +44,13 @@ defmodule ExshomeWeb.Live.SvgCanvas do
             width: number()
           },
           class: String.t(),
-          menu: icon_t(),
+          menu: %{
+            open?: boolean(),
+            panel_width: String.t(),
+            size: number(),
+            x: number(),
+            y: number()
+          },
           screen: %{
             height: number(),
             width: number()
@@ -77,7 +77,12 @@ defmodule ExshomeWeb.Live.SvgCanvas do
             height: number(),
             width: number()
           },
-          trashbin: icon_t(),
+          trashbin: %{
+            open?: boolean(),
+            x: number(),
+            y: number(),
+            size: number()
+          },
           zoom: %{
             value: number(),
             max: number(),
@@ -299,7 +304,7 @@ defmodule ExshomeWeb.Live.SvgCanvas do
     )
     |> refresh_zoom()
     |> refresh_trashbin_position()
-    |> refresh_menu_position()
+    |> refresh_menu()
   end
 
   defp on_select(%__MODULE__{} = data, id, x, y) do
@@ -396,13 +401,15 @@ defmodule ExshomeWeb.Live.SvgCanvas do
     %{x: new_x, y: new_y}
   end
 
-  defp refresh_menu_position(%__MODULE__{screen: screen, scroll: scroll} = data) do
+  defp refresh_menu(%__MODULE__{screen: screen, scroll: scroll} = data) do
     Map.update!(
       data,
       :menu,
       &%{
         &1
-        | y: screen.height - scroll.height - &1.size
+        | y: screen.height - scroll.height - &1.size,
+          open?: false,
+          panel_width: if(screen.width > 1000, do: "50%", else: "100%")
       }
     )
   end
