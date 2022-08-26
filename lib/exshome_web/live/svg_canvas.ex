@@ -12,7 +12,6 @@ defmodule ExshomeWeb.Live.SvgCanvas do
     class: "opacity-0",
     menu: %{
       open?: false,
-      panel_width: "100%",
       size: 50,
       x: 0,
       y: 0
@@ -46,7 +45,6 @@ defmodule ExshomeWeb.Live.SvgCanvas do
           class: String.t(),
           menu: %{
             open?: boolean(),
-            panel_width: String.t(),
             size: number(),
             x: number(),
             y: number()
@@ -408,8 +406,7 @@ defmodule ExshomeWeb.Live.SvgCanvas do
       &%{
         &1
         | y: screen.height - scroll.height - &1.size,
-          open?: false,
-          panel_width: if(screen.width > 1000, do: "50%", else: "100%")
+          open?: false
       }
     )
   end

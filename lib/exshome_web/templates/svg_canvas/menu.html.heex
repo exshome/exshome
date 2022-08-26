@@ -1,13 +1,20 @@
 <svg class="h-full w-1/2 relative" x="0" y="0">
   <%= if @menu.open? do %>
-    <rect
-      x="0"
-      y="0"
-      class="fill-gray-200/20 dark:fill-gray-700/20 h-full w-full"
-      phx-click={"toggle-menu-#{@name}"}
-    />
-    <foreignObject x="0" y="0" height="100%" width={@menu.panel_width}>
-      <section class="h-full w-full bg-gray-500/80 rounded-r-lg overflow-y-auto" />
+    <foreignObject x="0" y="0" height="100%" width="100%">
+      <section
+        id={"#{@name}-menu-overlay"}
+        class="fill-gray-200/20 dark:fill-gray-700/20 h-full w-full"
+        phx-click={"toggle-menu-#{@name}"}
+        phx-hook="StopEvents"
+        data-stop-events="mousewheel, DOMMouseScroll"
+      >
+        <section
+          id={"#{@name}-menu-background"}
+          class="h-full w-full lg:w-1/2 bg-gray-500/80 rounded-r-lg overflow-y-auto"
+          phx-hook="StopEvents"
+          data-stop-events="click, touchend"
+        />
+      </section>
     </foreignObject>
   <% end %>
   <svg

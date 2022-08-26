@@ -25,12 +25,14 @@ import "phoenix_html";
 import {Socket} from "phoenix";
 import {LiveSocket} from "phoenix_live_view";
 import topbar from "../vendor/topbar";
+import { StopEvents } from './stop_events';
 import { SvgCanvas } from './svg_canvas';
 
 let topBarScheduled = undefined;
 
 let csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("content");
 let Hooks = {
+  StopEvents,
   SvgCanvas,
   ThemeSwitch: {
     mounted() {
