@@ -134,6 +134,7 @@ export const SvgCanvas = {
     if (e.target.dataset["drag"]) {
       e.preventDefault();
       this.selectedElement = e.target;
+      this.selectedElement.parentElement.appendChild(this.selectedElement);
       const offset = this.getMousePosition(e);
       const position = this.getSelectedElementPosition();
       offset.x -= position.x;
