@@ -12,7 +12,7 @@ defmodule ExshomeWeb.Live.SvgCanvas do
     class: "opacity-0",
     menu: %{
       open?: false,
-      size: 50,
+      size: 70,
       x: 0,
       y: 0
     },
@@ -28,7 +28,7 @@ defmodule ExshomeWeb.Live.SvgCanvas do
     },
     trashbin: %{
       open?: false,
-      size: 70,
+      size: 80,
       x: 0,
       y: 0
     },
