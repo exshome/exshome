@@ -96,8 +96,9 @@ defmodule ExshomeWeb.Live.SvgCanvas do
   @callback handle_move(Socket.t(), component_t()) :: Socket.t()
   @callback handle_select(Socket.t(), component_t()) :: Socket.t()
 
-  @meta_key :__svg_meta__
   @components_key :__components__
+  @menu_items_key :__menu_items__
+  @meta_key :__svg_meta__
 
   @spec get_svg_meta(Socket.t()) :: t()
   def get_svg_meta(%Socket{assigns: %{@meta_key => %__MODULE__{} = svg_meta}}), do: svg_meta
@@ -110,6 +111,7 @@ defmodule ExshomeWeb.Live.SvgCanvas do
       socket
       |> assign(@meta_key, %__MODULE__{name: canvas_name})
       |> assign(@components_key, [])
+      |> assign(@menu_items_key, [])
       |> attach_hook(
         __MODULE__,
         :handle_event,
@@ -266,6 +268,11 @@ defmodule ExshomeWeb.Live.SvgCanvas do
   @spec render_components(Socket.t(), list()) :: Socket.t()
   def render_components(%Socket{} = socket, components) do
     assign(socket, @components_key, components)
+  end
+
+  @spec render_menu_items(Socket.t(), list()) :: Socket.t()
+  def render_menu_items(%Socket{} = socket, menu_items) do
+    assign(socket, @menu_items_key, menu_items)
   end
 
   defp on_body_scroll_x(%__MODULE__{scroll: %{ratio_x: ratio_x}, viewbox: viewbox} = data, x) do

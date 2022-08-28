@@ -10,10 +10,23 @@
       >
         <section
           id={"#{@name}-menu-background"}
-          class="h-full w-full lg:w-1/2 bg-gray-500/80 rounded-r-lg overflow-y-auto"
+          class="
+                 flex justify-center
+                 h-full w-full lg:w-1/2
+                 bg-gray-500/80 rounded-r-lg overflow-hidden
+          "
           phx-hook="StopEvents"
           data-stop-events="click, touchend"
-        />
+        >
+          <section class="w-1/2 overflow-y-auto" />
+          <section class="w-1/2 overflow-y-auto">
+            <%= for item <- @menu_items do %>
+              <svg class="w-3/4 m-5" viewbox={"0 0 #{item.width} #{item.height}"}>
+                <.render_component component={item} context={%{name: @name, drag: "move"}} />
+              </svg>
+            <% end %>
+          </section>
+        </section>
       </section>
     </foreignObject>
   <% end %>

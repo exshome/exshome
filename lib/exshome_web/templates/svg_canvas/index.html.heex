@@ -56,6 +56,6 @@
       />
     <% end %>
     <%= render("trashbin.html", id: "#{meta.name}-trashbin", trashbin: meta.trashbin) %>
-    <%= render("menu.html", name: meta.name, menu: meta.menu) %>
+    <%= render("menu.html", name: meta.name, menu: meta.menu, menu_items: @__menu_items__) %>
   </svg>
 </section>

@@ -15,7 +15,14 @@ defmodule ExshomeAutomation.Web.Live.Automations do
     socket = assign(socket, selected: nil, drag: false)
     components = for x <- 1..5, do: generate_component("rect-#{x}", socket)
 
-    {:ok, SvgCanvas.render_components(socket, components)}
+    menu_item = generate_component("rect", socket)
+
+    socket =
+      socket
+      |> SvgCanvas.render_components(components)
+      |> SvgCanvas.render_menu_items([menu_item])
+
+    {:ok, socket}
   end
 
   @impl SvgCanvas
