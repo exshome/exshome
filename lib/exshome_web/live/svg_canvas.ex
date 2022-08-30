@@ -271,7 +271,7 @@ defmodule ExshomeWeb.Live.SvgCanvas do
   def push_to_foreground(%Socket{} = socket, id) do
     push_event(socket, "move-to-foreground", %{
       id: generate_component_id(socket, id),
-      parent: "canvas-background-#{get_svg_meta(socket).name}"
+      parent: "#{get_svg_meta(socket).name}-body"
     })
   end
 

@@ -45,6 +45,7 @@ defmodule ExshomeAutomationTest.Web.AutomationsTest do
   defp move_component(view, id, %{x: x, y: y}) do
     rate = get_move_rate(view)
     select_element(view, id)
+    assert_push_event(view, "move-to-foreground", %{id: id, parent: "default-body"})
     render_hook(view, "move", %{id: id, x: x * rate.x, y: y * rate.y, mouse: %{x: x, y: y}})
   end
 
