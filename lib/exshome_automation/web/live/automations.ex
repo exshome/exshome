@@ -74,7 +74,9 @@ defmodule ExshomeAutomation.Web.Live.Automations do
       end
       |> Enum.map(&generate_component(&1.id, socket, &1.position))
 
-    SvgCanvas.render_components(socket, components)
+    socket
+    |> SvgCanvas.render_components(components)
+    |> SvgCanvas.push_to_foreground(selected.id)
   end
 
   defp generate_component(id, socket, position \\ %{x: 0, y: 0}) do

@@ -38,6 +38,8 @@ export const SvgCanvas = {
     const zoomDesktop = debounce(this.zoomDesktop.bind(this), 10);
     this.el.addEventListener("mousewheel", zoomDesktop);
     this.el.addEventListener("DOMMouseScroll", zoomDesktop);
+
+    this.handleEvent("move-to-foreground", this.moveToForeground.bind(this));
   },
 
   destroyed() {
@@ -100,6 +102,14 @@ export const SvgCanvas = {
     }
   },
 
+  moveToForeground({id, parent}) {
+    const component = this.el.getElementById(id);
+    const parentComponent = this.el.getElementById(parent);
+    if (component && parent) {
+      parentComponent.appendChild(component);
+    }
+  },
+
   sendDragEvent(e) {
     const coord = this.getMousePosition(e);
     this.pushEvent(
@@ -134,11 +144,6 @@ export const SvgCanvas = {
     if (e.target.dataset["drag"]) {
       e.preventDefault();
       this.selectedElement = e.target;
-      const parentId = this.selectedElement.dataset["dragReorderParent"];
-      const parentElement = parentId && this.el.getElementById(parentId);
-      if (parentElement) {
-        parentElement.appendChild(this.selectedElement);
-      }
       const offset = this.getMousePosition(e);
       const position = this.getSelectedElementPosition();
       offset.x -= position.x;

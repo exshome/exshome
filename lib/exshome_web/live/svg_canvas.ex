@@ -141,20 +141,20 @@ defmodule ExshomeWeb.Live.SvgCanvas do
     %__MODULE__{trashbin: trashbin} = get_svg_meta(socket)
 
     socket =
-      case {component?(id), trashbin.open?} do
-        {true, true} ->
-          id = component_id(socket, id, "move")
+      case {component_type(id), trashbin.open?} do
+        {:component, true} ->
+          id = extract_component_id(socket, id)
 
           socket.view.handle_delete(
             socket,
-            component_id(socket, id, "move")
+            extract_component_id(socket, id)
           )
 
-        {true, false} ->
+        {:component, false} ->
           socket.view.handle_dragend(
             socket,
             %{
-              id: component_id(socket, id, "move"),
+              id: extract_component_id(socket, id),
               position: %{x: x, y: y}
             }
           )
@@ -176,7 +176,7 @@ defmodule ExshomeWeb.Live.SvgCanvas do
     socket = update_svg_meta(socket, &on_drag(&1, %{x: mouse_x, y: mouse_y}))
     new_position = compute_element_position(socket, x, y)
 
-    id = component_id(socket, id, "move")
+    id = extract_component_id(socket, id)
     {:halt, socket.view.handle_move(socket, %{id: id, position: new_position})}
   end
 
@@ -219,16 +219,18 @@ defmodule ExshomeWeb.Live.SvgCanvas do
       |> update_svg_meta(&on_select(&1, id, x, y))
 
     socket =
-      if component?(id) do
-        socket.view.handle_select(
-          socket,
-          %{
-            id: component_id(socket, id, "move"),
-            position: compute_element_position(socket, x, y)
-          }
-        )
-      else
-        socket
+      case component_type(id) do
+        :component ->
+          socket.view.handle_select(
+            socket,
+            %{
+              id: extract_component_id(socket, id),
+              position: compute_element_position(socket, x, y)
+            }
+          )
+
+        _ ->
+          socket
       end
 
     {:halt, socket}
@@ -263,6 +265,14 @@ defmodule ExshomeWeb.Live.SvgCanvas do
 
   def handle_event(_event, _params, %Socket{} = socket) do
     {:cont, socket}
+  end
+
+  @spec push_to_foreground(Socket.t(), String.t()) :: Socket.t()
+  def push_to_foreground(%Socket{} = socket, id) do
+    push_event(socket, "move-to-foreground", %{
+      id: generate_component_id(socket, id),
+      parent: "canvas-background-#{get_svg_meta(socket).name}"
+    })
   end
 
   @spec render_components(Socket.t(), list()) :: Socket.t()
@@ -374,12 +384,9 @@ defmodule ExshomeWeb.Live.SvgCanvas do
     })
   end
 
-  defp component_id(%Socket{} = socket, id, action) do
-    prefix = "component-#{get_svg_meta(socket).name}-#{action}-"
-    String.replace(id, prefix, "")
-  end
+  defp component_type("component-" <> _), do: :component
 
-  defp component?(id), do: String.starts_with?(id, "component-")
+  defp component_type("canvas-background-" <> _), do: :background
 
   defp compute_center([%{x: x1, y: y1}, %{x: x2, y: y2}]) do
     %{x: (x1 + x2) / 2, y: (y1 + y2) / 2}
@@ -404,6 +411,15 @@ defmodule ExshomeWeb.Live.SvgCanvas do
     new_y = original_y + (y - original_y) / zoom
 
     %{x: new_x, y: new_y}
+  end
+
+  defp generate_component_id(%Socket{} = socket, id) do
+    "component-#{get_svg_meta(socket).name}-#{id}"
+  end
+
+  defp extract_component_id(%Socket{} = socket, id) do
+    prefix = "component-#{get_svg_meta(socket).name}-"
+    String.replace(id, prefix, "")
   end
 
   defp refresh_menu(%__MODULE__{screen: screen, scroll: scroll} = data) do

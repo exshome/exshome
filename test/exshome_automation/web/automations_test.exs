@@ -49,7 +49,7 @@ defmodule ExshomeAutomationTest.Web.AutomationsTest do
   end
 
   defp list_components(view) do
-    find_elements(view, "[id^='component-default-move-rect'")
+    find_elements(view, "[id^='component-default-rect'")
   end
 
   def get_random_component_id(view) do
