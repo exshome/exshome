@@ -39,7 +39,7 @@
         height={meta.scroll.height}
         width={meta.scroll.size_x}
         data-drag="scroll-body-x"
-        id={"#{meta.name}-scroll-body-x"}
+        id={"scroll-body-x-#{meta.name}"}
       />
     <% end %>
     <%= if meta.viewbox.width < meta.canvas.width do %>
@@ -52,7 +52,7 @@
         height={meta.scroll.size_y}
         width={meta.scroll.height}
         data-drag="scroll-body-y"
-        id={"#{meta.name}-scroll-body-y"}
+        id={"scroll-body-y-#{meta.name}"}
       />
     <% end %>
     <%= render("trashbin.html", id: "#{meta.name}-trashbin", trashbin: meta.trashbin) %>

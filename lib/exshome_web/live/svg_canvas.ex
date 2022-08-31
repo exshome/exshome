@@ -388,6 +388,10 @@ defmodule ExshomeWeb.Live.SvgCanvas do
 
   defp component_type("canvas-background-" <> _), do: :background
 
+  defp component_type("scroll-body-x-" <> _), do: :scroll_body_x
+
+  defp component_type("scroll-body-y-" <> _), do: :scroll_body_y
+
   defp compute_center([%{x: x1, y: y1}, %{x: x2, y: y2}]) do
     %{x: (x1 + x2) / 2, y: (y1 + y2) / 2}
   end
