@@ -22,7 +22,10 @@
           <section class="w-1/2 overflow-y-auto">
             <%= for item <- @menu_items do %>
               <svg class="w-full p-5" viewbox={"0 0 #{item.width} #{item.height}"}>
-                <.render_component component={item} context={%{name: @name, drag: "move"}} />
+                <.render_component
+                  component={item}
+                  context={%{name: @name, drag: "create", role: "menu-item"}}
+                />
               </svg>
             <% end %>
           </section>

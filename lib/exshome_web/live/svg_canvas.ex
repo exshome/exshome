@@ -132,6 +132,11 @@ defmodule ExshomeWeb.Live.SvgCanvas do
     {:cont, socket}
   end
 
+  def handle_event("create", %{"id" => id}, %Socket{} = socket) do
+    component_type = extract_menu_item_id(socket, id)
+    update_svg_meta_response(socket, &on_create(&1, component_type))
+  end
+
   def handle_event(
         "dragend",
         %{"id" => id, "position" => %{"x" => x, "y" => y}},
@@ -214,9 +219,7 @@ defmodule ExshomeWeb.Live.SvgCanvas do
         %Socket{} = socket
       )
       when is_number(x) and is_number(y) and is_binary(id) do
-    socket =
-      socket
-      |> update_svg_meta(&on_select(&1, id, x, y))
+    socket = update_svg_meta(socket, &on_select(&1, id, x, y))
 
     socket =
       case component_type(id) do
@@ -228,6 +231,9 @@ defmodule ExshomeWeb.Live.SvgCanvas do
               position: compute_element_position(socket, x, y)
             }
           )
+
+        :menu_item ->
+          socket
 
         _ ->
           socket
@@ -291,6 +297,12 @@ defmodule ExshomeWeb.Live.SvgCanvas do
 
   defp on_body_scroll_y(%__MODULE__{scroll: %{ratio_y: ratio_y}, viewbox: viewbox} = data, y) do
     set_viewbox_position(data, %{x: viewbox.x, y: y * ratio_y})
+  end
+
+  defp on_create(%__MODULE__{} = data, _component_type) do
+    data
+    |> Map.put(:selected, nil)
+    |> Map.update!(:menu, &%{&1 | open?: false})
   end
 
   defp on_drag(%__MODULE__{trashbin: trashbin} = data, %{x: x, y: y} = _mouse_position) do
@@ -384,9 +396,11 @@ defmodule ExshomeWeb.Live.SvgCanvas do
     })
   end
 
+  defp component_type("canvas-background-" <> _), do: :background
+
   defp component_type("component-" <> _), do: :component
 
-  defp component_type("canvas-background-" <> _), do: :background
+  defp component_type("menu-item-" <> _), do: :menu_item
 
   defp component_type("scroll-body-x-" <> _), do: :scroll_body_x
 
@@ -423,6 +437,11 @@ defmodule ExshomeWeb.Live.SvgCanvas do
 
   defp extract_component_id(%Socket{} = socket, id) do
     prefix = "component-#{get_svg_meta(socket).name}-"
+    String.replace(id, prefix, "")
+  end
+
+  defp extract_menu_item_id(%Socket{} = socket, id) do
+    prefix = "menu-item-#{get_svg_meta(socket).name}-"
     String.replace(id, prefix, "")
   end
 

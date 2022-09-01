@@ -22,9 +22,11 @@ defmodule ExshomeWeb.SvgCanvasView do
   end
 
   @spec drag_attrs(String.t(), any()) :: Keyword.t()
-  def drag_attrs(id, %{name: name, drag: drag}) when is_binary(id) do
+  def drag_attrs(id, %{name: name, drag: drag} = attrs) when is_binary(id) do
+    role = attrs[:role] || "component"
+
     [
-      {:id, "component-#{name}-#{id}"},
+      {:id, "#{role}-#{name}-#{id}"},
       {:"data-drag", drag}
     ]
   end
