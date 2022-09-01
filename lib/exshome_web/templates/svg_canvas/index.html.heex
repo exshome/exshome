@@ -1,61 +1,62 @@
-<% meta = @__svg_meta__ %>
 <section class="flex flex-col items-center justify-center h-full">
   <svg
-    id={"#{meta.name}-screen"}
-    class={"h-full w-full select-none relative #{meta.class}"}
-    viewBox={"0 0 #{meta.screen.width} #{meta.screen.height}"}
-    data-viewbox-x={meta.viewbox.x}
-    data-viewbox-y={meta.viewbox.y}
+    id={"#{@meta.name}-screen"}
+    class={"h-full w-full select-none relative #{@meta.class}"}
+    viewBox={"0 0 #{@meta.screen.width} #{@meta.screen.height}"}
+    data-viewbox-x={@meta.viewbox.x}
+    data-viewbox-y={@meta.viewbox.y}
     xmlns="http://www.w3.org/2000/svg"
     phx-hook="SvgCanvas"
   >
     <svg
-      id={"#{meta.name}-body"}
+      id={"#{@meta.name}-body"}
       class="h-full w-full select-none"
-      viewBox={"#{meta.viewbox.x} #{meta.viewbox.y} #{meta.viewbox.width} #{meta.viewbox.height}"}
+      viewBox={
+        "#{@meta.viewbox.x} #{@meta.viewbox.y} #{@meta.viewbox.width} #{@meta.viewbox.height}"
+      }
       xmlns="http://www.w3.org/2000/svg"
       phx-update="append"
     >
       <rect
-        id={"canvas-background-#{meta.name}"}
-        x={meta.viewbox.x}
-        y={meta.viewbox.y}
-        height={meta.viewbox.height}
-        width={meta.viewbox.width}
+        id={"canvas-background-#{@meta.name}"}
+        x={@meta.viewbox.x}
+        y={@meta.viewbox.y}
+        height={@meta.viewbox.height}
+        width={@meta.viewbox.width}
         data-drag="move-background"
         class="fill-transparent"
       />
-      <%= for component <- @__components__ do %>
-        <.render_component component={component} context={%{name: meta.name, drag: "move"}} />
+      <%= for component <- @components do %>
+        <.render_component component={component} context={%{name: @meta.name, drag: "move"}} />
       <% end %>
     </svg>
-    <%= if meta.viewbox.width < meta.canvas.width do %>
+    <%= if @meta.viewbox.width < @meta.canvas.width do %>
       <rect
         class="fill-gray-200/80 hover:fill-gray-200 dark:fill-gray-700/80 dark:hover:fill-gray-700"
         rx="10"
         ry="10"
-        x={meta.scroll.x}
-        y={meta.screen.height - meta.scroll.height}
-        height={meta.scroll.height}
-        width={meta.scroll.size_x}
+        x={@meta.scroll.x}
+        y={@meta.screen.height - @meta.scroll.height}
+        height={@meta.scroll.height}
+        width={@meta.scroll.size_x}
         data-drag="scroll-body-x"
-        id={"scroll-body-x-#{meta.name}"}
+        id={"scroll-body-x-#{@meta.name}"}
       />
     <% end %>
-    <%= if meta.viewbox.width < meta.canvas.width do %>
+    <%= if @meta.viewbox.width < @meta.canvas.width do %>
       <rect
         class="fill-gray-200/80 hover:fill-gray-200 dark:fill-gray-700/80 dark:hover:fill-gray-700"
         rx="10"
         ry="10"
-        x={meta.screen.width - meta.scroll.height}
-        y={meta.scroll.y}
-        height={meta.scroll.size_y}
-        width={meta.scroll.height}
+        x={@meta.screen.width - @meta.scroll.height}
+        y={@meta.scroll.y}
+        height={@meta.scroll.size_y}
+        width={@meta.scroll.height}
         data-drag="scroll-body-y"
-        id={"scroll-body-y-#{meta.name}"}
+        id={"scroll-body-y-#{@meta.name}"}
       />
     <% end %>
-    <%= render("trashbin.html", id: "#{meta.name}-trashbin", trashbin: meta.trashbin) %>
-    <%= render("menu.html", name: meta.name, menu: meta.menu, menu_items: @__menu_items__) %>
+    <.render_trashbin id={"#{@meta.name}-trashbin"} trashbin={@meta.trashbin} />
+    <.render_menu name={@meta.name} menu={@meta.menu} menu_items={@menu_items} />
   </svg>
 </section>

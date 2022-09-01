@@ -10,7 +10,11 @@ defmodule ExshomeWeb.SvgCanvasView do
     render("index.html", assigns)
   end
 
-  def render_component(%{component: %module{} = component, context: context} = assigns) do
+  defp render_trashbin(assigns), do: render("trashbin.html", assigns)
+
+  defp render_menu(assigns), do: render("menu.html", assigns)
+
+  defp render_component(%{component: %module{} = component, context: context} = assigns) do
     attrs =
       component
       |> module.id()
