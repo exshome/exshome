@@ -51,7 +51,8 @@ export const SvgCanvas = {
   },
 
   dragDesktop(e) {
-    if (this.selectedElement) {
+    const buttonIsPressed = e.buttons !== 0;
+    if (this.selectedElement && buttonIsPressed) {
       e.preventDefault();
       this.sendDragEvent(e);
     }
