@@ -89,8 +89,10 @@ defmodule ExshomeWeb.Live.SvgCanvas do
           }
         }
 
+  @type new_component_t() :: %{type: String.t(), position: %{x: number(), y: number()}}
   @type component_t() :: %{id: String.t(), position: %{x: number(), y: number()}}
 
+  @callback handle_create(Socket.t(), new_component_t()) :: Socket.t()
   @callback handle_delete(Socket.t(), id :: String.t()) :: Socket.t()
   @callback handle_dragend(Socket.t(), component_t()) :: Socket.t()
   @callback handle_move(Socket.t(), component_t()) :: Socket.t()
@@ -132,9 +134,25 @@ defmodule ExshomeWeb.Live.SvgCanvas do
     {:cont, socket}
   end
 
-  def handle_event("create", %{"id" => id}, %Socket{} = socket) do
+  def handle_event("create", %{"id" => id, "x" => x, "y" => y}, %Socket{} = socket)
+      when is_binary(id) and is_number(x) and is_number(y) do
     component_type = extract_menu_item_id(socket, id)
-    update_svg_meta_response(socket, &on_create(&1, component_type))
+
+    case get_svg_meta(socket).selected do
+      nil ->
+        {:halt, socket}
+
+      _ ->
+        socket
+        |> socket.view.handle_create(%{
+          type: component_type,
+          position: %{
+            x: x,
+            y: y
+          }
+        })
+        |> update_svg_meta_response(&on_create/1)
+    end
   end
 
   def handle_event(
@@ -291,6 +309,13 @@ defmodule ExshomeWeb.Live.SvgCanvas do
     assign(socket, @menu_items_key, menu_items)
   end
 
+  @spec select_item(Socket.t(), String.t()) :: Socket.t()
+  def select_item(%Socket{} = socket, id) do
+    push_event(socket, "select-item", %{
+      id: generate_component_id(socket, id)
+    })
+  end
+
   defp on_body_scroll_x(%__MODULE__{scroll: %{ratio_x: ratio_x}, viewbox: viewbox} = data, x) do
     set_viewbox_position(data, %{x: x * ratio_x, y: viewbox.y})
   end
@@ -299,7 +324,7 @@ defmodule ExshomeWeb.Live.SvgCanvas do
     set_viewbox_position(data, %{x: viewbox.x, y: y * ratio_y})
   end
 
-  defp on_create(%__MODULE__{} = data, _component_type) do
+  defp on_create(%__MODULE__{} = data) do
     data
     |> Map.put(:selected, nil)
     |> Map.update!(:menu, &%{&1 | open?: false})

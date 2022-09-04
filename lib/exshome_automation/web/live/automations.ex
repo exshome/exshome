@@ -26,6 +26,15 @@ defmodule ExshomeAutomation.Web.Live.Automations do
   end
 
   @impl SvgCanvas
+  def handle_create(%Socket{} = socket, %{type: type, position: position}) do
+    id = "#{type}-#{Ecto.UUID.generate()}"
+
+    socket
+    |> handle_select(%{id: id, position: position})
+    |> SvgCanvas.select_item(id)
+  end
+
+  @impl SvgCanvas
   def handle_delete(%Socket{} = socket, id) do
     component =
       id
@@ -46,15 +55,8 @@ defmodule ExshomeAutomation.Web.Live.Automations do
 
   @impl SvgCanvas
   def handle_move(%Socket{} = socket, %{id: id, position: position}) do
-    %SvgCanvas{canvas: canvas} = SvgCanvas.get_svg_meta(socket)
     socket = assign(socket, drag: true)
     component = generate_component(id, socket, position)
-
-    component = %AutomationBlock{
-      component
-      | x: fit_in_box(component.x, canvas.width - component.width),
-        y: fit_in_box(component.y, canvas.height - component.height)
-    }
 
     socket
     |> update(:selected, &%{&1 | position: %{x: component.x, y: component.y}})
@@ -80,9 +82,12 @@ defmodule ExshomeAutomation.Web.Live.Automations do
   end
 
   defp generate_component(id, socket, position \\ %{x: 0, y: 0}) do
+    %SvgCanvas{canvas: canvas} = SvgCanvas.get_svg_meta(socket)
     %{x: x, y: y} = position
     %{selected: selected, drag: drag} = socket.assigns
     selected? = selected && selected.id == id
+    width = 25
+    height = 25
 
     %AutomationBlock{
       id: id,
@@ -91,10 +96,10 @@ defmodule ExshomeAutomation.Web.Live.Automations do
       #{if selected? && drag, do: "opacity-75"}
       #{if selected?, do: "stroke-yellow-200 dark:stroke-yellow-400"}
       """,
-      height: 25,
-      width: 25,
-      x: x,
-      y: y
+      height: height,
+      width: width,
+      x: fit_in_box(x, canvas.width - width),
+      y: fit_in_box(y, canvas.height - height)
     }
   end
 

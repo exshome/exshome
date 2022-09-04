@@ -39,7 +39,8 @@ export const SvgCanvas = {
     this.el.addEventListener("mousewheel", zoomDesktop);
     this.el.addEventListener("DOMMouseScroll", zoomDesktop);
 
-    this.handleEvent("move-to-foreground", this.moveToForeground.bind(this));
+    this.handleEvent("move-to-foreground", this.handleMoveToForeground.bind(this));
+    this.handleEvent("select-item", this.handleSelectItem.bind(this));
   },
 
   destroyed() {
@@ -103,11 +104,18 @@ export const SvgCanvas = {
     }
   },
 
-  moveToForeground({id, parent}) {
+  handleMoveToForeground({id, parent}) {
     const component = this.el.getElementById(id);
     const parentComponent = this.el.getElementById(parent);
     if (component && parent) {
       parentComponent.appendChild(component);
+    }
+  },
+
+  handleSelectItem({id}) {
+    const selectedElement = this.el.getElementById(id);
+    if (selectedElement) {
+      this.selectedElement = selectedElement;
     }
   },
 
