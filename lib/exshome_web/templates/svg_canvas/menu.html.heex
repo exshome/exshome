@@ -29,7 +29,7 @@
             <svg class="w-full p-5" viewbox={"0 0 #{item.width} #{item.height}"}>
               <.render_component
                 component={item}
-                context={%{name: @name, drag: "create", role: "menu-item"}}
+                context={%{name: @name, drag: "create", role: "menu-item", relative_to: :screen}}
               />
             </svg>
           <% end %>

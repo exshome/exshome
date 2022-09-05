@@ -28,10 +28,12 @@ defmodule ExshomeWeb.SvgCanvasView do
   @spec drag_attrs(String.t(), any()) :: Keyword.t()
   def drag_attrs(id, %{name: name, drag: drag} = attrs) when is_binary(id) do
     role = attrs[:role] || "component"
+    relative_to = attrs[:relative_to] || :canvas
 
     [
       {:id, "#{role}-#{name}-#{id}"},
-      {:"data-drag", drag}
+      {:"data-drag", drag},
+      {:"data-relative-to", relative_to}
     ]
   end
 end

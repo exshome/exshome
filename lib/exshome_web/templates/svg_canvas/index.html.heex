@@ -27,7 +27,10 @@
         class="fill-transparent"
       />
       <%= for component <- @components do %>
-        <.render_component component={component} context={%{name: @meta.name, drag: "move"}} />
+        <.render_component
+          component={component}
+          context={%{name: @meta.name, drag: "move", relative_to: :canvas}}
+        />
       <% end %>
     </svg>
     <%= if @meta.viewbox.width < @meta.canvas.width do %>

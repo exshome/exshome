@@ -63,9 +63,21 @@ export const SvgCanvas = {
   },
 
   getSelectedElementPosition() {
-    return {
-      x: parseFloat(this.selectedElement.getAttributeNS(null, "x")),
-      y: parseFloat(this.selectedElement.getAttributeNS(null, "y"))
+    switch (this.selectedElement.dataset.relativeTo) {
+      case "canvas":
+        return {
+          x: parseFloat(this.selectedElement.getAttributeNS(null, "x")),
+          y: parseFloat(this.selectedElement.getAttributeNS(null, "y"))
+        }
+      case "screen":
+        const parentBoundaries = this.el.getBoundingClientRect();
+        const boundaries = this.selectedElement.getBoundingClientRect();
+        return {
+          x: boundaries.x - parentBoundaries.x,
+          y: boundaries.y - parentBoundaries.y
+        };
+      default:
+        throw new Error("Unknown relativeTo");
     }
   },
 

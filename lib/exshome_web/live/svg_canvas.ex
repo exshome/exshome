@@ -134,15 +134,14 @@ defmodule ExshomeWeb.Live.SvgCanvas do
     {:cont, socket}
   end
 
-  def handle_event("create", %{"id" => id, "x" => x, "y" => y}, %Socket{} = socket)
-      when is_binary(id) and is_number(x) and is_number(y) do
+  def handle_event("create", %{"id" => id}, %Socket{} = socket) when is_binary(id) do
     component_type = extract_menu_item_id(socket, id)
 
     case get_svg_meta(socket).selected do
       nil ->
         {:halt, socket}
 
-      _ ->
+      %{original_x: x, original_y: y} ->
         socket
         |> socket.view.handle_create(%{
           type: component_type,
@@ -250,9 +249,6 @@ defmodule ExshomeWeb.Live.SvgCanvas do
             }
           )
 
-        :menu_item ->
-          socket
-
         _ ->
           socket
       end
@@ -359,7 +355,16 @@ defmodule ExshomeWeb.Live.SvgCanvas do
     |> refresh_menu()
   end
 
-  defp on_select(%__MODULE__{} = data, id, x, y) do
+  defp on_select(%__MODULE__{zoom: %{value: zoom}} = data, id, x, y) do
+    {x, y} =
+      case component_type(id) do
+        :menu_item ->
+          {x / zoom, y / zoom}
+
+        _ ->
+          {x, y}
+      end
+
     %__MODULE__{
       data
       | selected: %{id: id, original_x: x, original_y: y}
