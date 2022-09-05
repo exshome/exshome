@@ -14,86 +14,44 @@ export const SvgCanvas = {
   offset: {x: 0, y: 0},
 
   mounted() {
-    this.getMousePosition = this.getMousePosition.bind(this);
+    this.extractMousePosition = this.extractMousePosition.bind(this);
 
-    this.sendElementSize = this.sendElementSize.bind(this);
-    this.sendElementSize();
-    window.addEventListener("resize", this.sendElementSize);
+    this.onResize = this.onResize.bind(this);
+    this.onResize();
+    window.addEventListener("resize", this.onResize);
 
-    this.el.addEventListener("mousedown", this.startDrag.bind(this));
-    this.el.addEventListener("touchstart", this.startDrag.bind(this));
+    this.el.addEventListener("mousedown", this.onDragStart.bind(this));
+    this.el.addEventListener("touchstart", this.onDragStart.bind(this));
 
-    const dragDesktop = debounce(this.dragDesktop.bind(this), 5);
-    this.el.addEventListener("mousemove", dragDesktop);
+    const onDragDesktop = debounce(this.onDragDesktop.bind(this), 5);
+    this.el.addEventListener("mousemove", onDragDesktop);
 
-    const dragMobile = debounce(this.dragMobile.bind(this), 5);
-    this.el.addEventListener("touchmove", dragMobile);
+    const onDragMobile = debounce(this.onDragMobile.bind(this), 5);
+    this.el.addEventListener("touchmove", onDragMobile);
 
-    this.el.addEventListener("mouseup", this.endDrag.bind(this));
-    this.el.addEventListener("mouseleave", this.endDrag.bind(this));
-    this.el.addEventListener("touchend", this.endDrag.bind(this));
-    this.el.addEventListener("touchleave", this.endDrag.bind(this));
-    this.el.addEventListener("touchcancel", this.endDrag.bind(this));
+    this.el.addEventListener("mouseup", this.onDragEnd.bind(this));
+    this.el.addEventListener("mouseleave", this.onDragEnd.bind(this));
+    this.el.addEventListener("touchend", this.onDragEnd.bind(this));
+    this.el.addEventListener("touchleave", this.onDragEnd.bind(this));
+    this.el.addEventListener("touchcancel", this.onDragEnd.bind(this));
 
-    const zoomDesktop = debounce(this.zoomDesktop.bind(this), 10);
-    this.el.addEventListener("mousewheel", zoomDesktop);
-    this.el.addEventListener("DOMMouseScroll", zoomDesktop);
+    const onZoomDesktop = debounce(this.onZoomDesktop.bind(this), 10);
+    this.el.addEventListener("mousewheel", onZoomDesktop);
+    this.el.addEventListener("DOMMouseScroll", onZoomDesktop);
 
     this.handleEvent("move-to-foreground", this.handleMoveToForeground.bind(this));
     this.handleEvent("select-item", this.handleSelectItem.bind(this));
   },
 
   destroyed() {
-    window.removeEventListener("resize", this.sendElementSize);
+    window.removeEventListener("resize", this.onResize);
   },
 
   reconnected() {
-    this.sendElementSize();
+    this.onResize();
   },
 
-  dragDesktop(e) {
-    const buttonIsPressed = e.buttons !== 0;
-    if (this.selectedElement && buttonIsPressed) {
-      e.preventDefault();
-      this.sendDragEvent(e);
-    }
-  },
-
-  dragMobile(e) {
-    if (e.touches.length > 1) {
-      e.preventDefault();
-      const touches = [e.touches[0], e.touches[1]].map(this.getMousePosition);
-      this.zoomMobile(touches);
-      return;
-    }
-    if (this.selectedElement) {
-      e.preventDefault();
-      this.sendDragEvent(e.touches[0]);
-    }
-  },
-
-  endDrag(e) {
-    if (this.selectedElement) {
-      this.pushEvent(
-        "dragend",
-        {
-          id: this.selectedElement.id,
-          position: this.getSelectedElementPosition(),
-        }
-      );
-    }
-    this.selectedElement = null;
-    this.originalTouches = null;
-  },
-
-  getSelectedElementPosition() {
-    return {
-      x: parseFloat(this.selectedElement.getAttributeNS(null, "x")),
-      y: parseFloat(this.selectedElement.getAttributeNS(null, "y"))
-    }
-  },
-
-  getMousePosition(e) {
+  extractMousePosition(e) {
     if (e.touches) {
       e = e.touches[0];
     }
@@ -101,6 +59,13 @@ export const SvgCanvas = {
     return {
       x: e.clientX - boundingRect.left,
       y: e.clientY - boundingRect.top
+    }
+  },
+
+  getSelectedElementPosition() {
+    return {
+      x: parseFloat(this.selectedElement.getAttributeNS(null, "x")),
+      y: parseFloat(this.selectedElement.getAttributeNS(null, "y"))
     }
   },
 
@@ -119,8 +84,70 @@ export const SvgCanvas = {
     }
   },
 
+  onDragDesktop(e) {
+    const buttonIsPressed = e.buttons !== 0;
+    if (this.selectedElement && buttonIsPressed) {
+      e.preventDefault();
+      this.sendDragEvent(e);
+    }
+  },
+
+  onDragEnd(e) {
+    if (this.selectedElement) {
+      this.pushEvent(
+        "dragend",
+        {
+          id: this.selectedElement.id,
+          position: this.getSelectedElementPosition(),
+        }
+      );
+    }
+    this.selectedElement = null;
+    this.originalTouches = null;
+  },
+
+  onDragMobile(e) {
+    if (e.touches.length > 1) {
+      e.preventDefault();
+      const touches = [e.touches[0], e.touches[1]].map(this.extractMousePosition);
+      this.zoomMobile(touches);
+      return;
+    }
+    if (this.selectedElement) {
+      e.preventDefault();
+      this.sendDragEvent(e.touches[0]);
+    }
+  },
+
+  onDragStart(e) {
+    if (e.target.dataset["drag"]) {
+      e.preventDefault();
+      this.selectedElement = e.target;
+      const offset = this.extractMousePosition(e);
+      const position = this.getSelectedElementPosition();
+      offset.x -= position.x;
+      offset.y -= position.y;
+      this.offset = offset;
+      this.pushEvent("select", {id: e.target.id, position});
+      this.setMobileTouches(e);
+    }
+  },
+
+  onResize() {
+    this.pushEvent("resize", {height: this.el.clientHeight, width: this.el.clientWidth});
+  },
+
+  onZoomDesktop(e) {
+    const position = this.extractMousePosition(e);
+    const delta = Math.max(
+      -1,
+      Math.min(1, e.wheelDelta || -e.detail)
+    );
+    this.pushEvent("zoom-desktop", {position, delta});
+  },
+
   sendDragEvent(e) {
-    const coord = this.getMousePosition(e);
+    const coord = this.extractMousePosition(e);
     this.pushEvent(
       this.selectedElement.dataset["drag"],
       {
@@ -132,10 +159,6 @@ export const SvgCanvas = {
     );
   },
 
-  sendElementSize() {
-    this.pushEvent("resize", {height: this.el.clientHeight, width: this.el.clientWidth});
-  },
-
   setMobileTouches(e) {
     if (e.touches && e.touches.length > 1) {
       const position = {
@@ -144,32 +167,9 @@ export const SvgCanvas = {
       }
       this.originalTouches = {
         position,
-        touches: [e.touches[0], e.touches[1]].map(this.getMousePosition)
+        touches: [e.touches[0], e.touches[1]].map(this.extractMousePosition)
       };
     }
-  },
-
-  startDrag(e) {
-    if (e.target.dataset["drag"]) {
-      e.preventDefault();
-      this.selectedElement = e.target;
-      const offset = this.getMousePosition(e);
-      const position = this.getSelectedElementPosition();
-      offset.x -= position.x;
-      offset.y -= position.y;
-      this.offset = offset;
-      this.pushEvent("select", {id: e.target.id, position});
-      this.setMobileTouches(e);
-    }
-  },
-
-  zoomDesktop(e) {
-    const position = this.getMousePosition(e);
-    const delta = Math.max(
-      -1,
-      Math.min(1, e.wheelDelta || -e.detail)
-    );
-    this.pushEvent("zoom-desktop", {position, delta});
   },
 
   zoomMobile(touches) {
