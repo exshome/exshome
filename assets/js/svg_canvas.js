@@ -9,9 +9,10 @@ const debounce = (func, timeout = 200) => {
 }
 
 export const SvgCanvas = {
-  selectedElement: null,
-  originalTouches: null,
+  mousePosition: {x: 0, y: 0},
   offset: {x: 0, y: 0},
+  originalTouches: null,
+  selectedElement: null,
 
   mounted() {
     this.extractMousePosition = this.extractMousePosition.bind(this);
@@ -93,10 +94,17 @@ export const SvgCanvas = {
     const selectedElement = this.el.getElementById(id);
     if (selectedElement) {
       this.selectedElement = selectedElement;
+      const offset = this.mousePosition;
+      const position = this.getSelectedElementPosition();
+      offset.x -= position.x;
+      offset.y -= position.y;
+      this.offset = offset;
+      this.pushEvent("select", {id: this.selectedElement.id, position});
     }
   },
 
   onDragDesktop(e) {
+    this.updateMousePosition(e);
     const buttonIsPressed = e.buttons !== 0;
     if (this.selectedElement && buttonIsPressed) {
       e.preventDefault();
@@ -119,6 +127,7 @@ export const SvgCanvas = {
   },
 
   onDragMobile(e) {
+    this.updateMousePosition(e);
     if (e.touches.length > 1) {
       e.preventDefault();
       const touches = [e.touches[0], e.touches[1]].map(this.extractMousePosition);
@@ -134,13 +143,7 @@ export const SvgCanvas = {
   onDragStart(e) {
     if (e.target.dataset["drag"]) {
       e.preventDefault();
-      this.selectedElement = e.target;
-      const offset = this.extractMousePosition(e);
-      const position = this.getSelectedElementPosition();
-      offset.x -= position.x;
-      offset.y -= position.y;
-      this.offset = offset;
-      this.pushEvent("select", {id: e.target.id, position});
+      this.handleSelectItem({id: e.target.id});
       this.setMobileTouches(e);
     }
   },
@@ -182,6 +185,10 @@ export const SvgCanvas = {
         touches: [e.touches[0], e.touches[1]].map(this.extractMousePosition)
       };
     }
+  },
+
+  updateMousePosition(e) {
+    this.mousePosition = this.extractMousePosition(e);
   },
 
   zoomMobile(touches) {
