@@ -44,6 +44,7 @@
         height={@meta.scroll.height}
         width={@meta.scroll.size_x}
         data-drag="scroll-body-x"
+        data-relative-to="screen"
         id={"scroll-body-x-#{@meta.name}"}
       />
     <% end %>
@@ -57,6 +58,7 @@
         height={@meta.scroll.size_y}
         width={@meta.scroll.height}
         data-drag="scroll-body-y"
+        data-relative-to="screen"
         id={"scroll-body-y-#{@meta.name}"}
       />
     <% end %>
