@@ -136,8 +136,9 @@ defmodule ExshomeWeb.Live.SvgCanvas do
 
   def handle_event("create", %{"id" => id}, %Socket{} = socket) when is_binary(id) do
     component_type = extract_menu_item_id(socket, id)
+    %__MODULE__{selected: selected, viewbox: viewbox} = get_svg_meta(socket)
 
-    case get_svg_meta(socket).selected do
+    case selected do
       nil ->
         {:halt, socket}
 
@@ -146,8 +147,8 @@ defmodule ExshomeWeb.Live.SvgCanvas do
         |> socket.view.handle_create(%{
           type: component_type,
           position: %{
-            x: x,
-            y: y
+            x: viewbox.x + x,
+            y: viewbox.y + y
           }
         })
         |> update_svg_meta_response(&on_create/1)
