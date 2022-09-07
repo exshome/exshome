@@ -10,7 +10,6 @@ const debounce = (func, timeout = 200) => {
 
 export const SvgCanvas = {
   mousePosition: {x: 0, y: 0},
-  offset: {x: 0, y: 0},
   originalTouches: null,
   selectedElement: null,
 
@@ -21,35 +20,37 @@ export const SvgCanvas = {
     this.onResize();
     window.addEventListener("resize", this.onResize);
 
-    this.el.addEventListener("mousedown", this.onDragStart.bind(this));
-    this.el.addEventListener("touchstart", this.onDragStart.bind(this));
+    const callback = this.withMousePositionCallback.bind(this);
+    this.el.addEventListener("mousedown", callback(this.onDragStart));
+    this.el.addEventListener("touchstart", callback(this.onDragStart));
 
     const onDragDesktop = debounce(this.onDragDesktop.bind(this), 5);
-    this.el.addEventListener("mousemove", onDragDesktop);
+    this.el.addEventListener("mousemove", callback(onDragDesktop));
 
     const onDragMobile = debounce(this.onDragMobile.bind(this), 5);
-    this.el.addEventListener("touchmove", onDragMobile);
+    this.el.addEventListener("touchmove", callback(onDragMobile));
 
-    this.el.addEventListener("mouseup", this.onDragEnd.bind(this));
-    this.el.addEventListener("mouseleave", this.onDragEnd.bind(this));
-    this.el.addEventListener("touchend", this.onDragEnd.bind(this));
-    this.el.addEventListener("touchleave", this.onDragEnd.bind(this));
-    this.el.addEventListener("touchcancel", this.onDragEnd.bind(this));
+    this.el.addEventListener("mouseup", callback(this.onDragEnd));
+    this.el.addEventListener("mouseleave", callback(this.onDragEnd));
+    this.el.addEventListener("touchend", callback(this.onDragEnd));
+    this.el.addEventListener("touchleave", callback(this.onDragEnd));
+    this.el.addEventListener("touchcancel", callback(this.onDragEnd));
 
     const onZoomDesktop = debounce(this.onZoomDesktop.bind(this), 10);
-    this.el.addEventListener("mousewheel", onZoomDesktop);
-    this.el.addEventListener("DOMMouseScroll", onZoomDesktop);
+    this.el.addEventListener("mousewheel", callback(onZoomDesktop));
+    this.el.addEventListener("DOMMouseScroll", callback(onZoomDesktop));
 
     this.handleEvent("move-to-foreground", this.handleMoveToForeground.bind(this));
     this.handleEvent("select-item", this.handleSelectItem.bind(this));
   },
 
-  destroyed() {
-    window.removeEventListener("resize", this.onResize);
+  clearState() {
+    this.selectedElement = null;
+    this.originalTouches = null;
   },
 
-  reconnected() {
-    this.onResize();
+  destroyed() {
+    window.removeEventListener("resize", this.onResize);
   },
 
   extractMousePosition(e) {
@@ -64,7 +65,7 @@ export const SvgCanvas = {
   },
 
   getSelectedElementPosition() {
-    switch (this.selectedElement.dataset.relativeTo) {
+    switch (this.getSelectedElementRelativeTo()) {
       case "canvas":
         return {
           x: parseFloat(this.selectedElement.getAttributeNS(null, "x")),
@@ -82,6 +83,10 @@ export const SvgCanvas = {
     }
   },
 
+  getSelectedElementRelativeTo() {
+    return this.selectedElement.dataset.relativeTo;
+  },
+
   handleMoveToForeground({id, parent}) {
     const component = this.el.getElementById(id);
     const parentComponent = this.el.getElementById(parent);
@@ -94,21 +99,23 @@ export const SvgCanvas = {
     const selectedElement = this.el.getElementById(id);
     if (selectedElement) {
       this.selectedElement = selectedElement;
-      const offset = this.mousePosition;
       const position = this.getSelectedElementPosition();
-      offset.x -= position.x;
-      offset.y -= position.y;
-      this.offset = offset;
-      this.pushEvent("select", {id: this.selectedElement.id, position});
+      this.pushEvent("select", {
+        id: this.selectedElement.id,
+        element: position,
+        mouse: this.mousePosition,
+        relativeTo: this.getSelectedElementRelativeTo()
+      });
     }
   },
 
   onDragDesktop(e) {
-    this.updateMousePosition(e);
     const buttonIsPressed = e.buttons !== 0;
     if (this.selectedElement && buttonIsPressed) {
       e.preventDefault();
       this.sendDragEvent(e);
+    } else {
+      this.clearState();
     }
   },
 
@@ -117,17 +124,14 @@ export const SvgCanvas = {
       this.pushEvent(
         "dragend",
         {
-          id: this.selectedElement.id,
-          position: this.getSelectedElementPosition(),
+          mouse: this.mousePosition
         }
       );
     }
-    this.selectedElement = null;
-    this.originalTouches = null;
+    this.clearState();
   },
 
   onDragMobile(e) {
-    this.updateMousePosition(e);
     if (e.touches.length > 1) {
       e.preventDefault();
       const touches = [e.touches[0], e.touches[1]].map(this.extractMousePosition);
@@ -153,23 +157,22 @@ export const SvgCanvas = {
   },
 
   onZoomDesktop(e) {
-    const position = this.extractMousePosition(e);
     const delta = Math.max(
       -1,
       Math.min(1, e.wheelDelta || -e.detail)
     );
-    this.pushEvent("zoom-desktop", {position, delta});
+    this.pushEvent("zoom-desktop", {mouse: this.mousePosition, delta});
+  },
+
+  reconnected() {
+    this.onResize();
   },
 
   sendDragEvent(e) {
-    const coord = this.extractMousePosition(e);
     this.pushEvent(
       this.selectedElement.dataset["drag"],
       {
-        id: this.selectedElement.id,
-        x: coord.x - this.offset.x,
-        y: coord.y - this.offset.y,
-        mouse: coord,
+        mouse: this.mousePosition
       }
     );
   },
@@ -187,8 +190,15 @@ export const SvgCanvas = {
     }
   },
 
-  updateMousePosition(e) {
-    this.mousePosition = this.extractMousePosition(e);
+  withMousePositionCallback(fn) {
+    const handler = fn.bind(this);
+
+    const resultFn = function(e) {
+      this.mousePosition = this.extractMousePosition(e);
+      handler(e);
+    }
+
+    return resultFn.bind(this);
   },
 
   zoomMobile(touches) {

@@ -66,8 +66,9 @@ defmodule ExshomeWeb.Live.SvgCanvas do
             nil
             | %{
                 id: String.t(),
-                original_x: number(),
-                original_y: number()
+                mouse: %{x: number(), y: number()},
+                element: %{x: number(), y: number()},
+                relative_to: :canvas | :screen
               },
           viewbox: %{
             x: number(),
@@ -134,21 +135,24 @@ defmodule ExshomeWeb.Live.SvgCanvas do
     {:cont, socket}
   end
 
-  def handle_event("create", %{"id" => id}, %Socket{} = socket) when is_binary(id) do
-    component_type = extract_menu_item_id(socket, id)
-    %__MODULE__{selected: selected, viewbox: viewbox} = get_svg_meta(socket)
+  def handle_event("create", _, %Socket{} = socket) do
+    component_type = extract_menu_item_id(socket)
+    %__MODULE__{selected: selected, viewbox: viewbox, zoom: %{value: zoom}} = get_svg_meta(socket)
 
     case selected do
       nil ->
         {:halt, socket}
 
-      %{original_x: x, original_y: y} ->
+      %{element: %{x: x, y: y}, mouse: %{x: mouse_x, y: mouse_y}} ->
+        component_x = viewbox.x + mouse_x / zoom
+        component_y = viewbox.y + mouse_y / zoom
+
         socket
         |> socket.view.handle_create(%{
           type: component_type,
           position: %{
-            x: viewbox.x + x,
-            y: viewbox.y + y
+            x: component_x,
+            y: component_y
           }
         })
         |> update_svg_meta_response(&on_create/1)
@@ -157,28 +161,25 @@ defmodule ExshomeWeb.Live.SvgCanvas do
 
   def handle_event(
         "dragend",
-        %{"id" => id, "position" => %{"x" => x, "y" => y}},
+        %{"mouse" => %{"x" => x, "y" => y}},
         %Socket{} = socket
       )
-      when is_binary(id) and is_number(x) and is_number(y) do
+      when is_number(x) and is_number(y) do
     %__MODULE__{trashbin: trashbin} = get_svg_meta(socket)
 
     socket =
-      case {component_type(id), trashbin.open?} do
+      case {component_type(socket), trashbin.open?} do
         {:component, true} ->
-          id = extract_component_id(socket, id)
+          id = extract_component_id(socket)
 
-          socket.view.handle_delete(
-            socket,
-            extract_component_id(socket, id)
-          )
+          socket.view.handle_delete(socket, id)
 
         {:component, false} ->
           socket.view.handle_dragend(
             socket,
             %{
-              id: extract_component_id(socket, id),
-              position: %{x: x, y: y}
+              id: extract_component_id(socket),
+              position: compute_element_position(socket, x, y)
             }
           )
 
@@ -189,24 +190,19 @@ defmodule ExshomeWeb.Live.SvgCanvas do
     update_svg_meta_response(socket, &on_dragend/1)
   end
 
-  def handle_event(
-        "move",
-        %{"x" => x, "y" => y, "id" => id, "mouse" => %{"x" => mouse_x, "y" => mouse_y}},
-        %Socket{} = socket
-      )
-      when is_number(x) and is_number(y) and is_binary(id) and is_number(mouse_x) and
-             is_number(mouse_y) do
-    socket = update_svg_meta(socket, &on_drag(&1, %{x: mouse_x, y: mouse_y}))
+  def handle_event("move", %{"mouse" => %{"x" => x, "y" => y}}, %Socket{} = socket)
+      when is_number(x) and is_number(y) do
+    socket = update_svg_meta(socket, &on_drag(&1, %{x: x, y: y}))
     new_position = compute_element_position(socket, x, y)
 
-    id = extract_component_id(socket, id)
+    id = extract_component_id(socket)
     {:halt, socket.view.handle_move(socket, %{id: id, position: new_position})}
   end
 
-  def handle_event("move-background", %{"x" => x, "y" => y}, %Socket{} = socket)
+  def handle_event("move-background", %{"mouse" => %{"x" => x, "y" => y}}, %Socket{} = socket)
       when is_number(x) and is_number(y) do
     %__MODULE__{
-      selected: %{original_x: original_x, original_y: original_y}
+      selected: %{element: %{x: original_x, y: original_y}}
     } = get_svg_meta(socket)
 
     %{x: new_x, y: new_y} = compute_element_position(socket, x, y)
@@ -223,30 +219,33 @@ defmodule ExshomeWeb.Live.SvgCanvas do
     update_svg_meta_response(socket, &on_resize(&1, height, width))
   end
 
-  def handle_event("scroll-body-x", %{"x" => x}, %Socket{} = socket) when is_number(x) do
+  def handle_event("scroll-body-x", %{"mouse" => %{"x" => x}}, %Socket{} = socket)
+      when is_number(x) do
     update_svg_meta_response(socket, &on_body_scroll_x(&1, x))
   end
 
-  def handle_event("scroll-body-y", %{"y" => y}, %Socket{} = socket) when is_number(y) do
+  def handle_event("scroll-body-y", %{"mouse" => %{"y" => y}}, %Socket{} = socket)
+      when is_number(y) do
     update_svg_meta_response(socket, &on_body_scroll_y(&1, y))
   end
 
-  def handle_event(
-        "select",
-        %{"id" => id, "position" => %{"x" => x, "y" => y}},
-        %Socket{} = socket
-      )
-      when is_number(x) and is_number(y) and is_binary(id) do
-    socket = update_svg_meta(socket, &on_select(&1, id, x, y))
+  def handle_event("select", event, %Socket{} = socket) do
+    socket = update_svg_meta(socket, &on_select(&1, event))
+    %__MODULE__{selected: selected} = get_svg_meta(socket)
 
     socket =
-      case component_type(id) do
+      case component_type(selected.id) do
         :component ->
           socket.view.handle_select(
             socket,
             %{
-              id: extract_component_id(socket, id),
-              position: compute_element_position(socket, x, y)
+              id: extract_component_id(socket),
+              position:
+                compute_element_position(
+                  socket,
+                  selected.mouse.x,
+                  selected.mouse.y
+                )
             }
           )
 
@@ -259,7 +258,7 @@ defmodule ExshomeWeb.Live.SvgCanvas do
 
   def handle_event(
         "zoom-desktop",
-        %{"delta" => delta, "position" => %{"x" => x, "y" => y}},
+        %{"delta" => delta, "mouse" => %{"x" => x, "y" => y}},
         %Socket{} = socket
       )
       when is_number(delta) and is_number(x) and is_number(y) do
@@ -269,7 +268,7 @@ defmodule ExshomeWeb.Live.SvgCanvas do
   def handle_event(
         "zoom-mobile",
         %{
-          "original" => %{"position" => original_position, "touches" => original_touches},
+          "original" => %{"element" => original_position, "touches" => original_touches},
           "current" => current_touches
         },
         %Socket{} = socket
@@ -356,19 +355,32 @@ defmodule ExshomeWeb.Live.SvgCanvas do
     |> refresh_menu()
   end
 
-  defp on_select(%__MODULE__{zoom: %{value: zoom}} = data, id, x, y) do
-    {x, y} =
-      case component_type(id) do
-        :menu_item ->
-          {x / zoom, y / zoom}
-
-        _ ->
-          {x, y}
+  defp on_select(%__MODULE__{} = data, %{
+         "id" => id,
+         "element" => %{"x" => element_x, "y" => element_y},
+         "mouse" => %{"x" => mouse_x, "y" => mouse_y},
+         "relativeTo" => relative_to
+       })
+       when is_binary(id) and
+              is_number(element_x) and
+              is_number(element_y) and
+              is_number(mouse_x) and
+              is_number(mouse_y) and
+              is_binary(relative_to) do
+    relative_to =
+      case relative_to do
+        "canvas" -> :canvas
+        "screen" -> :screen
       end
 
     %__MODULE__{
       data
-      | selected: %{id: id, original_x: x, original_y: y}
+      | selected: %{
+          id: id,
+          mouse: %{x: mouse_x, y: mouse_y},
+          element: %{x: element_x, y: element_y},
+          relative_to: relative_to
+        }
     }
   end
 
@@ -437,6 +449,11 @@ defmodule ExshomeWeb.Live.SvgCanvas do
 
   defp component_type("scroll-body-y-" <> _), do: :scroll_body_y
 
+  defp component_type(%Socket{} = socket) do
+    %__MODULE__{selected: %{id: id}} = get_svg_meta(socket)
+    component_type(id)
+  end
+
   defp compute_center([%{x: x1, y: y1}, %{x: x2, y: y2}]) do
     %{x: (x1 + x2) / 2, y: (y1 + y2) / 2}
   end
@@ -452,12 +469,22 @@ defmodule ExshomeWeb.Live.SvgCanvas do
 
   defp compute_element_position(%Socket{} = socket, x, y) do
     %__MODULE__{
-      selected: %{original_x: original_x, original_y: original_y},
+      selected: %{
+        element: %{x: original_x, y: original_y},
+        mouse: mouse,
+        relative_to: relative_to
+      },
       zoom: %{value: zoom}
-    } = socket.assigns[@meta_key]
+    } = get_svg_meta(socket)
 
-    new_x = original_x + (x - original_x) / zoom
-    new_y = original_y + (y - original_y) / zoom
+    {delta_x, delta_y} =
+      case relative_to do
+        :canvas ->
+          {(x - mouse.x) / zoom, (y - mouse.y) / zoom}
+      end
+
+    new_x = original_x + delta_x
+    new_y = original_y + delta_y
 
     %{x: new_x, y: new_y}
   end
@@ -466,13 +493,15 @@ defmodule ExshomeWeb.Live.SvgCanvas do
     "component-#{get_svg_meta(socket).name}-#{id}"
   end
 
-  defp extract_component_id(%Socket{} = socket, id) do
-    prefix = "component-#{get_svg_meta(socket).name}-"
+  defp extract_component_id(%Socket{} = socket) do
+    %__MODULE__{selected: %{id: id}, name: name} = get_svg_meta(socket)
+    prefix = "component-#{name}-"
     String.replace(id, prefix, "")
   end
 
-  defp extract_menu_item_id(%Socket{} = socket, id) do
-    prefix = "menu-item-#{get_svg_meta(socket).name}-"
+  defp extract_menu_item_id(%Socket{} = socket) do
+    %__MODULE__{selected: %{id: id}, name: name} = get_svg_meta(socket)
+    prefix = "menu-item-#{name}-"
     String.replace(id, prefix, "")
   end
 
