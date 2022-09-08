@@ -33,6 +33,8 @@ export const SvgCanvas = {
     this.el.addEventListener("mouseup", withMouse(this.onDragEnd));
     this.el.addEventListener("mouseleave", withMouse(this.onDragEnd));
     this.el.addEventListener("touchend", withMouse(this.onDragEnd));
+    this.el.addEventListener("pointerup", withMouse(this.onDragEnd));
+    this.el.addEventListener("pointerleave", withMouse(this.onDragEnd));
     this.el.addEventListener("touchleave", withMouse(this.onDragEnd));
     this.el.addEventListener("touchcancel", withMouse(this.onDragEnd));
 
