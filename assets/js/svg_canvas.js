@@ -20,25 +20,25 @@ export const SvgCanvas = {
     this.onResize();
     window.addEventListener("resize", this.onResize);
 
-    const callback = this.withMousePositionCallback.bind(this);
-    this.el.addEventListener("mousedown", callback(this.onDragStart));
-    this.el.addEventListener("touchstart", callback(this.onDragStart));
+    const withMouse = this.withMousePositionCallback.bind(this);
+    this.el.addEventListener("mousedown", withMouse(this.onDragStart));
+    this.el.addEventListener("touchstart", withMouse(this.onDragStart));
 
     const onDragDesktop = debounce(this.onDragDesktop.bind(this), 5);
-    this.el.addEventListener("mousemove", callback(onDragDesktop));
+    this.el.addEventListener("mousemove", withMouse(onDragDesktop));
 
     const onDragMobile = debounce(this.onDragMobile.bind(this), 5);
-    this.el.addEventListener("touchmove", callback(onDragMobile));
+    this.el.addEventListener("touchmove", withMouse(onDragMobile));
 
-    this.el.addEventListener("mouseup", callback(this.onDragEnd));
-    this.el.addEventListener("mouseleave", callback(this.onDragEnd));
-    this.el.addEventListener("touchend", callback(this.onDragEnd));
-    this.el.addEventListener("touchleave", callback(this.onDragEnd));
-    this.el.addEventListener("touchcancel", callback(this.onDragEnd));
+    this.el.addEventListener("mouseup", withMouse(this.onDragEnd));
+    this.el.addEventListener("mouseleave", withMouse(this.onDragEnd));
+    this.el.addEventListener("touchend", withMouse(this.onDragEnd));
+    this.el.addEventListener("touchleave", withMouse(this.onDragEnd));
+    this.el.addEventListener("touchcancel", withMouse(this.onDragEnd));
 
     const onZoomDesktop = debounce(this.onZoomDesktop.bind(this), 10);
-    this.el.addEventListener("mousewheel", callback(onZoomDesktop));
-    this.el.addEventListener("DOMMouseScroll", callback(onZoomDesktop));
+    this.el.addEventListener("mousewheel", withMouse(onZoomDesktop));
+    this.el.addEventListener("DOMMouseScroll", withMouse(onZoomDesktop));
 
     this.handleEvent("move-to-foreground", this.handleMoveToForeground.bind(this));
     this.handleEvent("select-item", this.handleSelectItem.bind(this));
@@ -64,27 +64,28 @@ export const SvgCanvas = {
     }
   },
 
-  getSelectedElementPosition() {
-    switch (this.getSelectedElementRelativeTo()) {
-      case "canvas":
-        return {
-          x: parseFloat(this.selectedElement.getAttributeNS(null, "x")),
-          y: parseFloat(this.selectedElement.getAttributeNS(null, "y"))
-        }
-      case "screen":
-        const parentBoundaries = this.el.getBoundingClientRect();
-        const boundaries = this.selectedElement.getBoundingClientRect();
-        return {
-          x: boundaries.x - parentBoundaries.x,
-          y: boundaries.y - parentBoundaries.y
-        };
-      default:
-        throw new Error("Unknown relativeTo");
-    }
+  getSelectedElementOffset() {
+    const parentBoundaries = this.el.getBoundingClientRect();
+    const boundaries = this.selectedElement.getBoundingClientRect();
+    const offset = {
+      x: this.mousePosition.x - (boundaries.x - parentBoundaries.x),
+      y: this.mousePosition.y - (boundaries.y - parentBoundaries.y)
+    };
+    const itemSize = {
+      height: parseFloat(this.selectedElement.getAttributeNS(null, "height")),
+      width: parseFloat(this.selectedElement.getAttributeNS(null, "width"))
+    };
+    return {
+      x: offset.x * itemSize.width / boundaries.width,
+      y: offset.y * itemSize.height / boundaries.height,
+    };
   },
 
-  getSelectedElementRelativeTo() {
-    return this.selectedElement.dataset.relativeTo;
+  getSelectedElementPosition() {
+    return {
+      x: parseFloat(this.selectedElement.getAttributeNS(null, "x")),
+      y: parseFloat(this.selectedElement.getAttributeNS(null, "y"))
+    }
   },
 
   handleMoveToForeground({id, parent}) {
@@ -99,12 +100,11 @@ export const SvgCanvas = {
     const selectedElement = this.el.getElementById(id);
     if (selectedElement) {
       this.selectedElement = selectedElement;
-      const position = this.getSelectedElementPosition();
       this.pushEvent("select", {
         id: this.selectedElement.id,
-        element: position,
         mouse: this.mousePosition,
-        relativeTo: this.getSelectedElementRelativeTo()
+        offset: this.getSelectedElementOffset(),
+        position: this.getSelectedElementPosition()
       });
     }
   },

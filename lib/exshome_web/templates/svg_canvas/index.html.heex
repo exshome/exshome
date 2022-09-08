@@ -24,13 +24,12 @@
         height={@meta.viewbox.height}
         width={@meta.viewbox.width}
         data-drag="move-background"
-        data-relative-to="canvas"
         class="fill-transparent"
       />
       <%= for component <- @components do %>
         <.render_component
           component={component}
-          context={%{name: @meta.name, drag: "move", relative_to: :canvas}}
+          context={%{name: @meta.name, drag: "move"}}
         />
       <% end %>
     </svg>
@@ -44,7 +43,6 @@
         height={@meta.scroll.height}
         width={@meta.scroll.size_x}
         data-drag="scroll-body-x"
-        data-relative-to="screen"
         id={"scroll-body-x-#{@meta.name}"}
       />
     <% end %>
@@ -58,7 +56,6 @@
         height={@meta.scroll.size_y}
         width={@meta.scroll.height}
         data-drag="scroll-body-y"
-        data-relative-to="screen"
         id={"scroll-body-y-#{@meta.name}"}
       />
     <% end %>
