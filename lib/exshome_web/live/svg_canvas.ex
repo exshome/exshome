@@ -268,7 +268,7 @@ defmodule ExshomeWeb.Live.SvgCanvas do
   def handle_event(
         "zoom-mobile",
         %{
-          "original" => %{"element" => original_position, "touches" => original_touches},
+          "original" => %{"position" => original_position, "touches" => original_touches},
           "current" => current_touches
         },
         %Socket{} = socket
