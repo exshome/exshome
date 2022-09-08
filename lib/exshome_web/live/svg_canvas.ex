@@ -136,7 +136,6 @@ defmodule ExshomeWeb.Live.SvgCanvas do
   end
 
   def handle_event("create", _, %Socket{} = socket) do
-    component_type = extract_menu_item_type(socket)
     %__MODULE__{selected: selected, viewbox: viewbox, zoom: %{value: zoom}} = get_svg_meta(socket)
 
     case selected do
@@ -144,6 +143,7 @@ defmodule ExshomeWeb.Live.SvgCanvas do
         {:halt, socket}
 
       %{offset: %{x: offset_x, y: offset_y}, mouse: %{x: mouse_x, y: mouse_y}} ->
+        component_type = extract_menu_item_type(socket)
         component_x = viewbox.x + mouse_x / zoom - offset_x
         component_y = viewbox.y + mouse_y / zoom - offset_y
 
