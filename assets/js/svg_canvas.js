@@ -54,9 +54,14 @@ export const SvgCanvas = {
   },
 
   extractMousePosition(e) {
-    if (e.touches) {
+    if (e.touches && e.touches.length > 0) {
       e = e.touches[0];
     }
+
+    if (!e.clientX || !e.clientY) {
+      return null;
+    }
+
     const boundingRect = this.el.getBoundingClientRect()
     return {
       x: e.clientX - boundingRect.left,
@@ -194,7 +199,10 @@ export const SvgCanvas = {
     const handler = fn.bind(this);
 
     const resultFn = function(e) {
-      this.mousePosition = this.extractMousePosition(e);
+      const mousePosition = this.extractMousePosition(e);
+      if (mousePosition) {
+        this.mousePosition = mousePosition;
+      }
       handler(e);
     }
 
