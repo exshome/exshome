@@ -312,12 +312,18 @@ defmodule ExshomeWeb.Live.SvgCanvas do
     })
   end
 
-  defp on_body_scroll_x(%__MODULE__{scroll: %{ratio_x: ratio_x}, viewbox: viewbox} = data, x) do
-    set_viewbox_position(data, %{x: x * ratio_x, y: viewbox.y})
+  defp on_body_scroll_x(
+         %__MODULE__{scroll: scroll, selected: selected, viewbox: viewbox} = data,
+         x
+       ) do
+    set_viewbox_position(data, %{x: (x - selected.offset.x) * scroll.ratio_x, y: viewbox.y})
   end
 
-  defp on_body_scroll_y(%__MODULE__{scroll: %{ratio_y: ratio_y}, viewbox: viewbox} = data, y) do
-    set_viewbox_position(data, %{x: viewbox.x, y: y * ratio_y})
+  defp on_body_scroll_y(
+         %__MODULE__{scroll: scroll, selected: selected, viewbox: viewbox} = data,
+         y
+       ) do
+    set_viewbox_position(data, %{x: viewbox.x, y: (y - selected.offset.y) * scroll.ratio_y})
   end
 
   defp on_create(%__MODULE__{} = data) do
