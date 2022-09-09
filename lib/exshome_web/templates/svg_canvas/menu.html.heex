@@ -9,7 +9,7 @@
     <section
       id={"#{@name}-menu-overlay"}
       class="fill-gray-200/20 dark:fill-gray-700/20 h-full w-full"
-      phx-click={"toggle-menu-#{@name}"}
+      phx-click={"menu-close-#{@name}"}
       phx-hook="StopEvents"
       data-stop-events="mousewheel, DOMMouseScroll"
     >
@@ -45,7 +45,7 @@
     y={@menu.y}
     viewbox="-30 10 154 124"
     class="fill-gray-200/80 hover:fill-gray-200 dark:fill-gray-700/80 dark:hover:fill-gray-700"
-    phx-click={"toggle-menu-#{@name}"}
+    phx-click={"menu-toggle-#{@name}"}
   >
     <%= if @menu.open? do %>
       <path d="

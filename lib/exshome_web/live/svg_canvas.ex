@@ -190,6 +190,14 @@ defmodule ExshomeWeb.Live.SvgCanvas do
     update_svg_meta_response(socket, &on_dragend/1)
   end
 
+  def handle_event("menu-close-" <> _name, _, %Socket{} = socket) do
+    update_svg_meta_response(socket, &on_menu_close(&1))
+  end
+
+  def handle_event("menu-toggle-" <> _name, _, %Socket{} = socket) do
+    update_svg_meta_response(socket, &on_menu_toggle(&1))
+  end
+
   def handle_event("move", %{"pointer" => %{"x" => x, "y" => y}}, %Socket{} = socket)
       when is_number(x) and is_number(y) do
     socket = update_svg_meta(socket, &on_drag(&1, %{x: x, y: y}))
@@ -208,10 +216,6 @@ defmodule ExshomeWeb.Live.SvgCanvas do
     %{x: new_x, y: new_y} = compute_element_position(socket, x, y)
     delta = %{x: 2 * original_x - new_x, y: 2 * original_y - new_y}
     update_svg_meta_response(socket, &set_viewbox_position(&1, delta))
-  end
-
-  def handle_event("toggle-menu-" <> _name, _, %Socket{} = socket) do
-    update_svg_meta_response(socket, &on_toggle_menu(&1))
   end
 
   def handle_event("resize", %{"height" => height, "width" => width}, %Socket{} = socket)
@@ -346,6 +350,14 @@ defmodule ExshomeWeb.Live.SvgCanvas do
     |> Map.update!(:trashbin, &%{&1 | open?: false})
   end
 
+  defp on_menu_toggle(%__MODULE__{} = data) do
+    Map.update!(data, :menu, &%{&1 | open?: !&1.open?})
+  end
+
+  defp on_menu_close(%__MODULE__{} = data) do
+    Map.update!(data, :menu, &%{&1 | open?: false})
+  end
+
   defp on_resize(%__MODULE__{zoom: zoom} = data, height, width) do
     %__MODULE__{
       data
@@ -383,10 +395,6 @@ defmodule ExshomeWeb.Live.SvgCanvas do
           position: %{x: x, y: y}
         }
     }
-  end
-
-  defp on_toggle_menu(%__MODULE__{} = data) do
-    Map.update!(data, :menu, &%{&1 | open?: !&1.open?})
   end
 
   defp on_zoom_desktop(%__MODULE__{viewbox: old_viewbox, zoom: old_zoom} = data, delta, x, y) do
