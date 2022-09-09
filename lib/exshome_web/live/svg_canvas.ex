@@ -66,7 +66,7 @@ defmodule ExshomeWeb.Live.SvgCanvas do
             nil
             | %{
                 id: String.t(),
-                mouse: %{x: number(), y: number()},
+                pointer: %{x: number(), y: number()},
                 offset: %{x: number(), y: number()},
                 position: %{x: number(), y: number()}
               },
@@ -142,10 +142,10 @@ defmodule ExshomeWeb.Live.SvgCanvas do
       nil ->
         {:halt, socket}
 
-      %{offset: %{x: offset_x, y: offset_y}, mouse: %{x: mouse_x, y: mouse_y}} ->
+      %{offset: %{x: offset_x, y: offset_y}, pointer: %{x: pointer_x, y: pointer_y}} ->
         component_type = extract_menu_item_type(socket)
-        component_x = viewbox.x + mouse_x / zoom - offset_x
-        component_y = viewbox.y + mouse_y / zoom - offset_y
+        component_x = viewbox.x + pointer_x / zoom - offset_x
+        component_y = viewbox.y + pointer_y / zoom - offset_y
 
         socket
         |> socket.view.handle_create(%{
@@ -161,7 +161,7 @@ defmodule ExshomeWeb.Live.SvgCanvas do
 
   def handle_event(
         "dragend",
-        %{"mouse" => %{"x" => x, "y" => y}},
+        %{"pointer" => %{"x" => x, "y" => y}},
         %Socket{} = socket
       )
       when is_number(x) and is_number(y) do
@@ -190,7 +190,7 @@ defmodule ExshomeWeb.Live.SvgCanvas do
     update_svg_meta_response(socket, &on_dragend/1)
   end
 
-  def handle_event("move", %{"mouse" => %{"x" => x, "y" => y}}, %Socket{} = socket)
+  def handle_event("move", %{"pointer" => %{"x" => x, "y" => y}}, %Socket{} = socket)
       when is_number(x) and is_number(y) do
     socket = update_svg_meta(socket, &on_drag(&1, %{x: x, y: y}))
     new_position = compute_element_position(socket, x, y)
@@ -199,7 +199,7 @@ defmodule ExshomeWeb.Live.SvgCanvas do
     {:halt, socket.view.handle_move(socket, %{id: id, position: new_position})}
   end
 
-  def handle_event("move-background", %{"mouse" => %{"x" => x, "y" => y}}, %Socket{} = socket)
+  def handle_event("move-background", %{"pointer" => %{"x" => x, "y" => y}}, %Socket{} = socket)
       when is_number(x) and is_number(y) do
     %__MODULE__{
       selected: %{position: %{x: original_x, y: original_y}}
@@ -219,12 +219,12 @@ defmodule ExshomeWeb.Live.SvgCanvas do
     update_svg_meta_response(socket, &on_resize(&1, height, width))
   end
 
-  def handle_event("scroll-body-x", %{"mouse" => %{"x" => x}}, %Socket{} = socket)
+  def handle_event("scroll-body-x", %{"pointer" => %{"x" => x}}, %Socket{} = socket)
       when is_number(x) do
     update_svg_meta_response(socket, &on_body_scroll_x(&1, x))
   end
 
-  def handle_event("scroll-body-y", %{"mouse" => %{"y" => y}}, %Socket{} = socket)
+  def handle_event("scroll-body-y", %{"pointer" => %{"y" => y}}, %Socket{} = socket)
       when is_number(y) do
     update_svg_meta_response(socket, &on_body_scroll_y(&1, y))
   end
@@ -243,8 +243,8 @@ defmodule ExshomeWeb.Live.SvgCanvas do
               position:
                 compute_element_position(
                   socket,
-                  selected.mouse.x,
-                  selected.mouse.y
+                  selected.pointer.x,
+                  selected.pointer.y
                 )
             }
           )
@@ -258,7 +258,7 @@ defmodule ExshomeWeb.Live.SvgCanvas do
 
   def handle_event(
         "zoom-desktop",
-        %{"delta" => delta, "mouse" => %{"x" => x, "y" => y}},
+        %{"delta" => delta, "pointer" => %{"x" => x, "y" => y}},
         %Socket{} = socket
       )
       when is_number(delta) and is_number(x) and is_number(y) do
@@ -332,11 +332,11 @@ defmodule ExshomeWeb.Live.SvgCanvas do
     |> Map.update!(:menu, &%{&1 | open?: false})
   end
 
-  defp on_drag(%__MODULE__{trashbin: trashbin} = data, %{x: x, y: y} = _mouse_position) do
-    mouse_over_trashbin_x = x > trashbin.x && x < trashbin.x + trashbin.size
-    mouse_over_trashbin_y = y > trashbin.y && y < trashbin.y + trashbin.size
-    mouse_over_trashbin = mouse_over_trashbin_x && mouse_over_trashbin_y
-    Map.update!(data, :trashbin, &%{&1 | open?: mouse_over_trashbin})
+  defp on_drag(%__MODULE__{trashbin: trashbin} = data, %{x: x, y: y} = _pointer_position) do
+    pointer_over_trashbin_x = x > trashbin.x && x < trashbin.x + trashbin.size
+    pointer_over_trashbin_y = y > trashbin.y && y < trashbin.y + trashbin.size
+    pointer_over_trashbin = pointer_over_trashbin_x && pointer_over_trashbin_y
+    Map.update!(data, :trashbin, &%{&1 | open?: pointer_over_trashbin})
   end
 
   defp on_dragend(%__MODULE__{} = data) do
@@ -363,7 +363,7 @@ defmodule ExshomeWeb.Live.SvgCanvas do
 
   defp on_select(%__MODULE__{} = data, %{
          "id" => id,
-         "mouse" => %{"x" => mouse_x, "y" => mouse_y},
+         "pointer" => %{"x" => pointer_x, "y" => pointer_y},
          "offset" => %{"x" => offset_x, "y" => offset_y},
          "position" => %{"x" => x, "y" => y}
        })
@@ -372,13 +372,13 @@ defmodule ExshomeWeb.Live.SvgCanvas do
               is_number(y) and
               is_number(offset_x) and
               is_number(offset_y) and
-              is_number(mouse_x) and
-              is_number(mouse_y) do
+              is_number(pointer_x) and
+              is_number(pointer_y) do
     %__MODULE__{
       data
       | selected: %{
           id: id,
-          mouse: %{x: mouse_x, y: mouse_y},
+          pointer: %{x: pointer_x, y: pointer_y},
           offset: %{x: offset_x, y: offset_y},
           position: %{x: x, y: y}
         }
@@ -472,13 +472,13 @@ defmodule ExshomeWeb.Live.SvgCanvas do
     %__MODULE__{
       selected: %{
         position: %{x: original_x, y: original_y},
-        mouse: mouse
+        pointer: pointer
       },
       zoom: %{value: zoom}
     } = get_svg_meta(socket)
 
-    delta_x = (x - mouse.x) / zoom
-    delta_y = (y - mouse.y) / zoom
+    delta_x = (x - pointer.x) / zoom
+    delta_y = (y - pointer.y) / zoom
 
     new_x = original_x + delta_x
     new_y = original_y + delta_y

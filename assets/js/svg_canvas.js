@@ -9,38 +9,38 @@ const debounce = (func, timeout = 200) => {
 }
 
 export const SvgCanvas = {
-  mousePosition: {x: 0, y: 0},
+  pointerPosition: {x: 0, y: 0},
   originalTouches: null,
   selectedElement: null,
 
   mounted() {
-    this.extractMousePosition = this.extractMousePosition.bind(this);
+    this.extractPointerPosition = this.extractPointerPosition.bind(this);
 
     this.onResize = this.onResize.bind(this);
     this.onResize();
     window.addEventListener("resize", this.onResize);
 
-    const withMouse = this.withMousePositionCallback.bind(this);
-    this.el.addEventListener("mousedown", withMouse(this.onDragStart));
-    this.el.addEventListener("touchstart", withMouse(this.onDragStart));
+    const withPointer = this.withPointerPositionCallback.bind(this);
+    this.el.addEventListener("mousedown", withPointer(this.onDragStart));
+    this.el.addEventListener("touchstart", withPointer(this.onDragStart));
 
     const onDragDesktop = debounce(this.onDragDesktop.bind(this), 5);
-    this.el.addEventListener("mousemove", withMouse(onDragDesktop));
+    this.el.addEventListener("mousemove", withPointer(onDragDesktop));
 
     const onDragMobile = debounce(this.onDragMobile.bind(this), 5);
-    this.el.addEventListener("touchmove", withMouse(onDragMobile));
+    this.el.addEventListener("touchmove", withPointer(onDragMobile));
 
-    this.el.addEventListener("mouseup", withMouse(this.onDragEnd));
-    this.el.addEventListener("mouseleave", withMouse(this.onDragEnd));
-    this.el.addEventListener("touchend", withMouse(this.onDragEnd));
-    this.el.addEventListener("pointerup", withMouse(this.onDragEnd));
-    this.el.addEventListener("pointerleave", withMouse(this.onDragEnd));
-    this.el.addEventListener("touchleave", withMouse(this.onDragEnd));
-    this.el.addEventListener("touchcancel", withMouse(this.onDragEnd));
+    this.el.addEventListener("mouseup", withPointer(this.onDragEnd));
+    this.el.addEventListener("mouseleave", withPointer(this.onDragEnd));
+    this.el.addEventListener("touchend", withPointer(this.onDragEnd));
+    this.el.addEventListener("pointerup", withPointer(this.onDragEnd));
+    this.el.addEventListener("pointerleave", withPointer(this.onDragEnd));
+    this.el.addEventListener("touchleave", withPointer(this.onDragEnd));
+    this.el.addEventListener("touchcancel", withPointer(this.onDragEnd));
 
     const onZoomDesktop = debounce(this.onZoomDesktop.bind(this), 10);
-    this.el.addEventListener("mousewheel", withMouse(onZoomDesktop));
-    this.el.addEventListener("DOMMouseScroll", withMouse(onZoomDesktop));
+    this.el.addEventListener("mousewheel", withPointer(onZoomDesktop));
+    this.el.addEventListener("DOMMouseScroll", withPointer(onZoomDesktop));
 
     this.handleEvent("move-to-foreground", this.handleMoveToForeground.bind(this));
     this.handleEvent("select-item", this.handleSelectItem.bind(this));
@@ -55,7 +55,7 @@ export const SvgCanvas = {
     window.removeEventListener("resize", this.onResize);
   },
 
-  extractMousePosition(e) {
+  extractPointerPosition(e) {
     if (e.touches && e.touches.length > 0) {
       e = e.touches[0];
     }
@@ -75,8 +75,8 @@ export const SvgCanvas = {
     const parentBoundaries = this.el.getBoundingClientRect();
     const boundaries = this.selectedElement.getBoundingClientRect();
     const offset = {
-      x: this.mousePosition.x - (boundaries.x - parentBoundaries.x),
-      y: this.mousePosition.y - (boundaries.y - parentBoundaries.y)
+      x: this.pointerPosition.x - (boundaries.x - parentBoundaries.x),
+      y: this.pointerPosition.y - (boundaries.y - parentBoundaries.y)
     };
     const itemSize = {
       height: parseFloat(this.selectedElement.getAttributeNS(null, "height")),
@@ -109,7 +109,7 @@ export const SvgCanvas = {
       this.selectedElement = selectedElement;
       this.pushEvent("select", {
         id: this.selectedElement.id,
-        mouse: this.mousePosition,
+        pointer: this.pointerPosition,
         offset: this.getSelectedElementOffset(),
         position: this.getSelectedElementPosition()
       });
@@ -131,7 +131,7 @@ export const SvgCanvas = {
       this.pushEvent(
         "dragend",
         {
-          mouse: this.mousePosition
+          pointer: this.pointerPosition
         }
       );
     }
@@ -141,7 +141,7 @@ export const SvgCanvas = {
   onDragMobile(e) {
     if (e.touches.length > 1) {
       e.preventDefault();
-      const touches = [e.touches[0], e.touches[1]].map(this.extractMousePosition);
+      const touches = [e.touches[0], e.touches[1]].map(this.extractPointerPosition);
       this.zoomMobile(touches);
       return;
     }
@@ -168,7 +168,7 @@ export const SvgCanvas = {
       -1,
       Math.min(1, e.wheelDelta || -e.detail)
     );
-    this.pushEvent("zoom-desktop", {mouse: this.mousePosition, delta});
+    this.pushEvent("zoom-desktop", {pointer: this.pointerPosition, delta});
   },
 
   reconnected() {
@@ -179,7 +179,7 @@ export const SvgCanvas = {
     this.pushEvent(
       this.selectedElement.dataset["drag"],
       {
-        mouse: this.mousePosition
+        pointer: this.pointerPosition
       }
     );
   },
@@ -192,18 +192,18 @@ export const SvgCanvas = {
       }
       this.originalTouches = {
         position,
-        touches: [e.touches[0], e.touches[1]].map(this.extractMousePosition)
+        touches: [e.touches[0], e.touches[1]].map(this.extractPointerPosition)
       };
     }
   },
 
-  withMousePositionCallback(fn) {
+  withPointerPositionCallback(fn) {
     const handler = fn.bind(this);
 
     const resultFn = function(e) {
-      const mousePosition = this.extractMousePosition(e);
-      if (mousePosition) {
-        this.mousePosition = mousePosition;
+      const pointerPosition = this.extractPointerPosition(e);
+      if (pointerPosition) {
+        this.pointerPosition = pointerPosition;
       }
       handler(e);
     }
