@@ -46,8 +46,11 @@ export const SvgCanvas = {
     this.handleEvent("select-item", this.handleSelectItem.bind(this));
   },
 
-  clearState() {
+  clearSelectedElement() {
     this.selectedElement = null;
+  },
+
+  clearTouches() {
     this.originalTouches = null;
   },
 
@@ -104,6 +107,10 @@ export const SvgCanvas = {
   },
 
   handleSelectItem({id}) {
+    if (this.selectedElement) {
+      this.onDragEnd();
+    }
+
     const selectedElement = this.el.getElementById(id);
     if (selectedElement) {
       this.selectedElement = selectedElement;
@@ -122,11 +129,11 @@ export const SvgCanvas = {
       e.preventDefault();
       this.sendDragEvent(e);
     } else {
-      this.clearState();
+      this.clearSelectedElement();
     }
   },
 
-  onDragEnd(e) {
+  onDragEnd() {
     if (this.selectedElement) {
       this.pushEvent(
         "dragend",
@@ -135,11 +142,14 @@ export const SvgCanvas = {
         }
       );
     }
-    this.clearState();
+    this.clearSelectedElement();
   },
 
   onDragMobile(e) {
     if (e.touches.length > 1) {
+      if (this.selectedElement) {
+        this.clearSelectedElement();
+      }
       e.preventDefault();
       const touches = [e.touches[0], e.touches[1]].map(this.extractPointerPosition);
       this.zoomMobile(touches);

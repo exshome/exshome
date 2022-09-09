@@ -451,8 +451,12 @@ defmodule ExshomeWeb.Live.SvgCanvas do
   defp component_type("scroll-body-y-" <> _), do: :scroll_body_y
 
   defp component_type(%Socket{} = socket) do
-    %__MODULE__{selected: %{id: id}} = get_svg_meta(socket)
-    component_type(id)
+    %__MODULE__{selected: selected} = get_svg_meta(socket)
+
+    case selected do
+      %{id: id} -> component_type(id)
+      _ -> :unknown
+    end
   end
 
   defp compute_center([%{x: x1, y: y1}, %{x: x2, y: y2}]) do
