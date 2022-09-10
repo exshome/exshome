@@ -50,10 +50,9 @@ defmodule ExshomeTest.SvgCanvasHelpers do
     %{x: x, y: y, height: height, width: width}
   end
 
-  @spec render_dragend(live_view(), id :: String.t(), position :: %{x: number(), y: number()}) ::
-          String.t()
-  def render_dragend(view, id, position) do
-    assert render_hook(view, "dragend", %{id: id, position: position})
+  @spec render_dragend(live_view(), position :: %{x: number(), y: number()}) :: String.t()
+  def render_dragend(view, position) do
+    assert render_hook(view, "dragend", %{pointer: position})
   end
 
   @spec resize(live_view(), %{height: number(), width: number()}) :: String.t()
@@ -64,7 +63,13 @@ defmodule ExshomeTest.SvgCanvasHelpers do
   @spec select_element(live_view(), String.t()) :: String.t()
   def select_element(view, id) do
     %Element{x: x, y: y} = find_element_by_id(view, id)
-    render_hook(view, "select", %{id: id, position: %{x: x, y: y}})
+
+    render_hook(view, "select", %{
+      id: id,
+      offset: %{x: 0, y: 0},
+      position: %{x: x, y: y},
+      pointer: %{x: x, y: y}
+    })
   end
 
   @spec to_element(Floki.html_tree()) :: Element.t()
