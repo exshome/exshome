@@ -13,14 +13,14 @@ defmodule ExshomeWebTest.SvgCanvasTest do
 
     test "square shape", %{view: view} do
       resize(view, %{height: 1000, width: 1000})
-      assert get_viewbox(view) == %{x: 0, y: 0, height: 200, width: 200}
+      assert get_body_viewbox(view) == %{x: 0, y: 0, height: 200, width: 200}
     end
 
     test "rectangular shape", %{view: view} do
       resize(view, %{height: 1000, width: 500})
-      assert %{x: 0, y: 0, height: 200, width: 100} == get_viewbox(view)
+      assert %{x: 0, y: 0, height: 200, width: 100} == get_body_viewbox(view)
       resize(view, %{height: 500, width: 1000})
-      assert %{x: 0, y: 0, height: 100, width: 200} == get_viewbox(view)
+      assert %{x: 0, y: 0, height: 100, width: 200} == get_body_viewbox(view)
     end
   end
 
@@ -32,21 +32,21 @@ defmodule ExshomeWebTest.SvgCanvasTest do
     test "background", %{view: view} do
       select_background(view)
       render_hook(view, "move-background", %{pointer: %{x: -100, y: -100}})
-      assert match?(%{x: 20.0, y: 20.0}, get_viewbox(view))
+      assert match?(%{x: 20.0, y: 20.0}, get_body_viewbox(view))
       render_hook(view, "move-background", %{pointer: %{x: -50, y: -50}})
-      assert match?(%{x: 10.0, y: 10.0}, get_viewbox(view))
+      assert match?(%{x: 10.0, y: 10.0}, get_body_viewbox(view))
       render_dragend(view, %{x: 10, y: 10})
 
       select_background(view)
       render_hook(view, "move-background", %{pointer: %{x: -100, y: -100}})
       render_dragend(view, %{x: 10, y: 10})
-      assert match?(%{x: 32.0, y: 32.0}, get_viewbox(view))
+      assert match?(%{x: 40.0, y: 40.0}, get_body_viewbox(view))
     end
 
     test "scroll-x", %{view: view} do
       select_element(view, "scroll-body-x-default")
       render_hook(view, "scroll-body-x", %{pointer: %{x: 60}})
-      %{x: x, y: 0.0} = get_viewbox(view)
+      %{x: x, y: 0.0} = get_body_viewbox(view)
       assert_in_delta(x, 75.4, 0.1)
     end
 
@@ -60,7 +60,7 @@ defmodule ExshomeWebTest.SvgCanvasTest do
     test "scroll-y", %{view: view} do
       select_element(view, "scroll-body-y-default")
       render_hook(view, "scroll-body-y", %{pointer: %{y: 60}})
-      %{x: 0.0, y: y} = get_viewbox(view)
+      %{x: 0.0, y: y} = get_body_viewbox(view)
       assert_in_delta(y, 73.6, 0.1)
     end
 
@@ -79,13 +79,13 @@ defmodule ExshomeWebTest.SvgCanvasTest do
 
     test "desktop", %{view: view} do
       render_hook(view, "zoom-desktop", %{pointer: %{x: 0, y: 0}, delta: -1})
-      assert %{x: 0.0, y: 0.0, height: 500.0, width: 250.0} == get_viewbox(view)
+      assert %{x: 0.0, y: 0.0, height: 500.0, width: 250.0} == get_body_viewbox(view)
       render_hook(view, "zoom-desktop", %{pointer: %{x: 50, y: 50}, delta: 1})
-      assert %{x: 2.5, y: 2.5, height: 400, width: 200} == get_viewbox(view)
+      assert %{x: 2.5, y: 2.5, height: 400, width: 200} == get_body_viewbox(view)
       render_hook(view, "zoom-desktop", %{pointer: %{x: 0, y: 0}, delta: -100})
 
       assert %{x: 0, y: 0, height: @default_height, width: @default_width} ==
-               get_viewbox(view)
+               get_body_viewbox(view)
     end
 
     test "mobile zoom-out", %{view: view} do
@@ -94,14 +94,16 @@ defmodule ExshomeWebTest.SvgCanvasTest do
       zoom_mobile(view, original, [%{x: 40, y: 40}, %{x: 60, y: 60}])
 
       assert %{x: 0, y: 0, height: @default_height, width: @default_width} ==
-               get_viewbox(view)
+               get_body_viewbox(view)
     end
 
     test "mobile zoom-out, same touches", %{view: view} do
       original = %{position: %{x: 0, y: 0}, touches: [%{x: 40, y: 40}, %{x: 60, y: 60}]}
 
       zoom_mobile(view, original, [%{x: 50, y: 50}, %{x: 50, y: 50}])
-      assert %{x: 0, y: 0, height: @default_height, width: @default_width} == get_viewbox(view)
+
+      assert %{x: 0, y: 0, height: @default_height, width: @default_width} ==
+               get_body_viewbox(view)
     end
 
     test "mobile move", %{view: view} do
@@ -109,15 +111,15 @@ defmodule ExshomeWebTest.SvgCanvasTest do
 
       zoom_mobile(view, original, [%{x: 40, y: 40}, %{x: 60, y: 60}])
 
-      assert %{x: 10, y: 10, height: 400, width: 200} == get_viewbox(view)
+      assert %{x: 10, y: 10, height: 400, width: 200} == get_body_viewbox(view)
 
       zoom_mobile(view, original, [%{x: 50, y: 50}, %{x: 70, y: 70}])
 
-      assert %{x: 8, y: 8, height: 400, width: 200} == get_viewbox(view)
+      assert %{x: 8, y: 8, height: 400, width: 200} == get_body_viewbox(view)
 
       zoom_mobile(view, original, [%{x: 30, y: 30}, %{x: 50, y: 50}])
 
-      assert %{x: 12, y: 12, height: 400, width: 200} == get_viewbox(view)
+      assert %{x: 12, y: 12, height: 400, width: 200} == get_body_viewbox(view)
     end
 
     test "mobile zoom-in", %{view: view} do
@@ -125,7 +127,7 @@ defmodule ExshomeWebTest.SvgCanvasTest do
 
       zoom_mobile(view, original, [%{x: 30, y: 30}, %{x: 70, y: 70}])
 
-      assert %{x: 5, y: 5, height: 200, width: 100} == get_viewbox(view)
+      assert %{x: 5, y: 5, height: 200, width: 100} == get_body_viewbox(view)
     end
 
     test "mobile zoom-in, same touches", %{view: view} do
@@ -133,7 +135,7 @@ defmodule ExshomeWebTest.SvgCanvasTest do
 
       zoom_mobile(view, original, [%{x: 40, y: 40}, %{x: 60, y: 60}])
 
-      assert %{x: 5, y: 5, height: 200, width: 100} == get_viewbox(view)
+      assert %{x: 5, y: 5, height: 200, width: 100} == get_body_viewbox(view)
     end
   end
 

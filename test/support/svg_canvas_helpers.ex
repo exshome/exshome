@@ -21,15 +21,23 @@ defmodule ExshomeTest.SvgCanvasHelpers do
           }
   end
 
-  @typep live_view() :: %{:__struct__ => Phoenix.LiveViewTest.View}
+  @typep live_view_t() :: %{:__struct__ => Phoenix.LiveViewTest.View, :proxy => any()}
+  @typep position_t() :: %{x: number(), y: number()}
+  @typep viewbox_t() :: %{x: number(), y: number(), height: number(), width: number()}
 
-  @spec find_element_by_id(live_view(), String.t()) :: Element.t()
+  @spec compute_pointer_position(live_view_t(), position_t()) :: position_t()
+  def compute_pointer_position(view, %{x: x, y: y}) do
+    rate = get_zoom_rate(view)
+    %{x: x * rate.x, y: y * rate.y}
+  end
+
+  @spec find_element_by_id(live_view_t(), String.t()) :: Element.t()
   def find_element_by_id(view, id) do
     [%Element{id: ^id} = svg_element] = find_elements(view, "##{id}")
     svg_element
   end
 
-  @spec find_elements(live_view(), String.t()) :: list(Element.t())
+  @spec find_elements(live_view_t(), String.t()) :: list(Element.t())
   def find_elements(view, selector) do
     view
     |> render()
@@ -37,12 +45,17 @@ defmodule ExshomeTest.SvgCanvasHelpers do
     |> Enum.map(&to_element/1)
   end
 
-  @spec get_viewbox(live_view()) :: %{x: number(), y: number(), height: number(), width: number()}
-  def get_viewbox(view) do
+  @spec get_body_viewbox(live_view_t()) :: viewbox_t()
+  def get_body_viewbox(view) do
+    get_viewbox(view, "#default-body")
+  end
+
+  @spec get_viewbox(live_view_t(), String.t()) :: viewbox_t()
+  def get_viewbox(view, id) do
     [{x, ""}, {y, ""}, {width, ""}, {height, ""}] =
       view
       |> render()
-      |> Floki.attribute("#default-body", "viewbox")
+      |> Floki.attribute(id, "viewbox")
       |> List.first()
       |> String.split(~r/\s+/)
       |> Enum.map(&Float.parse/1)
@@ -50,25 +63,40 @@ defmodule ExshomeTest.SvgCanvasHelpers do
     %{x: x, y: y, height: height, width: width}
   end
 
-  @spec render_dragend(live_view(), position :: %{x: number(), y: number()}) :: String.t()
-  def render_dragend(view, position) do
-    assert render_hook(view, "dragend", %{pointer: position})
+  defp get_zoom_rate(view) do
+    %{height: body_height, width: body_width} = get_body_viewbox(view)
+    %{height: canvas_height, width: canvas_width} = get_viewbox(view, "#default-screen")
+    %{x: canvas_width / body_width, y: canvas_height / body_height}
   end
 
-  @spec resize(live_view(), %{height: number(), width: number()}) :: String.t()
+  @spec render_dragend(live_view_t(), position :: position_t()) :: String.t()
+  def render_dragend(view, position) do
+    assert render_hook(view, "dragend", %{pointer: compute_pointer_position(view, position)})
+  end
+
+  @spec render_move(live_view_t(), String.t(), position_t()) :: any()
+  def render_move(view, id, position) do
+    select_element(view, id)
+    assert_push_event(view, "move-to-foreground", %{id: ^id, parent: "default-body"})
+    render_hook(view, "move", %{pointer: compute_pointer_position(view, position)})
+  end
+
+  @spec resize(live_view_t(), %{height: number(), width: number()}) :: String.t()
   def resize(view, %{height: height, width: width}) do
     assert render_hook(view, "resize", %{height: height, width: width})
   end
 
-  @spec select_element(live_view(), String.t()) :: String.t()
+  @spec select_element(live_view_t(), String.t()) :: String.t()
   def select_element(view, id) do
     %Element{x: x, y: y} = find_element_by_id(view, id)
+
+    position = %{x: x, y: y}
 
     render_hook(view, "select", %{
       id: id,
       offset: %{x: 0, y: 0},
-      position: %{x: x, y: y},
-      pointer: %{x: x, y: y}
+      position: position,
+      pointer: compute_pointer_position(view, position)
     })
   end
 
@@ -86,6 +114,12 @@ defmodule ExshomeTest.SvgCanvasHelpers do
       x: float_attribute(svg_element, "x"),
       y: float_attribute(svg_element, "y")
     }
+  end
+
+  @spec translate_screen_to_canvas(live_view_t(), position_t()) :: position_t()
+  def translate_screen_to_canvas(view, %{x: x, y: y}) do
+    rate = get_zoom_rate(view)
+    %{x: x / rate.x, y: y / rate.y}
   end
 
   @spec float_attribute(Floki.html_tree(), String.t()) :: number()
