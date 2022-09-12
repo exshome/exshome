@@ -70,6 +70,11 @@ defmodule ExshomeWebTest.SvgCanvasTest do
       [%{y: y, height: height}] = find_elements(view, "[data-drag='scroll-body-y']")
       assert height + y < @default_height
     end
+
+    test "dragend works fine without selection", %{view: view} do
+      render_dragend(view, %{x: @default_width, y: @default_width})
+      render_dragend(view, %{x: @default_width, y: @default_width})
+    end
   end
 
   describe "zoom" do
@@ -159,6 +164,25 @@ defmodule ExshomeWebTest.SvgCanvasTest do
       toggle_menu(view)
       assert view |> element("#menu-data-default.hidden") |> has_element?()
     end
+
+    test "create item", %{view: view} do
+      assert count_elements(view) == 5
+      toggle_menu(view)
+
+      %{id: id} =
+        view
+        |> find_elements("[id^=menu-item-]")
+        |> Enum.random()
+
+      render_create_element(view, id, %{x: @default_width, y: @default_height})
+      assert count_elements(view) == 6
+    end
+  end
+
+  defp count_elements(view) do
+    view
+    |> find_elements("[id^='component-default-']")
+    |> length()
   end
 
   defp render_automations(conn) do

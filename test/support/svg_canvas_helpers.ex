@@ -69,6 +69,12 @@ defmodule ExshomeTest.SvgCanvasHelpers do
     %{x: canvas_width / body_width, y: canvas_height / body_height}
   end
 
+  @spec render_create_element(live_view_t(), String.t(), position_t()) :: any()
+  def render_create_element(view, id, position) do
+    select_element(view, id)
+    render_hook(view, "create", %{pointer: position})
+  end
+
   @spec render_dragend(live_view_t(), position :: position_t()) :: String.t()
   def render_dragend(view, position) do
     assert render_hook(view, "dragend", %{pointer: compute_pointer_position(view, position)})
