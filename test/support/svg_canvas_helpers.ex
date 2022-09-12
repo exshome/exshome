@@ -116,6 +116,15 @@ defmodule ExshomeTest.SvgCanvasHelpers do
     }
   end
 
+  @spec toggle_menu(live_view_t()) :: :ok
+  def toggle_menu(view) do
+    view
+    |> element("[phx-click^='menu-toggle-']")
+    |> render_click()
+
+    :ok
+  end
+
   @spec translate_screen_to_canvas(live_view_t(), position_t()) :: position_t()
   def translate_screen_to_canvas(view, %{x: x, y: y}) do
     rate = get_zoom_rate(view)

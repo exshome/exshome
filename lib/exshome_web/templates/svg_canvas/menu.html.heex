@@ -1,5 +1,6 @@
 <svg class="h-full w-1/2 relative" x="0" y="0">
   <foreignObject
+    id={"menu-data-#{@name}"}
     x="0"
     y="0"
     height="100%"
@@ -7,14 +8,14 @@
     class={if @menu.open?, do: "", else: "hidden"}
   >
     <section
-      id={"#{@name}-menu-overlay"}
+      id={"menu-overlay-#{@name}"}
       class="fill-gray-200/20 dark:fill-gray-700/20 h-full w-full"
       phx-click={"menu-close-#{@name}"}
       phx-hook="StopEvents"
       data-stop-events="mousewheel, DOMMouseScroll"
     >
       <section
-        id={"#{@name}-menu-background"}
+        id={"menu-background-#{@name}"}
         class="
                  flex justify-center
                  h-full w-full md:w-1/2 lg:w-2/6
@@ -38,7 +39,6 @@
     </section>
   </foreignObject>
   <svg
-    id={"#{@name}-menu"}
     height={@menu.size}
     width={@menu.size}
     x={@menu.x}

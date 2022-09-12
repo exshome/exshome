@@ -139,6 +139,28 @@ defmodule ExshomeWebTest.SvgCanvasTest do
     end
   end
 
+  describe "menu" do
+    setup %{conn: conn} do
+      %{view: setup_page(conn)}
+    end
+
+    test "close", %{view: view} do
+      assert view |> element("#menu-data-default.hidden") |> has_element?()
+      toggle_menu(view)
+      refute view |> element("#menu-data-default.hidden") |> has_element?()
+      view |> element("#menu-overlay-default") |> render_click()
+      assert view |> element("#menu-data-default.hidden") |> has_element?()
+    end
+
+    test "toggle", %{view: view} do
+      assert view |> element("#menu-data-default.hidden") |> has_element?()
+      toggle_menu(view)
+      refute view |> element("#menu-data-default.hidden") |> has_element?()
+      toggle_menu(view)
+      assert view |> element("#menu-data-default.hidden") |> has_element?()
+    end
+  end
+
   defp render_automations(conn) do
     live_with_dependencies(conn, ExshomeAutomation, :automations)
   end
