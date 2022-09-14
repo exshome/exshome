@@ -15,7 +15,7 @@ DIY Elixir-based smart home.
 - Extensibility
 - Test coverage
 - Should support different Single Board Computers
-- Run in the home network (NAT)
+- Designed to run in the home network (NAT)
 
 ## Getting started with development
 - Install dependencies with `mix deps.get`
