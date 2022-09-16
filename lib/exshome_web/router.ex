@@ -19,12 +19,7 @@ defmodule ExshomeWeb.Router do
 
     live "/", ExshomeWeb.Live.HomePage, :index, as: :home
 
-    for module <- Exshome.App.apps() do
-      for page <- module.pages() do
-        path = Path.join("/#{module.prefix()}", page.path())
-        live(path, page, page.action(), as: module.prefix())
-      end
-    end
+    live("/:app/:action", ExshomeWeb.Live.AppPage, :index, as: :router)
   end
 
   # Other scopes may use custom stacks.

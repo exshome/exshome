@@ -2,7 +2,7 @@ defmodule Exshome.App do
   @moduledoc """
   Generic module for live applications.
   """
-
+  alias ExshomeWeb.Router.Helpers, as: Routes
   @callback namespace() :: atom()
   @callback pages() :: list(atom())
   @callback preview() :: atom()
@@ -62,10 +62,14 @@ defmodule Exshome.App do
       def template_root, do: @template_root
 
       def path(conn_or_endpoint, action, params \\ []) do
-        apply(
-          ExshomeWeb.Router.Helpers,
-          :"#{prefix()}_path",
-          [conn_or_endpoint, action, params]
+        page = Enum.find(pages(), fn page -> page.action() == action end)
+
+        Routes.router_path(
+          conn_or_endpoint,
+          :index,
+          prefix(),
+          page.path(),
+          params
         )
       end
     end

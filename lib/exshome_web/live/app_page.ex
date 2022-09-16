@@ -17,6 +17,38 @@ defmodule ExshomeWeb.Live.AppPage do
   @callback on_app_event(Event.event_message(), Socket.t()) :: Socket.t()
   @optional_callbacks [on_app_event: 2]
 
+  use ExshomeWeb, :basic_live_view
+
+  @impl LiveView
+  def mount(%{"app" => app_name, "action" => action} = params, session, socket) do
+    app =
+      Enum.find(
+        Exshome.App.apps(),
+        fn app -> Atom.to_string(app.prefix) == app_name end
+      ) || raise "Unknown app"
+
+    view =
+      Enum.find(
+        app.pages,
+        fn page -> page.path() == action end
+      ) || raise "Unknown page"
+
+    %{lifecycle: lifecycle} = view.__live__()
+
+    socket =
+      socket
+      |> Map.put(:view, view)
+      |> Map.update!(:private, &Map.put(&1, :lifecycle, lifecycle))
+
+    {:cont, socket} = LiveView.Lifecycle.mount(params, session, socket)
+
+    if function_exported?(view, :mount, 3) do
+      view.mount(params, session, socket)
+    else
+      {:ok, socket}
+    end
+  end
+
   def on_mount(_, _params, _session, %Socket{} = socket) do
     socket =
       LiveView.attach_hook(
@@ -29,6 +61,7 @@ defmodule ExshomeWeb.Live.AppPage do
     {:cont, put_dependencies(socket, socket.view.dependencies())}
   end
 
+  @impl LiveView
   def handle_info({Dependency, {module, value}}, %Socket{} = socket) do
     key = get_dependencies(socket)[module]
 
@@ -48,6 +81,7 @@ defmodule ExshomeWeb.Live.AppPage do
 
   def handle_info(_event, %Socket{} = socket), do: {:cont, socket}
 
+  @impl LiveView
   def render(%{socket: %Socket{} = socket, deps: deps} = assigns) do
     missing_deps =
       deps
@@ -158,6 +192,7 @@ defmodule ExshomeWeb.Live.AppPage do
   if @hook_module do
     defoverridable(handle_info: 2)
 
+    @impl LiveView
     def handle_info(event, %Socket{} = socket) do
       original_result = super(event, socket)
       @hook_module.handle_info(event, socket, original_result)
