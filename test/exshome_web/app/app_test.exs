@@ -1,4 +1,4 @@
-defmodule ExshomeWebTest.AppTest do
+defmodule ExshomeWebTest.App.AppTest do
   use ExUnit.Case, async: true
   alias ExshomeWeb.App
 

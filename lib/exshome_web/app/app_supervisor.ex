@@ -1,10 +1,9 @@
-defmodule Exshome.Dependency.GenServerDependency.Supervisor do
+defmodule ExshomeWeb.App.AppSupervisor do
   @moduledoc """
-  Supervisor that starts all GenServerDependencies
+  Supervisor that starts all available applications.
   """
 
   use Supervisor, shutdown: :infinity
-  alias Exshome.Dependency.GenServerDependency
 
   def start_link(opts) when is_map(opts) do
     {supervisor_opts, child_opts} = Map.pop(opts, :supervisor_opts, name: __MODULE__)
@@ -16,10 +15,7 @@ defmodule Exshome.Dependency.GenServerDependency.Supervisor do
     {apps, child_opts} = Map.pop(child_opts, :apps, ExshomeWeb.App.apps())
 
     apps
-    |> Enum.map(&GenServerDependency.modules/1)
-    |> Enum.map(&MapSet.to_list/1)
-    |> List.flatten()
-    |> Enum.map(&{&1.get_child_module(), child_opts})
+    |> Enum.map(&{&1, child_opts})
     |> Supervisor.init(strategy: :one_for_one)
   end
 end

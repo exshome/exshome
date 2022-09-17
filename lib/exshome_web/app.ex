@@ -2,12 +2,30 @@ defmodule ExshomeWeb.App do
   @moduledoc """
   Generic module for live applications.
   """
+
+  alias Exshome.Dependency.GenServerDependency
   alias ExshomeWeb.Router.Helpers, as: Routes
+
   @callback namespace() :: atom()
   @callback pages() :: list(atom())
   @callback preview() :: atom()
   @callback prefix() :: atom()
   @callback template_root() :: String.t()
+
+  @spec start_app_link(module(), map()) :: Supervisor.on_start()
+  def start_app_link(module, opts) when is_map(opts) do
+    {supervisor_opts, child_opts} = Map.pop(opts, :supervisor_opts, name: module)
+    Supervisor.start_link(module, child_opts, supervisor_opts)
+  end
+
+  @spec init_app(module(), map()) :: {:ok, tuple()}
+  def init_app(module, child_opts) when is_map(child_opts) do
+    module
+    |> GenServerDependency.modules()
+    |> MapSet.to_list()
+    |> Enum.map(&{&1.get_child_module(), child_opts})
+    |> Supervisor.init(strategy: :one_for_one)
+  end
 
   @apps Application.compile_env(:exshome, Exshome.Application, [])[:apps] || []
   def apps, do: @apps
@@ -77,6 +95,13 @@ defmodule ExshomeWeb.App do
       def path(conn_or_endpoint, action, params \\ []) do
         App.path(__MODULE__, conn_or_endpoint, action, params)
       end
+
+      use Supervisor, shutdown: :infinity
+
+      def start_link(opts), do: App.start_app_link(__MODULE__, opts)
+
+      @impl Supervisor
+      def init(opts), do: App.init_app(__MODULE__, opts)
     end
   end
 end
