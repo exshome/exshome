@@ -19,7 +19,7 @@ defmodule ExshomeWeb.Router do
 
     live "/", ExshomeWeb.Live.HomePage, :index, as: :home
 
-    live("/:app/:action", ExshomeWeb.Live.AppPage, :index, as: :router)
+    live("/app/:app/:action", ExshomeWeb.Live.AppPage, :index, as: :router)
   end
 
   # Other scopes may use custom stacks.
