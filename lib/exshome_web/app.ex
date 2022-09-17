@@ -22,6 +22,19 @@ defmodule ExshomeWeb.App do
     )
   end
 
+  @spec path(module(), struct(), atom(), Keyword.t()) :: String.t()
+  def path(module, conn_or_endpoint, action, params \\ []) do
+    page = Enum.find(module.pages(), fn page -> page.action() == action end)
+
+    Routes.router_path(
+      conn_or_endpoint,
+      :index,
+      module.prefix(),
+      page.action(),
+      params
+    )
+  end
+
   defmacro __using__(config) do
     quote do
       alias ExshomeWeb.App
@@ -62,15 +75,7 @@ defmodule ExshomeWeb.App do
       def template_root, do: @template_root
 
       def path(conn_or_endpoint, action, params \\ []) do
-        page = Enum.find(pages(), fn page -> page.action() == action end)
-
-        Routes.router_path(
-          conn_or_endpoint,
-          :index,
-          prefix(),
-          page.path(),
-          params
-        )
+        App.path(__MODULE__, conn_or_endpoint, action, params)
       end
     end
   end

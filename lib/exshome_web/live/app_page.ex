@@ -12,7 +12,7 @@ defmodule ExshomeWeb.Live.AppPage do
   @callback app_module() :: atom()
   @callback view_module() :: atom()
   @callback icon() :: String.t()
-  @callback path() :: String.t()
+  @callback template_name() :: String.t()
   @callback dependencies() :: Keyword.t()
   @callback on_app_event(Event.event_message(), Socket.t()) :: Socket.t()
   @optional_callbacks [on_app_event: 2]
@@ -21,6 +21,8 @@ defmodule ExshomeWeb.Live.AppPage do
 
   @impl LiveView
   def mount(%{"app" => app_name, "action" => action} = params, session, socket) do
+    action = String.to_existing_atom(action)
+
     app =
       Enum.find(
         ExshomeWeb.App.apps(),
@@ -30,7 +32,7 @@ defmodule ExshomeWeb.Live.AppPage do
     view =
       Enum.find(
         app.pages,
-        fn page -> page.path() == action end
+        fn page -> page.action() == action end
       ) || raise "Unknown page"
 
     %{lifecycle: lifecycle} = view.__live__()
@@ -129,7 +131,7 @@ defmodule ExshomeWeb.Live.AppPage do
     view.view_module()
   end
 
-  defp template_name(%Socket{view: view}), do: view.path()
+  defp template_name(%Socket{view: view}), do: view.template_name()
 
   defmacro __using__(config) do
     quote do
@@ -168,7 +170,7 @@ defmodule ExshomeWeb.Live.AppPage do
       def view_module, do: @view_module
 
       @impl AppPage
-      def path, do: "#{@action}.html"
+      def template_name, do: "#{@action}.html"
 
       @impl AppPage
       def icon, do: unquote(config[:icon] || "")
