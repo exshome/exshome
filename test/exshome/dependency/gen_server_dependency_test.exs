@@ -4,8 +4,8 @@ defmodule ExshomeTest.Dependency.GenServerDependencyTest do
   """
   use Exshome.DataCase, async: true
 
-  alias Exshome.App
   alias Exshome.Dependency.GenServerDependency
+  alias ExshomeWeb.App
 
   describe "validate_module!/2" do
     test "calls validate_config!/2" do

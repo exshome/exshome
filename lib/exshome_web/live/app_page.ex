@@ -23,7 +23,7 @@ defmodule ExshomeWeb.Live.AppPage do
   def mount(%{"app" => app_name, "action" => action} = params, session, socket) do
     app =
       Enum.find(
-        Exshome.App.apps(),
+        ExshomeWeb.App.apps(),
         fn app -> Atom.to_string(app.prefix) == app_name end
       ) || raise "Unknown app"
 

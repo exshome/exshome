@@ -13,7 +13,7 @@ defmodule Exshome.Dependency.GenServerDependency.Supervisor do
 
   @impl Supervisor
   def init(child_opts) when is_map(child_opts) do
-    {apps, child_opts} = Map.pop(child_opts, :apps, Exshome.App.apps())
+    {apps, child_opts} = Map.pop(child_opts, :apps, ExshomeWeb.App.apps())
 
     apps
     |> Enum.map(&GenServerDependency.modules/1)
