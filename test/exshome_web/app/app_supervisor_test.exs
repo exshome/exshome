@@ -12,20 +12,11 @@ defmodule ExshomeWebTest.App.AppSupervisorTest do
         |> Map.put(:supervisor_opts, name: nil)
         |> AppSupervisor.start_link()
 
-      modules =
-        pid
-        |> Supervisor.which_children()
-        |> Enum.map(&elem(&1, 0))
-        |> Enum.into(MapSet.new())
+      started_modules = get_started_dependencies(pid)
 
-      all_modules =
-        App.apps()
-        |> Enum.map(&GenServerDependency.modules/1)
-        |> Enum.flat_map(&MapSet.to_list/1)
-        |> Enum.map(& &1.get_child_module())
-        |> Enum.into(MapSet.new())
+      all_modules = get_child_modules_for_apps(App.apps())
 
-      assert MapSet.equal?(all_modules, modules)
+      assert MapSet.equal?(all_modules, started_modules)
       Supervisor.stop(pid)
     end
 
@@ -37,21 +28,30 @@ defmodule ExshomeWebTest.App.AppSupervisorTest do
           |> Map.put(:supervisor_opts, name: nil)
           |> AppSupervisor.start_link()
 
-        modules =
-          pid
-          |> Supervisor.which_children()
-          |> Enum.map(&elem(&1, 0))
-          |> Enum.into(MapSet.new())
+        started_modules = get_started_dependencies(pid)
 
-        app_modules =
-          app
-          |> GenServerDependency.modules()
-          |> Enum.map(& &1.get_child_module())
-          |> Enum.into(MapSet.new())
+        app_modules = get_child_modules_for_apps([app])
 
-        assert MapSet.equal?(app_modules, modules)
+        assert MapSet.equal?(app_modules, started_modules)
         Supervisor.stop(pid)
       end
     end
+  end
+
+  defp get_started_dependencies(pid) do
+    pid
+    |> Supervisor.which_children()
+    |> Enum.map(&elem(&1, 1))
+    |> Enum.flat_map(&Supervisor.which_children/1)
+    |> Enum.map(&elem(&1, 0))
+    |> Enum.into(MapSet.new())
+  end
+
+  defp get_child_modules_for_apps(apps) do
+    apps
+    |> Enum.map(&GenServerDependency.modules/1)
+    |> Enum.flat_map(&MapSet.to_list/1)
+    |> Enum.map(& &1.get_child_module())
+    |> Enum.into(MapSet.new())
   end
 end
