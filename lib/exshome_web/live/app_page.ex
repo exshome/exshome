@@ -17,7 +17,7 @@ defmodule ExshomeWeb.Live.AppPage do
   @callback on_app_event(Event.event_message(), Socket.t()) :: Socket.t()
   @optional_callbacks [on_app_event: 2]
 
-  use ExshomeWeb, :basic_live_view
+  use ExshomeWeb, :live_view
 
   @impl LiveView
   def mount(%{"app" => app_name, "action" => action} = params, session, socket) do

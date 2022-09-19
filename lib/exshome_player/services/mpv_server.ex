@@ -67,7 +67,7 @@ defmodule ExshomePlayer.Services.MpvServer do
   end
 
   @spec find_mpv_executable() :: {:ok, charlist()} | {:error, :not_found}
-  defp find_mpv_executable do
+  def find_mpv_executable do
     case System.find_executable("mpv") do
       nil -> {:error, :not_found}
       path -> {:ok, String.to_charlist(path)}

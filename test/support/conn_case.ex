@@ -16,6 +16,7 @@ defmodule ExshomeWeb.ConnCase do
   """
 
   use ExUnit.CaseTemplate
+  alias ExshomeWeb.App
 
   using do
     quote do
@@ -38,6 +39,8 @@ defmodule ExshomeWeb.ConnCase do
     ExshomeTest.TestRegistry.allow(self(), self())
     ExshomeTest.TestFileUtils.generate_test_folder()
     ExshomeTest.TestDbUtils.start_test_db()
+
+    :ok = Exshome.SystemRegistry.register!(App, :available_apps, App.available_apps())
 
     conn = Phoenix.ConnTest.build_conn()
     key = :live_view_connect_info

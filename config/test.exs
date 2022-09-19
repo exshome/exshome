@@ -25,6 +25,7 @@ config :exshome,
     {Exshome.Repo, ExshomeTest.Hooks.Repo},
     {Exshome.SystemRegistry, ExshomeTest.Hooks.SystemRegistry},
     {ExshomePlayer.Services.MpvServer, ExshomeTest.Hooks.MpvServer},
+    {ExshomeWeb.App.AppSupervisor, ExshomeTest.Hooks.Dependency},
     {ExshomeWeb.Live.AppPage, ExshomeTest.Hooks.AppPage},
     {:live_view, [ExshomeTest.Hooks.LiveView]}
   ]

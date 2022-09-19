@@ -9,7 +9,13 @@ defmodule ExshomeTest.TestRegistry do
 
   @spec allow(parent :: pid(), allow :: pid()) :: :ok
   def allow(parent, allow) when is_pid(parent) and is_pid(allow) do
-    :ok = SystemRegistry.put!({__MODULE__, :parent, allow}, parent)
+    key = {__MODULE__, :parent, allow}
+
+    case SystemRegistry.get(key) do
+      {:ok, ^parent} -> :ok
+      {:ok, _} -> raise "Process #{inspect(self())} already has a parent"
+      {:error, "Unable to find a value" <> _} -> SystemRegistry.put!(key, parent)
+    end
   end
 
   @spec put(key :: any(), value :: any()) :: :ok

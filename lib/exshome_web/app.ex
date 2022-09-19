@@ -6,6 +6,7 @@ defmodule ExshomeWeb.App do
   alias Exshome.Dependency.GenServerDependency
   alias ExshomeWeb.Router.Helpers, as: Routes
 
+  @callback can_start?() :: boolean()
   @callback namespace() :: atom()
   @callback pages() :: list(atom())
   @callback preview() :: atom()
@@ -28,7 +29,14 @@ defmodule ExshomeWeb.App do
   end
 
   @apps Application.compile_env(:exshome, Exshome.Application, [])[:apps] || []
-  def apps, do: @apps
+  def available_apps, do: @apps
+
+  def apps do
+    case Exshome.SystemRegistry.get_by_id(__MODULE__, :available_apps) do
+      {:ok, started_apps} -> started_apps
+      _ -> []
+    end
+  end
 
   @spec validate_module!(Macro.Env.t(), String.t()) :: keyword()
   def validate_module!(%Macro.Env{module: module}, _bytecode) do
@@ -71,6 +79,9 @@ defmodule ExshomeWeb.App do
                  |> String.to_atom()
 
       @impl App
+      def can_start?, do: true
+
+      @impl App
       def namespace, do: @namespace
 
       @impl App
@@ -91,6 +102,8 @@ defmodule ExshomeWeb.App do
 
       @impl App
       def template_root, do: @template_root
+
+      defoverridable(can_start?: 0)
 
       def path(conn_or_endpoint, action, params \\ []) do
         App.path(__MODULE__, conn_or_endpoint, action, params)
