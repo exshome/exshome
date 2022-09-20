@@ -2,7 +2,7 @@ defmodule ExshomeTest.Dependency.GenServerDependencyTest do
   @moduledoc """
   Test GenServerDependency API.
   """
-  use Exshome.DataCase, async: true
+  use ExshomeTest.DataCase, async: true
 
   alias Exshome.Dependency.GenServerDependency
 

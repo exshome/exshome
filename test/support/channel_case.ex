@@ -1,4 +1,4 @@
-defmodule ExshomeWeb.ChannelCase do
+defmodule ExshomeWebTest.ChannelCase do
   @moduledoc """
   This module defines the test case to be used by
   channel tests.
@@ -21,7 +21,7 @@ defmodule ExshomeWeb.ChannelCase do
     quote do
       # Import conveniences for testing with channels
       import Phoenix.ChannelTest
-      import ExshomeWeb.ChannelCase
+      import ExshomeWebTest.ChannelCase
 
       # The default endpoint for testing
       @endpoint ExshomeWeb.Endpoint

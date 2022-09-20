@@ -1,5 +1,5 @@
 defmodule ExshomeTest.EventTest do
-  use Exshome.DataCase, async: true
+  use ExshomeTest.DataCase, async: true
   alias Exshome.Event
   alias ExshomePlayer.Events.{MpvEvent, PlayerFileEnd}
   alias ExshomePlayer.Services.PlayerState

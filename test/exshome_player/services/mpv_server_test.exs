@@ -1,5 +1,5 @@
 defmodule ExshomePlayerTest.Services.MpvServerTest do
-  use Exshome.DataCase, async: true
+  use ExshomeTest.DataCase, async: true
 
   alias Exshome.Dependency
   alias ExshomePlayer.Services.MpvServer

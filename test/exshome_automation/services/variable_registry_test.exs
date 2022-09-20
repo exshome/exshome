@@ -1,5 +1,5 @@
 defmodule ExshomeAutomationTest.Services.VariableRegistryTest do
-  use Exshome.DataCase, async: true
+  use ExshomeTest.DataCase, async: true
 
   alias Exshome.Dependency
   alias ExshomeAutomation.Services.VariableRegistry

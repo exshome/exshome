@@ -1,5 +1,5 @@
 defmodule ExshomeWebTest.App.AppSupervisorTest do
-  use Exshome.DataCase, async: true
+  use ExshomeTest.DataCase, async: true
   alias Exshome.Dependency.GenServerDependency
   alias ExshomeWeb.App
   alias ExshomeWeb.App.AppSupervisor

@@ -1,5 +1,5 @@
 defmodule ExshomeAutomationTest.Web.ShowVariableModalTest do
-  use ExshomeWeb.ConnCase, async: true
+  use ExshomeWebTest.ConnCase, async: true
 
   alias Exshome.Datatype
   alias Exshome.Dependency

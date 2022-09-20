@@ -1,4 +1,4 @@
-defmodule Exshome.DataCase do
+defmodule ExshomeTest.DataCase do
   @moduledoc """
   This module defines the setup for tests requiring
   access to the application's data layer.
@@ -23,7 +23,7 @@ defmodule Exshome.DataCase do
       import Ecto
       import Ecto.Changeset
       import Ecto.Query
-      import Exshome.DataCase
+      import ExshomeTest.DataCase
       import ExshomeTest.TestHelpers
     end
   end

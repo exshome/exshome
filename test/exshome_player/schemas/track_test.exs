@@ -1,5 +1,5 @@
 defmodule ExshomePlayerTest.Schemas.TrackTest do
-  use Exshome.DataCase, async: true
+  use ExshomeTest.DataCase, async: true
   alias ExshomePlayer.Schemas.Track
   alias ExshomeTest.TestMpvServer
 

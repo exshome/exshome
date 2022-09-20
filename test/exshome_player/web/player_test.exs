@@ -1,5 +1,5 @@
 defmodule ExshomePlayerTest.Web.PlayerTest do
-  use ExshomeWeb.ConnCase, async: true
+  use ExshomeWebTest.ConnCase, async: true
 
   import ExshomeTest.Fixtures
   alias Exshome.Dependency

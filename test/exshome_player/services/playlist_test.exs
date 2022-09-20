@@ -1,5 +1,5 @@
 defmodule ExshomePlayerTest.Services.PlaylistTest do
-  use Exshome.DataCase, async: true
+  use ExshomeTest.DataCase, async: true
 
   import ExshomeTest.Fixtures
   alias Exshome.Dependency

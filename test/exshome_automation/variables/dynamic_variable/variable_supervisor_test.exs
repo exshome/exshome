@@ -1,5 +1,5 @@
 defmodule ExshomeAutomationTest.Variables.DynamicVariable.VariableSupervisorTest do
-  use Exshome.DataCase, async: true
+  use ExshomeTest.DataCase, async: true
 
   alias Exshome.Datatype
   alias Exshome.Dependency

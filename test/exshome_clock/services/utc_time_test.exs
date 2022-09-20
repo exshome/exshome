@@ -1,5 +1,5 @@
 defmodule ExshomeClockTest.Services.UtcTimeTest do
-  use Exshome.DataCase, async: true
+  use ExshomeTest.DataCase, async: true
   import ExshomeTest.TestHelpers
   alias Exshome.Dependency
   alias ExshomeClock.Services.UtcTime

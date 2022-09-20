@@ -1,5 +1,5 @@
 defmodule ExshomeTest.SettingsTest do
-  use Exshome.DataCase, async: true
+  use ExshomeTest.DataCase, async: true
   import ExshomeTest.MacroHelpers, only: [compile_with_settings: 2]
 
   alias Exshome.Settings

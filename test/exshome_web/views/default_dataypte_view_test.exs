@@ -1,5 +1,5 @@
 defmodule ExshomeWebTest.DefaultDatatypeViewTest do
-  use ExshomeWeb.ConnCase, async: true
+  use ExshomeWebTest.ConnCase, async: true
 
   import ExshomeTest.Fixtures
 

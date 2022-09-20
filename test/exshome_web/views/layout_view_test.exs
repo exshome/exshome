@@ -1,5 +1,5 @@
-defmodule ExshomeWeb.LayoutViewTest do
-  use ExshomeWeb.ConnCase, async: true
+defmodule ExshomeWebTest.LayoutViewTest do
+  use ExshomeWebTest.ConnCase, async: true
 
   # When testing helpers, you may want to import Phoenix.HTML and
   # use functions such as safe_to_string() to convert the helper

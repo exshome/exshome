@@ -3,7 +3,7 @@ defmodule ExshomeClockTest.Services.LocalTimeTest do
   Tests for LocalTime dependency.
   """
 
-  use Exshome.DataCase, async: true
+  use ExshomeTest.DataCase, async: true
   alias Exshome.Dependency
   alias Exshome.Settings
   alias ExshomeClock.Services.{LocalTime, UtcTime}

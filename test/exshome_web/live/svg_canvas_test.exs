@@ -1,5 +1,5 @@
 defmodule ExshomeWebTest.SvgCanvasTest do
-  use ExshomeWeb.ConnCase, async: true
+  use ExshomeWebTest.ConnCase, async: true
   import ExshomeTest.SvgCanvasHelpers
 
   @default_width 1000

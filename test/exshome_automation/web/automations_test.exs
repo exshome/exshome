@@ -1,5 +1,5 @@
 defmodule ExshomeAutomationTest.Web.AutomationsTest do
-  use ExshomeWeb.ConnCase, async: true
+  use ExshomeWebTest.ConnCase, async: true
   import ExshomeTest.SvgCanvasHelpers
 
   @default_height 1000

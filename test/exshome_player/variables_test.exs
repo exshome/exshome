@@ -1,5 +1,5 @@
 defmodule ExshomePlayerTest.VariablesTest do
-  use Exshome.DataCase, async: true
+  use ExshomeTest.DataCase, async: true
 
   import ExshomeTest.Fixtures
 

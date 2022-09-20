@@ -1,4 +1,4 @@
-defmodule ExshomeWeb.ConnCase do
+defmodule ExshomeWebTest.ConnCase do
   @moduledoc """
   This module defines the test case to be used by
   tests that require setting up a connection.
@@ -23,7 +23,7 @@ defmodule ExshomeWeb.ConnCase do
       # Import conveniences for testing with connections
       import Plug.Conn
       import Phoenix.ConnTest
-      import ExshomeWeb.ConnCase
+      import ExshomeWebTest.ConnCase
       import Phoenix.LiveViewTest
 
       alias ExshomeWeb.Router.Helpers, as: Routes

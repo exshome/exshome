@@ -1,5 +1,5 @@
 defmodule ExshomePlayerTest.Services.PlayerStateTest do
-  use Exshome.DataCase, async: true
+  use ExshomeTest.DataCase, async: true
 
   import ExshomeTest.Fixtures
   import ExshomeTest.TestMpvServer

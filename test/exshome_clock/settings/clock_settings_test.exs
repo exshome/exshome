@@ -1,5 +1,5 @@
 defmodule ExshomeClockTest.Settings.ClockSettingsTest do
-  use Exshome.DataCase, async: true
+  use ExshomeTest.DataCase, async: true
   alias Exshome.Settings
   alias ExshomeClock.Settings.ClockSettings
 
