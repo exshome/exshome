@@ -17,7 +17,7 @@
              shadow-md shadow-gray-200 dark:shadow-gray-600"
     >
       <p class="text-center">Click to upload or drag and drop files.</p>
-      <%= live_file_input(@uploads.music, class: "hidden") %>
+      <.live_file_input upload={@uploads.music} />
     </label>
     <.button phx_disable_with="Uploading..." type="submit">Upload</.button>
   </section>

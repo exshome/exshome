@@ -36,7 +36,7 @@ defmodule ExshomeWeb.DefaultDatatypeView do
     extra_attributes =
       for attr <- [:min, :max], value = Map.get(validations, attr), do: {attr, value}
 
-    assigns = LiveView.assign(assigns, :extra_attributes, extra_attributes)
+    assigns = assign(assigns, :extra_attributes, extra_attributes)
 
     ~H"""
     <input

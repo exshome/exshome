@@ -1,6 +1,6 @@
 <div class="flex">
   <%= for item <- navigation_data(@socket) do %>
-    <%= live_redirect(to: item.path) do %>
+    <.link navigate={item.path}>
       <div class={
         ~s/
           p-2 m-1
@@ -11,6 +11,6 @@
         <%= item.icon %>
         <span class="hidden md:inline"><%= item.name %></span>
       </div>
-    <% end %>
+    </.link>
   <% end %>
 </div>

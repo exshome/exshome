@@ -4,7 +4,7 @@ defmodule ExshomeWeb.DatatypeView do
   """
 
   alias Exshome.Datatype
-  alias Phoenix.LiveView
+  alias Phoenix.Component
   alias Phoenix.LiveView.Rendered
 
   @callback render_value(assigns :: map()) :: Rendered.t()
@@ -24,8 +24,8 @@ defmodule ExshomeWeb.DatatypeView do
     renderer = Map.fetch!(available_renderers(), type)
 
     assigns
-    |> LiveView.assign_new(:validations, fn _ -> %{} end)
-    |> LiveView.assign_new(:class, fn _ -> "" end)
+    |> Component.assign_new(:validations, fn _ -> %{} end)
+    |> Component.assign_new(:class, fn _ -> "" end)
     |> renderer.render_input()
   end
 
@@ -33,8 +33,7 @@ defmodule ExshomeWeb.DatatypeView do
     quote do
       import Exshome.Tag, only: [add_tag: 2]
       alias ExshomeWeb.DatatypeView
-      alias Phoenix.LiveView
-      import Phoenix.LiveView.Helpers
+      import Phoenix.Component
 
       for type <- unquote(datatypes) do
         add_tag(DatatypeView, key: type)

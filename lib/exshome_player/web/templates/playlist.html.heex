@@ -9,8 +9,8 @@
   </section>
   <section class="flex-grow h-full overflow-auto flex items-center">
     <div class="w-full max-h-full">
-      <.list rows={@deps.playlist.tracks} let={track}>
-        <:row_before let={track}>
+      <.list :let={track} rows={@deps.playlist.tracks}>
+        <:row_before :let={track}>
           <.button
             phx-click="play"
             phx-value-id={track.id}
@@ -19,7 +19,7 @@
             <%= if @deps.playlist.current_id == track.id, do: "🎧", else: "▶️" %>
           </.button>
         </:row_before>
-        <:row_after let={track}>
+        <:row_after :let={track}>
           <%= if track.type == :url do %>
             <.button phx-click="edit" phx-value-id={track.id} class="md:text-2xl">
               ️✏️

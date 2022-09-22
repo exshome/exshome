@@ -3,6 +3,7 @@ defmodule ExshomeWeb.Live.SvgCanvas do
   Generic functions to interact with svg canvas.
   """
   import Phoenix.LiveView
+  import Phoenix.Component
   alias Phoenix.LiveView.Socket
 
   defstruct [

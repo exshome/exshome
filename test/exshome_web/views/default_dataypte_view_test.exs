@@ -5,7 +5,7 @@ defmodule ExshomeWebTest.DefaultDatatypeViewTest do
 
   alias Exshome.Datatype
   alias ExshomeWeb.DatatypeView
-  alias Phoenix.LiveView
+  alias Phoenix.Component
 
   describe "Boolean" do
     test "render_value/1" do
@@ -66,7 +66,7 @@ defmodule ExshomeWebTest.DefaultDatatypeViewTest do
     assigns = Keyword.merge([type: datatype, value: value, name: name], opts)
 
     %{__changed__: %{}}
-    |> LiveView.assign(assigns)
+    |> Component.assign(assigns)
     |> DatatypeView.datatype_input()
     |> rendered_to_string()
   end

@@ -8,8 +8,8 @@ defmodule ExshomeWeb.Live.SvgCanvas.CanvasComponent do
 
   defmacro __using__(_) do
     quote do
+      import Phoenix.Component
       import Phoenix.LiveView
-      import Phoenix.LiveView.Helpers
       alias ExshomeWeb.Live.SvgCanvas.CanvasComponent
       alias ExshomeWeb.SvgCanvasView
 

@@ -3,21 +3,23 @@ defmodule ExshomeWeb.Components do
   Generic application components.
   """
 
-  alias Phoenix.LiveView
   use Phoenix.HTML
-  import Phoenix.LiveView.Helpers
+  import Phoenix.Component
   import ExshomeWeb.ErrorHelpers
 
   def button(assigns) do
     extra = assigns_to_attributes(assigns, [:class])
     extra_classes = assigns[:class] || ""
-    assigns = LiveView.assign(assigns, extra: extra, extra_classes: extra_classes)
+    assigns = assign(assigns, extra: extra, extra_classes: extra_classes)
 
     ~H"""
-    <button class={"p-2 m-1 rounded-xl
+    <button
+      class={"p-2 m-1 rounded-xl
              bg-gray-200 dark:bg-gray-600 enabled:hover:bg-gray-300 enabled:dark:hover:bg-gray-500
              disabled:text-gray-300 disabled:dark:text-gray-500
-             shadow-md shadow-gray-600 dark:shadow-gray-700 #{@extra_classes}"} {@extra}>
+             shadow-md shadow-gray-600 dark:shadow-gray-700 #{@extra_classes}"}
+      {@extra}
+    >
       <%= render_slot(@inner_block) %>
     </button>
     """
@@ -48,11 +50,11 @@ defmodule ExshomeWeb.Components do
 
   def live_form(assigns) do
     extra = assigns_to_attributes(assigns, [:changeset, :fields])
-    assigns = LiveView.assign(assigns, :extra, extra)
+    assigns = assign(assigns, :extra, extra)
 
     ~H"""
     <.form
-      let={f}
+      :let={f}
       for={@changeset}
       phx-change="validate"
       phx-submit="save"
@@ -93,8 +95,8 @@ defmodule ExshomeWeb.Components do
   def list(assigns) do
     assigns =
       assigns
-      |> LiveView.assign_new(:row_before, fn -> [] end)
-      |> LiveView.assign_new(:row_after, fn -> [] end)
+      |> assign_new(:row_before, fn -> [] end)
+      |> assign_new(:row_after, fn -> [] end)
 
     ~H"""
     <ul class="mx-2 flex flex-col items-center justify-center">

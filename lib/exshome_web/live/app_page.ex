@@ -6,7 +6,7 @@ defmodule ExshomeWeb.Live.AppPage do
   alias Exshome.Event
   alias Phoenix.LiveView
   alias Phoenix.LiveView.Socket
-  import Phoenix.LiveView.Helpers
+  import Phoenix.Component
 
   @callback action() :: atom()
   @callback app_module() :: atom()
@@ -68,7 +68,7 @@ defmodule ExshomeWeb.Live.AppPage do
     key = get_dependencies(socket)[module]
 
     if key do
-      socket = LiveView.update(socket, :deps, &Map.put(&1, key, value))
+      socket = update(socket, :deps, &Map.put(&1, key, value))
 
       {:halt, socket}
     else
@@ -122,7 +122,7 @@ defmodule ExshomeWeb.Live.AppPage do
       socket
       | private: Map.put(socket.private, __MODULE__, mapping)
     }
-    |> LiveView.assign(deps: deps)
+    |> assign(deps: deps)
   end
 
   defp get_dependencies(%Socket{private: private}), do: Map.fetch!(private, __MODULE__)

@@ -2,6 +2,7 @@ defmodule ExshomeWeb.Live.Modal do
   @moduledoc """
   Adds modal support for every live page.
   """
+  alias Phoenix.Component
   alias Phoenix.LiveView
   alias Phoenix.LiveView.JS
   alias Phoenix.LiveView.Socket
@@ -20,7 +21,7 @@ defmodule ExshomeWeb.Live.Modal do
       socket
       |> LiveView.attach_hook(:modal_hook, :handle_event, &__MODULE__.handle_event/3)
       |> LiveView.attach_hook(:modal_hook, :handle_info, &__MODULE__.handle_info/2)
-      |> LiveView.assign_new(:modal, fn -> nil end)
+      |> Component.assign_new(:modal, fn -> nil end)
 
     {:cont, socket}
   end
@@ -32,7 +33,7 @@ defmodule ExshomeWeb.Live.Modal do
   def handle_event(_, _params, %Socket{} = socket), do: {:cont, socket}
 
   def handle_info(:close_modal, %Socket{} = socket) do
-    {:halt, LiveView.assign(socket, :modal, nil)}
+    {:halt, Component.assign(socket, :modal, nil)}
   end
 
   def handle_info(_, %Socket{} = socket), do: {:cont, socket}
@@ -40,7 +41,7 @@ defmodule ExshomeWeb.Live.Modal do
   @spec open_modal(Socket.t(), module(), map()) :: Socket.t()
   def open_modal(%Socket{} = socket, module, params \\ %{}) when is_atom(module) do
     socket
-    |> LiveView.assign(:modal, %__MODULE__{module: module, params: params})
+    |> Component.assign(:modal, %__MODULE__{module: module, params: params})
     |> send_js(opening_transition())
   end
 
