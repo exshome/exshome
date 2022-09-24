@@ -4,7 +4,6 @@ defmodule ExshomeWeb.SvgCanvasView do
   """
 
   use ExshomeWeb, :view
-  import Phoenix.LiveView
 
   def render_svg_canvas(assigns) do
     render("index.html", assigns)
