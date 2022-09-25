@@ -4,26 +4,30 @@ defmodule ExshomeWeb.Components do
   """
 
   use Phoenix.HTML
-  import Phoenix.Component
+  use Phoenix.Component, global_prefixes: ~w(phx-)
   import ExshomeWeb.ErrorHelpers
 
-  def button(assigns) do
-    extra = assigns_to_attributes(assigns, [:class])
-    extra_classes = assigns[:class] || ""
-    assigns = assign(assigns, extra: extra, extra_classes: extra_classes)
+  attr :class, :string, default: "", doc: "custom button styles"
+  attr :type, :string, default: "button", values: ["button", "submit"], doc: "button type"
+  attr :rest, :global, doc: "extra button attributes"
+  slot(:inner_block, requred: true, doc: "inner button content")
 
+  def button(assigns) do
     ~H"""
     <button
       class={"p-2 m-1 rounded-xl
              bg-gray-200 dark:bg-gray-600 enabled:hover:bg-gray-300 enabled:dark:hover:bg-gray-500
              disabled:text-gray-300 disabled:dark:text-gray-500
-             shadow-md shadow-gray-600 dark:shadow-gray-700 #{@extra_classes}"}
-      {@extra}
+             shadow-md shadow-gray-600 dark:shadow-gray-700 #{@class}"}
+      type={@type}
+      {@rest}
     >
       <%= render_slot(@inner_block) %>
     </button>
     """
   end
+
+  slot(:inner_block, requred: true, doc: "")
 
   def chip(assigns) do
     ~H"""
@@ -32,6 +36,11 @@ defmodule ExshomeWeb.Components do
     </span>
     """
   end
+
+  attr :name, :string, required: true, doc: "form input name for select component"
+  attr :values, :list, doc: "list of available values"
+  slot(:label, required: true, doc: "label for a value")
+  slot(:value, required: true, doc: "option value")
 
   def custom_select(assigns) do
     ~H"""
@@ -48,18 +57,21 @@ defmodule ExshomeWeb.Components do
     """
   end
 
-  def live_form(assigns) do
-    extra = assigns_to_attributes(assigns, [:changeset, :fields])
-    assigns = assign(assigns, :extra, extra)
+  attr :as, :atom, required: true
+  attr :changeset, Ecto.Changeset, required: true, doc: "changeset to render a form"
+  attr :rest, :global, doc: "extra form attributes"
+  attr :fields, :list, doc: "list of form fields"
 
+  def live_form(assigns) do
     ~H"""
     <.form
       :let={f}
+      as={@as}
       for={@changeset}
       phx-change="validate"
       phx-submit="save"
       class="flex items-center flex-col max-h-full w-full overflow-x-hidden overflow-y-auto my-2"
-      {@extra}
+      {@rest}
     >
       <%= for {field, data} <- @fields do %>
         <div class="p-2 w-full md:w-3/4">
@@ -68,7 +80,7 @@ defmodule ExshomeWeb.Components do
         </div>
         <%= error_tag(f, field) %>
       <% end %>
-      <.button type="submit" phx_disable_with="Saving...">
+      <.button type="submit" phx-disable-with="Saving...">
         Save
       </.button>
     </.form>
@@ -92,12 +104,12 @@ defmodule ExshomeWeb.Components do
     )
   end
 
-  def list(assigns) do
-    assigns =
-      assigns
-      |> assign_new(:row_before, fn -> [] end)
-      |> assign_new(:row_after, fn -> [] end)
+  attr :rows, :list, required: true, doc: "list values"
+  slot(:inner_block, required: true, doc: "list item content")
+  slot(:row_after, doc: "content after each list item")
+  slot(:row_before, doc: "content before each list item")
 
+  def list(assigns) do
     ~H"""
     <ul class="mx-2 flex flex-col items-center justify-center">
       <%= for row <- @rows do %>

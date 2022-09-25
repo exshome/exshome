@@ -4,13 +4,23 @@ defmodule ExshomeWeb.SvgCanvasView do
   """
 
   use ExshomeWeb, :view
+  alias ExshomeWeb.Live.SvgCanvas
+
+  attr :components, :list, required: true, doc: "components to render"
+  attr :menu_items, :list, required: true, doc: "canvas menu items"
+  attr :meta, SvgCanvas, required: true, doc: "canvas metadata"
 
   def render_svg_canvas(assigns) do
     render("index.html", assigns)
   end
 
+  attr :id, :string, doc: "trashbin id"
+  attr :trashbin, :any, doc: "map with render settings for trashbin"
   defp render_trashbin(assigns), do: render("trashbin.html", assigns)
 
+  attr :menu, :any, doc: "map with render settings for menu"
+  attr :menu_items, :list, doc: "menu items"
+  attr :name, :string, doc: "svg canvas name"
   defp render_menu(assigns), do: render("menu.html", assigns)
 
   defp render_component(%{component: %module{} = component, context: context} = assigns) do

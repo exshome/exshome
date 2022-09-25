@@ -3,8 +3,8 @@ defmodule ExshomeWeb.DatatypeView do
   Renders datatypes.
   """
 
+  use Phoenix.Component
   alias Exshome.Datatype
-  alias Phoenix.Component
   alias Phoenix.LiveView.Rendered
 
   @callback render_value(assigns :: map()) :: Rendered.t()
@@ -19,14 +19,16 @@ defmodule ExshomeWeb.DatatypeView do
     renderer.render_value(assigns)
   end
 
-  @spec datatype_input(assigns :: map()) :: Rendered.t()
+  attr :class, :string, default: "", doc: "extra component classes"
+  attr :name, :string, doc: "name of the input"
+  attr :type, :atom, doc: "type of a data"
+  attr :value, :any, doc: "input value"
+  attr :validations, :any, default: %{}, doc: "validate input value"
+
   def datatype_input(%{type: type} = assigns) when is_atom(type) do
     renderer = Map.fetch!(available_renderers(), type)
 
-    assigns
-    |> Component.assign_new(:validations, fn _ -> %{} end)
-    |> Component.assign_new(:class, fn _ -> "" end)
-    |> renderer.render_input()
+    renderer.render_input(assigns)
   end
 
   defmacro __using__(datatypes) do

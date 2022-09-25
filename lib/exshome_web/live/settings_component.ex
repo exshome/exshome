@@ -17,10 +17,10 @@ defmodule ExshomeWeb.Live.SettingsComponent do
   end
 
   @impl Phoenix.LiveComponent
-  def handle_event("save", %{"settings" => clock_settings}, socket) do
+  def handle_event("save", %{"settings" => settings}, socket) do
     result =
       socket.assigns.module
-      |> Settings.changeset(clock_settings)
+      |> Settings.changeset(settings)
       |> Ecto.Changeset.apply_action(:validate)
 
     changeset =
@@ -36,8 +36,8 @@ defmodule ExshomeWeb.Live.SettingsComponent do
     {:noreply, assign(socket, changeset: changeset)}
   end
 
-  def handle_event("validate", %{"settings" => clock_settings}, socket) do
-    changeset = Settings.changeset(socket.assigns.module, clock_settings)
+  def handle_event("validate", %{"settings" => settings}, socket) do
+    changeset = Settings.changeset(socket.assigns.module, settings)
     {:noreply, assign(socket, changeset: changeset)}
   end
 
@@ -45,7 +45,12 @@ defmodule ExshomeWeb.Live.SettingsComponent do
   def render(assigns) do
     ~H"""
     <div class="flex flex-grow h-full items-center justify-center w-full md:w-3/4 lg:w-1/2 mx-auto">
-      <.live_form changeset={@changeset} phx-target={@myself} as="settings" fields={@module.fields()} />
+      <.live_form
+        changeset={@changeset}
+        phx-target={@myself}
+        as={:settings}
+        fields={@module.fields()}
+      />
     </div>
     """
   end

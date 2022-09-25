@@ -2,6 +2,6 @@
   <%= if @error do %>
     <h2 class="text-4xl text-center"><%= @error %></h2>
   <% else %>
-    <.live_form changeset={@changeset} as="data" fields={@fields} />
+    <.live_form changeset={@changeset} as={:data} fields={@fields} />
   <% end %>
 </section>
