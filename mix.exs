@@ -68,7 +68,7 @@ defmodule Exshome.MixProject do
       {:gettext, "~> 0.18"},
       {:jason, "~> 1.2"},
       {:mix_audit, "~> 2.0", only: [:dev, :test], runtime: false},
-      {:nimble_options, "~> 0.4.0"},
+      {:nimble_options, "~> 0.5"},
       {:phoenix, "~> 1.6.5"},
       {:phoenix_ecto, "~> 4.0"},
       {:phoenix_html, "~> 3.0"},
@@ -79,8 +79,8 @@ defmodule Exshome.MixProject do
       {:tailwind, "~> 0.1", runtime: Mix.env() == :dev},
       {:telemetry_metrics, "~> 0.6"},
       {:telemetry_poller, "~> 1.0"},
-      {:tz, "~> 0.20.1"},
-      {:tz_extra, "~> 0.20.1"}
+      {:tz, "~> 0.22"},
+      {:tz_extra, "~> 0.22"}
     ]
   end
 
