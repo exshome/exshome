@@ -7,7 +7,7 @@ defmodule ExshomeWebTest.SvgCanvasTest do
 
   describe "resize" do
     setup %{conn: conn} do
-      view = render_automations(conn)
+      view = render_automation_editor(conn)
       %{view: view}
     end
 
@@ -185,8 +185,8 @@ defmodule ExshomeWebTest.SvgCanvasTest do
     |> length()
   end
 
-  defp render_automations(conn) do
-    live_with_dependencies(conn, ExshomeAutomation, :automations)
+  defp render_automation_editor(conn) do
+    live_with_dependencies(conn, ExshomeAutomation, :automation_editor)
   end
 
   defp select_background(view) do
@@ -194,7 +194,7 @@ defmodule ExshomeWebTest.SvgCanvasTest do
   end
 
   defp setup_page(conn) do
-    view = render_automations(conn)
+    view = render_automation_editor(conn)
     resize(view, %{width: @default_width, height: @default_height})
     view
   end
