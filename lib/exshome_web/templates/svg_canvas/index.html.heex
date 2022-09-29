@@ -26,36 +26,36 @@
         data-drag="move-background"
         class="fill-transparent"
       />
-      <%= for component <- @components do %>
-        <.render_component component={component} context={%{name: @meta.name, drag: "move"}} />
-      <% end %>
+      <.render_component
+        :for={component <- @components}
+        component={component}
+        context={%{name: @meta.name, drag: "move"}}
+      />
     </svg>
-    <%= if @meta.viewbox.width < @meta.canvas.width do %>
-      <rect
-        class="fill-gray-200/80 hover:fill-gray-200 dark:fill-gray-700/80 dark:hover:fill-gray-700"
-        rx="10"
-        ry="10"
-        x={@meta.scroll.x}
-        y={@meta.screen.height - @meta.scroll.height}
-        height={@meta.scroll.height}
-        width={@meta.scroll.size_x}
-        data-drag="scroll-body-x"
-        id={"scroll-body-x-#{@meta.name}"}
-      />
-    <% end %>
-    <%= if @meta.viewbox.width < @meta.canvas.width do %>
-      <rect
-        class="fill-gray-200/80 hover:fill-gray-200 dark:fill-gray-700/80 dark:hover:fill-gray-700"
-        rx="10"
-        ry="10"
-        x={@meta.screen.width - @meta.scroll.height}
-        y={@meta.scroll.y}
-        height={@meta.scroll.size_y}
-        width={@meta.scroll.height}
-        data-drag="scroll-body-y"
-        id={"scroll-body-y-#{@meta.name}"}
-      />
-    <% end %>
+    <rect
+      :if={@meta.viewbox.width < @meta.canvas.width}
+      class="fill-gray-200/80 hover:fill-gray-200 dark:fill-gray-700/80 dark:hover:fill-gray-700"
+      rx="10"
+      ry="10"
+      x={@meta.scroll.x}
+      y={@meta.screen.height - @meta.scroll.height}
+      height={@meta.scroll.height}
+      width={@meta.scroll.size_x}
+      data-drag="scroll-body-x"
+      id={"scroll-body-x-#{@meta.name}"}
+    />
+    <rect
+      :if={@meta.viewbox.height < @meta.canvas.height}
+      class="fill-gray-200/80 hover:fill-gray-200 dark:fill-gray-700/80 dark:hover:fill-gray-700"
+      rx="10"
+      ry="10"
+      x={@meta.screen.width - @meta.scroll.height}
+      y={@meta.scroll.y}
+      height={@meta.scroll.size_y}
+      width={@meta.scroll.height}
+      data-drag="scroll-body-y"
+      id={"scroll-body-y-#{@meta.name}"}
+    />
     <.render_trashbin id={"#{@meta.name}-trashbin"} trashbin={@meta.trashbin} />
     <.render_menu name={@meta.name} menu={@meta.menu} menu_items={@menu_items} />
   </svg>

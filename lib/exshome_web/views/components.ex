@@ -48,11 +48,9 @@ defmodule ExshomeWeb.Components do
       class="p-3 w-full md:w-1/6 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-xl shadow-lg dark:shadow-gray-700"
       name={@name}
     >
-      <%= for value <- @values do %>
-        <option value={render_slot(@value, value)}>
-          <%= render_slot(@label, value) %>
-        </option>
-      <% end %>
+      <option :for={value <- @values} value={render_slot(@value, value)}>
+        <%= render_slot(@label, value) %>
+      </option>
     </select>
     """
   end
@@ -112,27 +110,28 @@ defmodule ExshomeWeb.Components do
   def list(assigns) do
     ~H"""
     <ul class="mx-2 flex flex-col items-center justify-center">
-      <%= for row <- @rows do %>
-        <li class="bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700
+      <li
+        :for={row <- @rows}
+        class="bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700
                shadow-md shadow-gray-600 dark:shadow-gray-700
                rounded-xl flex items-center justify-between
                py-4 px-2 m-2 w-full sm:w-3/4 md:w-1/2
-               ">
-          <div>
-            <%= for row_before <- @row_before do %>
-              <%= render_slot(row_before, row) %>
-            <% end %>
-          </div>
-          <div class="flex flex-col flex-grow pl-2 text-left justify-center overflow-x-auto overflow-y-hidden">
-            <%= render_slot(@inner_block, row) %>
-          </div>
-          <div class="pl-1 flex flex-row items-center justify-center">
-            <%= for row_after <- @row_after do %>
-              <%= render_slot(row_after, row) %>
-            <% end %>
-          </div>
-        </li>
-      <% end %>
+               "
+      >
+        <div>
+          <%= for row_before <- @row_before do %>
+            <%= render_slot(row_before, row) %>
+          <% end %>
+        </div>
+        <div class="flex flex-col flex-grow pl-2 text-left justify-center overflow-x-auto overflow-y-hidden">
+          <%= render_slot(@inner_block, row) %>
+        </div>
+        <div class="pl-1 flex flex-row items-center justify-center">
+          <%= for row_after <- @row_after do %>
+            <%= render_slot(row_after, row) %>
+          <% end %>
+        </div>
+      </li>
     </ul>
     """
   end

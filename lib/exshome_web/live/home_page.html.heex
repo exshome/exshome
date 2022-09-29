@@ -1,21 +1,22 @@
 <div class="flex flex-wrap justify-center">
-  <%= for app_module <- ExshomeWeb.App.apps() do %>
-    <.link navigate={app_module.path(@socket, List.first(app_module.pages()).action())}>
-      <div class="
+  <.link
+    :for={app_module <- ExshomeWeb.App.apps()}
+    navigate={app_module.path(@socket, List.first(app_module.pages()).action())}
+  >
+    <div class="
           w-[40vmin] h-[40vmin] lg:w-[30vmin] lg:h-[30vmin]
           p-2 m-2 relative
           border-2 border-gray-500 rounded-md overflow-hidden
           hover:bg-gray-200 dark:hover:bg-gray-800
           shadow-2xl dark:shadow-gray-600
       ">
-        <div class="absolute inset-0"></div>
-        <%= live_render(
-          @socket,
-          app_module.preview(),
-          id: app_module.prefix(),
-          container: {:div, class: "w-full h-full"}
-        ) %>
-      </div>
-    </.link>
-  <% end %>
+      <div class="absolute inset-0"></div>
+      <%= live_render(
+        @socket,
+        app_module.preview(),
+        id: app_module.prefix(),
+        container: {:div, class: "w-full h-full"}
+      ) %>
+    </div>
+  </.link>
 </div>
