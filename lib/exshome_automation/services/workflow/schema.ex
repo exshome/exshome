@@ -1,4 +1,4 @@
-defmodule ExshomeAutomation.Schemas.AutomationWorkflow do
+defmodule ExshomeAutomation.Services.Workflow.Schema do
   @moduledoc """
   Schema for storing automation workflow data.
   """
