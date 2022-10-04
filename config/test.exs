@@ -17,6 +17,8 @@ config :exshome, :environment, :test
 
 config :exshome,
   hooks: [
+    {ExshomeAutomation.Services.Workflow.WorkflowSupervisor,
+     ExshomeTest.Hooks.DynamicVariableSupervisor},
     {ExshomeAutomation.Variables.DynamicVariable.VariableSupervisor,
      ExshomeTest.Hooks.DynamicVariableSupervisor},
     {Exshome.Dependency.GenServerDependency, ExshomeTest.Hooks.Dependency},
