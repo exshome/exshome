@@ -93,7 +93,7 @@ defmodule ExshomeAutomation.Variables.DynamicVariable do
     |> Schema.get!()
     |> Schema.delete!()
 
-    :ok = VariableSupervisor.termintate_child_with_id(id)
+    :ok = VariableSupervisor.terminate_child_with_id(id)
   end
 
   @impl Variable

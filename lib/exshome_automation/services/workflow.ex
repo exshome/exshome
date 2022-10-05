@@ -3,5 +3,9 @@ defmodule ExshomeAutomation.Services.Workflow do
   A module for automation workflows.
   """
 
-  use Exshome.Dependency.GenServerDependency, name: "automation_workflow"
+  alias ExshomeAutomation.Services.Workflow.WorkflowSupervisor
+
+  use Exshome.Dependency.GenServerDependency,
+    name: "automation_workflow",
+    child_module: WorkflowSupervisor
 end

@@ -9,7 +9,7 @@ defmodule ExshomeTest.DynamicVariableHelpers do
   alias ExshomeAutomation.Variables.DynamicVariable
   alias ExshomeAutomation.Variables.DynamicVariable.Schema
   alias ExshomeAutomation.Variables.DynamicVariable.VariableSupervisor
-  alias ExshomeTest.Hooks.DynamicVariableSupervisor
+  alias ExshomeTest.Hooks.DynamicDependencySupervisor
   alias ExshomeTest.TestRegistry
 
   @spec start_dynamic_variable_supervisor() :: pid()
@@ -21,7 +21,7 @@ defmodule ExshomeTest.DynamicVariableHelpers do
       |> VariableSupervisor.child_spec()
       |> ExUnit.Callbacks.start_supervised!()
 
-    :ok = DynamicVariableSupervisor.put_supervisor_pid(pid)
+    :ok = DynamicDependencySupervisor.put_supervisor_pid(VariableSupervisor, pid)
     pid
   end
 
