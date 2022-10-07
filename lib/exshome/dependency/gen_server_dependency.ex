@@ -10,8 +10,9 @@ defmodule Exshome.Dependency.GenServerDependency do
   alias Exshome.SystemRegistry
 
   @callback on_init(DependencyState.t()) :: DependencyState.t()
-  @callback update_data(DependencyState.t(), (any() -> any())) :: DependencyState.t()
-  @callback update_value(DependencyState.t(), value :: any()) :: DependencyState.t()
+  @callback update_data(DependencyState.t(), update_fn :: (any() -> any())) :: DependencyState.t()
+  @callback update_value(DependencyState.t(), update_fn :: (any() -> any())) ::
+              DependencyState.t()
   @callback handle_info(message :: any(), DependencyState.t()) ::
               {:noreply, new_state}
               | {:noreply, new_state, timeout() | :hibernate | {:continue, term()}}
@@ -189,7 +190,7 @@ defmodule Exshome.Dependency.GenServerDependency do
       defoverridable(on_init: 1)
 
       @impl GenServerDependency
-      defdelegate update_value(state, value), to: Lifecycle
+      defdelegate update_value(state, value_fn), to: Lifecycle
       @impl GenServerDependency
       defdelegate update_data(state, data_fn), to: Lifecycle
 

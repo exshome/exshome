@@ -19,7 +19,8 @@ defmodule ExshomePlayer.Variables.Pause do
   @impl Subscription
   def handle_dependency_change(%DependencyState{deps: %{player: %PlayerState{} = player}} = state) do
     player_has_track = !player.path
-    update_value(state, player_has_track || player.pause)
+    track_is_paused = player_has_track || player.pause
+    update_value(state, fn _ -> track_is_paused end)
   end
 
   @impl GenServerVariable

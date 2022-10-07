@@ -78,11 +78,11 @@ defmodule Exshome.Dependency.GenServerDependency.Lifecycle do
     )
   end
 
-  @spec update_value(DependencyState.t(), value :: any()) :: DependencyState.t()
-  def update_value(%DependencyState{} = state, value) do
+  @spec update_value(DependencyState.t(), update_fn :: (any() -> any())) :: DependencyState.t()
+  def update_value(%DependencyState{} = state, update_fn) do
     old_value = state.value
 
-    state = %DependencyState{state | value: value}
+    state = %DependencyState{state | value: update_fn.(old_value)}
 
     state
     |> hook_modules()
@@ -92,7 +92,7 @@ defmodule Exshome.Dependency.GenServerDependency.Lifecycle do
     )
   end
 
-  @spec update_data(DependencyState.t(), (any() -> any())) :: DependencyState.t()
+  @spec update_data(DependencyState.t(), update_fn :: (any() -> any())) :: DependencyState.t()
   def update_data(%DependencyState{} = state, update_fn) do
     %DependencyState{state | data: update_fn.(state.data)}
   end

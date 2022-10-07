@@ -26,10 +26,12 @@ defmodule ExshomeAutomation.Services.AutomationStatus do
 
     update_value(
       state,
-      %__MODULE__{
-        ready_variables: Enum.count(ready),
-        not_ready_variables: Enum.count(not_ready)
-      }
+      fn _ ->
+        %__MODULE__{
+          ready_variables: Enum.count(ready),
+          not_ready_variables: Enum.count(not_ready)
+        }
+      end
     )
   end
 end

@@ -84,7 +84,7 @@ defmodule ExshomeAutomation.Variables.DynamicVariable do
       |> Datatype.get_by_name()
       |> Ecto.Type.cast(schema.value)
 
-    update_value(state, value)
+    update_value(state, fn _ -> value end)
   end
 
   @impl Variable

@@ -192,20 +192,24 @@ defmodule ExshomePlayer.Services.Playlist do
   defp refresh_playlist(%DependencyState{data: %Data{next: [%Track{id: id} | _]} = data} = state) do
     update_value(
       state,
-      %__MODULE__{
-        current_id: id,
-        tracks: Enum.reverse(data.previous) ++ data.next
-      }
+      fn _ ->
+        %__MODULE__{
+          current_id: id,
+          tracks: Enum.reverse(data.previous) ++ data.next
+        }
+      end
     )
   end
 
   defp refresh_playlist(%DependencyState{data: %Data{} = data} = state) do
     update_value(
       state,
-      %__MODULE__{
-        current_id: nil,
-        tracks: Enum.reverse(data.previous) ++ data.next
-      }
+      fn _ ->
+        %__MODULE__{
+          current_id: nil,
+          tracks: Enum.reverse(data.previous) ++ data.next
+        }
+      end
     )
   end
 

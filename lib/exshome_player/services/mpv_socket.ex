@@ -78,7 +78,7 @@ defmodule ExshomePlayer.Services.MpvSocket do
     new_state =
       state
       |> update_data(fn %Data{} = data -> %Data{data | socket: nil, requests: %{}} end)
-      |> update_value(:disconnected)
+      |> update_value(fn _ -> :disconnected end)
 
     {:noreply, schedule_reconnect(new_state)}
   end
@@ -143,7 +143,7 @@ defmodule ExshomePlayer.Services.MpvSocket do
       {:ok, socket} ->
         state
         |> update_data(fn _ -> %Data{socket: socket} end)
-        |> update_value(:connected)
+        |> update_value(fn _ -> :connected end)
 
       {:error, _reason} ->
         schedule_reconnect(state)

@@ -19,7 +19,7 @@ defmodule ExshomeClock.Services.UtcTime do
     update_interval = refresh_interval(state)
     Process.send_after(self(), :tick, update_interval)
     new_value = DateTime.truncate(DateTime.utc_now(), precision(state))
-    update_value(state, new_value)
+    update_value(state, fn _ -> new_value end)
   end
 
   defp refresh_interval(%DependencyState{opts: opts}), do: opts[:refresh_interval] || 200

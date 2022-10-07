@@ -20,7 +20,7 @@ defmodule ExshomePlayer.Variables.Duration do
   def handle_dependency_change(%DependencyState{deps: %{player: %PlayerState{} = player}} = state) do
     duration = round(player.duration || 0)
 
-    update_value(state, duration)
+    update_value(state, fn _ -> duration end)
   end
 
   @impl GenServerVariable

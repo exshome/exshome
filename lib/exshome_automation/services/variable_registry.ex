@@ -18,7 +18,7 @@ defmodule ExshomeAutomation.Services.VariableRegistry do
         {variable.id, variable}
       end
 
-    update_value(state, variables)
+    update_value(state, fn _ -> variables end)
   end
 
   @impl Subscription
@@ -26,7 +26,7 @@ defmodule ExshomeAutomation.Services.VariableRegistry do
         %VariableStateEvent{data: %Variable{id: id}, type: :deleted},
         %DependencyState{} = state
       ) do
-    update_value(state, Map.delete(state.value, id))
+    update_value(state, &Map.delete(&1, id))
   end
 
   @impl Subscription
@@ -35,6 +35,6 @@ defmodule ExshomeAutomation.Services.VariableRegistry do
         %DependencyState{} = state
       )
       when type in [:created, :updated] do
-    update_value(state, Map.put(state.value, variable.id, variable))
+    update_value(state, &Map.put(&1, variable.id, variable))
   end
 end

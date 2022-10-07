@@ -24,7 +24,7 @@ defmodule ExshomePlayer.Variables.Volume do
   def handle_dependency_change(%DependencyState{deps: %{player: %PlayerState{} = player}} = state) do
     volume = round(player.volume || 0)
 
-    update_value(state, volume)
+    update_value(state, fn _ -> volume end)
   end
 
   @impl GenServerVariable

@@ -20,6 +20,6 @@ defmodule ExshomeClock.Services.LocalTime do
         deps.settings.timezone
       )
 
-    update_value(state, value)
+    update_value(state, fn _ -> value end)
   end
 end

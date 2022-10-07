@@ -99,7 +99,7 @@ defmodule Exshome.Dependency.GenServerDependency.Subscription do
       |> Enum.any?(&(&1 == Dependency.NotReady))
 
     if missing_dependencies do
-      Lifecycle.update_value(state, Dependency.NotReady)
+      Lifecycle.update_value(state, fn _ -> Dependency.NotReady end)
     else
       Dependency.dependency_module(state.dependency).handle_dependency_change(state)
     end

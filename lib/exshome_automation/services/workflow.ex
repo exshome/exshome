@@ -32,7 +32,7 @@ defmodule ExshomeAutomation.Services.Workflow do
 
     SystemRegistry.register!(__MODULE__, id, value)
 
-    update_value(state, value)
+    update_value(state, fn _ -> value end)
   end
 
   @spec list() :: [t()]

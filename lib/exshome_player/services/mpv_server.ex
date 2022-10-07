@@ -28,7 +28,7 @@ defmodule ExshomePlayer.Services.MpvServer do
       ) do
     state =
       state
-      |> update_value(Dependency.NotReady)
+      |> update_value(fn _ -> Dependency.NotReady end)
       |> start_mpv_server()
 
     {:noreply, state}
@@ -50,10 +50,10 @@ defmodule ExshomePlayer.Services.MpvServer do
 
         state
         |> update_data(fn _ -> %{server_pid: pid} end)
-        |> update_value(:started)
+        |> update_value(fn _ -> :started end)
 
       {:error, :not_found} ->
-        update_value(state, Dependency.NotReady)
+        update_value(state, fn _ -> Dependency.NotReady end)
     end
   end
 

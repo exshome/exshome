@@ -39,25 +39,25 @@ defmodule ExshomePlayer.Services.PlayerState do
   def handle_dependency_change(%DependencyState{} = state) do
     if state.deps.socket == :connected do
       subscribe_to_player_state()
-      update_value(state, %PlayerState{})
+      update_value(state, fn _ -> %PlayerState{} end)
     else
-      update_value(state, Dependency.NotReady)
+      update_value(state, fn _ -> Dependency.NotReady end)
     end
   end
 
   @impl Subscription
   def handle_event(
         %MpvEvent{type: "property-change", data: %{"name" => name} = event},
-        %DependencyState{value: %PlayerState{} = value} = state
+        %DependencyState{} = state
       ) do
-    new_value =
-      Map.put(
-        value,
+    update_value(
+      state,
+      &Map.put(
+        &1,
         property_mapping()[name],
         event["data"]
       )
-
-    update_value(state, new_value)
+    )
   end
 
   def handle_event(

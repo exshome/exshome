@@ -25,7 +25,7 @@ defmodule ExshomePlayer.Variables.Position do
     duration = round(player.duration || 0)
 
     state
-    |> update_value(position)
+    |> update_value(fn _ -> position end)
     |> update_validations(&Map.put(&1, :max, duration))
   end
 
