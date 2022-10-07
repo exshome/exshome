@@ -26,6 +26,7 @@ defmodule Exshome.MixProject do
         "coveralls.detail": :test,
         "coveralls.post": :test,
         "coveralls.html": :test,
+        dialyzer: :test,
         docs: :test
       ],
       source_url: @source_url,
