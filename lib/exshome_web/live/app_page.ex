@@ -57,14 +57,13 @@ defmodule ExshomeWeb.Live.AppPage do
         socket,
         :dependency_hook,
         :handle_info,
-        &__MODULE__.handle_info/2
+        &__MODULE__.on_handle_info/2
       )
 
     {:cont, put_dependencies(socket, socket.view.dependencies())}
   end
 
-  @impl LiveView
-  def handle_info({Dependency, {module, value}}, %Socket{} = socket) do
+  def on_handle_info({Dependency, {module, value}}, %Socket{} = socket) do
     key = get_dependencies(socket)[module]
 
     if key do
@@ -76,12 +75,12 @@ defmodule ExshomeWeb.Live.AppPage do
     end
   end
 
-  def handle_info({Event, event_message}, %Socket{} = socket) do
+  def on_handle_info({Event, event_message}, %Socket{} = socket) do
     socket = socket.view.on_app_event(event_message, socket)
     {:halt, socket}
   end
 
-  def handle_info(_event, %Socket{} = socket), do: {:cont, socket}
+  def on_handle_info(_event, %Socket{} = socket), do: {:cont, socket}
 
   @impl LiveView
   def render(%{socket: %Socket{} = socket, deps: deps} = assigns) do
@@ -192,12 +191,12 @@ defmodule ExshomeWeb.Live.AppPage do
 
   @hook_module Application.compile_env(:exshome, :hooks, [])[__MODULE__]
   if @hook_module do
-    defoverridable(handle_info: 2)
+    defoverridable(on_handle_info: 2)
 
     @impl LiveView
-    def handle_info(event, %Socket{} = socket) do
+    def on_handle_info(event, %Socket{} = socket) do
       original_result = super(event, socket)
-      @hook_module.handle_info(event, socket, original_result)
+      @hook_module.on_handle_info(event, socket, original_result)
     end
   end
 end

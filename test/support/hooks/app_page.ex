@@ -6,7 +6,7 @@ defmodule ExshomeTest.Hooks.AppPage do
   alias Exshome.Event
   alias ExshomeTest.TestRegistry
 
-  def handle_info({Dependency, value}, _socket, original_result) do
+  def on_handle_info({Dependency, value}, _socket, original_result) do
     send(
       TestRegistry.get_parent(),
       {__MODULE__, Dependency, value}
@@ -15,7 +15,7 @@ defmodule ExshomeTest.Hooks.AppPage do
     original_result
   end
 
-  def handle_info({Event, value}, _socket, original_result) do
+  def on_handle_info({Event, value}, _socket, original_result) do
     send(
       TestRegistry.get_parent(),
       {__MODULE__, Event, value}
