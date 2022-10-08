@@ -17,5 +17,6 @@ defmodule ExshomeAutomationTest.Services.Workflow.WorkflowSupervisorTest do
 
     pid = start_workflow_supervisor()
     assert %{active: ^amount, workers: ^amount} = Supervisor.count_children(pid)
+    Supervisor.stop(pid)
   end
 end
