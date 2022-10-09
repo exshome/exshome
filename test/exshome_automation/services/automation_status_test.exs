@@ -4,6 +4,7 @@ defmodule ExshomeAutomationTest.Services.AutomationStatusTest do
   alias Exshome.Dependency
   alias ExshomeAutomation.Services.AutomationStatus
   alias ExshomeAutomation.Services.VariableRegistry
+  alias ExshomeAutomation.Services.WorkflowRegistry
   alias ExshomePlayer.Services.PlayerState
   alias ExshomePlayer.Variables.Volume
   alias ExshomeTest.TestRegistry
@@ -11,12 +12,17 @@ defmodule ExshomeAutomationTest.Services.AutomationStatusTest do
   setup do
     Dependency.subscribe(AutomationStatus)
     TestRegistry.start_dependency(VariableRegistry)
+    TestRegistry.start_dependency(WorkflowRegistry)
     TestRegistry.start_dependency(AutomationStatus)
   end
 
   test "shows empty data" do
-    assert %AutomationStatus{ready_variables: 0, not_ready_variables: 0} =
-             Dependency.get_value(AutomationStatus)
+    assert %AutomationStatus{
+             ready_variables: 0,
+             not_ready_variables: 0,
+             ready_workflows: 0,
+             not_ready_workflows: 0
+           } = Dependency.get_value(AutomationStatus)
   end
 
   test "start variable" do

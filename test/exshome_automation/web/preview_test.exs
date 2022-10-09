@@ -4,6 +4,7 @@ defmodule ExshomeAutomationTest.Web.PreviewTest do
   alias Exshome.Dependency
   alias ExshomeAutomation.Services.AutomationStatus
   alias ExshomeAutomation.Services.VariableRegistry
+  alias ExshomeAutomation.Services.WorkflowRegistry
   alias ExshomePlayer.Services.PlayerState
   alias ExshomePlayer.Variables.Volume
   alias ExshomeTest.TestRegistry
@@ -17,6 +18,7 @@ defmodule ExshomeAutomationTest.Web.PreviewTest do
   describe "render with dependencies" do
     setup do
       TestRegistry.start_dependency(VariableRegistry)
+      TestRegistry.start_dependency(WorkflowRegistry)
     end
 
     test "works fine", %{conn: conn} do
