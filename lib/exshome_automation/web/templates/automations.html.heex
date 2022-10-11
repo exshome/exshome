@@ -1,1 +1,41 @@
-
+<section class="h-full max-h-full w-full p-4 flex flex-col overflow-hidden">
+  <form class="mb-3 w-full flex items-center justify-center" phx-submit="new_workflow">
+    <.button type="submit" phx-disable-with="Creating..." class="whitespace-nowrap">
+      New workflow
+    </.button>
+  </form>
+  <section class="flex-grow h-full flex items-center overflow-auto">
+    <div class="w-full max-h-full">
+      <.list
+        :let={workflow}
+        rows={@deps.workflows |> Map.values() |> Enum.sort_by(&{&1.name, &1.id})}
+      >
+        <:row_before :let={workflow}>
+          <div class="flex flex-col md:flex-row items-center justify-center">
+            <span><%= if workflow.active, do: "🟢", else: "🟠" %></span>
+          </div>
+        </:row_before>
+        <:row_after :let={workflow}>
+          <.button
+            class="md:text-2xl lg:text-4xl"
+            phx-click="show_workflow"
+            phx-value-id={workflow.id}
+          >
+            <span>👀</span>
+          </.button>
+          <.button
+            class="md:text-2xl lg:text-4xl"
+            phx-click="delete_workflow"
+            phx-value-id={workflow.id}
+            data-confirm="Do you really want to delete this workflow?"
+          >
+            <span>🗑</span>
+          </.button>
+        </:row_after>
+        <div class="whitespace-nowrap text-xl">
+          <%= workflow.name %>
+        </div>
+      </.list>
+    </div>
+  </section>
+</section>
