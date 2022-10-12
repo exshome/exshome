@@ -24,13 +24,11 @@ defmodule ExshomeAutomation.Services.Workflow do
   @impl GenServerDependency
   def on_init(%DependencyState{} = state) do
     {__MODULE__, id} = state.dependency
-    %Schema{name: name} = Schema.get!(id)
 
-    value = %__MODULE__{
-      active: true,
-      id: id,
-      name: name
-    }
+    value =
+      id
+      |> Schema.get!()
+      |> schema_to_workflow_data()
 
     register_workflow_data(value)
     update_value(state, fn _ -> value end)
@@ -38,6 +36,29 @@ defmodule ExshomeAutomation.Services.Workflow do
 
   @spec list() :: [t()]
   def list, do: SystemRegistry.list(__MODULE__)
+
+  @spec create!() :: :ok
+  def create! do
+    %Schema{id: id} = Schema.create!()
+    WorkflowSupervisor.start_child_with_id(id)
+  end
+
+  @spec delete!(String.t()) :: :ok
+  def delete!(id) when is_binary(id) do
+    id
+    |> Schema.get!()
+    |> Schema.delete!()
+
+    :ok = WorkflowSupervisor.terminate_child_with_id(id)
+  end
+
+  defp schema_to_workflow_data(%Schema{id: id, name: name}) do
+    %__MODULE__{
+      active: true,
+      id: id,
+      name: name
+    }
+  end
 
   @spec register_workflow_data(t()) :: :ok
   defp register_workflow_data(%__MODULE__{} = workflow_data) do
