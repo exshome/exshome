@@ -26,6 +26,7 @@ defmodule Exshome.Dependency.GenServerDependency do
               | {:stop, reason, reply, new_state}
               | {:stop, reason, new_state}
             when reply: term(), new_state: DependencyState.t(), reason: term()
+  @callback handle_stop(reason :: term(), state :: DependencyState.t()) :: DependencyState.t()
   @optional_callbacks handle_info: 2, handle_call: 3
 
   @spec start_link(map()) :: GenServer.on_start()
@@ -78,7 +79,8 @@ defmodule Exshome.Dependency.GenServerDependency do
 
   @impl GenServer
   def terminate(reason, %DependencyState{} = state) do
-    Lifecycle.handle_stop(reason, state)
+    {_, state} = Lifecycle.handle_stop(reason, state)
+    Dependency.dependency_module(state.dependency).handle_stop(reason, state)
   end
 
   @spec get_pid(Dependency.dependency()) :: pid() | nil
@@ -187,7 +189,10 @@ defmodule Exshome.Dependency.GenServerDependency do
       @impl GenServerDependency
       def on_init(state), do: state
 
-      defoverridable(on_init: 1)
+      @impl GenServerDependency
+      def handle_stop(_reason, state), do: state
+
+      defoverridable(on_init: 1, handle_stop: 2)
 
       @impl GenServerDependency
       defdelegate update_value(state, value_fn), to: Lifecycle

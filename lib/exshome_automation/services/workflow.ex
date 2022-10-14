@@ -34,6 +34,12 @@ defmodule ExshomeAutomation.Services.Workflow do
     update_value(state, fn _ -> value end)
   end
 
+  @impl GenServerDependency
+  def handle_stop(_reason, %DependencyState{} = state) do
+    :ok = remove_workflow_data(state.value)
+    state
+  end
+
   @spec list() :: [t()]
   def list, do: SystemRegistry.list(__MODULE__)
 
@@ -64,6 +70,12 @@ defmodule ExshomeAutomation.Services.Workflow do
   defp register_workflow_data(%__MODULE__{} = workflow_data) do
     :ok = SystemRegistry.register!(__MODULE__, workflow_data.id, workflow_data)
     broadcast_event(%WorkflowStateEvent{data: workflow_data, type: :created})
+  end
+
+  @spec remove_workflow_data(t()) :: :ok
+  def remove_workflow_data(%__MODULE__{} = workflow_data) do
+    :ok = SystemRegistry.remove!(__MODULE__, workflow_data.id)
+    broadcast_event(%WorkflowStateEvent{data: workflow_data, type: :deleted})
   end
 
   defp broadcast_event(%WorkflowStateEvent{} = event) do
