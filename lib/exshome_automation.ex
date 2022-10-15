@@ -7,6 +7,6 @@ defmodule ExshomeAutomation do
 
   use ExshomeWeb.App,
     pages: [Live.Variables, Live.Automations, Live.AutomationEditor],
-    prefix: :automation,
+    prefix: "automation",
     preview: Live.Preview
 end

@@ -11,7 +11,7 @@ defmodule ExshomePlayerTest.Web.PlaylistTest do
 
   describe "render without dependencies" do
     test "renders fine", %{conn: conn} do
-      assert {:ok, _view, _html} = live(conn, ExshomePlayer.path(conn, :playlist))
+      assert {:ok, _view, _html} = live(conn, ExshomePlayer.path(conn, "playlist"))
     end
   end
 
@@ -20,7 +20,7 @@ defmodule ExshomePlayerTest.Web.PlaylistTest do
       TestMpvServer.server_fixture()
       TestRegistry.start_dependency(MpvSocket, %{})
       TestMpvServer.generate_random_tracks(3..10)
-      view = live_with_dependencies(conn, ExshomePlayer, :playlist)
+      view = live_with_dependencies(conn, ExshomePlayer, "playlist")
       %Playlist{} = playlist = Dependency.subscribe(Playlist)
       %{view: view, playlist: playlist}
     end

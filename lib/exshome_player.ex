@@ -8,7 +8,7 @@ defmodule ExshomePlayer do
 
   use ExshomeWeb.App,
     pages: [Live.Player, Live.Playlist],
-    prefix: :player,
+    prefix: "player",
     preview: Live.Preview
 
   @impl App

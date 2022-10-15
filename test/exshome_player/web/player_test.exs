@@ -11,7 +11,7 @@ defmodule ExshomePlayerTest.Web.PlayerTest do
 
   describe "render without dependencies" do
     test "renders fine", %{conn: conn} do
-      assert {:ok, _view, _html} = live(conn, ExshomePlayer.path(conn, :player))
+      assert {:ok, _view, _html} = live(conn, ExshomePlayer.path(conn, "player"))
     end
   end
 
@@ -20,7 +20,7 @@ defmodule ExshomePlayerTest.Web.PlayerTest do
       TestMpvServer.server_fixture()
       TestRegistry.start_dependency(MpvSocket, %{})
       TestRegistry.start_dependency(PlayerState, %{})
-      view = live_with_dependencies(conn, ExshomePlayer, :player)
+      view = live_with_dependencies(conn, ExshomePlayer, "player")
       %{view: view}
     end
 

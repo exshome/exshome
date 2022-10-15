@@ -10,7 +10,7 @@ defmodule ExshomePlayerTest.Web.UploadFileModalTest do
     TestMpvServer.server_fixture()
     TestRegistry.start_dependency(MpvSocket, %{})
     TestMpvServer.generate_random_tracks(2..10)
-    view = live_with_dependencies(conn, ExshomePlayer, :playlist)
+    view = live_with_dependencies(conn, ExshomePlayer, "playlist")
     %{view: view}
   end
 

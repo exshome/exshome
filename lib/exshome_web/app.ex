@@ -10,7 +10,7 @@ defmodule ExshomeWeb.App do
   @callback namespace() :: atom()
   @callback pages() :: list(atom())
   @callback preview() :: atom()
-  @callback prefix() :: atom()
+  @callback prefix() :: String.t()
   @callback template_root() :: String.t()
 
   @spec start_app_link(module(), map()) :: Supervisor.on_start()
@@ -43,7 +43,7 @@ defmodule ExshomeWeb.App do
     NimbleOptions.validate!(
       module.__config__(),
       pages: [type: {:list, :atom}, required: true],
-      prefix: [type: :atom, required: true],
+      prefix: [type: :string, required: true],
       preview: [type: :atom, required: true]
     )
   end

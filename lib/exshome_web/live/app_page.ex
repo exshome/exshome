@@ -8,7 +8,7 @@ defmodule ExshomeWeb.Live.AppPage do
   alias Phoenix.LiveView.Socket
   import Phoenix.Component
 
-  @callback action() :: atom()
+  @callback action() :: String.t()
   @callback app_module() :: atom()
   @callback view_module() :: atom()
   @callback icon() :: String.t()
@@ -20,20 +20,8 @@ defmodule ExshomeWeb.Live.AppPage do
   use ExshomeWeb, :live_view
 
   @impl LiveView
-  def mount(%{"app" => app_name, "action" => action} = params, session, socket) do
-    action = String.to_existing_atom(action)
-
-    app =
-      Enum.find(
-        ExshomeWeb.App.apps(),
-        fn app -> Atom.to_string(app.prefix) == app_name end
-      ) || raise "Unknown app"
-
-    view =
-      Enum.find(
-        app.pages,
-        fn page -> page.action() == action end
-      ) || raise "Unknown page"
+  def mount(params, session, socket) do
+    view = find_view!(params)
 
     %{lifecycle: lifecycle} = view.__live__()
 
@@ -49,6 +37,19 @@ defmodule ExshomeWeb.Live.AppPage do
     else
       {:ok, socket}
     end
+  end
+
+  defp find_view!(%{"action" => action, "app" => app_name}) do
+    app =
+      Enum.find(
+        ExshomeWeb.App.apps(),
+        fn app -> app.prefix() == app_name end
+      ) || raise "Unknown app"
+
+    Enum.find(
+      app.pages,
+      fn page -> page.action() == action end
+    ) || raise "Unknown page"
   end
 
   def on_mount(_, _params, _session, %Socket{} = socket) do
@@ -138,7 +139,6 @@ defmodule ExshomeWeb.Live.AppPage do
               |> Module.split()
               |> List.last()
               |> Macro.underscore()
-              |> String.to_atom()
 
       @view_module __MODULE__
                    |> Module.split()

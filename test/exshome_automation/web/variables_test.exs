@@ -12,7 +12,7 @@ defmodule ExshomeAutomationTest.Web.VariablesTest do
 
   describe "render without dependencies" do
     test "renders fine", %{conn: conn} do
-      assert {:ok, _view, _html} = live(conn, ExshomeAutomation.path(conn, :variables))
+      assert {:ok, _view, _html} = live(conn, ExshomeAutomation.path(conn, "variables"))
     end
   end
 
@@ -70,7 +70,7 @@ defmodule ExshomeAutomationTest.Web.VariablesTest do
   end
 
   defp render_variables_list(conn) do
-    live_with_dependencies(conn, ExshomeAutomation, :variables)
+    live_with_dependencies(conn, ExshomeAutomation, "variables")
   end
 
   defp start_variable do

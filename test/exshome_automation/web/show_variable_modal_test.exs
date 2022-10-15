@@ -21,7 +21,7 @@ defmodule ExshomeAutomationTest.Web.ShowVariableModalTest do
       TestRegistry.start_dependency(PlayerState)
       TestRegistry.start_dependency(Position)
       TestRegistry.start_dependency(Volume)
-      view = live_with_dependencies(conn, ExshomeAutomation, :variables)
+      view = live_with_dependencies(conn, ExshomeAutomation, "variables")
       %{view: view}
     end
 
@@ -52,7 +52,7 @@ defmodule ExshomeAutomationTest.Web.ShowVariableModalTest do
   describe "custom variables" do
     setup %{conn: conn} do
       start_dynamic_variable_supervisor()
-      view = live_with_dependencies(conn, ExshomeAutomation, :variables)
+      view = live_with_dependencies(conn, ExshomeAutomation, "variables")
       %{view: view}
     end
 

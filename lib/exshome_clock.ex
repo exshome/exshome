@@ -7,6 +7,6 @@ defmodule ExshomeClock do
 
   use ExshomeWeb.App,
     pages: [Live.Clock, Live.Settings],
-    prefix: :clock,
+    prefix: "clock",
     preview: Live.Preview
 end

@@ -10,9 +10,9 @@ defmodule ExshomeTest.LiveViewHelpers do
   @doc """
   Renders a live app page and returns a view. Raises when something bad happens.
   """
-  @spec live_with_dependencies(Plug.Conn.t(), module(), atom()) :: Phoenix.LiveViewTest.View
+  @spec live_with_dependencies(Plug.Conn.t(), module(), String.t()) :: Phoenix.LiveViewTest.View
   def live_with_dependencies(%Plug.Conn{} = conn, app_module, action)
-      when is_atom(app_module) and is_atom(action) do
+      when is_atom(app_module) and is_binary(action) do
     start_dependencies(app_module, action)
 
     {:ok, view, _html} = live(conn, app_module.path(conn, action))
@@ -25,7 +25,7 @@ defmodule ExshomeTest.LiveViewHelpers do
   """
   @spec live_preview(Plug.Conn.t(), module()) :: Phoenix.LiveViewTest.View
   def live_preview(%Plug.Conn{} = conn, app_module) when is_atom(app_module) do
-    module = app_page(app_module, :preview)
+    module = app_page(app_module, "preview")
     {:ok, view, _html} = live_isolated(conn, module, [])
 
     view
@@ -38,7 +38,7 @@ defmodule ExshomeTest.LiveViewHelpers do
   @spec live_preview_with_dependencies(Plug.Conn.t(), module()) :: Phoenix.LiveViewTest.View
   def live_preview_with_dependencies(%Plug.Conn{} = conn, app_module)
       when is_atom(app_module) do
-    start_dependencies(app_module, :preview)
+    start_dependencies(app_module, "preview")
     live_preview(conn, app_module)
   end
 
@@ -50,9 +50,9 @@ defmodule ExshomeTest.LiveViewHelpers do
     value
   end
 
-  @spec start_dependencies(module(), atom()) :: :ok
+  @spec start_dependencies(module(), String.t()) :: :ok
   def start_dependencies(app_module, action)
-      when is_atom(app_module) and is_atom(action) do
+      when is_atom(app_module) and is_binary(action) do
     supervised_dependencies =
       app_module
       |> app_page(action)
@@ -69,7 +69,7 @@ defmodule ExshomeTest.LiveViewHelpers do
     :ok
   end
 
-  defp app_page(app_module, :preview), do: app_module.preview()
+  defp app_page(app_module, "preview"), do: app_module.preview()
 
   defp app_page(app_module, action) do
     app_module.pages()

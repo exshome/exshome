@@ -5,7 +5,7 @@ defmodule ExshomeAutomationTest.Web.AutomationsTest do
 
   describe "render without dependencies" do
     test "works fine", %{conn: conn} do
-      assert {:ok, _view, _html} = live(conn, ExshomeAutomation.path(conn, :automations))
+      assert {:ok, _view, _html} = live(conn, ExshomeAutomation.path(conn, "automations"))
     end
   end
 
@@ -28,7 +28,7 @@ defmodule ExshomeAutomationTest.Web.AutomationsTest do
   end
 
   defp render_workflows(conn) do
-    live_with_dependencies(conn, ExshomeAutomation, :automations)
+    live_with_dependencies(conn, ExshomeAutomation, "automations")
   end
 
   defp workflow_ids(view) do

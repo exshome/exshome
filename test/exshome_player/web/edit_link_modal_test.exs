@@ -11,7 +11,7 @@ defmodule ExshomePlayerTest.Web.EditLinkModalTest do
   setup %{conn: conn} do
     TestMpvServer.server_fixture()
     TestRegistry.start_dependency(MpvSocket, %{})
-    view = live_with_dependencies(conn, ExshomePlayer, :playlist)
+    view = live_with_dependencies(conn, ExshomePlayer, "playlist")
     %Playlist{} = Dependency.get_value(Playlist)
     %{view: view}
   end
