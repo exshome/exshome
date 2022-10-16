@@ -4,6 +4,7 @@ defmodule ExshomeWeb.App do
   """
 
   alias Exshome.Dependency.GenServerDependency
+  alias Exshome.SystemRegistry
   alias ExshomeWeb.Router.Helpers, as: Routes
 
   @callback can_start?() :: boolean()
@@ -32,7 +33,7 @@ defmodule ExshomeWeb.App do
   def available_apps, do: @apps
 
   def apps do
-    case Exshome.SystemRegistry.get_by_id(__MODULE__, :available_apps) do
+    case SystemRegistry.get_by_id(__MODULE__, :available_apps) do
       {:ok, started_apps} -> started_apps
       _ -> []
     end
