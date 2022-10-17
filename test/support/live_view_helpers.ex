@@ -73,6 +73,7 @@ defmodule ExshomeTest.LiveViewHelpers do
 
   defp app_page(app_module, action) do
     app_module.pages()
+    |> Enum.map(fn {page, _} -> page end)
     |> Enum.filter(&(&1.action() == action))
     |> List.first()
   end

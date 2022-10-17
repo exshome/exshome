@@ -6,7 +6,14 @@ defmodule ExshomeAutomation do
   alias ExshomeAutomation.Web.Live
 
   use ExshomeWeb.App,
-    pages: [Live.Variables, Live.Automations, Live.AutomationEditor],
+    pages: [
+      Live.Variables,
+      {Live.Automations,
+       [
+         {"*", Live.AutomationEditor}
+       ]},
+      Live.AutomationEditor
+    ],
     prefix: "automation",
     preview: Live.Preview
 end

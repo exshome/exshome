@@ -1,7 +1,7 @@
 <div class="flex flex-wrap justify-center">
   <.link
     :for={app_module <- ExshomeWeb.App.apps()}
-    navigate={app_module.path(@socket, List.first(app_module.pages()).action())}
+    navigate={app_module.path(@socket, (app_module.pages() |> List.first() |> elem(0)).action())}
   >
     <div class="
           w-[40vmin] h-[40vmin] lg:w-[30vmin] lg:h-[30vmin]

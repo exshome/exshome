@@ -43,7 +43,24 @@ defmodule ExshomeWeb.App do
   def validate_module!(%Macro.Env{module: module}, _bytecode) do
     NimbleOptions.validate!(
       module.__config__(),
-      pages: [type: {:list, :atom}, required: true],
+      pages: [
+        type: {
+          :list,
+          {:or,
+           [
+             :atom,
+             {:tuple,
+              [
+                :atom,
+                {
+                  :list,
+                  {:tuple, [:string, :atom]}
+                }
+              ]}
+           ]}
+        },
+        required: true
+      ],
       prefix: [type: :string, required: true],
       preview: [type: :atom, required: true]
     )
@@ -51,7 +68,7 @@ defmodule ExshomeWeb.App do
 
   @spec path(module(), struct(), atom(), Keyword.t()) :: String.t()
   def path(module, conn_or_endpoint, action, params \\ []) do
-    page = Enum.find(module.pages(), fn page -> page.action() == action end)
+    {page, _} = Enum.find(module.pages(), fn {page, _} -> page.action() == action end)
 
     Routes.router_path(
       conn_or_endpoint,
@@ -86,7 +103,14 @@ defmodule ExshomeWeb.App do
       def namespace, do: @namespace
 
       @impl App
-      def pages, do: Keyword.fetch!(__MODULE__.__config__(), :pages)
+      def pages do
+        __MODULE__.__config__()
+        |> Keyword.fetch!(:pages)
+        |> Enum.map(fn
+          {page, children} -> {page, children}
+          page -> {page, []}
+        end)
+      end
 
       @impl App
       def prefix, do: Keyword.fetch!(__MODULE__.__config__(), :prefix)

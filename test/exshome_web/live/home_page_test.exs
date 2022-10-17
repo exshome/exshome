@@ -13,7 +13,7 @@ defmodule ExshomeWebTest.Live.HomePageTest do
       home_path = Routes.home_path(conn, :index)
       {:ok, view, _html} = live(conn, home_path)
 
-      index_page = List.first(app.pages())
+      {index_page, _} = List.first(app.pages())
       page_path = app.path(conn, index_page.action())
 
       {:ok, view, _html} =

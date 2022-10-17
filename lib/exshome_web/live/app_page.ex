@@ -46,10 +46,13 @@ defmodule ExshomeWeb.Live.AppPage do
         fn app -> app.prefix() == app_name end
       ) || raise "Unknown app"
 
-    Enum.find(
-      app.pages,
-      fn page -> page.action() == action end
-    ) || raise "Unknown page"
+    {page, _} =
+      Enum.find(
+        app.pages(),
+        fn {page, _} -> page.action() == action end
+      ) || raise "Unknown page"
+
+    page
   end
 
   def on_mount(_, _params, _session, %Socket{} = socket) do

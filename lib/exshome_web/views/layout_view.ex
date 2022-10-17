@@ -16,7 +16,7 @@ defmodule ExshomeWeb.LayoutView do
 
   defp app_navigation(%Socket{view: view} = socket) do
     app_pages =
-      for page <- view.app_module().pages() do
+      for {page, _} <- view.app_module().pages() do
         %{
           icon: page.icon(),
           name: page.action(),
