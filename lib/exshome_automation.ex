@@ -10,7 +10,7 @@ defmodule ExshomeAutomation do
       Live.Variables,
       {Live.Automations,
        [
-         {"*", Live.AutomationEditor}
+         {".*", Live.AutomationEditor}
        ]},
       Live.AutomationEditor
     ],

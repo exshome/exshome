@@ -29,6 +29,7 @@ defmodule ExshomeWeb.Live.AppPage do
       socket
       |> Map.put(:view, view)
       |> Map.update!(:private, &Map.put(&1, :lifecycle, lifecycle))
+      |> assign(:route_params, params)
 
     {:cont, socket} = LiveView.Lifecycle.mount(params, session, socket)
 
@@ -39,20 +40,32 @@ defmodule ExshomeWeb.Live.AppPage do
     end
   end
 
-  defp find_view!(%{"action" => action, "app" => app_name}) do
+  defp find_view!(%{"action" => action, "app" => app_name} = params) do
     app =
       Enum.find(
         ExshomeWeb.App.apps(),
         fn app -> app.prefix() == app_name end
       ) || raise "Unknown app"
 
-    {page, _} =
+    {page, children} =
       Enum.find(
         app.pages(),
         fn {page, _} -> page.action() == action end
       ) || raise "Unknown page"
 
-    page
+    child_page_id = params["id"]
+
+    if child_page_id do
+      {_, child_page} =
+        Enum.find(
+          children,
+          fn {route, _} -> String.match?(child_page_id, Regex.compile!(route)) end
+        ) || raise "Unknown child page"
+
+      child_page
+    else
+      page
+    end
   end
 
   def on_mount(_, _params, _session, %Socket{} = socket) do
@@ -196,7 +209,6 @@ defmodule ExshomeWeb.Live.AppPage do
   if @hook_module do
     defoverridable(on_handle_info: 2)
 
-    @impl LiveView
     def on_handle_info(event, %Socket{} = socket) do
       original_result = super(event, socket)
       @hook_module.on_handle_info(event, socket, original_result)
