@@ -29,7 +29,7 @@ defmodule ExshomeWeb.Live.AppPage do
       socket
       |> Map.put(:view, view)
       |> Map.update!(:private, &Map.put(&1, :lifecycle, lifecycle))
-      |> assign(:route_params, params)
+      |> assign(:__route__, params)
 
     {:cont, socket} = LiveView.Lifecycle.mount(params, session, socket)
 

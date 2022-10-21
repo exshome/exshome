@@ -68,15 +68,36 @@ defmodule ExshomeWeb.App do
 
   @spec path(module(), struct(), atom(), Keyword.t()) :: String.t()
   def path(module, conn_or_endpoint, action, params \\ []) do
-    {page, _} = Enum.find(module.pages(), fn {page, _} -> page.action() == action end)
+    {_page, _children} = find_routing(module, action)
 
     Routes.router_path(
       conn_or_endpoint,
       :index,
       module.prefix(),
-      page.action(),
+      action,
       params
     )
+  end
+
+  def details_path(module, conn_or_endpoint, action, id, params \\ []) do
+    {_page, children} = find_routing(module, action)
+
+    if children == [] do
+      raise "Page with action #{action} does not have child pages"
+    end
+
+    Routes.router_path(
+      conn_or_endpoint,
+      :details,
+      module.prefix(),
+      action,
+      id,
+      params
+    )
+  end
+
+  defp find_routing(module, action) do
+    Enum.find(module.pages(), fn {page, _} -> page.action() == action end)
   end
 
   defmacro __using__(config) do
@@ -132,6 +153,10 @@ defmodule ExshomeWeb.App do
 
       def path(conn_or_endpoint, action, params \\ []) do
         App.path(__MODULE__, conn_or_endpoint, action, params)
+      end
+
+      def details_path(conn_or_endpoint, action, id, params \\ []) do
+        App.details_path(__MODULE__, conn_or_endpoint, action, id, params)
       end
 
       use Supervisor, shutdown: :infinity

@@ -72,7 +72,9 @@ defmodule ExshomeAutomation.Services.Workflow do
     broadcast_event(%WorkflowStateEvent{data: workflow_data, type: :created})
   end
 
-  @spec remove_workflow_data(t()) :: :ok
+  @spec remove_workflow_data(t() | atom()) :: :ok
+  def remove_workflow_data(Dependency.NotReady), do: :ok
+
   def remove_workflow_data(%__MODULE__{} = workflow_data) do
     :ok = SystemRegistry.remove!(__MODULE__, workflow_data.id)
     broadcast_event(%WorkflowStateEvent{data: workflow_data, type: :deleted})

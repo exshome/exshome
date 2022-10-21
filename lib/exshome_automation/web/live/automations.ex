@@ -17,6 +17,17 @@ defmodule ExshomeAutomation.Web.Live.Automations do
   end
 
   @impl LiveView
+  def handle_event("show_workflow", %{"id" => id}, %Socket{} = socket) do
+    socket =
+      push_navigate(
+        socket,
+        to: ExshomeAutomation.details_path(socket, "automations", id)
+      )
+
+    {:noreply, socket}
+  end
+
+  @impl LiveView
   def handle_event("delete_workflow", %{"id" => id}, %Socket{} = socket) do
     :ok = Workflow.delete!(id)
     {:noreply, socket}
