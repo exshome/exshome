@@ -16,10 +16,10 @@
         <button class="cursor-pointer float-right" phx-click="modal:close">❌</button>
       </div>
       <div class="flex-grow w-full overflow-y-auto">
-        <%= if @modal do %>
-          <%= live_render(@socket, @modal.module,
+        <%= if @__modal__ do %>
+          <%= live_render(@socket, @__modal__.module,
             id: "modal-data",
-            session: @modal.params,
+            session: @__modal__.params,
             container: {:div, class: "w-full h-full"}
           ) %>
         <% end %>
@@ -29,7 +29,7 @@
 </section>
 
 <main class="h-full flex flex-col justify-between">
-  <%= render("_header.html", socket: @socket) %>
+  <%= render("_header.html", socket: @socket, navigation: @__navigation__) %>
 
   <%= if info_message = live_flash(@flash, :info) do %>
     <p class="alert alert-info" role="alert" phx-click="lv:clear-flash" phx-value-key="info">
@@ -47,5 +47,5 @@
     <%= @inner_content %>
   </div>
 
-  <%= render("_footer.html", socket: @socket) %>
+  <%= render("_footer.html", socket: @socket, navigation: @__navigation__) %>
 </main>

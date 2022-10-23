@@ -1,5 +1,5 @@
 <div class="flex">
-  <.link :for={item <- navigation_data(@socket)} navigate={item.path}>
+  <.link :for={item <- @navigation} navigate={item.path}>
     <div class={
       ~s/
           p-2 m-1

@@ -56,7 +56,7 @@ defmodule ExshomeWeb do
 
       extra_hooks = Application.compile_env(:exshome, :hooks, [])[:live_view] || []
 
-      for module <- extra_hooks ++ [ExshomeWeb.Live.Modal] do
+      for module <- extra_hooks ++ [ExshomeWeb.Live.Modal, ExshomeWeb.Live.Navigation] do
         on_mount module
       end
 
