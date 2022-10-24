@@ -7,13 +7,14 @@ defmodule ExshomeAutomationTest.Web.AutomationEditorTest do
 
   describe "render without dependencies" do
     test "works fine", %{conn: conn} do
-      assert {:ok, _view, _html} = live(conn, ExshomeAutomation.path(conn, "automation_editor"))
+      assert {:ok, _view, _html} =
+               live(conn, ExshomeAutomation.details_path(conn, "automations", "some_id"))
     end
   end
 
   describe "render with dependencies" do
     setup %{conn: conn} do
-      view = live_with_dependencies(conn, ExshomeAutomation, "automation_editor")
+      view = live_with_dependencies(conn, ExshomeAutomation, "automations", "some_id")
       resize(view, %{height: @default_height, width: @default_width})
       %{view: view}
     end

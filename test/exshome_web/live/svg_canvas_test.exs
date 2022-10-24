@@ -186,7 +186,7 @@ defmodule ExshomeWebTest.SvgCanvasTest do
   end
 
   defp render_automation_editor(conn) do
-    live_with_dependencies(conn, ExshomeAutomation, "automation_editor")
+    live_with_dependencies(conn, ExshomeAutomation, "automations", "some_id")
   end
 
   defp select_background(view) do

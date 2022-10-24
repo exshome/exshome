@@ -11,8 +11,7 @@ defmodule ExshomeAutomation do
       {Live.Automations,
        [
          {".*", Live.AutomationEditor}
-       ]},
-      Live.AutomationEditor
+       ]}
     ],
     prefix: "automation",
     preview: Live.Preview

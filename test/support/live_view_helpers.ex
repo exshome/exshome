@@ -10,12 +10,24 @@ defmodule ExshomeTest.LiveViewHelpers do
   @doc """
   Renders a live app page and returns a view. Raises when something bad happens.
   """
-  @spec live_with_dependencies(Plug.Conn.t(), module(), String.t()) :: Phoenix.LiveViewTest.View
-  def live_with_dependencies(%Plug.Conn{} = conn, app_module, action)
+  @spec live_with_dependencies(
+          Plug.Conn.t(),
+          app_module :: module(),
+          action :: String.t(),
+          id :: String.t() | nil
+        ) :: Phoenix.LiveViewTest.View
+  def live_with_dependencies(%Plug.Conn{} = conn, app_module, action, id \\ nil)
       when is_atom(app_module) and is_binary(action) do
-    start_dependencies(app_module, action)
+    start_dependencies(app_module, action, id)
 
-    {:ok, view, _html} = live(conn, app_module.path(conn, action))
+    path =
+      if id do
+        app_module.details_path(conn, action, id)
+      else
+        app_module.path(conn, action)
+      end
+
+    {:ok, view, _html} = live(conn, path)
 
     view
   end
@@ -50,12 +62,12 @@ defmodule ExshomeTest.LiveViewHelpers do
     value
   end
 
-  @spec start_dependencies(module(), String.t()) :: :ok
-  def start_dependencies(app_module, action)
+  @spec start_dependencies(module(), action :: String.t(), id :: String.t() | nil) :: :ok
+  def start_dependencies(app_module, action, id \\ nil)
       when is_atom(app_module) and is_binary(action) do
     supervised_dependencies =
       app_module
-      |> app_page(action)
+      |> app_page(action, id)
       |> then(& &1.dependencies())
       |> Keyword.keys()
       |> Enum.into(MapSet.new())
@@ -69,12 +81,30 @@ defmodule ExshomeTest.LiveViewHelpers do
     :ok
   end
 
-  defp app_page(app_module, "preview"), do: app_module.preview()
+  defp app_page(app_module, action, id \\ nil)
 
-  defp app_page(app_module, action) do
+  defp app_page(app_module, "preview", nil), do: app_module.preview()
+
+  defp app_page(app_module, action, nil) do
     app_module.pages()
     |> Enum.map(fn {page, _} -> page end)
     |> Enum.filter(&(&1.action() == action))
-    |> List.first()
+    |> List.first() || raise "Unable to find app page for #{app_module}:#{action}"
+  end
+
+  defp app_page(app_module, action, id) do
+    {_parent_page, children} =
+      Enum.find(
+        app_module.pages(),
+        fn {page, _} -> page.action() == action end
+      )
+
+    {_pattern, page} =
+      Enum.find(
+        children,
+        fn {pattern, _} -> String.match?(id, Regex.compile!(pattern)) end
+      )
+
+    page
   end
 end
