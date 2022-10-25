@@ -25,6 +25,13 @@ defmodule ExshomeAutomationTest.Web.AutomationsTest do
       delete_workflow(view, id)
       assert count_workflows(view) == 0
     end
+
+    test "navigates to the editor", %{view: view} do
+      create_new_workflow(view)
+      [id] = workflow_ids(view)
+      view_workflow(view, id)
+      assert_redirect(view, editor_path(view, id))
+    end
   end
 
   defp render_workflows(conn) do
@@ -61,5 +68,17 @@ defmodule ExshomeAutomationTest.Web.AutomationsTest do
     |> render_click()
 
     assert_receive_app_page_dependency({WorkflowRegistry, _})
+  end
+
+  defp view_workflow(view, id) do
+    flush_messages()
+
+    view
+    |> element("[phx-click=show_workflow][phx-value-id=#{id}]")
+    |> render_click()
+  end
+
+  defp editor_path(view, automation_id) do
+    ExshomeAutomation.details_path(view.endpoint, "automations", automation_id)
   end
 end
