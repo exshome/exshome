@@ -7,11 +7,11 @@ defmodule ExshomeAutomation do
 
   use ExshomeWeb.App,
     pages: [
-      Live.Variables,
       {Live.Automations,
        [
          {".*", Live.AutomationEditor}
-       ]}
+       ]},
+      Live.Variables
     ],
     prefix: "automation",
     preview: Live.Preview
