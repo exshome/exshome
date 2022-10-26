@@ -6,6 +6,7 @@ defmodule ExshomeAutomation.Services.Workflow do
   alias Exshome.Event
   alias Exshome.SystemRegistry
   alias ExshomeAutomation.Events.WorkflowStateEvent
+  alias ExshomeAutomation.Services.Workflow.Editor
   alias ExshomeAutomation.Services.Workflow.Schema
   alias ExshomeAutomation.Services.Workflow.WorkflowSupervisor
 
@@ -31,7 +32,10 @@ defmodule ExshomeAutomation.Services.Workflow do
       |> schema_to_workflow_data()
 
     register_workflow_data(value)
-    update_value(state, fn _ -> value end)
+
+    state
+    |> update_value(fn _ -> value end)
+    |> update_data(fn _ -> Editor.blank_editor() end)
   end
 
   @impl GenServerDependency
@@ -56,6 +60,13 @@ defmodule ExshomeAutomation.Services.Workflow do
     |> Schema.delete!()
 
     :ok = WorkflowSupervisor.terminate_child_with_id(id)
+  end
+
+  @spec get_editor_state(String.t()) :: [Editor.t()]
+  def get_editor_state(id), do: call(id, :editor_state)
+
+  defp call(id, message) when is_binary(id) do
+    GenServerDependency.call({__MODULE__, id}, message)
   end
 
   defp schema_to_workflow_data(%Schema{id: id, name: name}) do
