@@ -63,7 +63,22 @@ defmodule ExshomeAutomation.Services.Workflow do
   end
 
   @spec get_editor_state(String.t()) :: [Editor.t()]
-  def get_editor_state(id), do: call(id, :editor_state)
+  def get_editor_state(id), do: call(id, :get_editor_state)
+
+  @spec add_editor_item(String.t(), String.t()) :: :ok
+  def add_editor_item(id, type), do: call(id, {:add_editor_item, type})
+
+  @impl GenServerDependency
+  def handle_call(:get_editor_state, _, %DependencyState{} = state) do
+    {:reply, state.data, state}
+  end
+
+  @impl GenServerDependency
+  def handle_call({:add_editor_item, type}, _, %DependencyState{} = state) do
+    item = Editor.create_default_item(type)
+    state = update_data(state, &Editor.add_item(&1, item))
+    {:reply, :ok, state}
+  end
 
   defp call(id, message) when is_binary(id) do
     GenServerDependency.call({__MODULE__, id}, message)
