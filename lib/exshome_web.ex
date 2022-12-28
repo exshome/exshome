@@ -52,7 +52,7 @@ defmodule ExshomeWeb do
     quote do
       use Phoenix.LiveView,
         container: {:div, [class: "h-full"]},
-        layout: {ExshomeWeb.LayoutView, "live.html"}
+        layout: {ExshomeWeb.LayoutView, :live}
 
       extra_hooks = Application.compile_env(:exshome, :hooks, [])[:live_view] || []
 
