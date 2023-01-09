@@ -100,18 +100,24 @@ defmodule ExshomeWeb.Live.AppPage do
   def on_handle_info(_event, %Socket{} = socket), do: {:cont, socket}
 
   @impl LiveView
-  def render(%{socket: %Socket{} = socket, deps: deps} = assigns) do
+  def render(%{deps: deps} = assigns) do
     missing_deps =
       deps
       |> Enum.filter(fn {_key, value} -> value == Dependency.NotReady end)
       |> Enum.map(fn {key, _value} -> key end)
 
-    if Enum.any?(missing_deps) do
-      ~H"Missing dependencies: <%= inspect(missing_deps) %>"
-    else
-      template = template_name(socket)
-      view_module(socket).render(template, assigns)
-    end
+    assigns
+    |> assign(:__missing_deps__, missing_deps)
+    |> do_render()
+  end
+
+  defp do_render(%{socket: %Socket{} = socket, __missing_deps__: []} = assigns) do
+    template = template_name(socket)
+    view_module(socket).render(template, assigns)
+  end
+
+  defp do_render(assigns) do
+    ~H"Missing dependencies: <%= inspect(@__missing_deps__) %>"
   end
 
   @spec validate_module!(Macro.Env.t(), String.t()) :: keyword()
