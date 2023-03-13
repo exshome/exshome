@@ -59,7 +59,7 @@ jobs:
       run: mix deps.audit
 
     - name: Elixir run tests
-      run: mix coveralls.json --warnings-as-errors
+      run: mix coveralls.multiple --type html --type json --warnings-as-errors
 
     - name: Upload coverage report to Codecov
       uses: codecov/codecov-action@v3
