@@ -17,6 +17,8 @@ defmodule ExshomeWeb do
   and import those modules here.
   """
 
+  def static_paths, do: ~w(assets fonts images favicon.ico robots.txt)
+
   def controller do
     quote do
       use Phoenix.Controller, namespace: ExshomeWeb
@@ -24,6 +26,7 @@ defmodule ExshomeWeb do
       import Plug.Conn
       import ExshomeWeb.Gettext
       alias ExshomeWeb.Router.Helpers, as: Routes
+      unquote(verified_routes())
     end
   end
 
@@ -116,6 +119,16 @@ defmodule ExshomeWeb do
       import ExshomeWeb.Components
       import ExshomeWeb.DatatypeView, only: [datatype_value: 1, datatype_input: 1]
       alias ExshomeWeb.Router.Helpers, as: Routes
+      unquote(verified_routes())
+    end
+  end
+
+  def verified_routes do
+    quote do
+      use Phoenix.VerifiedRoutes,
+        endpoint: ExshomeWeb.Endpoint,
+        router: ExshomeWeb.Router,
+        statics: ExshomeWeb.static_paths()
     end
   end
 

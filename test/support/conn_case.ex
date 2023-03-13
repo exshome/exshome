@@ -32,6 +32,8 @@ defmodule ExshomeWebTest.ConnCase do
 
       # The default endpoint for testing
       @endpoint ExshomeWeb.Endpoint
+
+      use ExshomeWeb, :verified_routes
     end
   end
 
