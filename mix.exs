@@ -70,7 +70,7 @@ defmodule Exshome.MixProject do
       {:jason, "~> 1.2"},
       {:mix_audit, "~> 2.0", only: [:dev, :test], runtime: false},
       {:nimble_options, "~> 1.0"},
-      {:phoenix, "~> 1.6.5"},
+      {:phoenix, "~> 1.7.1"},
       {:phoenix_ecto, "~> 4.0"},
       {:phoenix_html, "~> 3.0"},
       {:phoenix_live_dashboard, "~> 0.6"},
