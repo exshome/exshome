@@ -58,6 +58,7 @@ defmodule Exshome.MixProject do
   # Type `mix help deps` for examples and options.
   defp deps do
     [
+      {:bandit, ">= 0.6.10"},
       {:credo, "~> 1.6", only: [:dev, :test], runtime: false},
       {:dialyxir, "~> 1.0", only: [:dev, :test], runtime: false},
       {:ecto, "~> 3.7"},
@@ -78,7 +79,6 @@ defmodule Exshome.MixProject do
       {:phoenix_live_reload, "~> 1.2", only: :dev},
       {:phoenix_live_view, "~> 0.18"},
       {:phoenix_view, "~> 2.0"},
-      {:plug_cowboy, "~> 2.5"},
       {:tailwind, "~> 0.1", runtime: Mix.env() == :dev},
       {:telemetry_metrics, "~> 0.6"},
       {:telemetry_poller, "~> 1.0"},

@@ -21,6 +21,7 @@ config :exshome, :root_folder, Path.expand("../data/", __DIR__)
 
 # Configures the endpoint
 config :exshome, ExshomeWeb.Endpoint,
+  adapter: Bandit.PhoenixAdapter,
   url: [host: "localhost"],
   render_errors: [view: ExshomeWeb.ErrorView, accepts: ~w(html json), layout: false],
   pubsub_server: Exshome.PubSub,
