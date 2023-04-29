@@ -30,7 +30,7 @@ defmodule ExshomeWeb do
     end
   end
 
-  def view do
+  def html do
     quote do
       app_module =
         __MODULE__
@@ -38,16 +38,16 @@ defmodule ExshomeWeb do
         |> Enum.slice(0..0)
         |> Module.safe_concat()
 
-      use Phoenix.View,
-        root: app_module.template_root(),
-        namespace: app_module.namespace()
+      use Phoenix.Component
 
       # Import convenience functions from controllers
       import Phoenix.Controller,
         only: [get_flash: 1, get_flash: 2, view_module: 1, view_template: 1]
 
       # Include shared imports and aliases for views
-      unquote(view_helpers())
+      unquote(html_helpers())
+
+      embed_templates "./templates/*"
     end
   end
 
@@ -66,7 +66,7 @@ defmodule ExshomeWeb do
       import ExshomeWeb.Live.Modal,
         only: [open_modal: 3, open_modal: 2, close_modal: 1, send_js: 2]
 
-      unquote(view_helpers())
+      unquote(html_helpers())
     end
   end
 
@@ -74,7 +74,7 @@ defmodule ExshomeWeb do
     quote do
       use Phoenix.LiveComponent
 
-      unquote(view_helpers())
+      unquote(html_helpers())
     end
   end
 
@@ -82,7 +82,7 @@ defmodule ExshomeWeb do
     quote do
       use Phoenix.Component
 
-      unquote(view_helpers())
+      unquote(html_helpers())
     end
   end
 
@@ -103,16 +103,13 @@ defmodule ExshomeWeb do
     end
   end
 
-  defp view_helpers do
+  defp html_helpers do
     quote do
       # Use all HTML functionality (forms, tags, etc)
       use Phoenix.HTML
 
       # Import LiveView and .heex helpers (live_render, live_patch, <.form>, etc)
       use Phoenix.Component
-
-      # Import basic rendering functionality (render, render_layout, etc)
-      import Phoenix.View
 
       import ExshomeWeb.ErrorHelpers
       import ExshomeWeb.Gettext

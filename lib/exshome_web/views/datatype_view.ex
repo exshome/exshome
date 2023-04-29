@@ -41,7 +41,7 @@ defmodule ExshomeWeb.DatatypeView do
         add_tag(DatatypeView, key: type)
       end
 
-      use ExshomeWeb, :view
+      use ExshomeWeb, :html
 
       @behaviour DatatypeView
     end

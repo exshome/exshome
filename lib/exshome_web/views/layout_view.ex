@@ -1,3 +1,4 @@
 defmodule ExshomeWeb.LayoutView do
-  use ExshomeWeb, :view
+  use ExshomeWeb, :html
+  embed_templates("../templates/layout/*")
 end

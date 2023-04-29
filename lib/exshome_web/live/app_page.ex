@@ -4,18 +4,18 @@ defmodule ExshomeWeb.Live.AppPage do
   """
   alias Exshome.Dependency
   alias Exshome.Event
+  alias ExshomeWeb.Live.AppPage
   alias Phoenix.LiveView
   alias Phoenix.LiveView.Socket
   import Phoenix.Component
 
   @callback action() :: String.t()
   @callback app_module() :: atom()
-  @callback view_module() :: atom()
   @callback icon() :: String.t()
-  @callback template_name() :: String.t()
   @callback dependencies() :: Keyword.t()
   @callback on_app_event(Event.event_message(), Socket.t()) :: Socket.t()
-  @optional_callbacks [on_app_event: 2]
+  @callback render_assigns(map()) :: LiveView.Rendered.t()
+  @optional_callbacks [on_app_event: 2, render_assigns: 1]
 
   use ExshomeWeb, :live_view
 
@@ -111,9 +111,8 @@ defmodule ExshomeWeb.Live.AppPage do
     |> do_render()
   end
 
-  defp do_render(%{socket: %Socket{} = socket, __missing_deps__: []} = assigns) do
-    template = template_name(socket)
-    view_module(socket).render(template, assigns)
+  defp do_render(%{socket: %Socket{view: view}, __missing_deps__: []} = assigns) do
+    view.render_assigns(assigns)
   end
 
   defp do_render(assigns) do
@@ -149,18 +148,14 @@ defmodule ExshomeWeb.Live.AppPage do
 
   defp get_dependencies(%Socket{private: private}), do: Map.fetch!(private, __MODULE__)
 
-  defp view_module(%Socket{view: view}) do
-    view.view_module()
-  end
-
-  defp template_name(%Socket{view: view}), do: view.template_name()
-
   defmacro __using__(config) do
     quote do
       @action __MODULE__
               |> Module.split()
               |> List.last()
               |> Macro.underscore()
+
+      @action_atom String.to_atom(@action)
 
       @view_module __MODULE__
                    |> Module.split()
@@ -188,10 +183,7 @@ defmodule ExshomeWeb.Live.AppPage do
       def action, do: @action
 
       @impl AppPage
-      def view_module, do: @view_module
-
-      @impl AppPage
-      def template_name, do: "#{@action}.html"
+      defdelegate render_assigns(assigns), to: @view_module, as: @action_atom
 
       @impl AppPage
       def icon, do: unquote(config[:icon] || "")

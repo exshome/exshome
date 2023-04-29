@@ -9,7 +9,7 @@
       <%= assigns[:page_title] || "Exshome" %>
     </.live_title>
     <link phx-track-static rel="stylesheet" href={Routes.static_path(@conn, "/assets/app.css")} />
-    <%= render("_theme_switch_script.html") %>
+    <%= _theme_switch_script(@conn) %>
     <script
       defer
       phx-track-static

@@ -3,5 +3,5 @@ defmodule ExshomeAutomation.Web.View do
   View module for Automation app.
   """
 
-  use ExshomeWeb, :view
+  use ExshomeWeb, :html
 end

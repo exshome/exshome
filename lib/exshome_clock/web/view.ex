@@ -3,7 +3,7 @@ defmodule ExshomeClock.Web.View do
   View module for Clock app.
   """
 
-  use ExshomeWeb, :view
+  use ExshomeWeb, :html
 
   def format_time(%DateTime{} = data), do: Calendar.strftime(data, "%X")
   def format_date(%DateTime{} = data), do: Calendar.strftime(data, "%B %d, %Y")
