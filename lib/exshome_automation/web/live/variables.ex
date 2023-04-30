@@ -11,7 +11,7 @@ defmodule ExshomeAutomation.Web.Live.Variables do
 
   use ExshomeWeb.Live.AppPage,
     dependencies: [{VariableRegistry, :variables}],
-    icon: "☑️"
+    icon: "hero-variable-mini"
 
   @impl LiveView
   def handle_event("show_variable", %{"id" => id}, %Socket{} = socket) do

@@ -6,7 +6,7 @@ defmodule ExshomePlayer.Web.Live.Playlist do
   alias ExshomePlayer.Services.Playlist
 
   use ExshomeWeb.Live.AppPage,
-    icon: "📃",
+    icon: "hero-list-bullet-mini",
     dependencies: [{Playlist, :playlist}]
 
   @impl LiveView

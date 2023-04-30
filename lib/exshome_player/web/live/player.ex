@@ -7,7 +7,7 @@ defmodule ExshomePlayer.Web.Live.Player do
   alias ExshomePlayer.Variables
 
   use ExshomeWeb.Live.AppPage,
-    icon: "🎵",
+    icon: "hero-musical-note-mini",
     dependencies: [
       {Variables.Duration, :duration},
       {Variables.Pause, :pause},

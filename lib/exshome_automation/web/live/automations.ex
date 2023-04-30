@@ -8,7 +8,7 @@ defmodule ExshomeAutomation.Web.Live.Automations do
 
   use ExshomeWeb.Live.AppPage,
     dependencies: [{WorkflowRegistry, :workflows}],
-    icon: "🤖"
+    icon: "hero-command-line-mini"
 
   @impl LiveView
   def handle_event("new_workflow", _, %Socket{} = socket) do

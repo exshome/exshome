@@ -5,5 +5,5 @@ defmodule ExshomeClock.Web.Live.Clock do
 
   use ExshomeWeb.Live.AppPage,
     dependencies: [{ExshomeClock.Services.LocalTime, :time}],
-    icon: "⏰"
+    icon: "hero-clock-mini"
 end

@@ -51,7 +51,7 @@ defmodule ExshomeWeb.Live.Navigation do
 
     [
       %__MODULE__{
-        icon: "🏠",
+        icon: "hero-home-mini",
         name: "home",
         selected: false,
         path: Routes.home_path(socket, :index)
