@@ -13,7 +13,9 @@
       phx-key="escape"
     >
       <div id="modal-header" class="overflow-hidden w-full min-h-[2em]">
-        <button class="cursor-pointer float-right" phx-click="modal:close">❌</button>
+        <button class="cursor-pointer float-right" phx-click="modal:close">
+          <.icon name="hero-x-circle-solid" class="p-[1em]" />
+        </button>
       </div>
       <div class="flex-grow w-full overflow-y-auto">
         <%= if @__modal__ do %>

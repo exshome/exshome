@@ -28,7 +28,7 @@
         </:row_before>
         <:row_after :let={track}>
           <%= if track.type == :url do %>
-            <.button phx-click="edit" phx-value-id={track.id} class="flex items-center">
+            <.button phx-click="edit" phx-value-id={track.id}>
               <.icon name="hero-pencil-square" />
             </.button>
           <% end %>
@@ -36,9 +36,8 @@
             phx-click="delete"
             phx-value-id={track.id}
             data-confirm="Do you really want to delete this track?"
-            class="flex items-center"
           >
-            <.icon name="hero-trash" />
+            <.icon name="hero-trash-solid" />
           </.button>
         </:row_after>
         <div class={

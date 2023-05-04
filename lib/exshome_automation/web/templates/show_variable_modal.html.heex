@@ -17,7 +17,7 @@
     <% end %>
     <%= if @config.can_rename? do %>
       <.button class="text-xs inline" phx-click="toggle_rename" type="button">
-        <%= if @rename, do: "❌", else: "️✏️" %>
+        <.icon name={if @rename, do: "hero-x-mark", else: "hero-pencil-square"} />
       </.button>
     <% end %>
   </form>

@@ -17,26 +17,23 @@
         <h2 class="text-4xl text-center mt-5 first:mt-0"><%= group %></h2>
         <.list :let={variable} rows={Enum.sort_by(variables, & &1.dependency)}>
           <:row_before :let={variable}>
-            <div class="flex flex-col md:flex-row items-center justify-center">
-              <span><%= if variable.not_ready_reason, do: "🟠", else: "🟢" %></span>
-            </div>
+            <%= if variable.not_ready_reason do %>
+              <.icon name="hero-exclamation-triangle-solid" class="text-orange-400 p-3" />
+            <% else %>
+              <.icon name="hero-check-circle-solid" class="text-green-700 p-3" />
+            <% end %>
           </:row_before>
           <:row_after :let={variable}>
-            <.button
-              class="md:text-2xl lg:text-4xl"
-              phx-click="show_variable"
-              phx-value-id={variable.id}
-            >
-              <span>👀</span>
+            <.button phx-click="show_variable" phx-value-id={variable.id}>
+              <.icon name="hero-pencil-square" />
             </.button>
             <%= if variable.can_delete? do %>
               <.button
-                class="md:text-2xl lg:text-4xl"
                 phx-click="delete_variable"
                 phx-value-id={variable.id}
                 data-confirm="Do you really want to delete this variable?"
               >
-                <span>🗑</span>
+                <.icon name="hero-trash-solid" />
               </.button>
             <% end %>
           </:row_after>

@@ -4,15 +4,13 @@
       <%= @deps.title %>
     </marquee>
     <div>
-      <%= for button <- ["previous_track", (if @deps.pause, do: "play", else: "pause"), "next_track"] do %>
+      <%= for {action, icon} <- [{"previous_track", "hero-chevron-double-left"}, (if @deps.pause, do: {"play", "hero-play-solid"}, else: {"pause", "hero-pause-solid"}), {"next_track", "hero-chevron-double-right"}] do %>
         <button
-          phx-click={button}
+          phx-click={action}
           type="button"
           class="text-sm sm:text-xl sm:m-4 min-h-[5em] min-w-[5em] rounded-lg bg-gray-300 hover:bg-gray-400 dark:bg-gray-800 dark:hover:bg-gray-700 shadow-md dark:shadow-gray-600 relative border-2 border-blue-300 text-orange-600"
         >
-          <div class={"icon mt-[-35%] #{button}"}>
-            <i />
-          </div>
+          <.icon name={icon} class="p-[2em]" />
         </button>
       <% end %>
     </div>
@@ -26,7 +24,7 @@
       phx-change="set_position"
     />
     <div class="w-full mt-7 text-xl flex items-center justify-center">
-      <span class="mb-1">&#128264;</span>
+      <.icon name="hero-speaker-x-mark-solid" />
       <input
         class="w-3/4 rounded-full bg-orange-300 text-orange-600 mx-2 h-[1em] shadow-lg dark:shadow-gray-800"
         name="volume"
@@ -36,7 +34,7 @@
         value={@deps.volume}
         phx-change="set_volume"
       />
-      <span class="mb-1">&#128266;</span>
+      <.icon name="hero-speaker-wave-solid" />
     </div>
   </form>
 </section>
