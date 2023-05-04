@@ -3,11 +3,12 @@
     <div class={
       ~s/
           p-2 m-1
+          flex item-center md:block
           rounded-lg shadow-inner
           hover:bg-gray-200 hover:dark:bg-gray-600
           #{if item.selected, do: "bg-gray-300 dark:bg-gray-500", else: "bg-gray-50 dark:bg-gray-800"} /
     }>
-      <span class={item.icon} />
+      <.icon name={item.icon} />
       <span class="hidden md:inline"><%= item.name %></span>
     </div>
   </.link>

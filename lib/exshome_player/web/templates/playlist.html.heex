@@ -14,24 +14,31 @@
           <.button
             phx-click="play"
             phx-value-id={track.id}
-            class={"md:text-3xl #{if @deps.playlist.current_id == track.id, do: 'playing'}"}
+            class={"flex items-center #{if @deps.playlist.current_id == track.id, do: 'playing'}"}
           >
-            <%= if @deps.playlist.current_id == track.id, do: "🎧", else: "▶️" %>
+            <.icon
+              name={
+                if @deps.playlist.current_id == track.id,
+                  do: "hero-musical-note",
+                  else: "hero-play"
+              }
+              class="p-4"
+            />
           </.button>
         </:row_before>
         <:row_after :let={track}>
           <%= if track.type == :url do %>
-            <.button phx-click="edit" phx-value-id={track.id} class="md:text-2xl">
-              ️✏️
+            <.button phx-click="edit" phx-value-id={track.id} class="flex items-center">
+              <.icon name="hero-pencil-square" />
             </.button>
           <% end %>
           <.button
             phx-click="delete"
             phx-value-id={track.id}
             data-confirm="Do you really want to delete this track?"
-            class="md:text-2xl"
+            class="flex items-center"
           >
-            🗑️
+            <.icon name="hero-trash" />
           </.button>
         </:row_after>
         <div class={
