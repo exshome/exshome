@@ -4,7 +4,7 @@
       <%= @deps.title %>
     </marquee>
     <div>
-      <%= for {action, icon} <- [{"previous_track", "hero-chevron-double-left"}, (if @deps.pause, do: {"play", "hero-play-solid"}, else: {"pause", "hero-pause-solid"}), {"next_track", "hero-chevron-double-right"}] do %>
+      <%= for {action, icon} <- [{"previous_track", "hero-backward-solid"}, (if @deps.pause, do: {"play", "hero-play-solid"}, else: {"pause", "hero-pause-solid"}), {"next_track", "hero-forward-solid"}] do %>
         <button
           phx-click={action}
           type="button"
