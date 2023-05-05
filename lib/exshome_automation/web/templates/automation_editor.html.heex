@@ -1,5 +1,29 @@
-<ExshomeWeb.SvgCanvasView.render_svg_canvas
-  meta={@__svg_meta__}
-  components={@__components__}
-  menu_items={@__menu_items__}
-/>
+<div class="h-full w-full flex flex-col">
+  <section class="flex flex-col items-center p-2">
+    <h2 class="text-lg inline md:text-3xl font-black [word-break:break-word] text-center">
+      Name
+    </h2>
+    <div class="w-full max-w-[20em] flex items-center">
+      <.icon name="hero-magnifying-glass-minus" class="p-2" />
+      <div class="w-full">
+        <input
+          class="w-full rounded-full bg-blue-300 text-blue-600 text-lg h-[0.7em] shadow-xl dark:shadow-gray-600"
+          name="position"
+          type="range"
+          min={@__svg_meta__.zoom.min}
+          max={@__svg_meta__.zoom.max}
+          value={@__svg_meta__.zoom.value}
+          phx-change="zoom"
+        />
+      </div>
+      <.icon name="hero-magnifying-glass-plus" class="p-2" />
+    </div>
+  </section>
+  <section class="grow relative h-px">
+    <ExshomeWeb.SvgCanvasView.render_svg_canvas
+      meta={@__svg_meta__}
+      components={@__components__}
+      menu_items={@__menu_items__}
+    />
+  </section>
+</div>
