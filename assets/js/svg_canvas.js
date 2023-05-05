@@ -38,9 +38,9 @@ export const SvgCanvas = {
     this.el.addEventListener("touchleave", withPointer(this.onDragEnd));
     this.el.addEventListener("touchcancel", withPointer(this.onDragEnd));
 
-    const onZoomDesktop = debounce(this.onZoomDesktop.bind(this), 10);
-    this.el.addEventListener("mousewheel", withPointer(onZoomDesktop));
-    this.el.addEventListener("DOMMouseScroll", withPointer(onZoomDesktop));
+    const onScrollDesktop = debounce(this.onScrollDesktop.bind(this), 10);
+    this.el.addEventListener("mousewheel", withPointer(onScrollDesktop));
+    this.el.addEventListener("DOMMouseScroll", withPointer(onScrollDesktop));
 
     this.handleEvent("move-to-foreground", this.handleMoveToForeground.bind(this));
     this.handleEvent("select-item", this.handleSelectItem.bind(this));
@@ -173,12 +173,15 @@ export const SvgCanvas = {
     this.pushEvent("resize", {height: this.el.clientHeight, width: this.el.clientWidth});
   },
 
-  onZoomDesktop(e) {
-    const delta = Math.max(
-      -1,
-      Math.min(1, e.wheelDelta || -e.detail)
-    );
-    this.pushEvent("zoom-desktop", {pointer: this.pointerPosition, delta});
+  onScrollDesktop(e) {
+    e.preventDefault();
+    if (e.ctrlKey) {
+      const delta = Math.max(
+        -1,
+        Math.min(1, e.wheelDelta || -e.detail)
+      );
+      this.pushEvent("zoom-desktop", {pointer: this.pointerPosition, delta});
+    }
   },
 
   reconnected() {
