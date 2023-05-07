@@ -19,10 +19,16 @@ defmodule ExshomeAutomation.Web.Live.AutomationEditor do
 
     socket =
       socket
+      |> assign(:name, "Name")
       |> SvgCanvas.render_components(components)
       |> SvgCanvas.render_menu_items([menu_item])
 
     {:ok, socket}
+  end
+
+  @impl LiveView
+  def handle_event("rename", %{"name" => name}, socket) do
+    {:noreply, assign(socket, name: name)}
   end
 
   @impl SvgCanvas

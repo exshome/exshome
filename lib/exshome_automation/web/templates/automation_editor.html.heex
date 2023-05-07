@@ -1,8 +1,13 @@
 <div class="h-full w-full flex flex-col">
   <section class="flex flex-col items-center p-2">
-    <h2 class="text-lg inline md:text-3xl font-black [word-break:break-word] text-center">
-      Name
-    </h2>
+    <.live_component
+      module={ExshomeWeb.Live.RenameComponent}
+      id="workflow_name"
+      value={@name}
+      can_rename?={true}
+      change_action="rename"
+      name="name"
+    />
     <div class="w-full max-w-[20em] flex items-center">
       <.icon name="hero-magnifying-glass-minus" class="p-2" />
       <div class="w-full">

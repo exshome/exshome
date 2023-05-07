@@ -1,26 +1,12 @@
 <section class="flex flex-col items-center justify-center h-full">
-  <form class="w-full md:w-3/4 flex items-center justify-center" phx-change="rename">
-    <%= if @rename do %>
-      <.datatype_input
-        class="md:ml-8"
-        type={Exshome.Datatype.String}
-        value={@config.name}
-        validations={%{}}
-        name="name"
-      />
-    <% else %>
-      <h2 class={
-        "text-lg inline md:text-3xl font-black [word-break:break-word] text-center #{if @config.can_rename?, do: 'pl-8'}"
-      }>
-        <%= @config.name %>
-      </h2>
-    <% end %>
-    <%= if @config.can_rename? do %>
-      <.button class="text-xs inline" phx-click="toggle_rename" type="button">
-        <.icon name={if @rename, do: "hero-x-mark", else: "hero-pencil-square"} />
-      </.button>
-    <% end %>
-  </form>
+  <.live_component
+    module={ExshomeWeb.Live.RenameComponent}
+    id="variable_name"
+    value={@config.name}
+    can_rename?={@config.can_rename?}
+    change_action="rename"
+    name="name"
+  />
   <div class="text-xs mb-5">
     <.chip>
       <%= Exshome.Datatype.icon(@config.type) %>

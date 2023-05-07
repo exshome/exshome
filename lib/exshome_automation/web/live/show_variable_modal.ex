@@ -27,10 +27,6 @@ defmodule ExshomeAutomation.Web.Live.ShowVariableModal do
     {:noreply, set_value(socket, value)}
   end
 
-  def handle_event("toggle_rename", _, %Socket{} = socket) do
-    {:noreply, assign(socket, :rename, !socket.assigns.rename)}
-  end
-
   def handle_event(
         "rename",
         %{"name" => name},
