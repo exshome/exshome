@@ -4,6 +4,7 @@ defmodule ExshomeTest.SvgCanvasHelpers do
   """
   import ExUnit.Assertions
   import Phoenix.LiveViewTest
+  import ExshomeTest.LiveViewHelpers
 
   defmodule Element do
     @moduledoc """
@@ -146,5 +147,19 @@ defmodule ExshomeTest.SvgCanvasHelpers do
       |> Float.parse()
 
     value
+  end
+
+  @spec get_zoom_value(live_view_t()) :: number()
+  def get_zoom_value(view) do
+    view
+    |> get_value("[phx-change^='set-zoom-'] input")
+    |> String.to_integer()
+  end
+
+  @spec set_zoom_value(live_view_t(), number()) :: String.t()
+  def set_zoom_value(view, value) do
+    view
+    |> element("[phx-change^='set-zoom-']")
+    |> render_change(%{value: value})
   end
 end

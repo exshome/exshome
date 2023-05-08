@@ -142,6 +142,38 @@ defmodule ExshomeWebTest.SvgCanvasTest do
 
       assert %{x: 5, y: 5, height: 200, width: 100} == get_body_viewbox(view)
     end
+
+    test "zoom-in button", %{view: view} do
+      initial_zoom = get_zoom_value(view)
+
+      view
+      |> element("[phx-click^='zoom-in-']")
+      |> render_click()
+
+      assert initial_zoom < get_zoom_value(view)
+    end
+
+    test "zoom-out button", %{view: view} do
+      initial_zoom = get_zoom_value(view)
+
+      view
+      |> element("[phx-click^='zoom-out-']")
+      |> render_click()
+
+      assert initial_zoom > get_zoom_value(view)
+    end
+
+    test "zoom slider", %{view: view} do
+      initial_value = get_zoom_value(view)
+
+      new_value =
+        1..10
+        |> Enum.reject(&(&1 == initial_value))
+        |> Enum.random()
+
+      set_zoom_value(view, new_value)
+      assert new_value == get_zoom_value(view)
+    end
   end
 
   describe "menu" do
