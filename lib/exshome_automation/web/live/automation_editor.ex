@@ -31,25 +31,6 @@ defmodule ExshomeAutomation.Web.Live.AutomationEditor do
     {:noreply, assign(socket, name: value)}
   end
 
-  @impl LiveView
-  def handle_event("set_zoom", %{"value" => value}, socket) do
-    new_zoom = String.to_integer(value)
-    socket = SvgCanvas.update_zoom(socket, fn _ -> new_zoom end)
-    {:noreply, socket}
-  end
-
-  @impl LiveView
-  def handle_event("zoom_out", _, socket) do
-    socket = SvgCanvas.update_zoom(socket, &(&1 - 1))
-    {:noreply, socket}
-  end
-
-  @impl LiveView
-  def handle_event("zoom_in", _, socket) do
-    socket = SvgCanvas.update_zoom(socket, &(&1 + 1))
-    {:noreply, socket}
-  end
-
   @impl SvgCanvas
   def handle_create(%Socket{} = socket, %{type: type, position: position}) do
     id = "#{type}-#{Ecto.UUID.generate()}"

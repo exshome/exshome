@@ -1,39 +1,14 @@
-<div class="h-full w-full flex flex-col">
-  <section class="flex flex-col sm:flex-row sm:justify-between items-center p-2">
+<ExshomeWeb.SvgCanvasView.render_svg_canvas
+  meta={@__svg_meta__}
+  components={@__components__}
+  menu_items={@__menu_items__}
+>
+  <:header>
     <.live_component
       module={ExshomeWeb.Live.RenameComponent}
       id="rename_workflow"
       value={@name}
       can_rename?={true}
     />
-    <div class="w-full max-w-[20em] flex items-center">
-      <.button class="cursor-pointer" phx-click="zoom_out">
-        <.icon name="hero-magnifying-glass-minus" />
-      </.button>
-      <form class="w-full" phx-change="set_zoom">
-        <.datatype_input
-          class="md:ml-8"
-          type={Exshome.Datatype.Integer}
-          value={@__svg_meta__.zoom.value}
-          validations={
-            %{
-              min: @__svg_meta__.zoom.min,
-              max: @__svg_meta__.zoom.max
-            }
-          }
-          name="value"
-        />
-      </form>
-      <.button class="cursor-pointer" phx-click="zoom_in">
-        <.icon name="hero-magnifying-glass-plus" />
-      </.button>
-    </div>
-  </section>
-  <section class="grow relative h-px">
-    <ExshomeWeb.SvgCanvasView.render_svg_canvas
-      meta={@__svg_meta__}
-      components={@__components__}
-      menu_items={@__menu_items__}
-    />
-  </section>
-</div>
+  </:header>
+</ExshomeWeb.SvgCanvasView.render_svg_canvas>

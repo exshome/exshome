@@ -1,7 +1,32 @@
-<section class="flex flex-col items-center justify-center h-full">
+<section class="relative h-full w-full flex flex-col">
+  <section class="flex flex-col sm:flex-row sm:justify-between items-center p-2">
+    <%= render_slot(@header) %>
+    <div class="w-full max-w-[20em] flex items-center">
+      <.button class="cursor-pointer" phx-click={"zoom-out-#{@meta.name}"}>
+        <.icon name="hero-magnifying-glass-minus" />
+      </.button>
+      <form class="w-full" phx-change={"set-zoom-#{@meta.name}"}>
+        <.datatype_input
+          class="md:ml-8"
+          type={Exshome.Datatype.Integer}
+          value={@meta.zoom.value}
+          validations={
+            %{
+              min: @meta.zoom.min,
+              max: @meta.zoom.max
+            }
+          }
+          name="value"
+        />
+      </form>
+      <.button class="cursor-pointer" phx-click={"zoom-in-#{@meta.name}"}>
+        <.icon name="hero-magnifying-glass-plus" />
+      </.button>
+    </div>
+  </section>
   <svg
     id={"#{@meta.name}-screen"}
-    class={"h-full w-full select-none relative #{@meta.class}"}
+    class={"grow w-full select-none relative #{@meta.class}"}
     viewBox={"0 0 #{@meta.screen.width} #{@meta.screen.height}"}
     data-viewbox-x={@meta.viewbox.x}
     data-viewbox-y={@meta.viewbox.y}
@@ -12,8 +37,8 @@
       id={"#{@meta.name}-body"}
       class="h-full w-full select-none"
       viewBox={
-        "#{@meta.viewbox.x} #{@meta.viewbox.y} #{@meta.viewbox.width} #{@meta.viewbox.height}"
-      }
+          "#{@meta.viewbox.x} #{@meta.viewbox.y} #{@meta.viewbox.width} #{@meta.viewbox.height}"
+        }
       xmlns="http://www.w3.org/2000/svg"
       phx-update="append"
     >

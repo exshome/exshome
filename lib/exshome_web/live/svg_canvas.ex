@@ -288,6 +288,19 @@ defmodule ExshomeWeb.Live.SvgCanvas do
     )
   end
 
+  def handle_event("zoom-in-" <> _name, _, %Socket{} = socket) do
+    on_update_zoom(socket, &(&1 + 1))
+  end
+
+  def handle_event("zoom-out-" <> _name, _, %Socket{} = socket) do
+    on_update_zoom(socket, &(&1 - 1))
+  end
+
+  def handle_event("set-zoom-" <> _name, %{"value" => value}, %Socket{} = socket) do
+    new_zoom = String.to_integer(value)
+    on_update_zoom(socket, fn _ -> new_zoom end)
+  end
+
   def handle_event(_event, _params, %Socket{} = socket) do
     {:cont, socket}
   end
@@ -317,9 +330,8 @@ defmodule ExshomeWeb.Live.SvgCanvas do
     })
   end
 
-  @spec update_zoom(Socket.t(), (number() -> number())) :: Socket.t()
-  def update_zoom(%Socket{} = socket, update_fn) when is_function(update_fn, 1) do
-    update_svg_meta(socket, fn %__MODULE__{} = meta ->
+  def on_update_zoom(%Socket{} = socket, update_fn) when is_function(update_fn, 1) do
+    update_svg_meta_response(socket, fn %__MODULE__{} = meta ->
       meta.zoom.value
       |> update_in(update_fn)
       |> refresh_zoom()

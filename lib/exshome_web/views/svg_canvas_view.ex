@@ -11,6 +11,7 @@ defmodule ExshomeWeb.SvgCanvasView do
   attr :components, :list, required: true, doc: "components to render"
   attr :menu_items, :list, required: true, doc: "canvas menu items"
   attr :meta, SvgCanvas, required: true, doc: "canvas metadata"
+  slot :header, doc: "canvas header"
 
   def render_svg_canvas(assigns) do
     index(assigns)
