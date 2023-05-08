@@ -322,7 +322,7 @@ defmodule ExshomeWeb.Live.SvgCanvas do
     update_svg_meta(socket, fn %__MODULE__{} = meta ->
       meta.zoom.value
       |> update_in(update_fn)
-      |> on_resize(meta.canvas.height, meta.canvas.width)
+      |> refresh_zoom()
     end)
   end
 
@@ -573,18 +573,20 @@ defmodule ExshomeWeb.Live.SvgCanvas do
     computed_scroll_size_y = (screen.height - scroll.height) * (viewbox.height / canvas.height)
     scroll_size_y = max(computed_scroll_size_y, screen.height / 3)
 
-    scroll_ratio_x =
+    {viewbox_x, scroll_ratio_x} =
       if canvas.width == viewbox.width do
-        1
+        {0, 1}
       else
-        (canvas.width - viewbox.width) / (screen.width - scroll_size_x - scroll.height)
+        new_ratio = (canvas.width - viewbox.width) / (screen.width - scroll_size_x - scroll.height)
+        {viewbox.x, new_ratio}
       end
 
-    scroll_ratio_y =
+    {viewbox_y, scroll_ratio_y} =
       if canvas.height == viewbox.height do
-        1
+        {0, 1}
       else
-        (canvas.height - viewbox.height) / (screen.height - scroll_size_y - scroll.height)
+        new_ratio = (canvas.height - viewbox.height) / (screen.height - scroll_size_y - scroll.height)
+        {viewbox.y, new_ratio}
       end
 
     %__MODULE__{
@@ -595,7 +597,12 @@ defmodule ExshomeWeb.Live.SvgCanvas do
             size_y: scroll_size_y,
             ratio_x: scroll_ratio_x,
             ratio_y: scroll_ratio_y
-        }
+      },
+      viewbox: %{
+        viewbox
+        | x: viewbox_x,
+        y: viewbox_y
+      }
     }
   end
 
