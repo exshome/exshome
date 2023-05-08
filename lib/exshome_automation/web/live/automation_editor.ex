@@ -27,8 +27,27 @@ defmodule ExshomeAutomation.Web.Live.AutomationEditor do
   end
 
   @impl LiveView
-  def handle_event("workflow-name", %{"value" => value}, socket) do
+  def handle_event("rename_workflow", %{"value" => value}, socket) do
     {:noreply, assign(socket, name: value)}
+  end
+
+  @impl LiveView
+  def handle_event("set_zoom", %{"value" => value}, socket) do
+    new_zoom = String.to_integer(value)
+    socket = SvgCanvas.update_zoom(socket, fn _ -> new_zoom end)
+    {:noreply, socket}
+  end
+
+  @impl LiveView
+  def handle_event("zoom_out", _, socket) do
+    socket = SvgCanvas.update_zoom(socket, &(&1 - 1))
+    {:noreply, socket}
+  end
+
+  @impl LiveView
+  def handle_event("zoom_in", _, socket) do
+    socket = SvgCanvas.update_zoom(socket, &(&1 + 1))
+    {:noreply, socket}
   end
 
   @impl SvgCanvas

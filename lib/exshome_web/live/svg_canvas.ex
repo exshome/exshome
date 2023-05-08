@@ -317,6 +317,15 @@ defmodule ExshomeWeb.Live.SvgCanvas do
     })
   end
 
+  @spec update_zoom(Socket.t(), (number() -> number())) :: Socket.t()
+  def update_zoom(%Socket{} = socket, update_fn) when is_function(update_fn, 1) do
+    update_svg_meta(socket, fn %__MODULE__{} = meta ->
+      meta.zoom.value
+      |> update_in(update_fn)
+      |> on_resize(meta.canvas.height, meta.canvas.width)
+    end)
+  end
+
   defp on_body_scroll_x(
          %__MODULE__{scroll: scroll, selected: selected, viewbox: viewbox} = data,
          x

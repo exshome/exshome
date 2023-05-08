@@ -1,14 +1,16 @@
 <div class="h-full w-full flex flex-col">
-  <section class="flex flex-col items-center p-2">
+  <section class="flex flex-col sm:flex-row sm:justify-between items-center p-2">
     <.live_component
       module={ExshomeWeb.Live.RenameComponent}
-      id="workflow-name"
+      id="rename_workflow"
       value={@name}
       can_rename?={true}
     />
     <div class="w-full max-w-[20em] flex items-center">
-      <.icon name="hero-magnifying-glass-minus" class="p-2" />
-      <div class="w-full">
+      <.button class="cursor-pointer" phx-click="zoom_out">
+        <.icon name="hero-magnifying-glass-minus" />
+      </.button>
+      <form class="w-full" phx-change="set_zoom">
         <.datatype_input
           class="md:ml-8"
           type={Exshome.Datatype.Integer}
@@ -19,10 +21,12 @@
               max: @__svg_meta__.zoom.max
             }
           }
-          name="zoom"
+          name="value"
         />
-      </div>
-      <.icon name="hero-magnifying-glass-plus" class="p-2" />
+      </form>
+      <.button class="cursor-pointer" phx-click="zoom_in">
+        <.icon name="hero-magnifying-glass-plus" />
+      </.button>
     </div>
   </section>
   <section class="grow relative h-px">
