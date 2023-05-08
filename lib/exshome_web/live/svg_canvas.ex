@@ -577,7 +577,9 @@ defmodule ExshomeWeb.Live.SvgCanvas do
       if canvas.width == viewbox.width do
         {0, 1}
       else
-        new_ratio = (canvas.width - viewbox.width) / (screen.width - scroll_size_x - scroll.height)
+        new_ratio =
+          (canvas.width - viewbox.width) / (screen.width - scroll_size_x - scroll.height)
+
         {viewbox.x, new_ratio}
       end
 
@@ -585,7 +587,9 @@ defmodule ExshomeWeb.Live.SvgCanvas do
       if canvas.height == viewbox.height do
         {0, 1}
       else
-        new_ratio = (canvas.height - viewbox.height) / (screen.height - scroll_size_y - scroll.height)
+        new_ratio =
+          (canvas.height - viewbox.height) / (screen.height - scroll_size_y - scroll.height)
+
         {viewbox.y, new_ratio}
       end
 
@@ -597,12 +601,12 @@ defmodule ExshomeWeb.Live.SvgCanvas do
             size_y: scroll_size_y,
             ratio_x: scroll_ratio_x,
             ratio_y: scroll_ratio_y
-      },
-      viewbox: %{
-        viewbox
-        | x: viewbox_x,
-        y: viewbox_y
-      }
+        },
+        viewbox: %{
+          viewbox
+          | x: viewbox_x,
+            y: viewbox_y
+        }
     }
   end
 
