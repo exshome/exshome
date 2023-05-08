@@ -9,14 +9,17 @@
     <div class="w-full max-w-[20em] flex items-center">
       <.icon name="hero-magnifying-glass-minus" class="p-2" />
       <div class="w-full">
-        <input
-          class="w-full rounded-full bg-blue-300 text-blue-600 text-lg h-[0.7em] shadow-xl dark:shadow-gray-600"
-          name="position"
-          type="range"
-          min={@__svg_meta__.zoom.min}
-          max={@__svg_meta__.zoom.max}
+        <.datatype_input
+          class="md:ml-8"
+          type={Exshome.Datatype.Integer}
           value={@__svg_meta__.zoom.value}
-          phx-change="zoom"
+          validations={
+            %{
+              min: @__svg_meta__.zoom.min,
+              max: @__svg_meta__.zoom.max
+            }
+          }
+          name="zoom"
         />
       </div>
       <.icon name="hero-magnifying-glass-plus" class="p-2" />
