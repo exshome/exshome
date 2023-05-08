@@ -1,11 +1,9 @@
 <section class="flex flex-col items-center justify-center h-full">
   <.live_component
     module={ExshomeWeb.Live.RenameComponent}
-    id="variable_name"
+    id="rename_variable"
     value={@config.name}
     can_rename?={@config.can_rename?}
-    change_action="rename"
-    name="name"
   />
   <div class="text-xs mb-5">
     <.chip>

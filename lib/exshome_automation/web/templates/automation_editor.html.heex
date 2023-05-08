@@ -2,11 +2,9 @@
   <section class="flex flex-col items-center p-2">
     <.live_component
       module={ExshomeWeb.Live.RenameComponent}
-      id="workflow_name"
+      id="workflow-name"
       value={@name}
       can_rename?={true}
-      change_action="rename"
-      name="name"
     />
     <div class="w-full max-w-[20em] flex items-center">
       <.icon name="hero-magnifying-glass-minus" class="p-2" />

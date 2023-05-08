@@ -10,10 +10,9 @@ defmodule ExshomeWeb.Live.RenameComponent do
       socket
       |> assign_new(:rename, fn -> false end)
       |> assign(
+        component_id: assigns.id,
         value: assigns.value,
-        can_rename?: assigns.can_rename?,
-        change_action: assigns.change_action,
-        name: assigns.name
+        can_rename?: assigns.can_rename?
       )
 
     {:ok, socket}
@@ -28,14 +27,14 @@ defmodule ExshomeWeb.Live.RenameComponent do
   @impl Phoenix.LiveComponent
   def render(assigns) do
     ~H"""
-    <form class="w-full md:w-3/4 flex items-center justify-center" phx-change={@change_action}>
+    <form class="w-full md:w-3/4 flex items-center justify-center" phx-change={@component_id}>
       <%= if @rename do %>
         <.datatype_input
           class="md:ml-8"
           type={Exshome.Datatype.String}
           value={@value}
           validations={%{}}
-          name={@name}
+          name="value"
         />
       <% else %>
         <h2 class={

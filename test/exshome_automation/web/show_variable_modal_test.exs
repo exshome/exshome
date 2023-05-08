@@ -96,7 +96,7 @@ defmodule ExshomeAutomationTest.Web.ShowVariableModalTest do
   defp rename(view, name) do
     view
     |> find_rename_form()
-    |> render_change(%{name: name})
+    |> render_change(%{value: name})
   end
 
   defp toggle_rename_input(view) do
@@ -109,7 +109,7 @@ defmodule ExshomeAutomationTest.Web.ShowVariableModalTest do
   defp find_rename_form(view) do
     view
     |> find_live_child("modal-data")
-    |> form("form[phx-change='rename']")
+    |> form("form[phx-change='rename_variable']")
   end
 
   defp assert_variable_config_changed do

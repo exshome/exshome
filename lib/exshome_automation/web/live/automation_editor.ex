@@ -27,8 +27,8 @@ defmodule ExshomeAutomation.Web.Live.AutomationEditor do
   end
 
   @impl LiveView
-  def handle_event("rename", %{"name" => name}, socket) do
-    {:noreply, assign(socket, name: name)}
+  def handle_event("workflow-name", %{"value" => value}, socket) do
+    {:noreply, assign(socket, name: value)}
   end
 
   @impl SvgCanvas
