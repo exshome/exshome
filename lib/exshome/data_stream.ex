@@ -3,52 +3,66 @@ defmodule Exshome.DataStream do
   Contains all DataStream-related features.
   """
   alias Exshome.DataStream.Operation
+  alias Exshome.Dependency.NotReady
 
-  @type stream_module() :: atom()
-  @type topic() :: :default | String.t()
-  @type stream_message() :: [Operation.t()]
+  @type stream() :: atom() | {atom(), String.t()}
+  @type value() :: [term()] | NotReady
+  @type stream_diff() :: [Operation.t()]
+  @callback get_value(stream()) :: value()
 
-  @spec subscribe(stream_module(), topic()) :: :ok
-  def subscribe(stream_module, topic \\ :default) do
-    :ok =
-      stream_module
-      |> pub_sub_topic(topic)
-      |> Exshome.PubSub.subscribe()
+  @spec get_value(stream()) :: value()
+  def get_value(stream) do
+    raise_if_not_stream_module!(stream)
+    stream_module(stream).get_value(stream)
   end
 
-  @spec unsubscribe(stream_module(), topic()) :: :ok
-  def unsubscribe(stream_module, topic \\ :default) do
+  @spec subscribe(stream()) :: value()
+  def subscribe(stream) do
+    result = get_value(stream)
+
     :ok =
-      stream_module
-      |> pub_sub_topic(topic)
+      stream
+      |> pub_sub_topic()
+      |> Exshome.PubSub.subscribe()
+
+    case result do
+      NotReady -> get_value(stream)
+      data -> data
+    end
+  end
+
+  @spec unsubscribe(stream()) :: :ok
+  def unsubscribe(stream) do
+    :ok =
+      stream
+      |> pub_sub_topic()
       |> Exshome.PubSub.unsubscribe()
   end
 
-  @spec broadcast(stream_module(), stream_message(), topic()) :: :ok
-  def broadcast(stream_module, message, topic \\ :default) do
+  @spec broadcast(stream(), stream_diff()) :: :ok
+  def broadcast(stream, diff) do
     :ok =
-      stream_module
-      |> pub_sub_topic(topic)
-      |> Exshome.PubSub.broadcast({__MODULE__, message})
+      stream
+      |> pub_sub_topic()
+      |> Exshome.PubSub.broadcast({__MODULE__, {stream, diff}})
   end
 
-  @spec pub_sub_topic(stream_module(), topic()) :: String.t()
-  defp pub_sub_topic(stream_module, :default), do: base_topic_name(stream_module)
-
-  defp pub_sub_topic(stream_message, topic) when is_binary(topic) do
-    Enum.join(
-      [
-        base_topic_name(stream_message),
-        topic
-      ],
-      ":"
-    )
+  @spec pub_sub_topic(stream()) :: String.t()
+  defp pub_sub_topic({stream_module, id}) when is_atom(stream_module) and is_binary(id) do
+    Enum.join([pub_sub_topic(stream_module), id], ":")
   end
 
-  @spec base_topic_name(stream_module()) :: String.t()
-  defp base_topic_name(stream_module) do
+  defp pub_sub_topic(stream_module) when is_atom(stream_module) do
     raise_if_not_stream_module!(stream_module)
     stream_module.name()
+  end
+
+  @spec stream_module(stream()) :: module()
+  def stream_module({module, id}) when is_binary(id), do: stream_module(module)
+
+  def stream_module(module) when is_atom(module) do
+    raise_if_not_stream_module!(module)
+    module
   end
 
   defp raise_if_not_stream_module!(module) do
@@ -69,6 +83,7 @@ defmodule Exshome.DataStream do
     quote do
       alias Exshome.DataStream
       use Exshome.Named, "event:#{unquote(name)}"
+      @behaviour DataStream
       add_tag(DataStream)
     end
   end
