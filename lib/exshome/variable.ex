@@ -42,7 +42,7 @@ defmodule Exshome.Variable do
   @spec set_value(Dependency.dependency(), any()) :: :ok | {:error, String.t()}
   def set_value(dependency, value) do
     case validate_value(dependency, value) do
-      {:ok, value} -> Dependency.dependency_module(dependency).set_value(dependency, value)
+      {:ok, value} -> Dependency.get_module(dependency).set_value(dependency, value)
       {:error, reason} -> {:error, reason}
     end
   end
@@ -53,7 +53,7 @@ defmodule Exshome.Variable do
 
     {:ok, %__MODULE__{} = config} =
       dependency
-      |> Dependency.dependency_id()
+      |> Dependency.get_id()
       |> get_by_id()
 
     if config.readonly? do
@@ -79,7 +79,7 @@ defmodule Exshome.Variable do
 
     %__MODULE__{dependency: dependency} = variable
 
-    Dependency.dependency_module(dependency).delete(dependency)
+    Dependency.get_module(dependency).delete(dependency)
   end
 
   @spec rename_by_id!(id :: String.t(), name :: String.t()) :: :ok
@@ -92,12 +92,12 @@ defmodule Exshome.Variable do
 
     %__MODULE__{dependency: dependency} = variable
 
-    Dependency.dependency_module(dependency).rename(dependency, name)
+    Dependency.get_module(dependency).rename(dependency, name)
   end
 
   @spec raise_if_not_variable!(Dependency.dependency()) :: any()
   defp raise_if_not_variable!(dependency) do
-    module = Dependency.dependency_module(dependency)
+    module = Dependency.get_module(dependency)
 
     module_is_variable =
       Exshome.Tag.tag_mapping()

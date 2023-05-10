@@ -2,7 +2,7 @@ defmodule ExshomeAutomationTest.Variables.DynamicVariable.VariableSupervisorTest
   use ExshomeTest.DataCase, async: true
 
   alias Exshome.Datatype
-  alias Exshome.Dependency
+  alias Exshome.Subscribable.NotReady
   alias ExshomeAutomation.Variables.DynamicVariable.Schema
 
   import ExshomeTest.DynamicVariableHelpers
@@ -15,12 +15,12 @@ defmodule ExshomeAutomationTest.Variables.DynamicVariable.VariableSupervisorTest
     datatype = Enum.random(Datatype.available_types())
     %Schema{id: id} = Schema.create!(datatype.name())
     start_dynamic_variable_supervisor()
-    assert get_dynamic_variable_value(id) != Dependency.NotReady
+    assert get_dynamic_variable_value(id) != NotReady
   end
 
   test "starts with invalid datatype" do
     %Schema{id: id} = create_dynamic_variable_with_unknown_type()
     start_dynamic_variable_supervisor()
-    assert get_dynamic_variable_value(id) != Dependency.NotReady
+    assert get_dynamic_variable_value(id) != NotReady
   end
 end

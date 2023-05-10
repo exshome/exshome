@@ -3,6 +3,7 @@ defmodule ExshomeAutomationTest.Web.VariablesTest do
 
   alias Exshome.Datatype
   alias Exshome.Dependency
+  alias Exshome.Subscribable.NotReady
   alias ExshomeAutomation.Services.VariableRegistry
   alias ExshomeAutomation.Variables.DynamicVariable.Schema
   alias ExshomePlayer.Variables.Pause
@@ -33,7 +34,7 @@ defmodule ExshomeAutomationTest.Web.VariablesTest do
     test "renders fine", %{conn: conn} do
       %Schema{id: id} = create_dynamic_variable_with_unknown_type()
       start_dynamic_variable_supervisor()
-      assert get_dynamic_variable_value(id) != Dependency.NotReady
+      assert get_dynamic_variable_value(id) != NotReady
       view = render_variables_list(conn)
       assert count_variables(view) == 1
       delete_dynamic_variable(view, id)

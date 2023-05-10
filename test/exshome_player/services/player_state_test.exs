@@ -5,6 +5,7 @@ defmodule ExshomePlayerTest.Services.PlayerStateTest do
   import ExshomeTest.TestMpvServer
 
   alias Exshome.Dependency
+  alias Exshome.Subscribable.NotReady
   alias ExshomePlayer.Events.{PlayerFileEnd, PlayerStateEvent}
   alias ExshomePlayer.Services.{MpvSocket, PlayerState}
   alias ExshomeTest.TestRegistry
@@ -34,15 +35,15 @@ defmodule ExshomePlayerTest.Services.PlayerStateTest do
     end
 
     test "client can reconnect to a server" do
-      assert Dependency.get_value(PlayerState) != Dependency.NotReady
+      assert Dependency.get_value(PlayerState) != NotReady
 
       stop_server()
       wait_until_socket_disconnects()
-      assert Dependency.get_value(PlayerState) == Dependency.NotReady
+      assert Dependency.get_value(PlayerState) == NotReady
 
       server_fixture()
       wait_until_socket_connects()
-      assert Dependency.get_value(PlayerState) != Dependency.NotReady
+      assert Dependency.get_value(PlayerState) != NotReady
       stop_supervised!(MpvSocket)
     end
   end
@@ -58,7 +59,7 @@ defmodule ExshomePlayerTest.Services.PlayerStateTest do
     Exshome.Event.subscribe(PlayerFileEnd)
     Exshome.Event.subscribe(PlayerStateEvent)
 
-    assert Dependency.subscribe(PlayerState) != Dependency.NotReady
+    assert Dependency.subscribe(PlayerState) != NotReady
     %{}
   end
 end

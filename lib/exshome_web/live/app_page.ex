@@ -4,6 +4,7 @@ defmodule ExshomeWeb.Live.AppPage do
   """
   alias Exshome.Dependency
   alias Exshome.Event
+  alias Exshome.Subscribable.NotReady
   alias ExshomeWeb.Live.AppPage
   alias Phoenix.LiveView
   alias Phoenix.LiveView.Socket
@@ -103,7 +104,7 @@ defmodule ExshomeWeb.Live.AppPage do
   def render(%{deps: deps} = assigns) do
     missing_deps =
       deps
-      |> Enum.filter(fn {_key, value} -> value == Dependency.NotReady end)
+      |> Enum.filter(fn {_key, value} -> value == NotReady end)
       |> Enum.map(fn {key, _value} -> key end)
 
     assigns
@@ -128,12 +129,12 @@ defmodule ExshomeWeb.Live.AppPage do
     )
   end
 
-  @spec put_dependencies(Socket.t(), Dependency.depenency_mapping()) :: Socket.t()
+  @spec put_dependencies(Socket.t(), Dependency.dependency_mapping()) :: Socket.t()
   def put_dependencies(%Socket{} = socket, mapping) do
     mapping = Enum.into(mapping, %{})
 
     deps =
-      Dependency.change_dependencies(
+      Dependency.change_mapping(
         socket.private[__MODULE__] || %{},
         mapping,
         socket.assigns[:deps] || %{}

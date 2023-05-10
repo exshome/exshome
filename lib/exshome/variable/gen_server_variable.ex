@@ -7,6 +7,7 @@ defmodule Exshome.Variable.GenServerVariable do
   alias Exshome.Dependency.GenServerDependency
   alias Exshome.Dependency.GenServerDependency.DependencyState
   alias Exshome.Dependency.GenServerDependency.Lifecycle
+  alias Exshome.Subscribable.NotReady
   alias Exshome.Variable
 
   use Lifecycle, key: :variable
@@ -33,7 +34,7 @@ defmodule Exshome.Variable.GenServerVariable do
 
   @impl Lifecycle
   def handle_call({:set_value, value}, _from, %DependencyState{} = state) do
-    state = Dependency.dependency_module(state.dependency).handle_set_value(state, value)
+    state = Dependency.get_module(state.dependency).handle_set_value(state, value)
     {:stop, {:ok, state}}
   end
 
@@ -80,7 +81,7 @@ defmodule Exshome.Variable.GenServerVariable do
   defp update_variable_info(%DependencyState{} = state) do
     %Variable{} =
       variable_data =
-      Dependency.dependency_module(state.dependency).variable_from_dependency_state(state)
+      Dependency.get_module(state.dependency).variable_from_dependency_state(state)
 
     old_data = Map.get(state.private, __MODULE__)
 
@@ -104,12 +105,12 @@ defmodule Exshome.Variable.GenServerVariable do
   defp get_variable_data(%DependencyState{private: private}), do: Map.fetch!(private, __MODULE__)
 
   def variable_from_dependency_state(%DependencyState{dependency: dependency} = state) do
-    module = Dependency.dependency_module(dependency)
+    module = Dependency.get_module(dependency)
     config = get_config(module)
 
     %Variable{
       dependency: dependency,
-      id: Dependency.dependency_id(dependency),
+      id: Dependency.get_id(dependency),
       name: module.__config__[:name],
       group: Keyword.fetch!(config, :group),
       not_ready_reason: not_ready_reason(state),
@@ -141,14 +142,14 @@ defmodule Exshome.Variable.GenServerVariable do
 
   defp load_default_validations(%DependencyState{dependency: dependency}) do
     dependency
-    |> Dependency.dependency_module()
+    |> Dependency.get_module()
     |> get_config()
     |> Keyword.get(:validate, [])
     |> Enum.into(%{})
   end
 
-  defp not_ready_reason(%DependencyState{deps: deps, value: Dependency.NotReady}) do
-    missing_deps = for {key, Dependency.NotReady} <- deps, do: key
+  defp not_ready_reason(%DependencyState{deps: deps, value: NotReady}) do
+    missing_deps = for {key, NotReady} <- deps, do: key
 
     if Enum.any?(missing_deps) do
       "Missing dependencies: #{inspect(missing_deps)}"
@@ -158,7 +159,7 @@ defmodule Exshome.Variable.GenServerVariable do
   end
 
   defp not_ready_reason(%DependencyState{dependency: dependency} = state) do
-    Dependency.dependency_module(dependency).not_ready_reason(state)
+    Dependency.get_module(dependency).not_ready_reason(state)
   end
 
   defmacro __using__(_) do
@@ -176,7 +177,7 @@ defmodule Exshome.Variable.GenServerVariable do
 
       @impl GenServerVariable
       def handle_set_value(%DependencyState{} = state, value) do
-        module = Exshome.Dependency.dependency_module(state.dependency)
+        module = Exshome.Dependency.get_module(state.dependency)
 
         raise """
         Received unexpected handle_set_value #{inspect(value)},

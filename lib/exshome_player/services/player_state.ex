@@ -41,7 +41,7 @@ defmodule ExshomePlayer.Services.PlayerState do
       subscribe_to_player_state()
       update_value(state, fn _ -> %PlayerState{} end)
     else
-      update_value(state, fn _ -> Dependency.NotReady end)
+      update_value(state, fn _ -> NotReady end)
     end
   end
 

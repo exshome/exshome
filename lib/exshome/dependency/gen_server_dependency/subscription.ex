@@ -6,6 +6,7 @@ defmodule Exshome.Dependency.GenServerDependency.Subscription do
   alias Exshome.Dependency.GenServerDependency.DependencyState
   alias Exshome.Dependency.GenServerDependency.Lifecycle
   alias Exshome.Event
+  alias Exshome.Subscribable.NotReady
 
   use Lifecycle, key: :subscribe
 
@@ -16,7 +17,7 @@ defmodule Exshome.Dependency.GenServerDependency.Subscription do
   def init_state(%DependencyState{dependency: dependency} = state) do
     config =
       dependency
-      |> Dependency.dependency_module()
+      |> Dependency.get_module()
       |> get_config()
 
     dependencies = config[:dependencies] || []
@@ -42,7 +43,7 @@ defmodule Exshome.Dependency.GenServerDependency.Subscription do
 
   @impl Lifecycle
   def handle_info({Event, event}, %DependencyState{} = state) do
-    new_state = Dependency.dependency_module(state.dependency).handle_event(event, state)
+    new_state = Dependency.get_module(state.dependency).handle_event(event, state)
     {:stop, new_state}
   end
 
@@ -59,15 +60,15 @@ defmodule Exshome.Dependency.GenServerDependency.Subscription do
 
   @impl Lifecycle
   def handle_stop(_reason, %DependencyState{dependency: dependency} = state) do
-    Dependency.broadcast_value(dependency, Dependency.NotReady)
+    Dependency.broadcast_value(dependency, NotReady)
     {:cont, state}
   end
 
-  @spec put_dependencies(DependencyState.t(), Dependency.depenency_mapping()) ::
+  @spec put_dependencies(DependencyState.t(), Dependency.dependency_mapping()) ::
           DependencyState.t()
   def put_dependencies(%DependencyState{} = state, mapping) do
     old_mapping = Map.get(state.private, __MODULE__, [])
-    deps = Dependency.change_dependencies(old_mapping, mapping, state.deps)
+    deps = Dependency.change_mapping(old_mapping, mapping, state.deps)
 
     state = %DependencyState{
       state
@@ -96,12 +97,12 @@ defmodule Exshome.Dependency.GenServerDependency.Subscription do
     missing_dependencies =
       deps
       |> Map.values()
-      |> Enum.any?(&(&1 == Dependency.NotReady))
+      |> Enum.any?(&(&1 == NotReady))
 
     if missing_dependencies do
-      Lifecycle.update_value(state, fn _ -> Dependency.NotReady end)
+      Lifecycle.update_value(state, fn _ -> NotReady end)
     else
-      Dependency.dependency_module(state.dependency).handle_dependency_change(state)
+      Dependency.get_module(state.dependency).handle_dependency_change(state)
     end
   end
 
@@ -109,7 +110,7 @@ defmodule Exshome.Dependency.GenServerDependency.Subscription do
   def handle_dependency_info({dependency, value}, %DependencyState{} = state) do
     key =
       state.dependency
-      |> Dependency.dependency_module()
+      |> Dependency.get_module()
       |> get_config()
       |> Keyword.fetch!(:dependencies)
       |> Keyword.fetch!(dependency)
@@ -154,7 +155,7 @@ defmodule Exshome.Dependency.GenServerDependency.Subscription do
 
       @impl Subscription
       def handle_dependency_change(state) do
-        module = Exshome.Dependency.dependency_module(state.dependency)
+        module = Exshome.Dependency.get_module(state.dependency)
 
         Logger.warn("""
         Some module dependency changed.
@@ -166,7 +167,7 @@ defmodule Exshome.Dependency.GenServerDependency.Subscription do
 
       @impl Subscription
       def handle_event(event, %DependencyState{} = state) do
-        module = Exshome.Dependency.dependency_module(state.dependency)
+        module = Exshome.Dependency.get_module(state.dependency)
 
         Logger.warn("""
         Received unexpected event #{inspect(event)},

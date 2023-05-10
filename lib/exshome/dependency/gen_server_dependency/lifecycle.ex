@@ -98,7 +98,7 @@ defmodule Exshome.Dependency.GenServerDependency.Lifecycle do
   end
 
   defp hook_modules(%DependencyState{dependency: dependency}) do
-    module = Dependency.dependency_module(dependency)
+    module = Dependency.get_module(dependency)
 
     :attributes
     |> module.__info__()

@@ -4,6 +4,7 @@ defmodule ExshomeAutomation.Services.Workflow do
   """
 
   alias Exshome.Event
+  alias Exshome.Subscribable.NotReady
   alias Exshome.SystemRegistry
   alias ExshomeAutomation.Events.WorkflowStateEvent
   alias ExshomeAutomation.Services.Workflow.Editor
@@ -99,7 +100,7 @@ defmodule ExshomeAutomation.Services.Workflow do
   end
 
   @spec remove_workflow_data(t() | atom()) :: :ok
-  def remove_workflow_data(Dependency.NotReady), do: :ok
+  def remove_workflow_data(NotReady), do: :ok
 
   def remove_workflow_data(%__MODULE__{} = workflow_data) do
     :ok = SystemRegistry.remove!(__MODULE__, workflow_data.id)

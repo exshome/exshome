@@ -6,13 +6,14 @@ defmodule ExshomeClockTest.Services.LocalTimeTest do
   use ExshomeTest.DataCase, async: true
   alias Exshome.Dependency
   alias Exshome.Settings
+  alias Exshome.Subscribable.NotReady
   alias ExshomeClock.Services.{LocalTime, UtcTime}
   alias ExshomeClock.Settings.ClockSettings
   alias ExshomeTest.TestRegistry
 
   describe "LocalTime is not started" do
     test "returns NotReady" do
-      assert Dependency.get_value(LocalTime) == Dependency.NotReady
+      assert Dependency.get_value(LocalTime) == NotReady
     end
   end
 
@@ -22,14 +23,14 @@ defmodule ExshomeClockTest.Services.LocalTimeTest do
     end
 
     test "returns NotReady without dependencies" do
-      assert Dependency.get_value(LocalTime) == Dependency.NotReady
+      assert Dependency.get_value(LocalTime) == NotReady
     end
 
     test "works with dependencies" do
       current_time = DateTime.utc_now()
       Dependency.broadcast_value(UtcTime, current_time)
 
-      refute Dependency.get_value(LocalTime) == Dependency.NotReady
+      refute Dependency.get_value(LocalTime) == NotReady
       assert Dependency.get_value(LocalTime) == current_time
     end
 

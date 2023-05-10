@@ -7,6 +7,7 @@ defmodule Exshome.Dependency.GenServerDependency do
   alias Exshome.Dependency
   alias Exshome.Dependency.GenServerDependency.DependencyState
   alias Exshome.Dependency.GenServerDependency.Lifecycle
+  alias Exshome.Subscribable.NotReady
   alias Exshome.SystemRegistry
 
   @callback on_init(DependencyState.t()) :: DependencyState.t()
@@ -53,7 +54,7 @@ defmodule Exshome.Dependency.GenServerDependency do
 
   @impl GenServer
   def handle_continue(:on_init, %DependencyState{} = state) do
-    new_state = Dependency.dependency_module(state.dependency).on_init(state)
+    new_state = Dependency.get_module(state.dependency).on_init(state)
 
     {:noreply, new_state}
   end
@@ -65,7 +66,7 @@ defmodule Exshome.Dependency.GenServerDependency do
         {:reply, value, state}
 
       {:cont, state} ->
-        Dependency.dependency_module(state.dependency).handle_call(message, from, state)
+        Dependency.get_module(state.dependency).handle_call(message, from, state)
     end
   end
 
@@ -73,14 +74,14 @@ defmodule Exshome.Dependency.GenServerDependency do
   def handle_info(message, %DependencyState{} = state) do
     case Lifecycle.handle_info(message, state) do
       {:stop, state} -> {:noreply, state}
-      {:cont, state} -> Dependency.dependency_module(state.dependency).handle_info(message, state)
+      {:cont, state} -> Dependency.get_module(state.dependency).handle_info(message, state)
     end
   end
 
   @impl GenServer
   def terminate(reason, %DependencyState{} = state) do
     {_, state} = Lifecycle.handle_stop(reason, state)
-    Dependency.dependency_module(state.dependency).handle_stop(reason, state)
+    Dependency.get_module(state.dependency).handle_stop(reason, state)
   end
 
   @spec get_pid(Dependency.dependency()) :: pid() | nil
@@ -99,7 +100,7 @@ defmodule Exshome.Dependency.GenServerDependency do
   @spec call(Dependency.dependency(), any()) :: any()
   def call(dependency, message, timeout \\ default_timeout()) do
     case get_pid(dependency) do
-      nil -> Dependency.NotReady
+      nil -> NotReady
       pid -> GenServer.call(pid, message, timeout)
     end
   end

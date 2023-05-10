@@ -2,6 +2,7 @@ defmodule ExshomePlayerTest.Services.MpvServerTest do
   use ExshomeTest.DataCase, async: true
 
   alias Exshome.Dependency
+  alias Exshome.Subscribable.NotReady
   alias ExshomePlayer.Services.MpvServer
   alias ExshomeTest.TestRegistry
 
@@ -11,14 +12,14 @@ defmodule ExshomePlayerTest.Services.MpvServerTest do
     end
 
     test "service has correct state" do
-      assert Dependency.subscribe(MpvServer) != Dependency.NotReady
+      assert Dependency.subscribe(MpvServer) != NotReady
     end
 
     test "restarts a service" do
       :started = Dependency.subscribe(MpvServer)
 
       MpvServer.restart()
-      assert_receive_dependency({MpvServer, Dependency.NotReady})
+      assert_receive_dependency({MpvServer, NotReady})
       assert_receive_dependency({MpvServer, :started})
     end
   end
@@ -30,7 +31,7 @@ defmodule ExshomePlayerTest.Services.MpvServerTest do
     end
 
     test "server does not start" do
-      assert Dependency.subscribe(MpvServer) == Dependency.NotReady
+      assert Dependency.subscribe(MpvServer) == NotReady
     end
   end
 end

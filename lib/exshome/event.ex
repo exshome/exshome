@@ -2,6 +2,8 @@ defmodule Exshome.Event do
   @moduledoc """
   Contains all event-related features.
   """
+  alias Exshome.Subscribable
+
   @type event_module() :: atom()
   @type topic() :: :default | String.t()
   @type event_message() :: struct() | atom()
@@ -47,22 +49,8 @@ defmodule Exshome.Event do
   defp base_topic_name(%event_module{}), do: base_topic_name(event_module)
 
   defp base_topic_name(event_module) do
-    raise_if_not_event_module!(event_module)
+    Subscribable.raise_if_not_subscribable!(__MODULE__, event_module)
     event_module.name()
-  end
-
-  defp raise_if_not_event_module!(module) do
-    module_has_correct_behaviour =
-      Exshome.Tag.tag_mapping()
-      |> Map.fetch!(__MODULE__)
-      |> MapSet.member?(module)
-
-    module_has_name = function_exported?(module, :name, 0)
-    correct_module = module_has_correct_behaviour && module_has_name
-
-    if !correct_module do
-      raise "#{inspect(module)} does not emit events!"
-    end
   end
 
   defmacro __using__(name: name) do
