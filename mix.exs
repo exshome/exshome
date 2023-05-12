@@ -44,7 +44,7 @@ defmodule Exshome.MixProject do
   # Type `mix help compile.app` for more information.
   def application do
     [
-      extra_applications: [:logger, :runtime_tools, :erlexec],
+      extra_applications: [:logger, :runtime_tools, :erlexec, :ecto_sql],
       mod: {Exshome.Application, []}
     ]
   end
