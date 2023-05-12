@@ -9,7 +9,7 @@ defmodule Exshome.Dependency do
   @type dependency_key() :: atom()
   @type dependency_mapping() :: [{dependency(), dependency_key()}]
   @type deps :: %{dependency_key() => value()}
-  @type dependency_type() :: __MODULE__
+  @type dependency_type() :: module()
 
   @callback get_value(dependency()) :: value()
   @callback type() :: dependency_type()
@@ -18,6 +18,12 @@ defmodule Exshome.Dependency do
   def get_value(dependency) do
     raise_if_not_dependency!(__MODULE__, dependency)
     get_module(dependency).get_value(dependency)
+  end
+
+  @spec get_type(dependency()) :: dependency_type()
+  def get_type(dependency) do
+    raise_if_not_dependency!(__MODULE__, dependency)
+    get_module(dependency).type()
   end
 
   @spec subscribe(dependency()) :: value()
@@ -45,7 +51,7 @@ defmodule Exshome.Dependency do
   @spec broadcast_value(dependency(), value()) :: :ok
   def broadcast_value(dependency, value) do
     id = dependency_id(dependency)
-    type = get_module(dependency).type()
+    type = get_type(dependency)
     Exshome.PubSub.broadcast(id, {type, {dependency, value}})
   end
 
