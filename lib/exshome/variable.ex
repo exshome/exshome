@@ -48,16 +48,16 @@ defmodule Exshome.Variable do
   end
 
   @spec validate_value(Dependency.dependency(), value :: any()) :: Datatype.parse_result()
-  defp validate_value(dependency, value) do
-    raise_if_not_variable!(dependency)
+  defp validate_value(variable, value) do
+    Dependency.raise_if_not_dependency!(__MODULE__, variable)
 
     {:ok, %__MODULE__{} = config} =
-      dependency
+      variable
       |> Dependency.dependency_id()
       |> get_by_id()
 
     if config.readonly? do
-      {:error, "Unable update a value for #{inspect(dependency)}. It is readonly."}
+      {:error, "Unable update a value for #{inspect(variable)}. It is readonly."}
     else
       Datatype.parse(config.type, value, config.validations)
     end
@@ -93,20 +93,6 @@ defmodule Exshome.Variable do
     %__MODULE__{dependency: dependency} = variable
 
     Dependency.get_module(dependency).rename(dependency, name)
-  end
-
-  @spec raise_if_not_variable!(Dependency.dependency()) :: any()
-  defp raise_if_not_variable!(dependency) do
-    module = Dependency.get_module(dependency)
-
-    module_is_variable =
-      Exshome.Tag.tag_mapping()
-      |> Map.fetch!(__MODULE__)
-      |> MapSet.member?(module)
-
-    if !module_is_variable do
-      raise "#{inspect(dependency)} is not a Variable."
-    end
   end
 
   @spec register_variable_data(t()) :: :ok

@@ -9,7 +9,7 @@ defmodule ExshomeTest.Variable.GenServerVariableTest do
 
   describe "set_value/2" do
     test "raises for invalid dependency" do
-      assert_raise(RuntimeError, ~r/.*not a Variable.*/, fn ->
+      assert_raise(RuntimeError, ~r/.*not a Exshome.Variable.*/, fn ->
         Variable.set_value(:invalid_dependency, :test)
       end)
     end
