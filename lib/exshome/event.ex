@@ -2,7 +2,7 @@ defmodule Exshome.Event do
   @moduledoc """
   Contains all event-related features.
   """
-  alias Exshome.Subscribable
+  alias Exshome.Dependency
 
   @type event_module() :: atom()
   @type topic() :: :default | String.t()
@@ -49,7 +49,7 @@ defmodule Exshome.Event do
   defp base_topic_name(%event_module{}), do: base_topic_name(event_module)
 
   defp base_topic_name(event_module) do
-    Subscribable.raise_if_not_subscribable!(__MODULE__, event_module)
+    Dependency.raise_if_not_dependency!(__MODULE__, event_module)
     event_module.name()
   end
 

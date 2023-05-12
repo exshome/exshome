@@ -7,7 +7,7 @@ defmodule Exshome.Dependency.GenServerDependency do
   alias Exshome.Dependency
   alias Exshome.Dependency.GenServerDependency.DependencyState
   alias Exshome.Dependency.GenServerDependency.Lifecycle
-  alias Exshome.Subscribable.NotReady
+  alias Exshome.Dependency.NotReady
   alias Exshome.SystemRegistry
 
   @callback on_init(DependencyState.t()) :: DependencyState.t()

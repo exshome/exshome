@@ -3,8 +3,8 @@ defmodule ExshomeAutomation.Services.Workflow do
   A module for automation workflows.
   """
 
+  alias Exshome.Dependency.NotReady
   alias Exshome.Event
-  alias Exshome.Subscribable.NotReady
   alias Exshome.SystemRegistry
   alias ExshomeAutomation.Events.WorkflowStateEvent
   alias ExshomeAutomation.Services.Workflow.Editor

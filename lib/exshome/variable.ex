@@ -53,7 +53,7 @@ defmodule Exshome.Variable do
 
     {:ok, %__MODULE__{} = config} =
       dependency
-      |> Dependency.get_id()
+      |> Dependency.dependency_id()
       |> get_by_id()
 
     if config.readonly? do

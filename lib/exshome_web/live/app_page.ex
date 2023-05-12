@@ -3,8 +3,8 @@ defmodule ExshomeWeb.Live.AppPage do
   Generic module for app pages.
   """
   alias Exshome.Dependency
+  alias Exshome.Dependency.NotReady
   alias Exshome.Event
-  alias Exshome.Subscribable.NotReady
   alias ExshomeWeb.Live.AppPage
   alias Phoenix.LiveView
   alias Phoenix.LiveView.Socket

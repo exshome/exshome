@@ -7,7 +7,7 @@ defmodule Exshome.Variable.GenServerVariable do
   alias Exshome.Dependency.GenServerDependency
   alias Exshome.Dependency.GenServerDependency.DependencyState
   alias Exshome.Dependency.GenServerDependency.Lifecycle
-  alias Exshome.Subscribable.NotReady
+  alias Exshome.Dependency.NotReady
   alias Exshome.Variable
 
   use Lifecycle, key: :variable
@@ -110,7 +110,7 @@ defmodule Exshome.Variable.GenServerVariable do
 
     %Variable{
       dependency: dependency,
-      id: Dependency.get_id(dependency),
+      id: Dependency.dependency_id(dependency),
       name: module.__config__[:name],
       group: Keyword.fetch!(config, :group),
       not_ready_reason: not_ready_reason(state),

@@ -33,7 +33,7 @@ defmodule ExshomeAutomation.Variables.DynamicVariable do
 
     %Variable{
       dependency: dependency,
-      id: Dependency.get_id(dependency),
+      id: Dependency.dependency_id(dependency),
       name: schema.name,
       group: @group,
       not_ready_reason: nil,

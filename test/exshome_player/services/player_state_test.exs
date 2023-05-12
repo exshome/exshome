@@ -5,7 +5,7 @@ defmodule ExshomePlayerTest.Services.PlayerStateTest do
   import ExshomeTest.TestMpvServer
 
   alias Exshome.Dependency
-  alias Exshome.Subscribable.NotReady
+  alias Exshome.Dependency.NotReady
   alias ExshomePlayer.Events.{PlayerFileEnd, PlayerStateEvent}
   alias ExshomePlayer.Services.{MpvSocket, PlayerState}
   alias ExshomeTest.TestRegistry

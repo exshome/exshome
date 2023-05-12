@@ -22,7 +22,6 @@
   * Added ability to set a theme via URL `setTheme` search parameter.
   * Every app now uses dynamic routes.
   * You can configure a condition to start an application via `ExshomeWeb.App.can_start?/0` callback.
-  * Moved generic subscription logic to `Exshome.Subscribable`.
 
 ## v0.1.7 (2022-06-28)
   * Created database if it does not exist before migraions.

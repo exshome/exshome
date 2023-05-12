@@ -3,7 +3,7 @@ defmodule ExshomeAutomationTest.Web.ShowVariableModalTest do
 
   alias Exshome.Datatype
   alias Exshome.Dependency
-  alias Exshome.Subscribable.NotReady
+  alias Exshome.Dependency.NotReady
   alias Exshome.Variable
   alias Exshome.Variable.VariableStateEvent
   alias ExshomePlayer.Services.MpvSocket
@@ -75,7 +75,7 @@ defmodule ExshomeAutomationTest.Web.ShowVariableModalTest do
   end
 
   defp open_modal(view, variable) do
-    variable_id = Dependency.get_id(variable)
+    variable_id = Dependency.dependency_id(variable)
 
     view
     |> element("[phx-click=show_variable][phx-value-id='#{variable_id}']")

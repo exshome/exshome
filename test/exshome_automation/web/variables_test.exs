@@ -3,7 +3,7 @@ defmodule ExshomeAutomationTest.Web.VariablesTest do
 
   alias Exshome.Datatype
   alias Exshome.Dependency
-  alias Exshome.Subscribable.NotReady
+  alias Exshome.Dependency.NotReady
   alias ExshomeAutomation.Services.VariableRegistry
   alias ExshomeAutomation.Variables.DynamicVariable.Schema
   alias ExshomePlayer.Variables.Pause

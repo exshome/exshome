@@ -2,7 +2,7 @@ defmodule ExshomeAutomationTest.Variables.DynamicVariable.VariableSupervisorTest
   use ExshomeTest.DataCase, async: true
 
   alias Exshome.Datatype
-  alias Exshome.Subscribable.NotReady
+  alias Exshome.Dependency.NotReady
   alias ExshomeAutomation.Variables.DynamicVariable.Schema
 
   import ExshomeTest.DynamicVariableHelpers

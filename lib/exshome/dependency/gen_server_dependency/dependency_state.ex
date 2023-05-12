@@ -2,7 +2,7 @@ defmodule Exshome.Dependency.GenServerDependency.DependencyState do
   @moduledoc """
   Inner state for each dependency.
   """
-  alias Exshome.Subscribable
+  alias Exshome.Dependency
 
   defstruct [
     :data,
@@ -10,15 +10,15 @@ defmodule Exshome.Dependency.GenServerDependency.DependencyState do
     :opts,
     deps: %{},
     private: %{},
-    value: Subscribable.NotReady
+    value: Dependency.NotReady
   ]
 
   @type t() :: %__MODULE__{
           data: any(),
-          dependency: Subscribable.subscription(),
+          dependency: Dependency.dependency(),
           deps: map(),
           opts: any(),
           private: map(),
-          value: Subscribable.value()
+          value: Dependency.value()
         }
 end

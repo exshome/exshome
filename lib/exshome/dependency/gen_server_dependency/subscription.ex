@@ -5,8 +5,8 @@ defmodule Exshome.Dependency.GenServerDependency.Subscription do
   alias Exshome.Dependency
   alias Exshome.Dependency.GenServerDependency.DependencyState
   alias Exshome.Dependency.GenServerDependency.Lifecycle
+  alias Exshome.Dependency.NotReady
   alias Exshome.Event
-  alias Exshome.Subscribable.NotReady
 
   use Lifecycle, key: :subscribe
 

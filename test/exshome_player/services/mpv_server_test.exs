@@ -2,7 +2,7 @@ defmodule ExshomePlayerTest.Services.MpvServerTest do
   use ExshomeTest.DataCase, async: true
 
   alias Exshome.Dependency
-  alias Exshome.Subscribable.NotReady
+  alias Exshome.Dependency.NotReady
   alias ExshomePlayer.Services.MpvServer
   alias ExshomeTest.TestRegistry
 
