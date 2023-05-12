@@ -162,7 +162,7 @@ defmodule Exshome.Dependency.GenServerDependency do
       alias Exshome.Dependency.GenServerDependency.DependencyState
       alias Exshome.Dependency.GenServerDependency.Lifecycle
       use Exshome.Dependency.GenServerDependency.Subscription
-      use Exshome.Dependency
+      use Exshome.Dependency, type: Exshome.Dependency
       use Exshome.Named, "dependency:#{unquote(config[:name])}"
 
       app_module =

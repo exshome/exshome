@@ -49,7 +49,7 @@ defmodule Exshome.Event do
   defp base_topic_name(%event_module{}), do: base_topic_name(event_module)
 
   defp base_topic_name(event_module) do
-    Dependency.raise_if_not_dependency!(__MODULE__, event_module)
+    Dependency.raise_if_not_dependency!(__MODULE__, event_module, fn _ -> true end)
     event_module.name()
   end
 

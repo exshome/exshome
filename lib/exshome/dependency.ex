@@ -9,8 +9,10 @@ defmodule Exshome.Dependency do
   @type dependency_key() :: atom()
   @type dependency_mapping() :: [{dependency(), dependency_key()}]
   @type deps :: %{dependency_key() => value()}
+  @type dependency_type() :: __MODULE__
 
   @callback get_value(dependency()) :: value()
+  @callback type() :: dependency_type()
 
   @spec get_value(dependency()) :: value()
   def get_value(dependency) do
@@ -42,9 +44,9 @@ defmodule Exshome.Dependency do
 
   @spec broadcast_value(dependency(), value()) :: :ok
   def broadcast_value(dependency, value) do
-    dependency
-    |> dependency_id()
-    |> Exshome.PubSub.broadcast({__MODULE__, {dependency, value}})
+    id = dependency_id(dependency)
+    type = get_module(dependency).type()
+    Exshome.PubSub.broadcast(id, {type, {dependency, value}})
   end
 
   @spec get_module(dependency()) :: module()
@@ -99,8 +101,8 @@ defmodule Exshome.Dependency do
     end
   end
 
-  @spec raise_if_not_dependency!(module(), dependency()) :: nil
-  def raise_if_not_dependency!(parent_module, dependency) do
+  @spec raise_if_not_dependency!(module(), dependency(), (module() -> boolean())) :: nil
+  def raise_if_not_dependency!(parent_module, dependency, extra_checks \\ &check_type/1) do
     module = get_module(dependency)
 
     module_has_correct_behaviour =
@@ -109,20 +111,28 @@ defmodule Exshome.Dependency do
       |> MapSet.member?(module)
 
     module_has_name = function_exported?(module, :name, 0)
-    module_is_dependency = module_has_correct_behaviour && module_has_name
+    extra_checks_passed = extra_checks.(module)
+    module_is_dependency = module_has_correct_behaviour && module_has_name && extra_checks_passed
 
     if !module_is_dependency do
       raise "#{inspect(module)} is not a #{inspect(parent_module)}!"
     end
   end
 
-  defmacro __using__(_) do
+  @spec check_type(module()) :: boolean()
+  defp check_type(module) do
+    function_exported?(module, :type, 0)
+  end
+
+  defmacro __using__(type: type) do
     quote do
       alias Exshome.Dependency
       alias Exshome.Dependency.NotReady
       @behaviour Dependency
       import Exshome.Tag, only: [add_tag: 1]
       add_tag(Dependency)
+
+      def type, do: unquote(type)
     end
   end
 end
