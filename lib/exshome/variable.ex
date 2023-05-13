@@ -115,7 +115,7 @@ defmodule Exshome.Variable do
 
   defp broadcast_event(%VariableStateEvent{} = event) do
     :ok = Event.broadcast(event)
-    :ok = Event.broadcast(event, event.data.id)
+    :ok = Event.broadcast({event, event.data.id})
   end
 
   defmacro __using__(config) do

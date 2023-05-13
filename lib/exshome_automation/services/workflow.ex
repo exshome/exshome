@@ -109,6 +109,6 @@ defmodule ExshomeAutomation.Services.Workflow do
 
   defp broadcast_event(%WorkflowStateEvent{} = event) do
     :ok = Event.broadcast(event)
-    :ok = Event.broadcast(event, event.data.id)
+    :ok = Event.broadcast({event, event.data.id})
   end
 end
