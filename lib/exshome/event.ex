@@ -4,60 +4,41 @@ defmodule Exshome.Event do
   """
   alias Exshome.Dependency
 
-  @type event_module() :: atom()
-  @type topic() :: :default | String.t()
   @type event_message() :: struct() | atom()
+  @type event_topic() :: String.t() | :default
 
-  @spec subscribe(event_module(), topic()) :: :ok
-  def subscribe(event_module, topic \\ :default) do
-    :ok =
-      event_module
-      |> pub_sub_topic(topic)
-      |> Exshome.PubSub.subscribe()
-  end
-
-  @spec unsubscribe(event_module(), topic()) :: :ok
-  def unsubscribe(event_module, topic \\ :default) do
-    :ok =
-      event_module
-      |> pub_sub_topic(topic)
-      |> Exshome.PubSub.unsubscribe()
-  end
-
-  @spec broadcast(event_message(), topic()) :: :ok
+  @spec broadcast(event_message(), event_topic()) :: :ok
   def broadcast(event, topic \\ :default) do
     :ok =
       event
-      |> pub_sub_topic(topic)
-      |> Exshome.PubSub.broadcast({__MODULE__, event})
+      |> event_to_dependency(topic)
+      |> Dependency.broadcast_value(event)
   end
 
-  @spec pub_sub_topic(event_message(), topic()) :: String.t()
-  defp pub_sub_topic(event_message, :default), do: base_topic_name(event_message)
-
-  defp pub_sub_topic(event_message, topic) when is_binary(topic) do
-    Enum.join(
-      [
-        base_topic_name(event_message),
-        topic
-      ],
-      ":"
-    )
+  @spec event_to_dependency(event_message(), event_topic()) :: Dependency.dependency()
+  defp event_to_dependency(message, topic) when is_binary(topic) do
+    {event_to_dependency(message, :default), topic}
   end
 
-  @spec base_topic_name(event_message()) :: String.t()
-  defp base_topic_name(%event_module{}), do: base_topic_name(event_module)
-
-  defp base_topic_name(event_module) do
-    Dependency.raise_if_not_dependency!(__MODULE__, event_module, fn _ -> true end)
-    event_module.name()
+  defp event_to_dependency(event_payload, :default) do
+    module = get_module(event_payload)
+    Dependency.raise_if_not_dependency!(__MODULE__, module)
+    module
   end
+
+  @spec get_module(event_message()) :: module()
+  defp get_module(event_payload) when is_atom(event_payload), do: event_payload
+  defp get_module(%event_module{}), do: event_module
 
   defmacro __using__(name: name) do
     quote do
       alias Exshome.Event
       use Exshome.Named, "event:#{unquote(name)}"
+      use Exshome.Dependency, type: Event
       add_tag(Event)
+
+      @impl Dependency
+      def get_value(_), do: :ok
     end
   end
 end

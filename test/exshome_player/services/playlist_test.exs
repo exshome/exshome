@@ -99,7 +99,7 @@ defmodule ExshomePlayerTest.Services.PlaylistTest do
     test "updates a track title", %{tracks: [%Track{id: id} | _]} do
       assert :ok = Playlist.play(id)
       new_title = "unique_title #{unique_integer()}"
-      Event.subscribe(TrackEvent)
+      Dependency.subscribe(TrackEvent)
       Dependency.broadcast_value(Title, new_title)
 
       assert_receive_event(%TrackEvent{action: :updated, track: %Track{id: ^id}})

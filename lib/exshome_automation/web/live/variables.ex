@@ -2,7 +2,7 @@ defmodule ExshomeAutomation.Web.Live.Variables do
   @moduledoc """
   Variables page.
   """
-  alias Exshome.Event
+  alias Exshome.Dependency
   alias Exshome.Variable
   alias Exshome.Variable.VariableStateEvent
   alias ExshomeAutomation.Services.VariableRegistry
@@ -21,7 +21,7 @@ defmodule ExshomeAutomation.Web.Live.Variables do
   @impl LiveView
   def handle_event("new_variable", %{"type" => type}, %Socket{} = socket) do
     type = Exshome.Datatype.get_by_name(type)
-    :ok = Event.subscribe(VariableStateEvent)
+    :ok = Dependency.subscribe(VariableStateEvent)
     :ok = DynamicVariable.create_variable!(type)
     {:noreply, socket}
   end
@@ -36,7 +36,7 @@ defmodule ExshomeAutomation.Web.Live.Variables do
         %VariableStateEvent{type: :created, data: %Variable{id: id}},
         %Socket{} = socket
       ) do
-    Event.unsubscribe(VariableStateEvent)
+    Dependency.unsubscribe(VariableStateEvent)
     open_variable_modal(socket, id, %{"rename" => "true"})
   end
 

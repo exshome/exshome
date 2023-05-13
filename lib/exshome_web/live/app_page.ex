@@ -93,7 +93,7 @@ defmodule ExshomeWeb.Live.AppPage do
     end
   end
 
-  def on_handle_info({Event, event_message}, %Socket{} = socket) do
+  def on_handle_info({Event, {_event_module, event_message}}, %Socket{} = socket) do
     socket = socket.view.on_app_event(event_message, socket)
     {:halt, socket}
   end

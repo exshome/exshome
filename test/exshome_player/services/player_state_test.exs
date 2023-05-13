@@ -56,8 +56,8 @@ defmodule ExshomePlayerTest.Services.PlayerStateTest do
     assert Dependency.subscribe(MpvSocket) == :connected
 
     TestRegistry.start_dependency(PlayerState)
-    Exshome.Event.subscribe(PlayerFileEnd)
-    Exshome.Event.subscribe(PlayerStateEvent)
+    Dependency.subscribe(PlayerFileEnd)
+    Dependency.subscribe(PlayerStateEvent)
 
     assert Dependency.subscribe(PlayerState) != NotReady
     %{}

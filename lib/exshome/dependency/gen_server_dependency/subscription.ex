@@ -42,7 +42,7 @@ defmodule Exshome.Dependency.GenServerDependency.Subscription do
   end
 
   @impl Lifecycle
-  def handle_info({Event, event}, %DependencyState{} = state) do
+  def handle_info({Event, {_event_module, event}}, %DependencyState{} = state) do
     new_state = Dependency.get_module(state.dependency).handle_event(event, state)
     {:stop, new_state}
   end
@@ -86,7 +86,7 @@ defmodule Exshome.Dependency.GenServerDependency.Subscription do
   @spec subscribe_to_events(DependencyState.t(), Enumerable.t()) :: DependencyState.t()
   def subscribe_to_events(%DependencyState{} = state, events) do
     for event_module <- events do
-      :ok = Event.subscribe(event_module)
+      :ok = Dependency.subscribe(event_module)
     end
 
     state

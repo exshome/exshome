@@ -107,8 +107,8 @@ defmodule Exshome.Dependency do
     end
   end
 
-  @spec raise_if_not_dependency!(module(), dependency(), (module() -> boolean())) :: nil
-  def raise_if_not_dependency!(parent_module, dependency, extra_checks \\ &check_type/1) do
+  @spec raise_if_not_dependency!(module(), dependency()) :: nil
+  def raise_if_not_dependency!(parent_module, dependency) do
     module = get_module(dependency)
 
     module_has_correct_behaviour =
@@ -117,17 +117,12 @@ defmodule Exshome.Dependency do
       |> MapSet.member?(module)
 
     module_has_name = function_exported?(module, :name, 0)
-    extra_checks_passed = extra_checks.(module)
-    module_is_dependency = module_has_correct_behaviour && module_has_name && extra_checks_passed
+    module_has_type = function_exported?(module, :type, 0)
+    module_is_dependency = module_has_correct_behaviour && module_has_name && module_has_type
 
     if !module_is_dependency do
       raise "#{inspect(module)} is not a #{inspect(parent_module)}!"
     end
-  end
-
-  @spec check_type(module()) :: boolean()
-  defp check_type(module) do
-    function_exported?(module, :type, 0)
   end
 
   defmacro __using__(type: type) do
