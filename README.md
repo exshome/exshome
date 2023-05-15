@@ -5,7 +5,7 @@
 [![Hex Package](https://img.shields.io/hexpm/v/exshome.svg?color=green)](https://hex.pm/packages/exshome)
 [![Hex Docs](https://img.shields.io/badge/hex-docs-blue.svg)](https://hexdocs.pm/exshome)
 
-DIY Elixir-based smart home.
+DIY Experimental Elixir-based smart home.
 
 ## System dependencies
 - [MPV](https://mpv.io/) - Exshome uses it as a player. You will not be able to play any track without it.
