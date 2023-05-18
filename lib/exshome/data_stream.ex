@@ -44,12 +44,10 @@ defmodule Exshome.DataStream do
     :ok
   end
 
-  defmacro __using__(name: name) do
+  defmacro __using__(_) do
     quote do
-      alias Exshome.DataStream
-      use Exshome.Named, "data_stream:#{unquote(name)}"
-      use Exshome.Dependency, type: DataStream
-      add_tag(DataStream)
+      import Exshome.Tag, only: [add_tag: 1]
+      add_tag(Exshome.DataStream)
     end
   end
 end

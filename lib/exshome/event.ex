@@ -37,11 +37,14 @@ defmodule Exshome.Event do
     quote do
       alias Exshome.Event
       use Exshome.Named, "event:#{unquote(name)}"
-      use Exshome.Dependency, type: Event
+      use Exshome.Dependency
       add_tag(Event)
 
       @impl Dependency
       def get_value(_), do: :ok
+
+      @impl Dependency
+      def type, do: Exshome.Event
     end
   end
 end

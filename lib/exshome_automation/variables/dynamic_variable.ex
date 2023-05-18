@@ -3,6 +3,7 @@ defmodule ExshomeAutomation.Variables.DynamicVariable do
   A module for user-defined variables.
   """
   alias Exshome.Datatype
+  alias Exshome.Dependency
   alias ExshomeAutomation.Variables.DynamicVariable.Schema
   alias ExshomeAutomation.Variables.DynamicVariable.VariableSupervisor
 

@@ -125,15 +125,11 @@ defmodule Exshome.Dependency do
     end
   end
 
-  defmacro __using__(type: type) do
+  defmacro __using__(_) do
     quote do
-      alias Exshome.Dependency
-      alias Exshome.Dependency.NotReady
-      @behaviour Dependency
       import Exshome.Tag, only: [add_tag: 1]
-      add_tag(Dependency)
-
-      def type, do: unquote(type)
+      add_tag(Exshome.Dependency)
+      @behaviour Exshome.Dependency
     end
   end
 end

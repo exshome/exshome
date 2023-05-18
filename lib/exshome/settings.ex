@@ -130,7 +130,7 @@ defmodule Exshome.Settings do
       alias Exshome.Settings
       use Exshome.Schema
       use Exshome.Named, "settings:#{unquote(name)}"
-      use Exshome.Dependency, type: Exshome.Dependency
+      use Exshome.Dependency
       import Ecto.Changeset
 
       import Exshome.Tag, only: [add_tag: 1]
@@ -153,6 +153,9 @@ defmodule Exshome.Settings do
 
       @impl Settings
       def fields, do: unquote(fields)
+
+      @impl Exshome.Dependency
+      def type, do: Exshome.Dependency
     end
   end
 

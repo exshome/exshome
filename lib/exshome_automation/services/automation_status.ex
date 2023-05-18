@@ -5,7 +5,7 @@ defmodule ExshomeAutomation.Services.AutomationStatus do
   alias ExshomeAutomation.Services.VariableRegistry
   alias ExshomeAutomation.Services.WorkflowRegistry
 
-  use Exshome.Dependency.GenServerDependency,
+  use Exshome.Dependency.SimpleGenServerDependency,
     name: "automation_status",
     subscribe: [
       dependencies: [

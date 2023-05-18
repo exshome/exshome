@@ -120,7 +120,7 @@ defmodule Exshome.Variable do
 
   defmacro __using__(config) do
     quote do
-      use Exshome.Dependency.GenServerDependency, unquote(config)
+      use Exshome.Dependency.SimpleGenServerDependency, unquote(config)
       import Exshome.Tag, only: [add_tag: 1]
       alias Exshome.Variable
       add_tag(Variable)

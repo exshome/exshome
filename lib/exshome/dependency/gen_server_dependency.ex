@@ -1,6 +1,6 @@
 defmodule Exshome.Dependency.GenServerDependency do
   @moduledoc """
-  This module stores generic API for GenServer based dependencies.
+  This module stores generic API for basic GenServer based dependencies.
   """
   use GenServer
 
@@ -161,9 +161,10 @@ defmodule Exshome.Dependency.GenServerDependency do
       alias Exshome.Dependency.GenServerDependency
       alias Exshome.Dependency.GenServerDependency.DependencyState
       alias Exshome.Dependency.GenServerDependency.Lifecycle
+      alias Exshome.Dependency.NotReady
       use Exshome.Dependency.GenServerDependency.Subscription
-      use Exshome.Dependency, type: Exshome.Dependency
-      use Exshome.Named, "dependency:#{unquote(config[:name])}"
+      use Exshome.Dependency
+      import Exshome.Tag, only: [add_tag: 1]
 
       app_module =
         __MODULE__
@@ -193,7 +194,7 @@ defmodule Exshome.Dependency.GenServerDependency do
       @impl GenServerDependency
       def handle_stop(_reason, state), do: state
 
-      defoverridable(on_init: 1, handle_stop: 2)
+      defoverridable(on_init: 1, handle_stop: 2, get_value: 1)
 
       @impl GenServerDependency
       defdelegate update_value(state, value_fn), to: Lifecycle
