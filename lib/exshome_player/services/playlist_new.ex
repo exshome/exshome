@@ -29,6 +29,17 @@ defmodule ExshomePlayer.Services.PlaylistNew do
     update_playlist(state, fn _ -> %Data{previous: Enum.reverse(Track.list())} end)
   end
 
+  @impl Subscription
+  def handle_event(%TrackEvent{track: track, action: :created}, %DependencyState{} = state) do
+    if Enum.any?(state.value, &(&1.id == track.id)) do
+      state
+    else
+      update_playlist(state, fn %Data{} = data ->
+        %Data{data | previous: data.previous ++ [track]}
+      end)
+    end
+  end
+
   @spec update_playlist(DependencyState.t(), (Data.t() -> Data.t())) :: DependencyState.t()
   defp update_playlist(%DependencyState{} = state, update_fn) do
     state
