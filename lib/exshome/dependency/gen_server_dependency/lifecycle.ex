@@ -88,7 +88,7 @@ defmodule Exshome.Dependency.GenServerDependency.Lifecycle do
     |> hook_modules()
     |> Enum.reduce(
       state,
-      fn module, old_state -> module.handle_value_change(old_state, old_value) end
+      fn module, state_acc -> module.handle_value_change(state_acc, old_value) end
     )
   end
 

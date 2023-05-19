@@ -10,6 +10,10 @@ defmodule Exshome.DataStream.GenServerDataStream do
   use Lifecycle, key: :stream
 
   @impl Lifecycle
+  def init_state(%DependencyState{value: NotReady} = state) do
+    %DependencyState{state | value: []}
+  end
+
   def init_state(%DependencyState{} = state), do: state
 
   @spec validate_module!(Macro.Env.t(), String.t()) :: keyword()

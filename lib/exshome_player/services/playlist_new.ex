@@ -10,8 +10,6 @@ defmodule ExshomePlayer.Services.PlaylistNew do
       events: [PlayerFileEnd, TrackEvent]
     ]
 
-  defstruct [:current_id, tracks: []]
-
   defmodule Data do
     @moduledoc """
     Inner data format for playback.
@@ -31,11 +29,6 @@ defmodule ExshomePlayer.Services.PlaylistNew do
     update_playlist(state, fn _ -> %Data{previous: Enum.reverse(Track.list())} end)
   end
 
-  @type t() :: %__MODULE__{
-          current_id: String.t() | nil,
-          tracks: list(Track.t())
-        }
-
   @spec update_playlist(DependencyState.t(), (Data.t() -> Data.t())) :: DependencyState.t()
   defp update_playlist(%DependencyState{} = state, update_fn) do
     state
@@ -47,12 +40,7 @@ defmodule ExshomePlayer.Services.PlaylistNew do
   defp refresh_playlist(%DependencyState{data: %Data{} = data} = state) do
     update_value(
       state,
-      fn _ ->
-        %__MODULE__{
-          current_id: nil,
-          tracks: Enum.reverse(data.previous) ++ data.next
-        }
-      end
+      fn _ -> Enum.reverse(data.previous) ++ data.next end
     )
   end
 
