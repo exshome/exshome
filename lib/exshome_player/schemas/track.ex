@@ -18,6 +18,7 @@ defmodule ExshomePlayer.Schemas.Track do
     field(:title, :string, default: "")
     field(:type, Ecto.Enum, values: @types, default: :file)
     field(:path, :string)
+    field(:playing?, :boolean, default: false, virtual: true)
 
     timestamps()
   end
@@ -25,7 +26,8 @@ defmodule ExshomePlayer.Schemas.Track do
   @type t() :: %__MODULE__{
           title: String.t() | nil,
           type: :url | :file,
-          path: String.t() | nil
+          path: String.t() | nil,
+          playing?: boolean()
         }
 
   @spec changeset(t(), map()) :: Changeset.t(t())
