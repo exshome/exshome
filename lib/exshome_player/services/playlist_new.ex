@@ -57,6 +57,17 @@ defmodule ExshomePlayer.Services.PlaylistNew do
     state
   end
 
+  def handle_dependency_change(
+        %DependencyState{
+          data: %Data{},
+          value: NotReady
+        } = state
+      ) do
+    refresh_playlist(state)
+  end
+
+  def handle_dependency_change(%DependencyState{} = state), do: state
+
   @impl Subscription
   def handle_event(%PlayerFileEnd{reason: reason}, %DependencyState{} = state)
       when reason in ["eof", "error"] do
