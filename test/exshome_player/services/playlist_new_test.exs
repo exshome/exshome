@@ -17,7 +17,7 @@ defmodule ExshomePlayerTest.Services.PlaylistNewTest do
     end
 
     test "shows an empty tracklist" do
-      assert %Operation.ReplaceAll{data: []} = Dependency.get_value(PlaylistNew)
+      assert [] = get_tracks()
     end
   end
 
@@ -28,8 +28,7 @@ defmodule ExshomePlayerTest.Services.PlaylistNewTest do
     end
 
     test "shows non-empty tracklist" do
-      assert %Operation.ReplaceAll{data: tracks} = Dependency.get_value(PlaylistNew)
-      assert Enum.count(tracks) > 0
+      assert Enum.count(get_tracks()) > 0
     end
   end
 
@@ -41,8 +40,7 @@ defmodule ExshomePlayerTest.Services.PlaylistNewTest do
     end
 
     test "shows non-empty tracklist" do
-      assert %Operation.ReplaceAll{data: tracks} = Dependency.get_value(PlaylistNew)
-      assert Enum.count(tracks) > 0
+      assert Enum.count(get_tracks()) > 0
     end
   end
 
