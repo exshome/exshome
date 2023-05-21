@@ -2,7 +2,7 @@ defmodule ExshomeClock.Services.UtcTime do
   @moduledoc """
   UTC time dependency.
   """
-  use Exshome.Dependency.SimpleGenServerDependency, name: "utc_time"
+  use Exshome.Dependency.GenServerDependency, name: "utc_time"
 
   @impl GenServerDependency
   def on_init(state) do

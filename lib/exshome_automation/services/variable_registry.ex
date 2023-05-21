@@ -5,7 +5,7 @@ defmodule ExshomeAutomation.Services.VariableRegistry do
   alias Exshome.Variable
   alias Exshome.Variable.VariableStateEvent
 
-  use Exshome.Dependency.SimpleGenServerDependency,
+  use Exshome.Dependency.GenServerDependency,
     name: "variable_registry",
     subscribe: [
       events: [VariableStateEvent]

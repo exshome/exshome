@@ -19,7 +19,7 @@ defmodule ExshomeAutomation.Services.Workflow do
           name: String.t()
         }
 
-  use Exshome.Dependency.SimpleGenServerDependency,
+  use Exshome.Dependency.GenServerDependency,
     name: "automation_workflow",
     child_module: WorkflowSupervisor
 

@@ -164,6 +164,7 @@ defmodule Exshome.Dependency.GenServerDependency do
       alias Exshome.Dependency.NotReady
       use Exshome.Dependency.GenServerDependency.Subscription
       use Exshome.Dependency
+      use Exshome.Named, "dependency:#{unquote(config[:name])}"
       import Exshome.Tag, only: [add_tag: 1]
 
       app_module =
@@ -200,6 +201,9 @@ defmodule Exshome.Dependency.GenServerDependency do
       defdelegate update_value(state, value_fn), to: Lifecycle
       @impl GenServerDependency
       defdelegate update_data(state, data_fn), to: Lifecycle
+
+      @impl Exshome.Dependency
+      def type, do: Exshome.Dependency
 
       def get_child_module, do: unquote(Keyword.get(config, :child_module, __CALLER__.module))
 

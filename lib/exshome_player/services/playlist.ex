@@ -8,7 +8,7 @@ defmodule ExshomePlayer.Services.Playlist do
   alias ExshomePlayer.Services.Playback
   alias ExshomePlayer.Variables.Title
 
-  use Exshome.Dependency.SimpleGenServerDependency,
+  use Exshome.Dependency.GenServerDependency,
     name: "playlist",
     subscribe: [
       dependencies: [{Title, :title}],

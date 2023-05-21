@@ -56,6 +56,14 @@ defmodule Exshome.Dependency.GenServerDependency.Subscription do
     {:cont, state}
   end
 
+  @impl Lifecycle
+  def handle_value_change(%DependencyState{value: value} = state, value), do: state
+
+  def handle_value_change(%DependencyState{} = state, _old_value) do
+    Dependency.broadcast_value(state.dependency, state.value)
+    state
+  end
+
   @spec put_dependencies(DependencyState.t(), Dependency.dependency_mapping()) ::
           DependencyState.t()
   def put_dependencies(%DependencyState{} = state, mapping) do

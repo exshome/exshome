@@ -2,7 +2,7 @@ defmodule ExshomePlayer.Services.MpvServer do
   @moduledoc """
   Starts MPV server.
   """
-  use Exshome.Dependency.SimpleGenServerDependency, name: "mpv_server"
+  use Exshome.Dependency.GenServerDependency, name: "mpv_server"
 
   @player_folder "player"
   @music_folder Path.join(@player_folder, "music")

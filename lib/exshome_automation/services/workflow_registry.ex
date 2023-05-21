@@ -6,7 +6,7 @@ defmodule ExshomeAutomation.Services.WorkflowRegistry do
   alias ExshomeAutomation.Events.WorkflowStateEvent
   alias ExshomeAutomation.Services.Workflow
 
-  use Exshome.Dependency.SimpleGenServerDependency,
+  use Exshome.Dependency.GenServerDependency,
     name: "automation_workflow_registry",
     subscribe: [
       events: [WorkflowStateEvent]
