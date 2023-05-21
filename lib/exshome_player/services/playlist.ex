@@ -3,16 +3,18 @@ defmodule ExshomePlayer.Services.Playlist do
   Module responsible for a playlist.
   """
 
-  alias ExshomePlayer.Events.{PlayerFileEnd, TrackEvent}
+  alias ExshomePlayer.Events.PlayerFileEnd
   alias ExshomePlayer.Schemas.Track
   alias ExshomePlayer.Services.Playback
+  alias ExshomePlayer.Streams.TrackStream
   alias ExshomePlayer.Variables.Title
 
   use Exshome.Dependency.GenServerDependency,
     name: "playlist",
     subscribe: [
       dependencies: [{Title, :title}],
-      events: [PlayerFileEnd, TrackEvent]
+      events: [PlayerFileEnd],
+      streams: [TrackStream]
     ]
 
   defstruct [:current_id, tracks: []]
@@ -53,7 +55,7 @@ defmodule ExshomePlayer.Services.Playlist do
   end
 
   @impl Subscription
-  def handle_dependency_change(
+  def on_dependency_change(
         %DependencyState{
           data: %Data{next: [%Track{type: :file} = track | _]},
           deps: %{title: title}
@@ -64,7 +66,7 @@ defmodule ExshomePlayer.Services.Playlist do
     state
   end
 
-  def handle_dependency_change(
+  def on_dependency_change(
         %DependencyState{
           data: %Data{},
           value: NotReady
@@ -73,7 +75,7 @@ defmodule ExshomePlayer.Services.Playlist do
     refresh_playlist(state)
   end
 
-  def handle_dependency_change(%DependencyState{} = state), do: state
+  def on_dependency_change(%DependencyState{} = state), do: state
 
   @impl GenServerDependency
   def handle_call(
@@ -116,16 +118,21 @@ defmodule ExshomePlayer.Services.Playlist do
   end
 
   @impl Subscription
-  def handle_event(%PlayerFileEnd{reason: reason}, %DependencyState{} = state)
+  def on_event(%DependencyState{} = state, %PlayerFileEnd{reason: reason})
       when reason in ["eof", "error"] do
     state
     |> update_playlist(&move_to_next_track/1)
     |> load_track()
   end
 
-  def handle_event(%PlayerFileEnd{}, %DependencyState{} = state), do: state
+  def on_event(%DependencyState{} = state, %PlayerFileEnd{}), do: state
 
-  def handle_event(%TrackEvent{action: :created, track: track}, %DependencyState{} = state) do
+  @impl Subscription
+  def on_stream(%DependencyState{} = state, TrackStream, %Operation.ReplaceAll{}) do
+    state
+  end
+
+  def on_stream(%DependencyState{} = state, TrackStream, %Operation.Insert{data: %Track{} = track}) do
     if Enum.any?(state.value.tracks, &(&1.id == track.id)) do
       state
     else
@@ -135,33 +142,7 @@ defmodule ExshomePlayer.Services.Playlist do
     end
   end
 
-  def handle_event(
-        %TrackEvent{action: :deleted, track: %Track{id: id}},
-        %DependencyState{data: %Data{next: [%Track{id: id} | next]}} = state
-      ) do
-    state
-    |> update_playlist(fn %Data{} = data ->
-      %Data{previous: data.previous ++ Enum.reverse(next), next: []}
-    end)
-    |> load_track()
-  end
-
-  def handle_event(
-        %TrackEvent{action: :deleted, track: %Track{id: id}},
-        %DependencyState{} = state
-      ) do
-    update_playlist(state, fn %Data{} = data ->
-      %Data{
-        previous: Enum.reject(data.previous, &(&1.id == id)),
-        next: Enum.reject(data.next, &(&1.id == id))
-      }
-    end)
-  end
-
-  def handle_event(
-        %TrackEvent{action: :updated, track: %Track{} = track},
-        %DependencyState{} = state
-      ) do
+  def on_stream(%DependencyState{} = state, TrackStream, %Operation.Update{data: %Track{} = track}) do
     update_fn = fn %Track{} = current ->
       if current.id == track.id do
         track
@@ -179,6 +160,27 @@ defmodule ExshomePlayer.Services.Playlist do
         }
       end
     )
+  end
+
+  def on_stream(
+        %DependencyState{data: %Data{next: [%Track{id: id} | next]}} = state,
+        TrackStream,
+        %Operation.Delete{id: id}
+      ) do
+    state
+    |> update_playlist(fn %Data{} = data ->
+      %Data{previous: data.previous ++ Enum.reverse(next), next: []}
+    end)
+    |> load_track()
+  end
+
+  def on_stream(%DependencyState{} = state, TrackStream, %Operation.Delete{id: id}) do
+    update_playlist(state, fn %Data{} = data ->
+      %Data{
+        previous: Enum.reject(data.previous, &(&1.id == id)),
+        next: Enum.reject(data.next, &(&1.id == id))
+      }
+    end)
   end
 
   @spec update_playlist(DependencyState.t(), (Data.t() -> Data.t())) :: DependencyState.t()

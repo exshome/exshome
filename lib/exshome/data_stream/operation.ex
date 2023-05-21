@@ -69,4 +69,5 @@ defmodule Exshome.DataStream.Operation do
   end
 
   @type t() :: Insert.t() | Update.t() | Delete.t() | ReplaceAll.t() | Batch.t()
+  @type single_operation() :: Insert.t() | Update.t() | ReplaceAll.t()
 end

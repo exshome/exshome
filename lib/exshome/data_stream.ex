@@ -17,11 +17,11 @@ defmodule Exshome.DataStream do
     Operation.ReplaceAll
   ]
 
-  @callback get_value() :: [term()]
+  @callback handle_get_value() :: [term()]
 
   @spec get_value(stream()) :: get_value_result()
   def get_value(stream) do
-    result = Dependency.get_module(stream).get_value()
+    result = Dependency.get_module(stream).handle_get_value()
     prepare_get_value_result(result)
   end
 

@@ -17,7 +17,7 @@ defmodule ExshomePlayer.Variables.Duration do
     ]
 
   @impl Subscription
-  def handle_dependency_change(%DependencyState{deps: %{player: %PlayerState{} = player}} = state) do
+  def on_dependency_change(%DependencyState{deps: %{player: %PlayerState{} = player}} = state) do
     duration = round(player.duration || 0)
 
     update_value(state, fn _ -> duration end)

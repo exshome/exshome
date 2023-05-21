@@ -158,6 +158,7 @@ defmodule Exshome.Dependency.GenServerDependency do
   defmacro __using__(config) do
     quote do
       require Logger
+      alias Exshome.DataStream.Operation
       alias Exshome.Dependency.GenServerDependency
       alias Exshome.Dependency.GenServerDependency.DependencyState
       alias Exshome.Dependency.GenServerDependency.Lifecycle

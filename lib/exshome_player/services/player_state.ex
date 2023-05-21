@@ -36,7 +36,7 @@ defmodule ExshomePlayer.Services.PlayerState do
         }
 
   @impl Subscription
-  def handle_dependency_change(%DependencyState{} = state) do
+  def on_dependency_change(%DependencyState{} = state) do
     if state.deps.socket == :connected do
       subscribe_to_player_state()
       update_value(state, fn _ -> %PlayerState{} end)
@@ -46,9 +46,9 @@ defmodule ExshomePlayer.Services.PlayerState do
   end
 
   @impl Subscription
-  def handle_event(
-        %MpvEvent{type: "property-change", data: %{"name" => name} = event},
-        %DependencyState{} = state
+  def on_event(
+        %DependencyState{} = state,
+        %MpvEvent{type: "property-change", data: %{"name" => name} = event}
       ) do
     update_value(
       state,
@@ -60,15 +60,15 @@ defmodule ExshomePlayer.Services.PlayerState do
     )
   end
 
-  def handle_event(
-        %MpvEvent{type: "end-file", data: %{"reason" => reason}},
-        %DependencyState{} = state
+  def on_event(
+        %DependencyState{} = state,
+        %MpvEvent{type: "end-file", data: %{"reason" => reason}}
       ) do
     Event.broadcast(%PlayerFileEnd{reason: reason})
     state
   end
 
-  def handle_event(%MpvEvent{} = event, %DependencyState{} = state) do
+  def on_event(%DependencyState{} = state, %MpvEvent{} = event) do
     Event.broadcast(%PlayerStateEvent{data: event.data, type: event.type})
     state
   end

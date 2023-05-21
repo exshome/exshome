@@ -17,7 +17,7 @@ defmodule ExshomePlayer.Variables.Title do
     ]
 
   @impl Subscription
-  def handle_dependency_change(%DependencyState{deps: %{player: %PlayerState{} = player}} = state) do
+  def on_dependency_change(%DependencyState{deps: %{player: %PlayerState{} = player}} = state) do
     title = extract_title(player.metadata)
     update_value(state, fn _ -> title end)
   end

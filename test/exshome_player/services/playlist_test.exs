@@ -2,11 +2,13 @@ defmodule ExshomePlayerTest.Services.PlaylistTest do
   use ExshomeTest.DataCase, async: true
 
   import ExshomeTest.Fixtures
+  alias Exshome.DataStream.Operation
   alias Exshome.Dependency
   alias Exshome.Event
-  alias ExshomePlayer.Events.{PlayerFileEnd, TrackEvent}
+  alias ExshomePlayer.Events.PlayerFileEnd
   alias ExshomePlayer.Schemas.Track
   alias ExshomePlayer.Services.{MpvSocket, Playlist}
+  alias ExshomePlayer.Streams.TrackStream
   alias ExshomePlayer.Variables.Title
   import ExshomeTest.TestMpvServer
 
@@ -99,10 +101,10 @@ defmodule ExshomePlayerTest.Services.PlaylistTest do
     test "updates a track title", %{tracks: [%Track{id: id} | _]} do
       assert :ok = Playlist.play(id)
       new_title = "unique_title #{unique_integer()}"
-      Dependency.subscribe(TrackEvent)
+      Dependency.subscribe(TrackStream)
       Dependency.broadcast_value(Title, new_title)
 
-      assert_receive_event(%TrackEvent{action: :updated, track: %Track{id: ^id}})
+      assert_receive_stream(%Operation.Update{id: ^id, data: %Track{id: ^id}})
 
       assert %Track{id: ^id, title: ^new_title} = Track.get!(id)
 

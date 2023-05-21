@@ -29,7 +29,7 @@ defmodule ExshomeAutomation.Services.AutomationStatus do
         }
 
   @impl Subscription
-  def handle_dependency_change(%DependencyState{} = state) do
+  def on_dependency_change(%DependencyState{} = state) do
     {ready_variables, not_ready_variables} =
       state.deps.variables
       |> Map.values()

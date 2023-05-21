@@ -22,17 +22,17 @@ defmodule ExshomeAutomation.Services.VariableRegistry do
   end
 
   @impl Subscription
-  def handle_event(
-        %VariableStateEvent{data: %Variable{id: id}, type: :deleted},
-        %DependencyState{} = state
+  def on_event(
+        %DependencyState{} = state,
+        %VariableStateEvent{data: %Variable{id: id}, type: :deleted}
       ) do
     update_value(state, &Map.delete(&1, id))
   end
 
   @impl Subscription
-  def handle_event(
-        %VariableStateEvent{data: %Variable{} = variable, type: type},
-        %DependencyState{} = state
+  def on_event(
+        %DependencyState{} = state,
+        %VariableStateEvent{data: %Variable{} = variable, type: type}
       )
       when type in [:created, :updated] do
     update_value(state, &Map.put(&1, variable.id, variable))

@@ -20,7 +20,7 @@ defmodule ExshomePlayer.Variables.Position do
     ]
 
   @impl Subscription
-  def handle_dependency_change(%DependencyState{deps: %{player: %PlayerState{} = player}} = state) do
+  def on_dependency_change(%DependencyState{deps: %{player: %PlayerState{} = player}} = state) do
     position = round(player.time_pos || 0)
     duration = round(player.duration || 0)
 

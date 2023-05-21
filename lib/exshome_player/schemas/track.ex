@@ -7,10 +7,11 @@ defmodule ExshomePlayer.Schemas.Track do
   import Ecto.Changeset
   use Exshome.Schema
   alias Ecto.Changeset
-  alias Exshome.Event
+  alias Exshome.DataStream
+  alias Exshome.DataStream.Operation
   alias Exshome.Repo
-  alias ExshomePlayer.Events.TrackEvent
   alias ExshomePlayer.Services.MpvServer
+  alias ExshomePlayer.Streams.TrackStream
 
   @types [:file, :url]
 
@@ -66,7 +67,7 @@ defmodule ExshomePlayer.Schemas.Track do
     |> Repo.insert()
     |> case do
       {:ok, result} ->
-        Event.broadcast(%TrackEvent{action: :created, track: result})
+        DataStream.broadcast(TrackStream, %Operation.Insert{id: result.id, data: result})
         {:ok, result}
 
       result ->
@@ -87,7 +88,7 @@ defmodule ExshomePlayer.Schemas.Track do
     |> Repo.update()
     |> case do
       {:ok, result} ->
-        Event.broadcast(%TrackEvent{action: :updated, track: result})
+        DataStream.broadcast(TrackStream, %Operation.Update{id: result.id, data: result})
         {:ok, result}
 
       result ->
@@ -98,7 +99,7 @@ defmodule ExshomePlayer.Schemas.Track do
   @spec delete!(t()) :: :ok
   def delete!(%__MODULE__{} = track) do
     Repo.delete!(track)
-    Event.broadcast(%TrackEvent{track: track, action: :deleted})
+    DataStream.broadcast(TrackStream, %Operation.Delete{id: track.id, data: track})
     on_delete(track)
   end
 

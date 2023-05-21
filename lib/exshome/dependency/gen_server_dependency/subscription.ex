@@ -2,6 +2,8 @@ defmodule Exshome.Dependency.GenServerDependency.Subscription do
   @moduledoc """
   Subsription workflow for GenServerDependency.
   """
+  alias Exshome.DataStream
+  alias Exshome.DataStream.Operation
   alias Exshome.Dependency
   alias Exshome.Dependency.GenServerDependency.DependencyState
   alias Exshome.Dependency.GenServerDependency.Lifecycle
@@ -10,8 +12,10 @@ defmodule Exshome.Dependency.GenServerDependency.Subscription do
 
   use Lifecycle, key: :subscribe
 
-  @callback handle_dependency_change(DependencyState.t()) :: DependencyState.t()
-  @callback handle_event(Event.event_message(), DependencyState.t()) :: DependencyState.t()
+  @callback on_dependency_change(DependencyState.t()) :: DependencyState.t()
+  @callback on_event(DependencyState.t(), Event.event_message()) :: DependencyState.t()
+  @callback on_stream(DependencyState.t(), module(), Operation.single_operation()) ::
+              DependencyState.t()
 
   @impl Lifecycle
   def init_state(%DependencyState{dependency: dependency} = state) do
@@ -22,10 +26,12 @@ defmodule Exshome.Dependency.GenServerDependency.Subscription do
 
     dependencies = config[:dependencies] || []
     events = config[:events] || []
+    streams = config[:streams] || []
 
     state
     |> put_dependencies(dependencies)
     |> subscribe_to_events(events)
+    |> subscribe_to_streams(streams)
   end
 
   @impl Lifecycle
@@ -43,7 +49,13 @@ defmodule Exshome.Dependency.GenServerDependency.Subscription do
 
   @impl Lifecycle
   def handle_info({Event, {_event_module, event}}, %DependencyState{} = state) do
-    new_state = Dependency.get_module(state.dependency).handle_event(event, state)
+    new_state = Dependency.get_module(state.dependency).on_event(state, event)
+    {:stop, new_state}
+  end
+
+  @impl Lifecycle
+  def handle_info({DataStream, {stream, stream_data}}, %DependencyState{} = state) do
+    new_state = handle_stream(state, stream, stream_data)
     {:stop, new_state}
   end
 
@@ -66,7 +78,7 @@ defmodule Exshome.Dependency.GenServerDependency.Subscription do
 
   @spec put_dependencies(DependencyState.t(), Dependency.dependency_mapping()) ::
           DependencyState.t()
-  def put_dependencies(%DependencyState{} = state, mapping) do
+  defp put_dependencies(%DependencyState{} = state, mapping) do
     old_mapping = Map.get(state.private, __MODULE__, [])
     deps = Dependency.change_mapping(old_mapping, mapping, state.deps)
 
@@ -84,12 +96,34 @@ defmodule Exshome.Dependency.GenServerDependency.Subscription do
   end
 
   @spec subscribe_to_events(DependencyState.t(), Enumerable.t()) :: DependencyState.t()
-  def subscribe_to_events(%DependencyState{} = state, events) do
+  defp subscribe_to_events(%DependencyState{} = state, events) do
     for event_module <- events do
       :ok = Dependency.subscribe(event_module)
     end
 
     state
+  end
+
+  defp subscribe_to_streams(%DependencyState{} = state, streams) do
+    for stream_module <- streams,
+        subscription_result = Dependency.subscribe(stream_module),
+        subscription_result != NotReady,
+        reduce: state do
+      state -> handle_stream(state, stream_module, subscription_result)
+    end
+  end
+
+  @spec handle_stream(DependencyState.t(), module(), Operation.t()) :: DependencyState.t()
+  defp handle_stream(%DependencyState{} = state, stream_module, %Operation.Batch{
+         operations: operations
+       }) do
+    for operation <- operations, reduce: state do
+      state -> handle_stream(state, stream_module, operation)
+    end
+  end
+
+  defp handle_stream(%DependencyState{} = state, stream_module, stream_event) do
+    Dependency.get_module(state.dependency).on_stream(state, stream_module, stream_event)
   end
 
   @spec handle_dependency_change(DependencyState.t()) :: DependencyState.t()
@@ -102,7 +136,7 @@ defmodule Exshome.Dependency.GenServerDependency.Subscription do
     if missing_dependencies do
       Lifecycle.update_value(state, fn _ -> NotReady end)
     else
-      Dependency.get_module(state.dependency).handle_dependency_change(state)
+      Dependency.get_module(state.dependency).on_dependency_change(state)
     end
   end
 
@@ -140,6 +174,9 @@ defmodule Exshome.Dependency.GenServerDependency.Subscription do
       ],
       events: [
         type: {:list, :atom}
+      ],
+      streams: [
+        type: {:list, :atom}
       ]
     )
   end
@@ -154,30 +191,42 @@ defmodule Exshome.Dependency.GenServerDependency.Subscription do
       @behaviour Subscription
 
       @impl Subscription
-      def handle_dependency_change(state) do
+      def on_dependency_change(state) do
         module = Exshome.Dependency.get_module(state.dependency)
 
         Logger.warn("""
         Some module dependency changed.
-        Please implement handle_dependency_change/1 callback for #{module}
+        Please implement on_dependency_change/1 callback for #{module}
         """)
 
         state
       end
 
       @impl Subscription
-      def handle_event(event, %DependencyState{} = state) do
+      def on_event(%DependencyState{} = state, event) do
         module = Exshome.Dependency.get_module(state.dependency)
 
         Logger.warn("""
         Received unexpected event #{inspect(event)},
-        Please implement handle_event/2 callback for #{module}
+        Please implement on_event/2 callback for #{module}
         """)
 
         state
       end
 
-      defoverridable(handle_dependency_change: 1, handle_event: 2)
+      @impl Subscription
+      def on_stream(%DependencyState{} = state, _stream_module, stream_event) do
+        module = Exshome.Dependency.get_module(state.dependency)
+
+        Logger.warn("""
+        Received unexpected stream event #{inspect(stream_event)},
+        Please implement on_stream/3 callback for #{module}
+        """)
+
+        state
+      end
+
+      defoverridable(on_dependency_change: 1, on_event: 2, on_stream: 3)
     end
   end
 end

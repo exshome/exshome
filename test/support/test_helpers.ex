@@ -39,6 +39,15 @@ defmodule ExshomeTest.TestHelpers do
     end
   end
 
+  defmacro assert_receive_stream(operation, timeout \\ nil) do
+    quote do
+      ExUnit.Assertions.assert_receive(
+        {Exshome.DataStream, {_event_module, unquote(operation)}},
+        unquote(timeout)
+      )
+    end
+  end
+
   defmacro refute_receive_dependency(message, timeout \\ nil) do
     quote do
       ExUnit.Assertions.refute_receive(

@@ -23,17 +23,17 @@ defmodule ExshomeAutomation.Services.WorkflowRegistry do
   end
 
   @impl Subscription
-  def handle_event(
-        %WorkflowStateEvent{data: %Workflow{id: id}, type: :deleted},
-        %DependencyState{} = state
+  def on_event(
+        %DependencyState{} = state,
+        %WorkflowStateEvent{data: %Workflow{id: id}, type: :deleted}
       ) do
     update_value(state, &Map.delete(&1, id))
   end
 
   @impl Subscription
-  def handle_event(
-        %WorkflowStateEvent{data: %Workflow{} = workflow, type: type},
-        %DependencyState{} = state
+  def on_event(
+        %DependencyState{} = state,
+        %WorkflowStateEvent{data: %Workflow{} = workflow, type: type}
       )
       when type in [:created, :updated] do
     update_value(state, &Map.put(&1, workflow.id, workflow))
