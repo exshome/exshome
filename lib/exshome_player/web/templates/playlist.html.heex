@@ -9,16 +9,16 @@
   </section>
   <section class="flex-grow h-full overflow-auto flex items-center">
     <div class="w-full max-h-full">
-      <.list :let={track} rows={@deps.playlist.tracks}>
+      <.stream :let={track} id="playlist" rows={@streams.playlist}>
         <:row_before :let={track}>
           <.button
             phx-click="play"
             phx-value-id={track.id}
-            class={"flex items-center #{if @deps.playlist.current_id == track.id, do: 'playing'}"}
+            class={"flex items-center #{if track.playing?, do: 'playing'}"}
           >
             <.icon
               name={
-                if @deps.playlist.current_id == track.id,
+                if track.playing?,
                   do: "hero-musical-note",
                   else: "hero-play"
               }
@@ -40,9 +40,7 @@
             <.icon name="hero-trash-solid" />
           </.button>
         </:row_after>
-        <div class={
-          if @deps.playlist.current_id == track.id, do: "font-bold dark:text-yellow-200"
-        }>
+        <div class={if track.playing?, do: "font-bold dark:text-yellow-200"}>
           <div class="text-xl">
             <%= if String.trim(track.title) == "", do: "Unknown", else: track.title %>
           </div>
@@ -50,7 +48,7 @@
             <%= track.path %>
           </div>
         </div>
-      </.list>
+      </.stream>
     </div>
   </section>
 </section>

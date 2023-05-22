@@ -4,10 +4,11 @@ defmodule ExshomePlayer.Web.Live.Playlist do
   """
   alias ExshomePlayer.Schemas.Track
   alias ExshomePlayer.Services.Playlist
+  alias ExshomePlayer.Streams.PlaylistStream
 
   use ExshomeWeb.Live.AppPage,
     icon: "hero-list-bullet-mini",
-    dependencies: [{Playlist, :playlist}]
+    streams: [{PlaylistStream, :playlist}]
 
   @impl LiveView
   def handle_event("play", %{"id" => id}, %Socket{} = socket) do
