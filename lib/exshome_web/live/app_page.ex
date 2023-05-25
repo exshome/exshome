@@ -197,6 +197,15 @@ defmodule ExshomeWeb.Live.AppPage do
     end
   end
 
+  defp handle_stream_operation(%Socket{} = socket, key, %operation{data: %{id: _} = data})
+       when operation in [Operation.Insert, Operation.Update] do
+    stream_insert(socket, key, data)
+  end
+
+  defp handle_stream_operation(%Socket{} = socket, key, %Operation.Delete{data: data}) do
+    stream_delete(socket, key, data)
+  end
+
   defp handle_stream_operation(%Socket{} = socket, key, %Operation.ReplaceAll{data: data}) do
     stream(socket, key, data)
   end

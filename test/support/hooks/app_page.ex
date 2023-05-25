@@ -2,6 +2,7 @@ defmodule ExshomeTest.Hooks.AppPage do
   @moduledoc """
   Custom hooks for app pages.
   """
+  alias Exshome.DataStream
   alias Exshome.Dependency
   alias Exshome.Event
   alias ExshomeTest.TestRegistry
@@ -19,6 +20,15 @@ defmodule ExshomeTest.Hooks.AppPage do
     send(
       TestRegistry.get_parent(),
       {__MODULE__, Event, value}
+    )
+
+    original_result
+  end
+
+  def on_handle_info({DataStream, value}, _socket, original_result) do
+    send(
+      TestRegistry.get_parent(),
+      {__MODULE__, DataStream, value}
     )
 
     original_result

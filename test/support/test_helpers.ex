@@ -30,6 +30,15 @@ defmodule ExshomeTest.TestHelpers do
     end
   end
 
+  defmacro assert_receive_app_page_stream(operation, timeout \\ 2000) do
+    quote do
+      ExUnit.Assertions.assert_receive(
+        {ExshomeTest.Hooks.AppPage, Exshome.DataStream, unquote(operation)},
+        unquote(timeout)
+      )
+    end
+  end
+
   defmacro assert_receive_event(event, timeout \\ nil) do
     quote do
       ExUnit.Assertions.assert_receive(
@@ -42,7 +51,7 @@ defmodule ExshomeTest.TestHelpers do
   defmacro assert_receive_stream(operation, timeout \\ nil) do
     quote do
       ExUnit.Assertions.assert_receive(
-        {Exshome.DataStream, {_event_module, unquote(operation)}},
+        {Exshome.DataStream, unquote(operation)},
         unquote(timeout)
       )
     end

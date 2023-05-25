@@ -19,12 +19,11 @@ defmodule Exshome.DataStream.Operation do
     @moduledoc """
     Insert operation.
     """
-    @enforce_keys [:id]
-    defstruct [:id, :data]
+    defstruct [:data, at: -1]
 
     @type t() :: %__MODULE__{
-            id: String.t(),
-            data: struct()
+            data: struct(),
+            at: integer()
           }
   end
 
@@ -32,12 +31,11 @@ defmodule Exshome.DataStream.Operation do
     @moduledoc """
     Update operation.
     """
-    @enforce_keys [:id]
-    defstruct [:id, :data]
+    defstruct [:data, at: -1]
 
     @type t() :: %__MODULE__{
-            id: String.t(),
-            data: struct()
+            data: struct(),
+            at: integer()
           }
   end
 
@@ -45,11 +43,9 @@ defmodule Exshome.DataStream.Operation do
     @moduledoc """
     Delete operation.
     """
-    @enforce_keys [:id]
-    defstruct [:id, :data]
+    defstruct [:data]
 
     @type t() :: %__MODULE__{
-            id: String.t(),
             data: struct()
           }
   end
@@ -69,5 +65,5 @@ defmodule Exshome.DataStream.Operation do
   end
 
   @type t() :: Insert.t() | Update.t() | Delete.t() | ReplaceAll.t() | Batch.t()
-  @type single_operation() :: Insert.t() | Update.t() | ReplaceAll.t()
+  @type single_operation() :: Insert.t() | Update.t() | ReplaceAll.t() | Delete.t()
 end

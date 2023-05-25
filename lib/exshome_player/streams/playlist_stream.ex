@@ -8,9 +8,6 @@ defmodule ExshomePlayer.Streams.PlaylistStream do
 
   @impl DataStream
   def handle_get_value do
-    case Dependency.get_value(Playlist) do
-      %Playlist{tracks: tracks} -> tracks
-      value -> value
-    end
+    Dependency.get_value(Playlist)
   end
 end

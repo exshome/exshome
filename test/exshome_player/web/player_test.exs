@@ -60,19 +60,27 @@ defmodule ExshomePlayerTest.Web.PlayerTest do
       TestMpvServer.generate_random_tracks(2..10)
       TestRegistry.start_dependency(Playlist)
 
-      %Playlist{
-        tracks: [
-          %Track{id: first_id},
-          %Track{id: second_id} | _
-        ]
-      } = Dependency.get_value(Playlist)
+      [%Track{id: first_id}, %Track{id: second_id} | _] = Dependency.get_value(Playlist)
 
       Playlist.play(first_id)
-      assert %Playlist{current_id: ^first_id} = Dependency.get_value(Playlist)
+      assert %Track{id: ^first_id} = current_track()
       assert view |> element("[phx-click=next_track]") |> render_click()
-      assert %Playlist{current_id: ^second_id} = Dependency.get_value(Playlist)
+      assert %Track{id: ^second_id} = current_track()
       assert view |> element("[phx-click=previous_track]") |> render_click()
-      assert %Playlist{current_id: ^first_id} = Dependency.get_value(Playlist)
+      assert %Track{id: ^first_id} = current_track()
+    end
+
+    defp current_track do
+      playing_tracks =
+        Playlist
+        |> Dependency.get_value()
+        |> Enum.filter(fn %Track{playing?: playing?} -> playing? end)
+
+      case playing_tracks do
+        [] -> nil
+        [%Track{} = track] -> track
+        _ -> raise "Only one track can play at a time"
+      end
     end
   end
 end

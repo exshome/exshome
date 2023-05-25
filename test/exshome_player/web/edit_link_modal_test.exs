@@ -3,16 +3,19 @@ defmodule ExshomePlayerTest.Web.EditLinkModalTest do
 
   import ExshomeTest.Fixtures
   alias Exshome.Dependency
+  alias Exshome.Dependency.NotReady
   alias ExshomePlayer.Schemas.Track
   alias ExshomePlayer.Services.{MpvSocket, Playlist}
+  alias ExshomePlayer.Streams.PlaylistStream
   alias ExshomeTest.TestMpvServer
   alias ExshomeTest.TestRegistry
 
   setup %{conn: conn} do
     TestMpvServer.server_fixture()
     TestRegistry.start_dependency(MpvSocket, %{})
+    TestRegistry.start_dependency(Playlist, %{})
     view = live_with_dependencies(conn, ExshomePlayer, "playlist")
-    %Playlist{} = Dependency.get_value(Playlist)
+    assert Dependency.get_value(Playlist) != NotReady
     %{view: view}
   end
 
@@ -56,7 +59,7 @@ defmodule ExshomePlayerTest.Web.EditLinkModalTest do
     flush_messages()
     create_valid_track(view)
 
-    assert_receive_app_page_dependency({Playlist, _})
+    assert_receive_app_page_stream({PlaylistStream, _})
 
     view
     |> element("[phx-click=edit]")
@@ -69,7 +72,7 @@ defmodule ExshomePlayerTest.Web.EditLinkModalTest do
       path: updated_link
     })
 
-    assert_receive_app_page_dependency({Playlist, _})
+    assert_receive_app_page_stream({PlaylistStream, _})
 
     assert render(view) =~ updated_link
   end
@@ -77,7 +80,7 @@ defmodule ExshomePlayerTest.Web.EditLinkModalTest do
   test "try to edit a file", %{view: view} do
     TestMpvServer.generate_random_tracks(1..1)
     Track.refresh_tracklist()
-    %Playlist{tracks: [%Track{id: id}]} = Dependency.get_value(Playlist)
+    [%Track{id: id}] = Dependency.get_value(Playlist)
     assert render_click(view, "edit", %{id: id}) =~ "unable to edit"
   end
 

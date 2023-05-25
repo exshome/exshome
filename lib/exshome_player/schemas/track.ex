@@ -67,7 +67,7 @@ defmodule ExshomePlayer.Schemas.Track do
     |> Repo.insert()
     |> case do
       {:ok, result} ->
-        DataStream.broadcast(TrackStream, %Operation.Insert{id: result.id, data: result})
+        DataStream.broadcast(TrackStream, %Operation.Insert{data: result})
         {:ok, result}
 
       result ->
@@ -88,7 +88,7 @@ defmodule ExshomePlayer.Schemas.Track do
     |> Repo.update()
     |> case do
       {:ok, result} ->
-        DataStream.broadcast(TrackStream, %Operation.Update{id: result.id, data: result})
+        DataStream.broadcast(TrackStream, %Operation.Update{data: result})
         {:ok, result}
 
       result ->
@@ -99,7 +99,7 @@ defmodule ExshomePlayer.Schemas.Track do
   @spec delete!(t()) :: :ok
   def delete!(%__MODULE__{} = track) do
     Repo.delete!(track)
-    DataStream.broadcast(TrackStream, %Operation.Delete{id: track.id, data: track})
+    DataStream.broadcast(TrackStream, %Operation.Delete{data: track})
     on_delete(track)
   end
 

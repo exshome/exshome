@@ -6,6 +6,7 @@ defmodule ExshomePlayerTest.Web.PlaylistTest do
   alias ExshomePlayer.Events.PlayerFileEnd
   alias ExshomePlayer.Schemas.Track
   alias ExshomePlayer.Services.{MpvSocket, Playlist}
+  alias ExshomePlayer.Streams.PlaylistStream
   alias ExshomeTest.TestMpvServer
   alias ExshomeTest.TestRegistry
 
@@ -19,20 +20,22 @@ defmodule ExshomePlayerTest.Web.PlaylistTest do
     setup %{conn: conn} do
       TestMpvServer.server_fixture()
       TestRegistry.start_dependency(MpvSocket, %{})
+      TestRegistry.start_dependency(Playlist, %{})
       TestMpvServer.generate_random_tracks(3..10)
+      Track.refresh_tracklist()
       view = live_with_dependencies(conn, ExshomePlayer, "playlist")
-      %Playlist{} = playlist = Dependency.subscribe(Playlist)
-      %{view: view, playlist: playlist}
+      tracks = Dependency.subscribe(Playlist)
+      %{view: view, tracks: tracks}
     end
 
-    test "plays a track", %{view: view, playlist: %Playlist{tracks: tracks}} do
+    test "plays a track", %{view: view, tracks: tracks} do
       refute view |> element(".playing") |> has_element?()
       track = List.first(tracks)
       play_track(view, track)
       assert view |> element(".playing") |> has_element?()
     end
 
-    test "moves to another track", %{view: view, playlist: %Playlist{tracks: tracks}} do
+    test "moves to another track", %{view: view, tracks: tracks} do
       first_track = List.first(tracks)
       play_track(view, first_track)
       assert view |> element("[phx-value-id=#{first_track.id}].playing") |> has_element?()
@@ -48,7 +51,7 @@ defmodule ExshomePlayerTest.Web.PlaylistTest do
       refute view |> element(".playing") |> has_element?()
     end
 
-    test "deletes a track", %{view: view, playlist: %Playlist{tracks: tracks}} do
+    test "deletes a track", %{view: view, tracks: tracks} do
       track = Enum.random(tracks)
       assert track |> Track.url() |> File.exists?()
       assert view |> element("[phx-value-id=#{track.id}][phx-click=delete]") |> render_click()
@@ -59,13 +62,13 @@ defmodule ExshomePlayerTest.Web.PlaylistTest do
     defp play_track(view, %Track{id: id}) do
       flush_messages()
       view |> element("button[phx-value-id=#{id}][phx-click=play]") |> render_click()
-      assert_receive_app_page_dependency({Playlist, %Playlist{current_id: ^id}})
+      assert_receive_app_page_stream({PlaylistStream, _})
       assert view |> element(".playing") |> has_element?()
     end
 
     defp file_ended do
       Event.broadcast(%PlayerFileEnd{reason: "eof"})
-      assert_receive_app_page_dependency({Playlist, %Playlist{}})
+      assert_receive_app_page_stream({PlaylistStream, _})
     end
   end
 end

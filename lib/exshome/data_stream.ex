@@ -46,13 +46,12 @@ defmodule Exshome.DataStream do
   end
 
   @spec raise_if_invalid_changes!(changes()) :: any()
-  defp raise_if_invalid_changes!(changes)
   defp raise_if_invalid_changes!(%module{}) when module in @available_batch_operations, do: :ok
 
   defp raise_if_invalid_changes!(%Operation.Batch{operations: operations}) do
     unsupported_operations =
       for operation <- operations,
-          %module{} <- operation,
+          %module{} = operation,
           module not in @available_batch_operations,
           do: operation
 
