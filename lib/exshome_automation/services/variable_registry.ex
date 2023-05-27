@@ -2,13 +2,14 @@ defmodule ExshomeAutomation.Services.VariableRegistry do
   @moduledoc """
   Lists available variables.
   """
+  alias Exshome.DataStream.Operation
   alias Exshome.Variable
-  alias Exshome.Variable.VariableStateEvent
+  alias Exshome.Variable.VariableStateStream
 
   use Exshome.Dependency.GenServerDependency,
     name: "variable_registry",
     subscribe: [
-      events: [VariableStateEvent]
+      streams: [VariableStateStream]
     ]
 
   @impl GenServerDependency
@@ -22,19 +23,18 @@ defmodule ExshomeAutomation.Services.VariableRegistry do
   end
 
   @impl Subscription
-  def on_event(
+  def on_stream(
         %DependencyState{} = state,
-        %VariableStateEvent{data: %Variable{id: id}, type: :deleted}
+        {VariableStateStream, %Operation.Delete{data: %Variable{id: id}}}
       ) do
     update_value(state, &Map.delete(&1, id))
   end
 
-  @impl Subscription
-  def on_event(
+  def on_stream(
         %DependencyState{} = state,
-        %VariableStateEvent{data: %Variable{} = variable, type: type}
+        {VariableStateStream, %operation{data: %Variable{} = variable}}
       )
-      when type in [:created, :updated] do
+      when operation in [Operation.Insert, Operation.Update] do
     update_value(state, &Map.put(&1, variable.id, variable))
   end
 end

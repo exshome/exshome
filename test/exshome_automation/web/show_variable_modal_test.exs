@@ -1,11 +1,12 @@
 defmodule ExshomeAutomationTest.Web.ShowVariableModalTest do
   use ExshomeWebTest.ConnCase, async: true
 
+  alias Exshome.DataStream.Operation
   alias Exshome.Datatype
   alias Exshome.Dependency
   alias Exshome.Dependency.NotReady
   alias Exshome.Variable
-  alias Exshome.Variable.VariableStateEvent
+  alias Exshome.Variable.VariableStateStream
   alias ExshomePlayer.Services.MpvSocket
   alias ExshomePlayer.Services.PlayerState
   alias ExshomePlayer.Variables.Position
@@ -42,10 +43,10 @@ defmodule ExshomeAutomationTest.Web.ShowVariableModalTest do
       open_modal(view, Position)
       refute view |> find_update_value_form() |> has_element?()
       Dependency.broadcast_value(PlayerState, %PlayerState{path: "some_path#{unique_integer()}"})
-      assert_variable_config_changed()
+      assert_variable_config_changed(Position)
       assert view |> find_update_value_form() |> has_element?()
       Dependency.broadcast_value(PlayerState, NotReady)
-      assert_variable_config_changed()
+      assert_variable_config_changed(Position)
       refute view |> find_update_value_form() |> has_element?()
     end
   end
@@ -113,7 +114,8 @@ defmodule ExshomeAutomationTest.Web.ShowVariableModalTest do
     |> form("form[phx-change='rename_variable']")
   end
 
-  defp assert_variable_config_changed do
-    assert_receive_app_page_event(%VariableStateEvent{})
+  defp assert_variable_config_changed(variable) do
+    variable_id = Dependency.dependency_id(variable)
+    assert_receive_app_page_stream({{VariableStateStream, ^variable_id}, %Operation.Update{}})
   end
 end

@@ -2,7 +2,7 @@ defmodule ExshomePlayerTest.Web.UploadFileModalTest do
   use ExshomeWebTest.ConnCase, async: true
 
   import ExshomeTest.Fixtures
-  alias ExshomePlayer.Services.{MpvSocket, Playlist}
+  alias ExshomePlayer.Services.MpvSocket
   alias ExshomeTest.TestMpvServer
   alias ExshomeTest.TestRegistry
 
@@ -10,7 +10,6 @@ defmodule ExshomePlayerTest.Web.UploadFileModalTest do
     TestMpvServer.server_fixture()
     TestRegistry.start_dependency(MpvSocket, %{})
     TestMpvServer.generate_random_tracks(2..10)
-    TestRegistry.start_dependency(Playlist, %{})
     view = live_with_dependencies(conn, ExshomePlayer, "playlist")
     %{view: view}
   end

@@ -2,9 +2,10 @@ defmodule ExshomeAutomation.Web.Live.Variables do
   @moduledoc """
   Variables page.
   """
+  alias Exshome.DataStream.Operation
   alias Exshome.Dependency
   alias Exshome.Variable
-  alias Exshome.Variable.VariableStateEvent
+  alias Exshome.Variable.VariableStateStream
   alias ExshomeAutomation.Services.VariableRegistry
   alias ExshomeAutomation.Variables.DynamicVariable
   alias ExshomeAutomation.Web.Live.ShowVariableModal
@@ -21,7 +22,7 @@ defmodule ExshomeAutomation.Web.Live.Variables do
   @impl LiveView
   def handle_event("new_variable", %{"type" => type}, %Socket{} = socket) do
     type = Exshome.Datatype.get_by_name(type)
-    :ok = Dependency.subscribe(VariableStateEvent)
+    :ok = Dependency.subscribe(VariableStateStream)
     :ok = DynamicVariable.create_variable!(type)
     {:noreply, socket}
   end
@@ -32,15 +33,15 @@ defmodule ExshomeAutomation.Web.Live.Variables do
   end
 
   @impl AppPage
-  def on_app_event(
-        %VariableStateEvent{type: :created, data: %Variable{id: id}},
+  def on_stream(
+        {VariableStateStream, %Operation.Insert{data: %Variable{id: id}}},
         %Socket{} = socket
       ) do
-    Dependency.unsubscribe(VariableStateEvent)
+    Dependency.unsubscribe(VariableStateStream)
     open_variable_modal(socket, id, %{"rename" => "true"})
   end
 
-  def on_app_event(_, %Socket{} = socket), do: socket
+  def on_stream(_, %Socket{} = socket), do: socket
 
   defp open_variable_modal(%Socket{} = socket, id, params \\ %{}) when is_binary(id) do
     open_modal(socket, ShowVariableModal, Map.merge(params, %{"variable_id" => id}))

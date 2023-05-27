@@ -12,14 +12,17 @@ defmodule ExshomeWeb.Live.AppPage do
   alias Phoenix.LiveView.Socket
   import Phoenix.Component
 
+  @type stream_event() :: {Dependency.dependency(), Operation.t()}
+  @type stream_data() :: {Dependency.dependency(), Operation.single_operation()}
+
   @callback action() :: String.t()
   @callback app_module() :: atom()
   @callback icon() :: String.t()
   @callback dependencies() :: Keyword.t()
-  @callback streams() :: Keyword.t()
+  @callback on_stream(stream_data(), Socket.t()) :: Socket.t()
   @callback on_app_event(Event.event_message(), Socket.t()) :: Socket.t()
   @callback render_assigns(map()) :: LiveView.Rendered.t()
-  @optional_callbacks [on_app_event: 2, render_assigns: 1]
+  @optional_callbacks [on_app_event: 2, render_assigns: 1, on_stream: 2]
 
   use ExshomeWeb, :live_view
 
@@ -81,7 +84,6 @@ defmodule ExshomeWeb.Live.AppPage do
         &__MODULE__.on_handle_info/2
       )
       |> put_dependencies(socket.view.dependencies())
-      |> put_streams(socket.view.streams())
 
     {:cont, socket}
   end
@@ -103,16 +105,9 @@ defmodule ExshomeWeb.Live.AppPage do
     {:halt, socket}
   end
 
-  def on_handle_info({DataStream, {stream, operation}}, %Socket{} = socket) do
-    key = get_streams(socket)[stream]
-
-    if key do
-      socket = handle_stream_operation(socket, key, operation)
-
-      {:halt, socket}
-    else
-      {:cont, socket}
-    end
+  def on_handle_info({DataStream, stream_data}, %Socket{} = socket) do
+    socket = handle_stream_operation(socket, stream_data)
+    {:halt, socket}
   end
 
   def on_handle_info(_event, %Socket{} = socket), do: {:cont, socket}
@@ -142,7 +137,6 @@ defmodule ExshomeWeb.Live.AppPage do
     NimbleOptions.validate!(
       module.__config__(),
       dependencies: [type: :keyword_list],
-      streams: [type: :keyword_list],
       icon: [type: :string]
     )
   end
@@ -167,51 +161,18 @@ defmodule ExshomeWeb.Live.AppPage do
 
   defp get_dependencies(%Socket{private: private}), do: Map.fetch!(private, {__MODULE__, :deps})
 
-  @spec put_streams(Socket.t(), Dependency.dependency_mapping()) :: Socket.t()
-  def put_streams(%Socket{} = socket, mapping) do
-    mapping = Enum.into(mapping, %{})
-
-    streams =
-      Dependency.change_mapping(
-        socket.private[{__MODULE__, :streams}] || %{},
-        mapping,
-        %{}
-      )
-
-    socket = %Socket{
-      socket
-      | private: Map.put(socket.private, {__MODULE__, :streams}, mapping)
-    }
-
-    for {stream_name, value} <- streams, reduce: socket do
-      socket -> handle_stream_operation(socket, stream_name, value)
-    end
-  end
-
-  defp get_streams(%Socket{private: private}), do: Map.fetch!(private, {__MODULE__, :streams})
-
-  @spec handle_stream_operation(Socket.t(), atom(), DataStream.stream_event()) :: Socket.t()
-  defp handle_stream_operation(%Socket{} = socket, key, %Operation.Batch{operations: operations}) do
+  @spec handle_stream_operation(Socket.t(), stream_event()) :: Socket.t()
+  defp handle_stream_operation(
+         %Socket{} = socket,
+         {stream, %Operation.Batch{operations: operations}}
+       ) do
     for operation <- operations, reduce: socket do
-      socket -> handle_stream_operation(socket, key, operation)
+      socket -> handle_stream_operation(socket, {stream, operation})
     end
   end
 
-  defp handle_stream_operation(%Socket{} = socket, key, %operation{data: %{id: _} = data})
-       when operation in [Operation.Insert, Operation.Update] do
-    stream_insert(socket, key, data)
-  end
-
-  defp handle_stream_operation(%Socket{} = socket, key, %Operation.Delete{data: data}) do
-    stream_delete(socket, key, data)
-  end
-
-  defp handle_stream_operation(%Socket{} = socket, key, %Operation.ReplaceAll{data: data}) do
-    stream(socket, key, data)
-  end
-
-  defp handle_stream_operation(%Socket{} = socket, key, NotReady) do
-    stream(socket, key, [])
+  defp handle_stream_operation(%Socket{} = socket, stream_data) do
+    socket.view.on_stream(stream_data, socket)
   end
 
   defmacro __using__(config) do
@@ -256,9 +217,6 @@ defmodule ExshomeWeb.Live.AppPage do
 
       @impl AppPage
       def dependencies, do: unquote(config[:dependencies] || [])
-
-      @impl AppPage
-      def streams, do: unquote(config[:streams] || [])
 
       use ExshomeWeb, :live_view
       on_mount(AppPage)

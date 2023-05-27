@@ -18,14 +18,6 @@ defmodule Exshome.DataStream do
     Operation.ReplaceAll
   ]
 
-  @callback handle_get_value() :: [term()]
-
-  @spec get_value(stream()) :: get_value_result()
-  def get_value(stream) do
-    result = Dependency.get_module(stream).handle_get_value()
-    prepare_get_value_result(result)
-  end
-
   @spec broadcast(stream(), changes()) :: :ok
   def broadcast(stream, changes) do
     raise_if_invalid_stream!(stream)
@@ -36,13 +28,6 @@ defmodule Exshome.DataStream do
   @spec raise_if_invalid_stream!(stream()) :: any()
   defp raise_if_invalid_stream!(stream) do
     Dependency.raise_if_not_dependency!(__MODULE__, stream)
-  end
-
-  @spec prepare_get_value_result(list() | NotReady) :: NotReady | Operation.ReplaceAll.t()
-  def prepare_get_value_result(NotReady), do: NotReady
-
-  def prepare_get_value_result(data) when is_list(data) do
-    %Operation.ReplaceAll{data: data}
   end
 
   @spec raise_if_invalid_changes!(changes()) :: any()
@@ -69,13 +54,12 @@ defmodule Exshome.DataStream do
       use Exshome.Dependency
       import Exshome.Tag, only: [add_tag: 1]
       add_tag(DataStream)
-      @behaviour DataStream
 
       @impl Dependency
       def type, do: DataStream
 
       @impl Dependency
-      defdelegate get_value(stream), to: DataStream
+      def get_value(stream), do: :ok
     end
   end
 end

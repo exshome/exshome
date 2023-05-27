@@ -6,7 +6,6 @@ defmodule ExshomePlayerTest.Web.PlaylistTest do
   alias ExshomePlayer.Events.PlayerFileEnd
   alias ExshomePlayer.Schemas.Track
   alias ExshomePlayer.Services.{MpvSocket, Playlist}
-  alias ExshomePlayer.Streams.PlaylistStream
   alias ExshomeTest.TestMpvServer
   alias ExshomeTest.TestRegistry
 
@@ -20,7 +19,6 @@ defmodule ExshomePlayerTest.Web.PlaylistTest do
     setup %{conn: conn} do
       TestMpvServer.server_fixture()
       TestRegistry.start_dependency(MpvSocket, %{})
-      TestRegistry.start_dependency(Playlist, %{})
       TestMpvServer.generate_random_tracks(3..10)
       Track.refresh_tracklist()
       view = live_with_dependencies(conn, ExshomePlayer, "playlist")
@@ -62,13 +60,13 @@ defmodule ExshomePlayerTest.Web.PlaylistTest do
     defp play_track(view, %Track{id: id}) do
       flush_messages()
       view |> element("button[phx-value-id=#{id}][phx-click=play]") |> render_click()
-      assert_receive_app_page_stream({PlaylistStream, _})
+      assert_receive_app_page_dependency({Playlist, _})
       assert view |> element(".playing") |> has_element?()
     end
 
     defp file_ended do
       Event.broadcast(%PlayerFileEnd{reason: "eof"})
-      assert_receive_app_page_stream({PlaylistStream, _})
+      assert_receive_app_page_dependency({Playlist, _})
     end
   end
 end

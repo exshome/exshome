@@ -3,11 +3,10 @@ defmodule ExshomePlayer.Services.Playlist do
   Module responsible for a playlist.
   """
 
-  alias Exshome.DataStream
   alias ExshomePlayer.Events.PlayerFileEnd
   alias ExshomePlayer.Schemas.Track
   alias ExshomePlayer.Services.Playback
-  alias ExshomePlayer.Streams.{PlaylistStream, TrackStream}
+  alias ExshomePlayer.Streams.TrackStream
   alias ExshomePlayer.Variables.Title
 
   use Exshome.Dependency.GenServerDependency,
@@ -93,30 +92,24 @@ defmodule ExshomePlayer.Services.Playlist do
   def on_event(%DependencyState{} = state, %PlayerFileEnd{}), do: state
 
   @impl Subscription
-  def on_stream(%DependencyState{} = state, TrackStream, %Operation.ReplaceAll{data: data}) do
-    state
-    |> update_value(fn _ -> data end)
-    |> set_current_track(state.data)
-  end
-
-  def on_stream(%DependencyState{} = state, TrackStream, %Operation.Insert{data: %Track{} = track}) do
+  def on_stream(
+        %DependencyState{} = state,
+        {TrackStream, %Operation.Insert{data: %Track{} = track}}
+      ) do
     if Enum.any?(state.value, &(&1.id == track.id)) do
       state
     else
-      :ok = broadcast_changes([%Operation.Insert{data: track, at: -1}])
       update_value(state, fn value -> value ++ [track] end)
     end
   end
 
-  def on_stream(%DependencyState{} = state, TrackStream, %Operation.Update{data: %Track{} = track}) do
-    track_position = Enum.find_index(state.value, &(&1.id == track.id))
-    %Track{} = local_track = Enum.at(state.value, track_position)
-    updated_track = %Track{track | playing?: local_track.playing?}
-    broadcast_changes([%Operation.Update{data: updated_track, at: track_position}])
-
+  def on_stream(
+        %DependencyState{} = state,
+        {TrackStream, %Operation.Update{data: %Track{} = track}}
+      ) do
     replace_updated_track = fn %Track{} = current ->
-      if current.id == updated_track.id do
-        updated_track
+      if current.id == track.id do
+        %Track{track | playing?: current.playing?}
       else
         current
       end
@@ -127,20 +120,18 @@ defmodule ExshomePlayer.Services.Playlist do
 
   def on_stream(
         %DependencyState{data: %Track{id: id} = track} = state,
-        TrackStream,
-        %Operation.Delete{data: %Track{id: id}}
+        {TrackStream, %Operation.Delete{data: %Track{id: id}}}
       ) do
-    :ok = broadcast_changes([%Operation.Delete{data: track}])
-
     state
     |> update_value(fn value -> Enum.reject(value, &(&1.id == track.id)) end)
     |> set_current_track(nil)
     |> load_track()
   end
 
-  def on_stream(%DependencyState{} = state, TrackStream, %Operation.Delete{data: %Track{} = track}) do
-    :ok = broadcast_changes([%Operation.Delete{data: track}])
-
+  def on_stream(
+        %DependencyState{} = state,
+        {TrackStream, %Operation.Delete{data: %Track{} = track}}
+      ) do
     update_value(state, fn value -> Enum.reject(value, &(&1.id == track.id)) end)
   end
 
@@ -148,36 +139,12 @@ defmodule ExshomePlayer.Services.Playlist do
   defp set_current_track(%DependencyState{} = state, current_track) do
     current_track_id = if current_track == nil, do: nil, else: current_track.id
 
-    {changes, reverse_value} =
-      for {%Track{} = track, index} <- Enum.with_index(state.value), reduce: {[], []} do
-        {changes, value} ->
-          cond do
-            track.playing? && current_track_id != track.id ->
-              track = %Track{track | playing?: false}
-              {[%Operation.Update{data: track, at: index} | changes], [track | value]}
-
-            !track.playing? && current_track_id == track.id ->
-              track = %Track{track | playing?: true}
-              {[%Operation.Update{data: track, at: index} | changes], [track | value]}
-
-            true ->
-              {changes, [track | value]}
-          end
-      end
-
-    :ok = broadcast_changes(changes)
-
     state
     |> update_data(fn _ -> current_track end)
-    |> update_value(fn _ -> Enum.reverse(reverse_value) end)
+    |> update_value(fn value ->
+      Enum.map(value, &%Track{&1 | playing?: &1.id == current_track_id})
+    end)
   end
-
-  @spec broadcast_changes([Operation.single_operation()]) :: :ok
-  defp broadcast_changes([]), do: :ok
-  defp broadcast_changes([change]), do: DataStream.broadcast(PlaylistStream, change)
-
-  defp broadcast_changes(changes),
-    do: DataStream.broadcast(PlaylistStream, %Operation.Batch{operations: changes})
 
   @spec load_track(DependencyState.t()) :: DependencyState.t()
   defp load_track(%DependencyState{data: nil} = state) do

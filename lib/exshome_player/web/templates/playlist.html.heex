@@ -9,7 +9,7 @@
   </section>
   <section class="flex-grow h-full overflow-auto flex items-center">
     <div class="w-full max-h-full">
-      <.stream :let={track} id="playlist" rows={@streams.playlist}>
+      <.list :let={track} rows={@deps.playlist}>
         <:row_before :let={track}>
           <.button
             phx-click="play"
@@ -48,7 +48,7 @@
             <%= track.path %>
           </div>
         </div>
-      </.stream>
+      </.list>
     </div>
   </section>
 </section>

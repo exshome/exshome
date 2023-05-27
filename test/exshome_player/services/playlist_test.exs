@@ -11,13 +11,12 @@ defmodule ExshomePlayerTest.Services.PlaylistTest do
   alias ExshomePlayer.Events.PlayerFileEnd
   alias ExshomePlayer.Schemas.Track
   alias ExshomePlayer.Services.{MpvSocket, Playlist}
-  alias ExshomePlayer.Streams.{PlaylistStream, TrackStream}
+  alias ExshomePlayer.Streams.TrackStream
   alias ExshomePlayer.Variables.Title
 
   describe "Playlist not started" do
     test "returns NotReady" do
       assert Dependency.get_value(Playlist) == NotReady
-      assert Dependency.get_value(PlaylistStream) == NotReady
     end
   end
 
@@ -28,7 +27,6 @@ defmodule ExshomePlayerTest.Services.PlaylistTest do
 
     test "shows an empty tracklist" do
       assert [] = Dependency.get_value(Playlist)
-      assert %Operation.ReplaceAll{data: []} = Dependency.get_value(PlaylistStream)
     end
   end
 
@@ -41,7 +39,6 @@ defmodule ExshomePlayerTest.Services.PlaylistTest do
     test "shows non-empty tracklist" do
       tracks = Dependency.get_value(Playlist)
       assert Enum.count(tracks) > 0
-      assert %Operation.ReplaceAll{data: ^tracks} = Dependency.get_value(PlaylistStream)
     end
   end
 
@@ -52,35 +49,15 @@ defmodule ExshomePlayerTest.Services.PlaylistTest do
       ExshomeTest.TestRegistry.start_dependency(MpvSocket)
       ExshomeTest.TestRegistry.start_dependency(Playlist)
       tracks = Dependency.get_value(Playlist)
-      assert %Operation.ReplaceAll{data: ^tracks} = Dependency.subscribe(PlaylistStream)
       %{tracks: tracks}
     end
 
-    test "move through tracks", %{tracks: tracks} do
+    test "move through tracks", %{tracks: [%Track{id: first_id} | _] = tracks} do
       total_tracks = length(tracks)
-      %Track{id: first_id} = Enum.at(tracks, 0)
-      %Track{id: second_id} = Enum.at(tracks, 1)
 
       assert nil == get_current_track()
-      assert :ok = Playlist.play(first_id)
 
-      assert_receive_stream(
-        {PlaylistStream, %Operation.Update{data: %Track{playing?: true, id: ^first_id}, at: 0}}
-      )
-
-      assert :ok = Playlist.next()
-
-      assert_receive_stream({
-        PlaylistStream,
-        %Operation.Batch{
-          operations: [
-            %Operation.Update{data: %Track{id: ^second_id, playing?: true}, at: 1},
-            %Operation.Update{data: %Track{id: ^first_id, playing?: false}, at: 0}
-          ]
-        }
-      })
-
-      for _ <- 1..total_tracks do
+      for _ <- 1..(total_tracks + 1) do
         assert :ok = Playlist.next()
       end
 
@@ -89,16 +66,6 @@ defmodule ExshomePlayerTest.Services.PlaylistTest do
       for _ <- 1..(total_tracks + 1) do
         assert :ok = Playlist.previous()
       end
-
-      assert_receive_stream({
-        PlaylistStream,
-        %Operation.Batch{
-          operations: [
-            %Operation.Update{data: %Track{id: ^second_id, playing?: false}, at: 1},
-            %Operation.Update{data: %Track{id: ^first_id, playing?: true}, at: 0}
-          ]
-        }
-      })
 
       assert %Track{id: ^first_id} = get_current_track()
     end
@@ -121,7 +88,6 @@ defmodule ExshomePlayerTest.Services.PlaylistTest do
       assert :ok = Playlist.play(id)
       assert %Track{id: ^id} = get_current_track()
       Track.delete!(track)
-      assert_receive_stream({PlaylistStream, %Operation.Update{data: %Track{id: ^id}}})
       assert nil == get_current_track()
     end
 
@@ -130,16 +96,14 @@ defmodule ExshomePlayerTest.Services.PlaylistTest do
       Track.refresh_tracklist()
       new_tracks = Dependency.get_value(Playlist)
       assert length(new_tracks) == length(tracks) + 1
-      assert_receive_stream({PlaylistStream, %Operation.Insert{data: %Track{}, at: -1}})
     end
 
     test "playlist continues on deleting other track", %{
-      tracks: [%Track{id: id}, %Track{id: second_id} = second_track | _] = tracks
+      tracks: [%Track{id: id}, %Track{} = second_track | _] = tracks
     } do
       assert :ok = Playlist.play(id)
       assert %Track{id: ^id} = get_current_track()
       Track.delete!(second_track)
-      assert_receive_stream({PlaylistStream, %Operation.Delete{data: %Track{id: ^second_id}}})
       assert %Track{id: ^id} = get_current_track()
       updated_tracks = Dependency.get_value(Playlist)
       assert length(tracks) > length(updated_tracks)
@@ -147,12 +111,12 @@ defmodule ExshomePlayerTest.Services.PlaylistTest do
 
     test "updates a track title", %{tracks: [%Track{id: id} | _]} do
       assert :ok = Playlist.play(id)
-      new_title = "unique_title #{unique_integer()}"
       Dependency.subscribe(TrackStream)
+      new_title = "unique_title #{unique_integer()}"
       Dependency.broadcast_value(Title, new_title)
 
       assert_receive_stream(
-        {PlaylistStream,
+        {TrackStream,
          %Operation.Update{
            data: %Track{id: ^id, title: ^new_title}
          }}
@@ -164,7 +128,7 @@ defmodule ExshomePlayerTest.Services.PlaylistTest do
     end
 
     defp get_current_track do
-      assert %Operation.ReplaceAll{data: tracks} = Dependency.subscribe(PlaylistStream)
+      assert tracks = Dependency.get_value(Playlist)
       playing_tracks = Enum.filter(tracks, & &1.playing?)
 
       case playing_tracks do

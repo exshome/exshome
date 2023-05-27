@@ -6,14 +6,12 @@ defmodule ExshomePlayerTest.Web.EditLinkModalTest do
   alias Exshome.Dependency.NotReady
   alias ExshomePlayer.Schemas.Track
   alias ExshomePlayer.Services.{MpvSocket, Playlist}
-  alias ExshomePlayer.Streams.PlaylistStream
   alias ExshomeTest.TestMpvServer
   alias ExshomeTest.TestRegistry
 
   setup %{conn: conn} do
     TestMpvServer.server_fixture()
     TestRegistry.start_dependency(MpvSocket, %{})
-    TestRegistry.start_dependency(Playlist, %{})
     view = live_with_dependencies(conn, ExshomePlayer, "playlist")
     assert Dependency.get_value(Playlist) != NotReady
     %{view: view}
@@ -59,7 +57,7 @@ defmodule ExshomePlayerTest.Web.EditLinkModalTest do
     flush_messages()
     create_valid_track(view)
 
-    assert_receive_app_page_stream({PlaylistStream, _})
+    assert_receive_app_page_dependency({Playlist, _})
 
     view
     |> element("[phx-click=edit]")
@@ -72,7 +70,7 @@ defmodule ExshomePlayerTest.Web.EditLinkModalTest do
       path: updated_link
     })
 
-    assert_receive_app_page_stream({PlaylistStream, _})
+    assert_receive_app_page_dependency({Playlist, _})
 
     assert render(view) =~ updated_link
   end

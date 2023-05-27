@@ -2,11 +2,12 @@ defmodule Exshome.Variable do
   @moduledoc """
   Variable-related logic.
   """
+  alias Exshome.DataStream
+  alias Exshome.DataStream.Operation
   alias Exshome.Datatype
   alias Exshome.Dependency
-  alias Exshome.Event
   alias Exshome.SystemRegistry
-  alias Exshome.Variable.VariableStateEvent
+  alias Exshome.Variable.VariableStateStream
 
   defstruct [
     :dependency,
@@ -98,24 +99,25 @@ defmodule Exshome.Variable do
   @spec register_variable_data(t()) :: :ok
   def register_variable_data(%__MODULE__{} = variable_data) do
     :ok = SystemRegistry.register!(__MODULE__, variable_data.id, variable_data)
-    broadcast_event(%VariableStateEvent{data: variable_data, type: :created})
+    broadcast_state(%Operation.Insert{data: variable_data})
   end
 
   @spec update_variable_data(t()) :: :ok
   def update_variable_data(%__MODULE__{} = variable_data) do
     :ok = SystemRegistry.update_value!(__MODULE__, variable_data.id, fn _ -> variable_data end)
-    broadcast_event(%VariableStateEvent{data: variable_data, type: :updated})
+    broadcast_state(%Operation.Update{data: variable_data})
   end
 
   @spec remove_variable_data(t()) :: :ok
   def remove_variable_data(%__MODULE__{} = variable_data) do
     :ok = SystemRegistry.remove!(__MODULE__, variable_data.id)
-    broadcast_event(%VariableStateEvent{data: variable_data, type: :deleted})
+    broadcast_state(%Operation.Delete{data: variable_data})
   end
 
-  defp broadcast_event(%VariableStateEvent{} = event) do
-    :ok = Event.broadcast(event)
-    :ok = Event.broadcast({event, event.data.id})
+  @spec broadcast_state(Operation.single_operation()) :: :ok
+  defp broadcast_state(%{data: %__MODULE__{}} = operation) do
+    :ok = DataStream.broadcast(VariableStateStream, operation)
+    :ok = DataStream.broadcast({VariableStateStream, operation.data.id}, operation)
   end
 
   defmacro __using__(config) do
