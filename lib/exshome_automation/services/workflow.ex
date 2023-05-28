@@ -3,13 +3,14 @@ defmodule ExshomeAutomation.Services.Workflow do
   A module for automation workflows.
   """
 
+  alias Exshome.DataStream
+  alias Exshome.DataStream.Operation
   alias Exshome.Dependency.NotReady
-  alias Exshome.Event
   alias Exshome.SystemRegistry
-  alias ExshomeAutomation.Events.WorkflowStateEvent
   alias ExshomeAutomation.Services.Workflow.Editor
   alias ExshomeAutomation.Services.Workflow.Schema
   alias ExshomeAutomation.Services.Workflow.WorkflowSupervisor
+  alias ExshomeAutomation.Streams.WorkflowStateStream
 
   defstruct [:active, :id, :name]
 
@@ -96,7 +97,7 @@ defmodule ExshomeAutomation.Services.Workflow do
   @spec register_workflow_data(t()) :: :ok
   defp register_workflow_data(%__MODULE__{} = workflow_data) do
     :ok = SystemRegistry.register!(__MODULE__, workflow_data.id, workflow_data)
-    broadcast_event(%WorkflowStateEvent{data: workflow_data, type: :created})
+    broadcast_changes(%Operation.Insert{data: workflow_data})
   end
 
   @spec remove_workflow_data(t() | atom()) :: :ok
@@ -104,11 +105,11 @@ defmodule ExshomeAutomation.Services.Workflow do
 
   def remove_workflow_data(%__MODULE__{} = workflow_data) do
     :ok = SystemRegistry.remove!(__MODULE__, workflow_data.id)
-    broadcast_event(%WorkflowStateEvent{data: workflow_data, type: :deleted})
+    broadcast_changes(%Operation.Delete{data: workflow_data})
   end
 
-  defp broadcast_event(%WorkflowStateEvent{} = event) do
-    :ok = Event.broadcast(event)
-    :ok = Event.broadcast({event, event.data.id})
+  defp broadcast_changes(%{data: %__MODULE__{}} = changes) do
+    :ok = DataStream.broadcast(WorkflowStateStream, changes)
+    :ok = DataStream.broadcast({WorkflowStateStream, changes.data.id}, changes)
   end
 end

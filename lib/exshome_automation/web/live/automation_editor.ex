@@ -53,6 +53,11 @@ defmodule ExshomeAutomation.Web.Live.AutomationEditor do
   end
 
   @impl SvgCanvas
+  @spec handle_dragend(Phoenix.LiveView.Socket.t(), %{
+          :id => any,
+          :position => %{:x => any, :y => any, optional(any) => any},
+          optional(any) => any
+        }) :: Phoenix.LiveView.Socket.t()
   def handle_dragend(%Socket{} = socket, %{id: id, position: position}) do
     socket = assign(socket, :drag, false)
     component = generate_component(id, socket, position)

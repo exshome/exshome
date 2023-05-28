@@ -3,13 +3,14 @@ defmodule ExshomeAutomation.Services.WorkflowRegistry do
   Lists available workflows.
   """
 
-  alias ExshomeAutomation.Events.WorkflowStateEvent
+  alias Exshome.DataStream.Operation
   alias ExshomeAutomation.Services.Workflow
+  alias ExshomeAutomation.Streams.WorkflowStateStream
 
   use Exshome.Dependency.GenServerDependency,
     name: "automation_workflow_registry",
     subscribe: [
-      events: [WorkflowStateEvent]
+      streams: [WorkflowStateStream]
     ]
 
   @impl GenServerDependency
@@ -23,19 +24,19 @@ defmodule ExshomeAutomation.Services.WorkflowRegistry do
   end
 
   @impl Subscription
-  def on_event(
+  def on_stream(
         %DependencyState{} = state,
-        %WorkflowStateEvent{data: %Workflow{id: id}, type: :deleted}
+        {WorkflowStateStream, %Operation.Delete{data: %Workflow{id: id}}}
       ) do
     update_value(state, &Map.delete(&1, id))
   end
 
   @impl Subscription
-  def on_event(
+  def on_stream(
         %DependencyState{} = state,
-        %WorkflowStateEvent{data: %Workflow{} = workflow, type: type}
+        {WorkflowStateStream, %operation{data: %Workflow{} = workflow}}
       )
-      when type in [:created, :updated] do
+      when operation in [Operation.Insert, Operation.Update] do
     update_value(state, &Map.put(&1, workflow.id, workflow))
   end
 end
