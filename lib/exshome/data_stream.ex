@@ -8,14 +8,12 @@ defmodule Exshome.DataStream do
 
   @type stream() :: Dependency.dependency()
   @type changes() :: Operation.t()
-  @type get_value_result() :: NotReady | Operation.ReplaceAll.t()
   @type stream_event() :: NotReady | Operation.t()
 
   @available_batch_operations [
     Operation.Insert,
     Operation.Update,
-    Operation.Delete,
-    Operation.ReplaceAll
+    Operation.Delete
   ]
 
   @spec broadcast(stream(), changes()) :: :ok

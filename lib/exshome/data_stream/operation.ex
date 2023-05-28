@@ -3,18 +3,6 @@ defmodule Exshome.DataStream.Operation do
   Contains DataStream Operations.
   """
 
-  defmodule ReplaceAll do
-    @moduledoc """
-    Operation to replace all previous data.
-    """
-    @enforce_keys [:data]
-    defstruct [:data]
-
-    @type t() :: %__MODULE__{
-            data: [struct()]
-          }
-  end
-
   defmodule Insert do
     @moduledoc """
     Insert operation.
@@ -57,13 +45,13 @@ defmodule Exshome.DataStream.Operation do
     @enforce_keys [:operations]
     defstruct [:operations]
 
-    @type allowed_operations() :: ReplaceAll.t() | Insert.t() | Update.t() | Delete.t()
+    @type allowed_operations() :: Insert.t() | Update.t() | Delete.t()
 
     @type t() :: %__MODULE__{
             operations: [allowed_operations()]
           }
   end
 
-  @type t() :: Insert.t() | Update.t() | Delete.t() | ReplaceAll.t() | Batch.t()
-  @type single_operation() :: Insert.t() | Update.t() | ReplaceAll.t() | Delete.t()
+  @type t() :: Insert.t() | Update.t() | Delete.t() | Batch.t()
+  @type single_operation() :: Insert.t() | Update.t() | Delete.t()
 end
