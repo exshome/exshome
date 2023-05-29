@@ -70,6 +70,9 @@ defmodule ExshomeAutomation.Services.Workflow do
   @spec add_editor_item(String.t(), String.t()) :: :ok
   def add_editor_item(id, type), do: call(id, {:add_editor_item, type})
 
+  @spec rename(String.t(), String.t()) :: :ok
+  def rename(id, name), do: call(id, {:rename, name})
+
   @impl GenServerDependency
   def handle_call(:get_editor_state, _, %DependencyState{} = state) do
     {:reply, state.data, state}
@@ -79,6 +82,19 @@ defmodule ExshomeAutomation.Services.Workflow do
   def handle_call({:add_editor_item, type}, _, %DependencyState{} = state) do
     item = Editor.create_default_item(type)
     state = update_data(state, &Editor.add_item(&1, item))
+    {:reply, :ok, state}
+  end
+
+  @impl GenServerDependency
+  def handle_call({:rename, name}, _, %DependencyState{} = state) do
+    value =
+      state.value.id
+      |> Schema.get!()
+      |> Schema.rename!(name)
+      |> schema_to_workflow_data()
+
+    :ok = broadcast_changes(%Operation.Update{data: value})
+    state = update_value(state, fn _ -> value end)
     {:reply, :ok, state}
   end
 
@@ -97,7 +113,7 @@ defmodule ExshomeAutomation.Services.Workflow do
   @spec register_workflow_data(t()) :: :ok
   defp register_workflow_data(%__MODULE__{} = workflow_data) do
     :ok = SystemRegistry.register!(__MODULE__, workflow_data.id, workflow_data)
-    broadcast_changes(%Operation.Insert{data: workflow_data})
+    :ok = broadcast_changes(%Operation.Insert{data: workflow_data})
   end
 
   @spec remove_workflow_data(t() | atom()) :: :ok
@@ -105,7 +121,7 @@ defmodule ExshomeAutomation.Services.Workflow do
 
   def remove_workflow_data(%__MODULE__{} = workflow_data) do
     :ok = SystemRegistry.remove!(__MODULE__, workflow_data.id)
-    broadcast_changes(%Operation.Delete{data: workflow_data})
+    :ok = broadcast_changes(%Operation.Delete{data: workflow_data})
   end
 
   defp broadcast_changes(%{data: %__MODULE__{}} = changes) do

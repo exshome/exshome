@@ -2,24 +2,27 @@ defmodule ExshomeAutomation.Web.Live.AutomationEditor do
   @moduledoc """
   Automation editor page
   """
+  alias ExshomeAutomation.Services.Workflow
   alias ExshomeAutomation.Web.Live.Automation.AutomationBlock
 
   use ExshomeWeb.Live.AppPage,
-    dependencies: [],
     icon: "🤖"
 
   use ExshomeWeb.Live.SvgCanvas
 
   @impl LiveView
-  def mount(_params, _session, socket) do
-    socket = assign(socket, selected: nil, drag: false)
+  def mount(%{"id" => id}, _session, socket) do
+    socket =
+      socket
+      |> assign(selected: nil, drag: false)
+      |> put_dependencies([{{Workflow, id}, :workflow}])
+
     components = for x <- 1..5, do: generate_component("rect-#{x}", socket)
 
     menu_item = generate_component("rect", socket)
 
     socket =
       socket
-      |> assign(:name, "Name")
       |> SvgCanvas.render_components(components)
       |> SvgCanvas.render_menu_items([menu_item])
 
@@ -28,7 +31,8 @@ defmodule ExshomeAutomation.Web.Live.AutomationEditor do
 
   @impl LiveView
   def handle_event("rename_workflow", %{"value" => value}, socket) do
-    {:noreply, assign(socket, name: value)}
+    Workflow.rename(socket.assigns.deps.workflow.id, value)
+    {:noreply, socket}
   end
 
   @impl SvgCanvas

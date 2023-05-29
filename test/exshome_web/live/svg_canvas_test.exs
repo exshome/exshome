@@ -1,6 +1,13 @@
 defmodule ExshomeWebTest.SvgCanvasTest do
   use ExshomeWebTest.ConnCase, async: true
+
+  alias Exshome.DataStream.Operation
+  alias Exshome.Dependency
+  alias ExshomeAutomation.Services.Workflow
+  alias ExshomeAutomation.Streams.WorkflowStateStream
+
   import ExshomeTest.SvgCanvasHelpers
+  import ExshomeTest.WorkflowHelpers
 
   @default_width 1000
   @default_height 2000
@@ -218,7 +225,15 @@ defmodule ExshomeWebTest.SvgCanvasTest do
   end
 
   defp render_automation_editor(conn) do
-    live_with_dependencies(conn, ExshomeAutomation, "automations", "some_id")
+    start_workflow_supervisor()
+    :ok = Dependency.subscribe(WorkflowStateStream)
+    :ok = Workflow.create!()
+
+    assert_receive_stream(
+      {WorkflowStateStream, %Operation.Insert{data: %Workflow{id: workflow_id}}}
+    )
+
+    live_with_dependencies(conn, ExshomeAutomation, "automations", workflow_id)
   end
 
   defp select_background(view) do

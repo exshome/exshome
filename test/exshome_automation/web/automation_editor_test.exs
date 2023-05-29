@@ -1,6 +1,12 @@
 defmodule ExshomeAutomationTest.Web.AutomationEditorTest do
   use ExshomeWebTest.ConnCase, async: true
   import ExshomeTest.SvgCanvasHelpers
+  import ExshomeTest.WorkflowHelpers
+
+  alias Exshome.DataStream.Operation
+  alias Exshome.Dependency
+  alias ExshomeAutomation.Services.Workflow
+  alias ExshomeAutomation.Streams.WorkflowStateStream
 
   @default_height 1000
   @default_width 2000
@@ -14,9 +20,17 @@ defmodule ExshomeAutomationTest.Web.AutomationEditorTest do
 
   describe "render with dependencies" do
     setup %{conn: conn} do
-      view = live_with_dependencies(conn, ExshomeAutomation, "automations", "some_id")
+      start_workflow_supervisor()
+      :ok = Dependency.subscribe(WorkflowStateStream)
+      :ok = Workflow.create!()
+
+      assert_receive_stream(
+        {WorkflowStateStream, %Operation.Insert{data: %Workflow{} = workflow}}
+      )
+
+      view = live_with_dependencies(conn, ExshomeAutomation, "automations", workflow.id)
       resize(view, %{height: @default_height, width: @default_width})
-      %{view: view}
+      %{view: view, workflow: workflow}
     end
 
     test "moves element", %{view: view} do
