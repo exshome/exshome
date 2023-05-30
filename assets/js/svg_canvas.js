@@ -98,9 +98,9 @@ export const SvgCanvas = {
     }
   },
 
-  handleMoveToForeground({component, parent}) {
+  handleMoveToForeground({component}) {
     const childComponent = this.el.querySelector(`[data-component=${component}]`);
-    const parentComponent = this.el.getElementById(parent);
+    const parentComponent = childComponent?.parentElement;
     if (childComponent && parent) {
       parentComponent.appendChild(childComponent);
     }
