@@ -161,6 +161,6 @@ defmodule ExshomeTest.SvgCanvasHelpers do
   def set_zoom_value(view, value) do
     view
     |> element("[phx-change^='set-zoom-']")
-    |> render_change(%{value: value})
+    |> render_change(%{zoom: value})
   end
 end

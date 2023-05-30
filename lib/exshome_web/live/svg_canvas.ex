@@ -284,7 +284,7 @@ defmodule ExshomeWeb.Live.SvgCanvas do
     on_update_zoom(socket, &(&1 - 1))
   end
 
-  def handle_event("set-zoom-" <> _name, %{"value" => value}, %Socket{} = socket) do
+  def handle_event("set-zoom-" <> _name, %{"zoom" => value}, %Socket{} = socket) do
     new_zoom = String.to_integer(value)
     on_update_zoom(socket, fn _ -> new_zoom end)
   end
