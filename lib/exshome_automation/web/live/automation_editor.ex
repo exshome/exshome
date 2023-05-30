@@ -30,7 +30,7 @@ defmodule ExshomeAutomation.Web.Live.AutomationEditor do
   end
 
   @impl LiveView
-  def handle_event("rename_workflow", %{"value" => value}, socket) do
+  def handle_event("rename_workflow", %{"new_name" => value}, socket) do
     Workflow.rename(socket.assigns.deps.workflow.id, value)
     {:noreply, socket}
   end

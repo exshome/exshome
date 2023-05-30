@@ -98,7 +98,7 @@ defmodule ExshomeAutomationTest.Web.ShowVariableModalTest do
   defp rename(view, name) do
     view
     |> find_rename_form()
-    |> render_change(%{value: name})
+    |> render_change(%{new_name: name})
   end
 
   defp toggle_rename_input(view) do

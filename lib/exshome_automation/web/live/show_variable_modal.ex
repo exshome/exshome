@@ -30,7 +30,7 @@ defmodule ExshomeAutomation.Web.Live.ShowVariableModal do
 
   def handle_event(
         "rename_variable",
-        %{"value" => name},
+        %{"new_name" => name},
         %Socket{assigns: %{config: %Variable{can_rename?: true}}} = socket
       ) do
     :ok = Variable.rename_by_id!(socket.assigns.config.id, name)

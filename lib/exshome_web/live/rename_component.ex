@@ -34,7 +34,7 @@ defmodule ExshomeWeb.Live.RenameComponent do
           type={Exshome.Datatype.String}
           value={@value}
           validations={%{}}
-          name="value"
+          name="new_name"
         />
       <% else %>
         <h2 class={
