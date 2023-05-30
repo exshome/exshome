@@ -208,19 +208,19 @@ defmodule ExshomeWebTest.SvgCanvasTest do
       assert count_elements(view) == 5
       toggle_menu(view)
 
-      %{id: id} =
+      %{component: component} =
         view
-        |> find_elements("[id^=menu-item-]")
+        |> find_elements("[data-component^=menu-item-]")
         |> Enum.random()
 
-      render_create_element(view, id, %{x: @default_width, y: @default_height})
+      render_create_element(view, component, %{x: @default_width, y: @default_height})
       assert count_elements(view) == 6
     end
   end
 
   defp count_elements(view) do
     view
-    |> find_elements("[id^='component-default-']")
+    |> find_elements("[data-component^='component-default-']")
     |> length()
   end
 

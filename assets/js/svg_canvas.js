@@ -42,7 +42,6 @@ export const SvgCanvas = {
     this.el.addEventListener("mousewheel", withPointer(onScrollDesktop));
     this.el.addEventListener("DOMMouseScroll", withPointer(onScrollDesktop));
 
-    this.handleEvent("move-to-foreground", this.handleMoveToForeground.bind(this));
     this.handleEvent("select-item", this.handleSelectItem.bind(this));
   },
 
@@ -98,24 +97,16 @@ export const SvgCanvas = {
     }
   },
 
-  handleMoveToForeground({id, parent}) {
-    const component = this.el.getElementById(id);
-    const parentComponent = this.el.getElementById(parent);
-    if (component && parent) {
-      parentComponent.appendChild(component);
-    }
-  },
-
-  handleSelectItem({id}) {
+  handleSelectItem({component}) {
     if (this.selectedElement) {
       this.onDragEnd();
     }
 
-    const selectedElement = this.el.getElementById(id);
+    const selectedElement = this.el.querySelector(`[data-component=${component}]`);
     if (selectedElement) {
       this.selectedElement = selectedElement;
       this.pushEvent("select", {
-        id: this.selectedElement.id,
+        component: this.selectedElement.dataset.component,
         pointer: this.pointerPosition,
         offset: this.getSelectedElementOffset(),
         position: this.getSelectedElementPosition()
@@ -164,7 +155,7 @@ export const SvgCanvas = {
   onDragStart(e) {
     if (e.target.dataset["drag"]) {
       e.preventDefault();
-      this.handleSelectItem({id: e.target.id});
+      this.handleSelectItem({component: e.target.dataset.component});
       this.setMobileTouches(e);
     }
   },

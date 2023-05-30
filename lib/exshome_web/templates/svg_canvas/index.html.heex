@@ -40,10 +40,9 @@
           "#{@meta.viewbox.x} #{@meta.viewbox.y} #{@meta.viewbox.width} #{@meta.viewbox.height}"
         }
       xmlns="http://www.w3.org/2000/svg"
-      phx-update="append"
     >
       <rect
-        id={"canvas-background-#{@meta.name}"}
+        data-component={"canvas-background-#{@meta.name}"}
         x={@meta.viewbox.x}
         y={@meta.viewbox.y}
         height={@meta.viewbox.height}
@@ -51,13 +50,14 @@
         data-drag="move-background"
         class="fill-transparent"
       />
-      <svg id={"canvas-children-#{@meta.name}"} phx-update="stream">
-        <.render_component
-          :for={{id, component} <- @components}
-          id={id}
-          component={component}
-          context={%{name: @meta.name, drag: "move"}}
-        />
+      <svg phx-update="stream" id={"#{@meta.name}-content"}>
+        <%= for {id, component} <- @components do %>
+          <.render_component
+            id={id}
+            component={component}
+            context={%{name: @meta.name, drag: "move"}}
+          />
+        <% end %>
       </svg>
     </svg>
     <rect
@@ -70,7 +70,7 @@
       height={@meta.scroll.height}
       width={@meta.scroll.size_x}
       data-drag="scroll-body-x"
-      id={"scroll-body-x-#{@meta.name}"}
+      data-component={"scroll-body-x-#{@meta.name}"}
     />
     <rect
       :if={@meta.viewbox.height < @meta.canvas.height}
@@ -82,7 +82,7 @@
       height={@meta.scroll.size_y}
       width={@meta.scroll.height}
       data-drag="scroll-body-y"
-      id={"scroll-body-y-#{@meta.name}"}
+      data-component={"scroll-body-y-#{@meta.name}"}
     />
     <.render_trashbin id={"#{@meta.name}-trashbin"} trashbin={@meta.trashbin} />
     <.render_menu name={@meta.name} menu={@meta.menu} menu_items={@menu_items} />

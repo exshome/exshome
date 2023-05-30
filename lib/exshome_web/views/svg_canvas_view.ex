@@ -26,24 +26,29 @@ defmodule ExshomeWeb.SvgCanvasView do
   attr :name, :string, doc: "svg canvas name"
   defp render_menu(assigns), do: menu(assigns)
 
-  defp render_component(%{component: %module{} = component, context: context} = assigns) do
-    attrs =
-      component
-      |> module.id()
-      |> drag_attrs(context)
+  attr :id, :string, required: true, doc: "Dom ID of the component"
+  attr :component, :map, required: true, doc: "Component to render"
+  attr :context, :map, required: true, doc: "Component context"
+
+  defp render_component(
+         %{id: dom_id, component: %module{} = component, context: context} = assigns
+       ) do
+    component_id = module.id(component)
+    attrs = drag_attrs(dom_id, Map.put(context, :component_id, component_id))
 
     assigns
     |> assign(:drag_attrs, attrs)
     |> module.render()
   end
 
-  @spec drag_attrs(String.t(), any()) :: Keyword.t()
-  def drag_attrs(id, %{name: name, drag: drag} = attrs) when is_binary(id) do
+  @spec drag_attrs(String.t(), map()) :: Keyword.t()
+  defp drag_attrs(dom_id, %{name: name, drag: drag, component_id: component_id} = attrs) do
     role = attrs[:role] || "component"
 
     [
-      {:id, "#{role}-#{name}-#{id}"},
-      {:"data-drag", drag}
+      {:id, dom_id},
+      {:"data-drag", drag},
+      {:"data-component", "#{role}-#{name}-#{component_id}"}
     ]
   end
 end

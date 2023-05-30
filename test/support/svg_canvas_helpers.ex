@@ -11,10 +11,10 @@ defmodule ExshomeTest.SvgCanvasHelpers do
     Struct for svg elements.
     """
 
-    defstruct [:id, :height, :width, :x, :y]
+    defstruct [:component, :height, :width, :x, :y]
 
     @type t() :: %__MODULE__{
-            id: String.t(),
+            component: String.t(),
             height: number(),
             width: number(),
             x: number(),
@@ -32,9 +32,11 @@ defmodule ExshomeTest.SvgCanvasHelpers do
     %{x: x * rate.x, y: y * rate.y}
   end
 
-  @spec find_element_by_id(live_view_t(), String.t()) :: Element.t()
-  def find_element_by_id(view, id) do
-    [%Element{id: ^id} = svg_element] = find_elements(view, "##{id}")
+  @spec find_component(live_view_t(), String.t()) :: Element.t()
+  def find_component(view, component) do
+    [%Element{component: ^component} = svg_element] =
+      find_elements(view, "[data-component=#{component}]")
+
     svg_element
   end
 
@@ -71,8 +73,8 @@ defmodule ExshomeTest.SvgCanvasHelpers do
   end
 
   @spec render_create_element(live_view_t(), String.t(), position_t()) :: any()
-  def render_create_element(view, id, position) do
-    select_element(view, id)
+  def render_create_element(view, component, position) do
+    select_element(view, component)
     render_hook(view, "create", %{pointer: position})
   end
 
@@ -82,9 +84,8 @@ defmodule ExshomeTest.SvgCanvasHelpers do
   end
 
   @spec render_move(live_view_t(), String.t(), position_t()) :: any()
-  def render_move(view, id, position) do
-    select_element(view, id)
-    assert_push_event(view, "move-to-foreground", %{id: ^id, parent: "default-body"})
+  def render_move(view, component, position) do
+    select_element(view, component)
     render_hook(view, "move", %{pointer: compute_pointer_position(view, position)})
   end
 
@@ -94,13 +95,13 @@ defmodule ExshomeTest.SvgCanvasHelpers do
   end
 
   @spec select_element(live_view_t(), String.t()) :: String.t()
-  def select_element(view, id) do
-    %Element{x: x, y: y} = find_element_by_id(view, id)
+  def select_element(view, component) do
+    %Element{x: x, y: y} = find_component(view, component)
 
     position = %{x: x, y: y}
 
     render_hook(view, "select", %{
-      id: id,
+      component: component,
       offset: %{x: 0, y: 0},
       position: position,
       pointer: compute_pointer_position(view, position)
@@ -109,13 +110,13 @@ defmodule ExshomeTest.SvgCanvasHelpers do
 
   @spec to_element(Floki.html_tree()) :: Element.t()
   defp to_element(svg_element) do
-    id =
+    component =
       svg_element
-      |> Floki.attribute("id")
+      |> Floki.attribute("data-component")
       |> List.first()
 
     %Element{
-      id: id,
+      component: component,
       height: float_attribute(svg_element, "height"),
       width: float_attribute(svg_element, "width"),
       x: float_attribute(svg_element, "x"),

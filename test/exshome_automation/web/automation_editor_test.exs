@@ -36,22 +36,23 @@ defmodule ExshomeAutomationTest.Web.AutomationEditorTest do
     end
 
     test "moves element", %{view: view} do
-      id = get_random_component_id(view)
+      id = get_random_component(view)
       render_move(view, id, %{x: 1, y: 2})
       render_dragend(view, %{x: 1, y: 2})
-      assert %{x: 1.0, y: 2.0} = find_element_by_id(view, id)
+      assert %{x: 1.0, y: 2.0} = find_component(view, id)
     end
 
     test "deletes element", %{view: view} do
-      id = get_random_component_id(view)
+      assert count_components(view) == 5
+      component = get_random_component(view)
       [trashbin] = find_elements(view, "#default-trashbin[data-open='false']")
       %{x: x, y: y} = translate_screen_to_canvas(view, trashbin)
-      render_move(view, id, %{x: x, y: y})
+      render_move(view, component, %{x: x, y: y})
       assert [] == find_elements(view, "#default-trashbin[data-open='true']")
-      render_move(view, id, %{x: x + 1, y: y + 1})
+      render_move(view, component, %{x: x + 1, y: y + 1})
       assert [_] = find_elements(view, "#default-trashbin[data-open='true']")
       render_dragend(view, %{x: x + 1, y: y + 1})
-      assert [_] = find_elements(view, "##{id}.hidden")
+      assert count_components(view) == 4
     end
 
     test "renames workflow", %{view: view, workflow: %Workflow{name: name, id: id}} do
@@ -66,15 +67,21 @@ defmodule ExshomeAutomationTest.Web.AutomationEditorTest do
   end
 
   defp list_components(view) do
-    find_elements(view, "[id^='component-default-rect'")
+    find_elements(view, "[data-component^='component-default-rect'")
   end
 
-  def get_random_component_id(view) do
-    %{id: id} =
+  defp count_components(view) do
+    view
+    |> list_components()
+    |> length()
+  end
+
+  def get_random_component(view) do
+    %{component: component} =
       view
       |> list_components()
       |> Enum.random()
 
-    id
+    component
   end
 end

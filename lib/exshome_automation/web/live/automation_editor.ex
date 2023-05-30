@@ -23,7 +23,7 @@ defmodule ExshomeAutomation.Web.Live.AutomationEditor do
 
     socket =
       socket
-      |> SvgCanvas.render_components(components)
+      |> SvgCanvas.replace_components(components)
       |> SvgCanvas.render_menu_items([menu_item])
 
     {:ok, socket}
@@ -46,26 +46,18 @@ defmodule ExshomeAutomation.Web.Live.AutomationEditor do
 
   @impl SvgCanvas
   def handle_delete(%Socket{} = socket, id) do
-    component =
-      id
-      |> generate_component(socket)
-      |> Map.update!(:class, &"#{&1} hidden")
+    component = generate_component(id, socket)
 
     socket
     |> assign(selected: nil, drag: false)
-    |> SvgCanvas.render_components([component])
+    |> SvgCanvas.remove_component(component)
   end
 
   @impl SvgCanvas
-  @spec handle_dragend(Phoenix.LiveView.Socket.t(), %{
-          :id => any,
-          :position => %{:x => any, :y => any, optional(any) => any},
-          optional(any) => any
-        }) :: Phoenix.LiveView.Socket.t()
   def handle_dragend(%Socket{} = socket, %{id: id, position: position}) do
     socket = assign(socket, :drag, false)
     component = generate_component(id, socket, position)
-    SvgCanvas.render_components(socket, [component])
+    SvgCanvas.insert_component(socket, component)
   end
 
   @impl SvgCanvas
@@ -75,7 +67,7 @@ defmodule ExshomeAutomation.Web.Live.AutomationEditor do
 
     socket
     |> update(:selected, &%{&1 | position: %{x: component.x, y: component.y}})
-    |> SvgCanvas.render_components([component])
+    |> SvgCanvas.insert_component(component)
   end
 
   @impl SvgCanvas
@@ -91,9 +83,9 @@ defmodule ExshomeAutomation.Web.Live.AutomationEditor do
       end
       |> Enum.map(&generate_component(&1.id, socket, &1.position))
 
-    socket
-    |> SvgCanvas.render_components(components)
-    |> SvgCanvas.push_to_foreground(selected.id)
+    for component <- components, reduce: socket do
+      socket -> SvgCanvas.insert_component(socket, component)
+    end
   end
 
   defp generate_component(id, socket, position \\ %{x: 0, y: 0}) do

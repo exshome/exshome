@@ -66,7 +66,7 @@ defmodule ExshomeWeb.Live.SvgCanvas do
           selected:
             nil
             | %{
-                id: String.t(),
+                component: String.t(),
                 pointer: %{x: number(), y: number()},
                 offset: %{x: number(), y: number()},
                 position: %{x: number(), y: number()}
@@ -227,7 +227,7 @@ defmodule ExshomeWeb.Live.SvgCanvas do
     %__MODULE__{selected: selected} = get_svg_meta(socket)
 
     socket =
-      case component_type(selected.id) do
+      case component_type(selected.component) do
         :component ->
           socket.view.handle_select(
             socket,
@@ -293,17 +293,21 @@ defmodule ExshomeWeb.Live.SvgCanvas do
     {:cont, socket}
   end
 
-  @spec push_to_foreground(Socket.t(), String.t()) :: Socket.t()
-  def push_to_foreground(%Socket{} = socket, id) do
-    push_event(socket, "move-to-foreground", %{
-      id: generate_component_id(socket, id),
-      parent: "#{get_svg_meta(socket).name}-body"
-    })
+  @spec replace_components(Socket.t(), list()) :: Socket.t()
+  def replace_components(%Socket{} = socket, components) do
+    stream(socket, @components_key, components, reset: true)
   end
 
-  @spec render_components(Socket.t(), list()) :: Socket.t()
-  def render_components(%Socket{} = socket, components) do
-    stream(socket, @components_key, components)
+  @spec insert_component(Socket.t(), map()) :: Socket.t()
+  def insert_component(%Socket{} = socket, component) do
+    socket
+    |> stream_delete(@components_key, component)
+    |> stream_insert(@components_key, component, at: -1)
+  end
+
+  @spec remove_component(Socket.t(), map()) :: Socket.t()
+  def remove_component(%Socket{} = socket, component) do
+    stream_delete(socket, @components_key, component)
   end
 
   @spec render_menu_items(Socket.t(), list()) :: Socket.t()
@@ -314,7 +318,7 @@ defmodule ExshomeWeb.Live.SvgCanvas do
   @spec select_item(Socket.t(), String.t()) :: Socket.t()
   def select_item(%Socket{} = socket, id) do
     push_event(socket, "select-item", %{
-      id: generate_component_id(socket, id)
+      component: generate_component_id(socket, id)
     })
   end
 
@@ -384,12 +388,12 @@ defmodule ExshomeWeb.Live.SvgCanvas do
   end
 
   defp on_select(%__MODULE__{} = data, %{
-         "id" => id,
+         "component" => component,
          "pointer" => %{"x" => pointer_x, "y" => pointer_y},
          "offset" => %{"x" => offset_x, "y" => offset_y},
          "position" => %{"x" => x, "y" => y}
        })
-       when is_binary(id) and
+       when is_binary(component) and
               is_number(x) and
               is_number(y) and
               is_number(offset_x) and
@@ -399,7 +403,7 @@ defmodule ExshomeWeb.Live.SvgCanvas do
     %__MODULE__{
       data
       | selected: %{
-          id: id,
+          component: component,
           pointer: %{x: pointer_x, y: pointer_y},
           offset: %{x: offset_x, y: offset_y},
           position: %{x: x, y: y}
@@ -472,7 +476,7 @@ defmodule ExshomeWeb.Live.SvgCanvas do
     %__MODULE__{selected: selected} = get_svg_meta(socket)
 
     case selected do
-      %{id: id} -> component_type(id)
+      %{component: component} -> component_type(component)
       _ -> :unknown
     end
   end
@@ -513,15 +517,15 @@ defmodule ExshomeWeb.Live.SvgCanvas do
   end
 
   defp extract_component_id(%Socket{} = socket) do
-    %__MODULE__{selected: %{id: id}, name: name} = get_svg_meta(socket)
+    %__MODULE__{selected: %{component: component}, name: name} = get_svg_meta(socket)
     prefix = "component-#{name}-"
-    String.replace(id, prefix, "")
+    String.replace(component, prefix, "")
   end
 
   defp extract_menu_item_type(%Socket{} = socket) do
-    %__MODULE__{selected: %{id: id}, name: name} = get_svg_meta(socket)
+    %__MODULE__{selected: %{component: component}, name: name} = get_svg_meta(socket)
     prefix = "menu-item-#{name}-"
-    String.replace(id, prefix, "")
+    String.replace(component, prefix, "")
   end
 
   defp refresh_menu(%__MODULE__{screen: screen, scroll: scroll} = data) do

@@ -32,6 +32,7 @@
             viewbox={"0 0 #{item.width} #{item.height}"}
           >
             <.render_component
+              id={item.id}
               component={item}
               context={%{name: @name, drag: "create", role: "menu-item"}}
             />
