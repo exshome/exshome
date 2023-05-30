@@ -110,28 +110,16 @@ defmodule ExshomeWeb.Live.SvgCanvas do
   def on_mount(name, _params, _session, %Socket{} = socket) do
     canvas_name = Atom.to_string(name)
 
-    %Socket{private: private} =
-      socket =
+    socket =
       socket
       |> assign(@meta_key, %__MODULE__{name: canvas_name})
-      |> assign(@components_key, [])
+      |> stream_configure(@components_key, [])
       |> assign(@menu_items_key, [])
       |> attach_hook(
         __MODULE__,
         :handle_event,
         Function.capture(__MODULE__, :handle_event, 3)
       )
-
-    socket = %Socket{
-      socket
-      | private:
-          Map.update(
-            private,
-            :temporary_assigns,
-            %{@components_key => []},
-            &Map.put(&1, @components_key, [])
-          )
-    }
 
     {:cont, socket}
   end
@@ -315,7 +303,7 @@ defmodule ExshomeWeb.Live.SvgCanvas do
 
   @spec render_components(Socket.t(), list()) :: Socket.t()
   def render_components(%Socket{} = socket, components) do
-    assign(socket, @components_key, components)
+    stream(socket, @components_key, components)
   end
 
   @spec render_menu_items(Socket.t(), list()) :: Socket.t()

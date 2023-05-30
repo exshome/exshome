@@ -51,11 +51,14 @@
         data-drag="move-background"
         class="fill-transparent"
       />
-      <.render_component
-        :for={component <- @components}
-        component={component}
-        context={%{name: @meta.name, drag: "move"}}
-      />
+      <svg id={"canvas-children-#{@meta.name}"} phx-update="stream">
+        <.render_component
+          :for={{id, component} <- @components}
+          id={id}
+          component={component}
+          context={%{name: @meta.name, drag: "move"}}
+        />
+      </svg>
     </svg>
     <rect
       :if={@meta.viewbox.width < @meta.canvas.width}
