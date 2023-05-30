@@ -24,7 +24,7 @@ export const SvgCanvas = {
     this.el.addEventListener("mousedown", withPointer(this.onDragStart));
     this.el.addEventListener("touchstart", withPointer(this.onDragStart));
 
-    const onDragDesktop = debounce(this.onDragDesktop.bind(this), 5);
+    const onDragDesktop = debounce(this.onDragDesktop.bind(this), 3);
     this.el.addEventListener("mousemove", withPointer(onDragDesktop));
 
     const onDragMobile = debounce(this.onDragMobile.bind(this), 5);
