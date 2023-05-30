@@ -1,5 +1,7 @@
 defmodule ExshomeAutomationTest.Web.AutomationEditorTest do
   use ExshomeWebTest.ConnCase, async: true
+
+  import ExshomeTest.Fixtures
   import ExshomeTest.SvgCanvasHelpers
   import ExshomeTest.WorkflowHelpers
 
@@ -50,6 +52,16 @@ defmodule ExshomeAutomationTest.Web.AutomationEditorTest do
       assert [_] = find_elements(view, "#default-trashbin[data-open='true']")
       render_dragend(view, %{x: x + 1, y: y + 1})
       assert [_] = find_elements(view, "##{id}.hidden")
+    end
+
+    test "renames workflow", %{view: view, workflow: %Workflow{name: name, id: id}} do
+      assert render(view) =~ name
+      assert view |> element("[phx-click=toggle_rename]") |> render_click()
+
+      new_name = "some_name#{unique_integer()}"
+      assert view |> form("form[phx-change=rename_workflow]") |> render_change(%{value: new_name})
+      assert_receive_app_page_dependency({{Workflow, ^id}, %Workflow{name: ^new_name}})
+      assert render(view) =~ new_name
     end
   end
 
