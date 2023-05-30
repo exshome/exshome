@@ -37,6 +37,7 @@ export const SvgCanvas = {
     this.el.addEventListener("pointerleave", withPointer(this.onDragEnd));
     this.el.addEventListener("touchleave", withPointer(this.onDragEnd));
     this.el.addEventListener("touchcancel", withPointer(this.onDragEnd));
+    this.handleEvent("move-to-foreground", this.handleMoveToForeground.bind(this));
 
     const onScrollDesktop = debounce(this.onScrollDesktop.bind(this), 10);
     this.el.addEventListener("mousewheel", withPointer(onScrollDesktop));
@@ -94,6 +95,14 @@ export const SvgCanvas = {
     return {
       x: parseFloat(this.selectedElement.getAttributeNS(null, "x")),
       y: parseFloat(this.selectedElement.getAttributeNS(null, "y"))
+    }
+  },
+
+  handleMoveToForeground({component, parent}) {
+    const childComponent = this.el.querySelector(`[data-component=${component}]`);
+    const parentComponent = this.el.getElementById(parent);
+    if (childComponent && parent) {
+      parentComponent.appendChild(childComponent);
     }
   },
 
