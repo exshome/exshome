@@ -77,7 +77,7 @@ defmodule Exshome.MixProject do
       {:phoenix_html, "~> 3.0"},
       {:phoenix_live_dashboard, "~> 0.7"},
       {:phoenix_live_reload, "~> 1.2", only: :dev},
-      {:phoenix_live_view, "~> 0.18"},
+      {:phoenix_live_view, "~> 0.19", override: true},
       {:tailwind, "~> 0.1", runtime: Mix.env() == :dev},
       {:telemetry_metrics, "~> 0.6"},
       {:telemetry_poller, "~> 1.0"},
