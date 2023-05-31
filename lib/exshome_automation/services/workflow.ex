@@ -28,16 +28,14 @@ defmodule ExshomeAutomation.Services.Workflow do
   def on_init(%DependencyState{} = state) do
     {__MODULE__, id} = state.dependency
 
-    value =
-      id
-      |> Schema.get!()
-      |> schema_to_workflow_data()
+    schema = Schema.get!(id)
+    value = schema_to_workflow_data(schema)
 
     register_workflow_data(value)
 
     state
     |> update_value(fn _ -> value end)
-    |> update_data(fn _ -> Editor.blank_editor() end)
+    |> update_data(fn _ -> Editor.load_editor(schema) end)
   end
 
   @impl GenServerDependency
@@ -67,21 +65,20 @@ defmodule ExshomeAutomation.Services.Workflow do
   @spec get_editor_state(String.t()) :: [Editor.t()]
   def get_editor_state(id), do: call(id, :get_editor_state)
 
-  @spec add_editor_item(String.t(), String.t()) :: :ok
-  def add_editor_item(id, type), do: call(id, {:add_editor_item, type})
+  @spec create_item(String.t(), String.t()) :: :ok
+  def create_item(id, type), do: call(id, {:create_item, type})
 
   @spec rename(String.t(), String.t()) :: :ok
   def rename(id, name), do: call(id, {:rename, name})
 
   @impl GenServerDependency
   def handle_call(:get_editor_state, _, %DependencyState{} = state) do
-    {:reply, state.data, state}
+    {:reply, Editor.get_items(state.data), state}
   end
 
   @impl GenServerDependency
-  def handle_call({:add_editor_item, type}, _, %DependencyState{} = state) do
-    item = Editor.create_default_item(type)
-    state = update_data(state, &Editor.add_item(&1, item))
+  def handle_call({:create_item, type}, _, %DependencyState{} = state) do
+    state = update_data(state, &Editor.create_item(&1, type))
     {:reply, :ok, state}
   end
 

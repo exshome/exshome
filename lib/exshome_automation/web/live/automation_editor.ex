@@ -2,7 +2,9 @@ defmodule ExshomeAutomation.Web.Live.AutomationEditor do
   @moduledoc """
   Automation editor page
   """
+  alias Exshome.Dependency
   alias ExshomeAutomation.Services.Workflow
+  alias ExshomeAutomation.Streams.EditorStream
   alias ExshomeAutomation.Web.Live.Automation.AutomationBlock
 
   use ExshomeWeb.Live.AppPage,
@@ -12,6 +14,8 @@ defmodule ExshomeAutomation.Web.Live.AutomationEditor do
 
   @impl LiveView
   def mount(%{"id" => id}, _session, socket) do
+    :ok = Dependency.subscribe({EditorStream, id})
+
     socket =
       socket
       |> assign(selected: nil, drag: false)
