@@ -13,7 +13,8 @@ defmodule Exshome.DataStream do
   @available_batch_operations [
     Operation.Insert,
     Operation.Update,
-    Operation.Delete
+    Operation.Delete,
+    Operation.ReplaceAll
   ]
 
   @spec broadcast(stream(), changes()) :: :ok
