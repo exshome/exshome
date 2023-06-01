@@ -18,11 +18,10 @@ defmodule ExshomeAutomation.Web.Live.AutomationEditor do
   @impl LiveView
   def mount(%{"id" => id}, _session, socket) do
     :ok = Dependency.subscribe({EditorStream, id})
-    operation_id = Ecto.UUID.generate()
 
     socket =
       socket
-      |> assign(selected_id: nil, drag: false, workflow_id: id, operation_id: operation_id)
+      |> assign(selected_id: nil, drag: false, workflow_id: id)
       |> put_dependencies([{{Workflow, id}, :workflow}])
 
     menu_item = generate_component(socket, %Item{id: "rect", type: "rect"})
@@ -54,8 +53,7 @@ defmodule ExshomeAutomation.Web.Live.AutomationEditor do
     :ok =
       Workflow.create_item(
         socket.assigns.workflow_id,
-        %{type: type, position: position},
-        socket.assigns.operation_id
+        %{type: type, position: position}
       )
 
     socket
@@ -112,13 +110,13 @@ defmodule ExshomeAutomation.Web.Live.AutomationEditor do
   def on_stream(
         {
           {EditorStream, workflow_id},
-          %Operation.Insert{data: %Item{} = item, operation_id: operation_id}
+          %Operation.Insert{data: %Item{} = item, key: key}
         },
         %Socket{assigns: %{workflow_id: workflow_id}} = socket
       ) do
     component = generate_component(socket, item)
 
-    if operation_id != socket.assigns.operation_id do
+    if key != self() do
       SvgCanvas.insert_component(socket, component)
     else
       socket

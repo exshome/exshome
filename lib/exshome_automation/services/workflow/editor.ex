@@ -55,7 +55,7 @@ defmodule ExshomeAutomation.Services.Workflow.Editor do
     :id,
     :items,
     :changes,
-    :operation_id
+    :operation_key
   ]
 
   @type t() :: %__MODULE__{
@@ -64,7 +64,7 @@ defmodule ExshomeAutomation.Services.Workflow.Editor do
             String.t() => Item.t()
           },
           changes: [Operation.t()],
-          operation_id: Operation.operation_id()
+          operation_key: Operation.key()
         }
 
   @spec blank_editor(id :: String.t()) :: t()
@@ -88,13 +88,13 @@ defmodule ExshomeAutomation.Services.Workflow.Editor do
 
     put_change(
       state,
-      %Operation.ReplaceAll{data: list_items(state)}
+      %Operation.ReplaceAll{data: list_items(state), key: state.operation_key}
     )
   end
 
-  @spec put_operation_id(t(), Operation.operation_id()) :: t()
-  def put_operation_id(state, operation_id) do
-    %__MODULE__{state | operation_id: operation_id}
+  @spec put_operation_key(t(), Operation.key()) :: t()
+  def put_operation_key(state, operation_key) do
+    %__MODULE__{state | operation_key: operation_key}
   end
 
   @spec list_items(t()) :: [Item.t()]
@@ -110,7 +110,7 @@ defmodule ExshomeAutomation.Services.Workflow.Editor do
   @spec create_item(t(), config :: map()) :: t()
   def create_item(%__MODULE__{} = state, config) do
     %Item{id: id} = item = Item.create(config)
-    change = %Operation.Insert{data: item, at: -1, operation_id: state.operation_id}
+    change = %Operation.Insert{data: item, at: -1, key: state.operation_key}
 
     %__MODULE__{state | items: Map.put(state.items, id, item)}
     |> put_change(change)
@@ -124,7 +124,7 @@ defmodule ExshomeAutomation.Services.Workflow.Editor do
       |> get_item(item_id)
       |> Item.update_position(new_position)
 
-    change = %Operation.Update{data: item, at: -1}
+    change = %Operation.Update{data: item, at: -1, key: state.operation_key}
 
     %__MODULE__{state | items: Map.put(state.items, item.id, item)}
     |> put_change(change)
@@ -132,7 +132,7 @@ defmodule ExshomeAutomation.Services.Workflow.Editor do
 
   def delete_item(%__MODULE__{} = state, id) do
     %Item{} = item = get_item(state, id)
-    change = %Operation.Delete{data: item}
+    change = %Operation.Delete{data: item, key: state.operation_key}
 
     %__MODULE__{state | items: Map.delete(state.items, item.id)}
     |> put_change(change)

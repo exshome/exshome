@@ -50,7 +50,7 @@
         data-drag="move-background"
         class="fill-transparent"
       />
-      <svg phx-update="stream" id={"#{@meta.name}-content"}>
+      <g phx-update="stream" id={"#{@meta.name}-content"} class="h-full w-full">
         <%= for {id, component} <- @components do %>
           <.render_component
             id={id}
@@ -58,7 +58,7 @@
             context={%{name: @meta.name, drag: "move"}}
           />
         <% end %>
-      </svg>
+      </g>
     </svg>
     <rect
       :if={@meta.viewbox.width < @meta.canvas.width}

@@ -67,13 +67,9 @@ defmodule ExshomeAutomation.Services.Workflow do
   @spec list_items(String.t()) :: [Item.t()] | NotReady
   def list_items(id), do: call(id, :list_items)
 
-  @spec create_item(
-          workflow_id :: String.t(),
-          config :: map(),
-          operation_id :: Operation.operation_id()
-        ) :: :ok
-  def create_item(workflow_id, config, operation_id) do
-    call(workflow_id, {{:create_item, operation_id}, config})
+  @spec create_item(workflow_id :: String.t(), config :: map()) :: :ok
+  def create_item(workflow_id, config) do
+    call(workflow_id, {:create_item, config})
   end
 
   @spec get_item!(workflow_id :: String.t(), item_id :: String.t()) :: Item.t()
@@ -109,18 +105,18 @@ defmodule ExshomeAutomation.Services.Workflow do
     {:reply, Editor.get_item(state.data, item_id), state}
   end
 
-  def handle_call({{:create_item, operation_id}, config}, _, %DependencyState{} = state) do
-    state = update_editor(state, operation_id, &Editor.create_item(&1, config))
+  def handle_call({:create_item, config}, {request_pid, _}, %DependencyState{} = state) do
+    state = update_editor(state, request_pid, &Editor.create_item(&1, config))
     {:reply, :ok, state}
   end
 
-  def handle_call({{:move_item, item_id}, position}, _, %DependencyState{} = state) do
-    state = update_editor(state, nil, &Editor.move_item(&1, item_id, position))
+  def handle_call({{:move_item, item_id}, position}, {request_pid, _}, %DependencyState{} = state) do
+    state = update_editor(state, request_pid, &Editor.move_item(&1, item_id, position))
     {:reply, :ok, state}
   end
 
-  def handle_call({:delete_item, item_id}, _, %DependencyState{} = state) do
-    state = update_editor(state, nil, &Editor.delete_item(&1, item_id))
+  def handle_call({:delete_item, item_id}, {request_pid, _}, %DependencyState{} = state) do
+    state = update_editor(state, request_pid, &Editor.delete_item(&1, item_id))
     {:reply, :ok, state}
   end
 
@@ -168,15 +164,15 @@ defmodule ExshomeAutomation.Services.Workflow do
     :ok = DataStream.broadcast({WorkflowStateStream, changes.data.id}, changes)
   end
 
-  @spec update_editor(DependencyState.t(), Operation.operation_id(), (Editor.t() -> Editor.t())) ::
+  @spec update_editor(DependencyState.t(), Operation.key(), (Editor.t() -> Editor.t())) ::
           DependencyState.t()
-  defp update_editor(%DependencyState{} = state, operation_id, update_fn) do
+  defp update_editor(%DependencyState{} = state, key, update_fn) do
     update_data(state, fn editor ->
       editor
-      |> Editor.put_operation_id(operation_id)
+      |> Editor.put_operation_key(key)
       |> update_fn.()
       |> Editor.broadcast_changes()
-      |> Editor.put_operation_id(nil)
+      |> Editor.put_operation_key(nil)
     end)
   end
 end
