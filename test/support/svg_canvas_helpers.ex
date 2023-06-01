@@ -86,7 +86,6 @@ defmodule ExshomeTest.SvgCanvasHelpers do
   @spec render_move(live_view_t(), String.t(), position_t()) :: any()
   def render_move(view, component, position) do
     select_element(view, component)
-    assert_push_event(view, "move-to-foreground", %{component: ^component})
     render_hook(view, "move", %{pointer: compute_pointer_position(view, position)})
   end
 

@@ -11,7 +11,7 @@ const debounce = (func, timeout = 200) => {
 export const SvgCanvas = {
   pointerPosition: {x: 0, y: 0},
   originalTouches: null,
-  selectedElement: null,
+  selected: null,
 
   mounted() {
     this.extractPointerPosition = this.extractPointerPosition.bind(this);
@@ -37,7 +37,6 @@ export const SvgCanvas = {
     this.el.addEventListener("pointerleave", withPointer(this.onDragEnd));
     this.el.addEventListener("touchleave", withPointer(this.onDragEnd));
     this.el.addEventListener("touchcancel", withPointer(this.onDragEnd));
-    this.handleEvent("move-to-foreground", this.handleMoveToForeground.bind(this));
 
     const onScrollDesktop = debounce(this.onScrollDesktop.bind(this), 10);
     this.el.addEventListener("mousewheel", withPointer(onScrollDesktop));
@@ -46,8 +45,15 @@ export const SvgCanvas = {
     this.handleEvent("select-item", this.handleSelectItem.bind(this));
   },
 
+  getSelectedElement() {
+    if (!this.selected) {
+      return null;
+    }
+    return this.el.querySelector(`[data-component=${this.selected}]`)
+  },
+
   clearSelectedElement() {
-    this.selectedElement = null;
+    this.selected = null;
   },
 
   clearTouches() {
@@ -75,15 +81,16 @@ export const SvgCanvas = {
   },
 
   getSelectedElementOffset() {
+    const selectedElement = this.getSelectedElement();
     const parentBoundaries = this.el.getBoundingClientRect();
-    const boundaries = this.selectedElement.getBoundingClientRect();
+    const boundaries = selectedElement.getBoundingClientRect();
     const offset = {
       x: this.pointerPosition.x - (boundaries.x - parentBoundaries.x),
       y: this.pointerPosition.y - (boundaries.y - parentBoundaries.y)
     };
     const itemSize = {
-      height: parseFloat(this.selectedElement.getAttributeNS(null, "height")),
-      width: parseFloat(this.selectedElement.getAttributeNS(null, "width"))
+      height: parseFloat(selectedElement.getAttributeNS(null, "height")),
+      width: parseFloat(selectedElement.getAttributeNS(null, "width"))
     };
     return {
       x: offset.x * itemSize.width / boundaries.width,
@@ -92,30 +99,23 @@ export const SvgCanvas = {
   },
 
   getSelectedElementPosition() {
+    const selectedElement = this.getSelectedElement();
     return {
-      x: parseFloat(this.selectedElement.getAttributeNS(null, "x")),
-      y: parseFloat(this.selectedElement.getAttributeNS(null, "y"))
-    }
-  },
-
-  handleMoveToForeground({component}) {
-    const childComponent = this.el.querySelector(`[data-component=${component}]`);
-    const parentComponent = childComponent?.parentElement;
-    if (childComponent && parent) {
-      parentComponent.appendChild(childComponent);
+      x: parseFloat(selectedElement.getAttributeNS(null, "x")),
+      y: parseFloat(selectedElement.getAttributeNS(null, "y"))
     }
   },
 
   handleSelectItem({component}) {
-    if (this.selectedElement) {
+    if (this.getSelectedElement()) {
       this.onDragEnd();
     }
 
-    const selectedElement = this.el.querySelector(`[data-component=${component}]`);
+    this.selected = component;
+    const selectedElement = this.getSelectedElement();
     if (selectedElement) {
-      this.selectedElement = selectedElement;
       this.pushEvent("select", {
-        component: this.selectedElement.dataset.component,
+        component: selectedElement.dataset.component,
         pointer: this.pointerPosition,
         offset: this.getSelectedElementOffset(),
         position: this.getSelectedElementPosition()
@@ -125,7 +125,7 @@ export const SvgCanvas = {
 
   onDragDesktop(e) {
     const buttonIsPressed = e.buttons !== 0;
-    if (this.selectedElement && buttonIsPressed) {
+    if (this.getSelectedElement() && buttonIsPressed) {
       e.preventDefault();
       this.sendDragEvent(e);
     } else {
@@ -134,7 +134,7 @@ export const SvgCanvas = {
   },
 
   onDragEnd() {
-    if (this.selectedElement) {
+    if (this.getSelectedElement()) {
       this.pushEvent(
         "dragend",
         {
@@ -147,7 +147,7 @@ export const SvgCanvas = {
 
   onDragMobile(e) {
     if (e.touches.length > 1) {
-      if (this.selectedElement) {
+      if (this.getSelectedElement()) {
         this.clearSelectedElement();
       }
       e.preventDefault();
@@ -155,7 +155,7 @@ export const SvgCanvas = {
       this.zoomMobile(touches);
       return;
     }
-    if (this.selectedElement) {
+    if (this.getSelectedElement()) {
       e.preventDefault();
       this.sendDragEvent(e.touches[0]);
     }
@@ -190,7 +190,7 @@ export const SvgCanvas = {
 
   sendDragEvent(e) {
     this.pushEvent(
-      this.selectedElement.dataset["drag"],
+      this.getSelectedElement().dataset["drag"],
       {
         pointer: this.pointerPosition
       }
