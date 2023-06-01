@@ -301,13 +301,20 @@ defmodule ExshomeWeb.Live.SvgCanvas do
   @spec insert_component(Socket.t(), map()) :: Socket.t()
   def insert_component(%Socket{} = socket, component) do
     socket
-    |> stream_delete(@components_key, component)
     |> stream_insert(@components_key, component, at: -1)
+    |> push_to_foreground(component.id)
   end
 
   @spec remove_component(Socket.t(), map()) :: Socket.t()
   def remove_component(%Socket{} = socket, component) do
     stream_delete(socket, @components_key, component)
+  end
+
+  @spec push_to_foreground(Socket.t(), String.t()) :: Socket.t()
+  def push_to_foreground(%Socket{} = socket, id) do
+    push_event(socket, "move-to-foreground", %{
+      component: generate_component_id(socket, id)
+    })
   end
 
   @spec render_menu_items(Socket.t(), list()) :: Socket.t()
