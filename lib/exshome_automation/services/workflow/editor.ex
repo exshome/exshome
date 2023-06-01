@@ -14,33 +14,48 @@ defmodule ExshomeAutomation.Services.Workflow.Editor do
     """
     defstruct [
       :id,
-      :x,
-      :y,
-      :type
+      :type,
+      position: %{x: 0, y: 0}
     ]
+
+    @type position() :: %{
+            x: number(),
+            y: number()
+          }
 
     @type t() :: %__MODULE__{
             id: String.t(),
-            x: number(),
-            y: number(),
+            position: position(),
             type: String.t()
           }
 
-    @spec create_default_item(type :: String.t()) :: t()
-    def create_default_item(type) when is_binary(type) do
+    @spec create(map()) :: t()
+    def create(%{type: type, position: position}) when is_binary(type) do
       %__MODULE__{
         id: Ecto.UUID.autogenerate(),
-        x: 0,
-        y: 0,
+        position: normalize_position(position),
         type: type
       }
+    end
+
+    @spec update_position(t(), position()) :: t()
+    def update_position(%__MODULE__{} = item, position) do
+      %__MODULE__{
+        item
+        | position: normalize_position(position)
+      }
+    end
+
+    defp normalize_position(%{x: x, y: y}) do
+      %{x: max(x, 0), y: max(y, 0)}
     end
   end
 
   defstruct [
     :id,
     :items,
-    :changes
+    :changes,
+    :operation_id
   ]
 
   @type t() :: %__MODULE__{
@@ -48,37 +63,79 @@ defmodule ExshomeAutomation.Services.Workflow.Editor do
           items: %{
             String.t() => Item.t()
           },
-          changes: [Operation.t()]
+          changes: [Operation.t()],
+          operation_id: Operation.operation_id()
         }
 
-  @spec load_editor(Schema.t()) :: t()
-  def load_editor(%Schema{} = schema) do
-    state = %__MODULE__{
-      id: schema.id,
+  @spec blank_editor(id :: String.t()) :: t()
+  def blank_editor(id) do
+    %__MODULE__{
+      id: id,
       items: %{},
       changes: []
     }
-
-    change = %Operation.ReplaceAll{data: get_items(state)}
-
-    state
-    |> put_change(change)
-    |> broadcast_changes()
   end
 
-  @spec get_items(t()) :: [Item.t()]
-  def get_items(%__MODULE__{items: items}) do
+  @spec load_editor(t(), Schema.t()) :: t()
+  def load_editor(%__MODULE__{} = state, %Schema{} = _schema) do
+    items =
+      for _ <- 1..5, into: %{} do
+        item = Item.create(%{type: "rectangle", position: %{x: 0, y: 0}})
+        {item.id, item}
+      end
+
+    state = %__MODULE__{state | items: items}
+
+    put_change(
+      state,
+      %Operation.ReplaceAll{data: list_items(state)}
+    )
+  end
+
+  @spec put_operation_id(t(), Operation.operation_id()) :: t()
+  def put_operation_id(state, operation_id) do
+    %__MODULE__{state | operation_id: operation_id}
+  end
+
+  @spec list_items(t()) :: [Item.t()]
+  def list_items(%__MODULE__{items: items}) do
     Map.values(items)
   end
 
-  @spec create_item(t(), type :: String.t()) :: t()
-  def create_item(%__MODULE__{} = state, type) do
-    %Item{id: id} = item = Item.create_default_item(type)
-    change = %Operation.Insert{data: item, at: -1}
+  @spec get_item(t(), String.t()) :: Item.t() | nil
+  def get_item(%__MODULE__{items: items}, item_id) do
+    Map.get(items, item_id, nil)
+  end
+
+  @spec create_item(t(), config :: map()) :: t()
+  def create_item(%__MODULE__{} = state, config) do
+    %Item{id: id} = item = Item.create(config)
+    change = %Operation.Insert{data: item, at: -1, operation_id: state.operation_id}
 
     %__MODULE__{state | items: Map.put(state.items, id, item)}
     |> put_change(change)
-    |> broadcast_changes()
+  end
+
+  @spec move_item(t(), String.t(), Item.position()) :: t()
+  def move_item(%__MODULE__{} = state, item_id, new_position) do
+    %Item{} =
+      item =
+      state
+      |> get_item(item_id)
+      |> Item.update_position(new_position)
+
+    change = %Operation.Update{data: item, at: -1}
+
+    %__MODULE__{state | items: Map.put(state.items, item.id, item)}
+    |> put_change(change)
+  end
+
+  def delete_item(%__MODULE__{} = state, id) do
+    %Item{} = item = get_item(state, id)
+    change = %Operation.Delete{data: item}
+
+    %__MODULE__{state | items: Map.delete(state.items, item.id)}
+    |> put_change(change)
   end
 
   @spec put_change(t(), Operation.single_operation()) :: t()
@@ -87,7 +144,7 @@ defmodule ExshomeAutomation.Services.Workflow.Editor do
   end
 
   @spec broadcast_changes(t()) :: t()
-  defp broadcast_changes(%__MODULE__{id: id} = state) do
+  def broadcast_changes(%__MODULE__{id: id} = state) do
     changes = fetch_changes(state)
     :ok = DataStream.broadcast({EditorStream, id}, changes)
 

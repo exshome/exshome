@@ -7,28 +7,43 @@ defmodule ExshomeAutomationTest.Web.AutomationEditorTest do
 
   alias Exshome.DataStream.Operation
   alias Exshome.Dependency
+  alias Exshome.Dependency.NotReady
   alias ExshomeAutomation.Services.Workflow
-  alias ExshomeAutomation.Streams.WorkflowStateStream
+  alias ExshomeAutomation.Services.Workflow.WorkflowSupervisor
+  alias ExshomeAutomation.Streams.{EditorStream, WorkflowStateStream}
 
   @default_height 1000
   @default_width 2000
 
-  describe "render without dependencies" do
-    test "works fine", %{conn: conn} do
-      assert {:ok, _view, _html} =
+  describe "render wrong workflow id" do
+    test "shows missing dependencies", %{conn: conn} do
+      assert {:ok, view, _html} =
                live(conn, ExshomeAutomation.details_path(conn, "automations", "some_id"))
+
+      assert render(view) =~ ~r/Missing dependencies:/
+    end
+  end
+
+  describe "render with not started workflow" do
+    test "works fine", %{conn: conn} do
+      %Workflow{id: workflow_id} = create_workflow()
+      :ok = WorkflowSupervisor.terminate_child_with_id(workflow_id)
+
+      view = live_with_dependencies(conn, ExshomeAutomation, "automations", workflow_id)
+
+      assert render(view) =~ ~r/Missing dependencies:/
+
+      WorkflowSupervisor.start_child_with_id(workflow_id)
+      assert_receive_app_page_stream({{EditorStream, ^workflow_id}, %Operation.ReplaceAll{}})
+      assert count_components(view) == 5
     end
   end
 
   describe "render with dependencies" do
     setup %{conn: conn} do
-      start_workflow_supervisor()
-      :ok = Dependency.subscribe(WorkflowStateStream)
-      :ok = Workflow.create!()
+      workflow = create_workflow()
 
-      assert_receive_stream(
-        {WorkflowStateStream, %Operation.Insert{data: %Workflow{} = workflow}}
-      )
+      assert Workflow.list_items(workflow.id) != NotReady
 
       view = live_with_dependencies(conn, ExshomeAutomation, "automations", workflow.id)
       resize(view, %{height: @default_height, width: @default_width})
@@ -80,12 +95,20 @@ defmodule ExshomeAutomationTest.Web.AutomationEditorTest do
     |> length()
   end
 
-  def get_random_component(view) do
+  defp get_random_component(view) do
     %{component: component} =
       view
       |> list_components()
       |> Enum.random()
 
     component
+  end
+
+  defp create_workflow do
+    :ok = Dependency.subscribe(WorkflowStateStream)
+    start_workflow_supervisor()
+    :ok = Workflow.create!()
+    assert_receive_stream({WorkflowStateStream, %Operation.Insert{data: %Workflow{} = workflow}})
+    workflow
   end
 end

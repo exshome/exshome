@@ -8,6 +8,7 @@ defmodule ExshomeAutomation.Services.Workflow do
   alias Exshome.Dependency.NotReady
   alias Exshome.SystemRegistry
   alias ExshomeAutomation.Services.Workflow.Editor
+  alias ExshomeAutomation.Services.Workflow.Editor.Item
   alias ExshomeAutomation.Services.Workflow.Schema
   alias ExshomeAutomation.Services.Workflow.WorkflowSupervisor
   alias ExshomeAutomation.Streams.WorkflowStateStream
@@ -35,7 +36,8 @@ defmodule ExshomeAutomation.Services.Workflow do
 
     state
     |> update_value(fn _ -> value end)
-    |> update_data(fn _ -> Editor.load_editor(schema) end)
+    |> update_data(fn _ -> Editor.blank_editor(schema.id) end)
+    |> update_editor(nil, &Editor.load_editor(&1, schema))
   end
 
   @impl GenServerDependency
@@ -62,23 +64,63 @@ defmodule ExshomeAutomation.Services.Workflow do
     :ok = WorkflowSupervisor.terminate_child_with_id(id)
   end
 
-  @spec get_editor_state(String.t()) :: [Editor.t()]
-  def get_editor_state(id), do: call(id, :get_editor_state)
+  @spec list_items(String.t()) :: [Item.t()] | NotReady
+  def list_items(id), do: call(id, :list_items)
 
-  @spec create_item(String.t(), String.t()) :: :ok
-  def create_item(id, type), do: call(id, {:create_item, type})
+  @spec create_item(
+          workflow_id :: String.t(),
+          config :: map(),
+          operation_id :: Operation.operation_id()
+        ) :: :ok
+  def create_item(workflow_id, config, operation_id) do
+    call(workflow_id, {{:create_item, operation_id}, config})
+  end
+
+  @spec get_item!(workflow_id :: String.t(), item_id :: String.t()) :: Item.t()
+  def get_item!(workflow_id, item_id) do
+    %Item{} = call(workflow_id, {:get_item, item_id})
+  end
+
+  @spec move_item!(
+          workflow_id :: String.t(),
+          item_id :: String.t(),
+          position :: Item.position()
+        ) :: :ok
+  def move_item!(workflow_id, item_id, position) do
+    item = get_item!(workflow_id, item_id)
+    call(workflow_id, {{:move_item, item.id}, position})
+  end
+
+  @spec delete_item!(workflow_id :: String.t(), item_id :: String.t()) :: :ok
+  def delete_item!(workflow_id, item_id) do
+    item = get_item!(workflow_id, item_id)
+    call(workflow_id, {:delete_item, item.id})
+  end
 
   @spec rename(String.t(), String.t()) :: :ok
   def rename(id, name), do: call(id, {:rename, name})
 
   @impl GenServerDependency
-  def handle_call(:get_editor_state, _, %DependencyState{} = state) do
-    {:reply, Editor.get_items(state.data), state}
+  def handle_call(:list_items, _, %DependencyState{} = state) do
+    {:reply, Editor.list_items(state.data), state}
   end
 
-  @impl GenServerDependency
-  def handle_call({:create_item, type}, _, %DependencyState{} = state) do
-    state = update_data(state, &Editor.create_item(&1, type))
+  def handle_call({:get_item, item_id}, _, %DependencyState{} = state) do
+    {:reply, Editor.get_item(state.data, item_id), state}
+  end
+
+  def handle_call({{:create_item, operation_id}, config}, _, %DependencyState{} = state) do
+    state = update_editor(state, operation_id, &Editor.create_item(&1, config))
+    {:reply, :ok, state}
+  end
+
+  def handle_call({{:move_item, item_id}, position}, _, %DependencyState{} = state) do
+    state = update_editor(state, nil, &Editor.move_item(&1, item_id, position))
+    {:reply, :ok, state}
+  end
+
+  def handle_call({:delete_item, item_id}, _, %DependencyState{} = state) do
+    state = update_editor(state, nil, &Editor.delete_item(&1, item_id))
     {:reply, :ok, state}
   end
 
@@ -124,5 +166,17 @@ defmodule ExshomeAutomation.Services.Workflow do
   defp broadcast_changes(%{data: %__MODULE__{}} = changes) do
     :ok = DataStream.broadcast(WorkflowStateStream, changes)
     :ok = DataStream.broadcast({WorkflowStateStream, changes.data.id}, changes)
+  end
+
+  @spec update_editor(DependencyState.t(), Operation.operation_id(), (Editor.t() -> Editor.t())) ::
+          DependencyState.t()
+  defp update_editor(%DependencyState{} = state, operation_id, update_fn) do
+    update_data(state, fn editor ->
+      editor
+      |> Editor.put_operation_id(operation_id)
+      |> update_fn.()
+      |> Editor.broadcast_changes()
+      |> Editor.put_operation_id(nil)
+    end)
   end
 end

@@ -41,11 +41,11 @@ defmodule Exshome.Dependency.DynamicDependencySupervisor do
 
   @spec terminate_child_with_id(module(), String.t()) :: :ok | {:error, :not_found}
   def terminate_child_with_id(module, id) when is_binary(id) do
-    %{id: supervisor_id} = child_spec_for_id(%{}, module, id)
+    %{id: child_id} = child_spec_for_id(%{}, module, id)
+    pid = supervisor_pid(module)
 
-    module
-    |> supervisor_pid()
-    |> Supervisor.terminate_child(supervisor_id)
+    :ok = Supervisor.terminate_child(pid, child_id)
+    :ok = Supervisor.delete_child(pid, child_id)
   end
 
   defp supervisor_pid(module), do: module

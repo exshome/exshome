@@ -2,8 +2,11 @@ defmodule ExshomeAutomation.Web.Live.AutomationEditor do
   @moduledoc """
   Automation editor page
   """
+  alias Exshome.DataStream.Operation
   alias Exshome.Dependency
+  alias Exshome.Dependency.NotReady
   alias ExshomeAutomation.Services.Workflow
+  alias ExshomeAutomation.Services.Workflow.Editor.Item
   alias ExshomeAutomation.Streams.EditorStream
   alias ExshomeAutomation.Web.Live.Automation.AutomationBlock
 
@@ -15,15 +18,22 @@ defmodule ExshomeAutomation.Web.Live.AutomationEditor do
   @impl LiveView
   def mount(%{"id" => id}, _session, socket) do
     :ok = Dependency.subscribe({EditorStream, id})
+    operation_id = Ecto.UUID.generate()
 
     socket =
       socket
-      |> assign(selected: nil, drag: false)
+      |> assign(selected_id: nil, drag: false, workflow_id: id, operation_id: operation_id)
       |> put_dependencies([{{Workflow, id}, :workflow}])
 
-    components = for x <- 1..5, do: generate_component("rect-#{x}", socket)
+    menu_item = generate_component(socket, %Item{id: "rect", type: "rect"})
 
-    menu_item = generate_component("rect", socket)
+    workflow_items =
+      case Workflow.list_items(id) do
+        NotReady -> []
+        items -> items
+      end
+
+    components = Enum.map(workflow_items, &generate_component(socket, &1))
 
     socket =
       socket
@@ -41,67 +51,108 @@ defmodule ExshomeAutomation.Web.Live.AutomationEditor do
 
   @impl SvgCanvas
   def handle_create(%Socket{} = socket, %{type: type, position: position}) do
-    id = "#{type}-#{Ecto.UUID.generate()}"
+    :ok =
+      Workflow.create_item(
+        socket.assigns.workflow_id,
+        %{type: type, position: position},
+        socket.assigns.operation_id
+      )
 
     socket
-    |> handle_select(%{id: id, position: position})
-    |> SvgCanvas.select_item(id)
   end
 
   @impl SvgCanvas
   def handle_delete(%Socket{} = socket, id) do
-    component = generate_component(id, socket)
-
-    socket
-    |> assign(selected: nil, drag: false)
-    |> SvgCanvas.remove_component(component)
+    :ok = Workflow.delete_item!(socket.assigns.workflow_id, id)
+    assign(socket, selected_id: nil, drag: false)
   end
 
   @impl SvgCanvas
   def handle_dragend(%Socket{} = socket, %{id: id, position: position}) do
-    socket = assign(socket, :drag, false)
-    component = generate_component(id, socket, position)
-    SvgCanvas.insert_component(socket, component)
+    :ok = Workflow.move_item!(socket.assigns.workflow_id, id, position)
+    assign(socket, drag: false)
   end
 
   @impl SvgCanvas
   def handle_move(%Socket{} = socket, %{id: id, position: position}) do
-    socket = assign(socket, drag: true)
-    component = generate_component(id, socket, position)
-
-    socket
-    |> update(:selected, &%{&1 | position: %{x: component.x, y: component.y}})
-    |> SvgCanvas.insert_component(component)
+    :ok = Workflow.move_item!(socket.assigns.workflow_id, id, position)
+    assign(socket, selected_id: id, drag: true)
   end
 
   @impl SvgCanvas
-  def handle_select(%Socket{} = socket, %{} = selected) do
-    old_selected = socket.assigns.selected
-    socket = assign(socket, :selected, selected)
+  def handle_select(%Socket{} = socket, %{id: selected_id}) do
+    old_selected_id = socket.assigns.selected_id
 
-    components =
-      case {old_selected, selected} do
-        {nil, selected} -> [selected]
-        {%{id: id}, %{id: id}} -> [selected]
-        _ -> [old_selected, selected]
+    socket = assign(socket, :selected_id, selected_id)
+
+    ids =
+      case {old_selected_id, selected_id} do
+        {id, id} -> []
+        {nil, new_id} -> [new_id]
+        {old_id, new_id} -> [old_id, new_id]
       end
-      |> Enum.map(&generate_component(&1.id, socket, &1.position))
 
-    for component <- components, reduce: socket do
-      socket -> SvgCanvas.insert_component(socket, component)
+    for id <- ids, reduce: socket do
+      socket ->
+        item = Workflow.get_item!(socket.assigns.workflow_id, id)
+        component = generate_component(socket, item)
+        SvgCanvas.insert_component(socket, component)
     end
   end
 
-  defp generate_component(id, socket, position \\ %{x: 0, y: 0}) do
+  @impl AppPage
+  def on_stream(
+        {{EditorStream, workflow_id}, %Operation.ReplaceAll{data: items}},
+        %Socket{assigns: %{workflow_id: workflow_id}} = socket
+      ) do
+    components = Enum.map(items, &generate_component(socket, &1))
+    SvgCanvas.replace_components(socket, components)
+  end
+
+  def on_stream(
+        {
+          {EditorStream, workflow_id},
+          %Operation.Insert{data: %Item{} = item, operation_id: operation_id}
+        },
+        %Socket{assigns: %{workflow_id: workflow_id}} = socket
+      ) do
+    component = generate_component(socket, item)
+
+    if operation_id != socket.assigns.operation_id do
+      SvgCanvas.insert_component(socket, component)
+    else
+      socket
+      |> handle_select(%{id: item.id})
+      |> SvgCanvas.select_item(item.id)
+    end
+  end
+
+  def on_stream(
+        {{EditorStream, workflow_id}, %Operation.Delete{data: %Item{} = item}},
+        %Socket{assigns: %{workflow_id: workflow_id}} = socket
+      ) do
+    component = generate_component(socket, item)
+    SvgCanvas.remove_component(socket, component)
+  end
+
+  def on_stream(
+        {{EditorStream, workflow_id}, %Operation.Update{data: %Item{} = item}},
+        %Socket{assigns: %{workflow_id: workflow_id}} = socket
+      ) do
+    component = generate_component(socket, item)
+    SvgCanvas.insert_component(socket, component)
+  end
+
+  defp generate_component(%Socket{} = socket, %Item{} = item) do
     %SvgCanvas{canvas: canvas} = SvgCanvas.get_svg_meta(socket)
-    %{x: x, y: y} = position
-    %{selected: selected, drag: drag} = socket.assigns
-    selected? = selected && selected.id == id
+    %{x: x, y: y} = item.position
+    %{selected_id: selected_id, drag: drag} = socket.assigns
+    selected? = selected_id == item.id
     width = 25
     height = 25
 
     %AutomationBlock{
-      id: id,
+      id: item.id,
       class: """
       fill-green-200
       #{if selected? && drag, do: "opacity-75"}

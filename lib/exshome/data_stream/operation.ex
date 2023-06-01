@@ -7,9 +7,10 @@ defmodule Exshome.DataStream.Operation do
     @moduledoc """
     Insert operation.
     """
-    defstruct [:data, at: -1]
+    defstruct [:operation_id, :data, at: -1]
 
     @type t() :: %__MODULE__{
+            operation_id: Exshome.DataStream.Operation.operation_id(),
             data: struct(),
             at: integer()
           }
@@ -19,9 +20,10 @@ defmodule Exshome.DataStream.Operation do
     @moduledoc """
     Update operation.
     """
-    defstruct [:data, at: -1]
+    defstruct [:operation_id, :data, at: -1]
 
     @type t() :: %__MODULE__{
+            operation_id: Exshome.DataStream.Operation.operation_id(),
             data: struct(),
             at: integer()
           }
@@ -31,9 +33,10 @@ defmodule Exshome.DataStream.Operation do
     @moduledoc """
     Delete operation.
     """
-    defstruct [:data]
+    defstruct [:operation_id, :data]
 
     @type t() :: %__MODULE__{
+            operation_id: Exshome.DataStream.Operation.operation_id(),
             data: struct()
           }
   end
@@ -43,9 +46,10 @@ defmodule Exshome.DataStream.Operation do
     Operation to replace all previous data.
     """
     @enforce_keys [:data]
-    defstruct [:data]
+    defstruct [:operation_id, :data]
 
     @type t() :: %__MODULE__{
+            operation_id: Exshome.DataStream.Operation.operation_id(),
             data: [struct()]
           }
   end
@@ -64,6 +68,7 @@ defmodule Exshome.DataStream.Operation do
           }
   end
 
+  @type operation_id :: String.t() | nil
   @type t() :: Insert.t() | Update.t() | Delete.t() | ReplaceAll.t() | Batch.t()
   @type single_operation() :: Insert.t() | Update.t() | Delete.t() | ReplaceAll.t()
 end
