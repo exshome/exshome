@@ -205,16 +205,9 @@ defmodule ExshomeWebTest.SvgCanvasTest do
     end
 
     test "create item", %{view: view} do
+      assert count_elements(view) == 0
+      :ok = generate_random_components(view, 5)
       assert count_elements(view) == 5
-      toggle_menu(view)
-
-      %{component: component} =
-        view
-        |> find_elements("[data-component^=menu-item-]")
-        |> Enum.random()
-
-      render_create_element(view, component, %{x: @default_width, y: @default_height})
-      assert count_elements(view) == 6
     end
   end
 

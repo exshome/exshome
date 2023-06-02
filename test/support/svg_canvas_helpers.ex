@@ -2,9 +2,13 @@ defmodule ExshomeTest.SvgCanvasHelpers do
   @moduledoc """
   Helpers for testing svg canvas pages.
   """
+  alias Exshome.DataStream.Operation
+  alias ExshomeAutomation.Streams.EditorStream
+
   import ExUnit.Assertions
   import Phoenix.LiveViewTest
   import ExshomeTest.LiveViewHelpers
+  import ExshomeTest.TestHelpers
 
   defmodule Element do
     @moduledoc """
@@ -163,5 +167,26 @@ defmodule ExshomeTest.SvgCanvasHelpers do
     view
     |> element("[phx-change^='set-zoom-']")
     |> render_change(%{zoom: value})
+  end
+
+  @spec create_component(live_view_t(), String.t(), position_t()) :: any()
+  def create_component(view, component, position) do
+    :ok = toggle_menu(view)
+    render_create_element(view, component, position)
+  end
+
+  @spec generate_random_components(live_view_t(), number()) :: :ok
+  def generate_random_components(view, amount) do
+    :ok = toggle_menu(view)
+    components = view |> find_elements("[data-component^=menu-item-]") |> Enum.map(& &1.component)
+    :ok = toggle_menu(view)
+
+    for _ <- 1..amount do
+      position = %{x: 0, y: 0}
+      create_component(view, Enum.random(components), position)
+      assert_receive_app_page_stream({{EditorStream, _}, %Operation.Insert{}})
+    end
+
+    :ok
   end
 end

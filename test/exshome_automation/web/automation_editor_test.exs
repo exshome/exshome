@@ -18,7 +18,7 @@ defmodule ExshomeAutomationTest.Web.AutomationEditorTest do
   describe "render wrong workflow id" do
     test "shows missing dependencies", %{conn: conn} do
       assert {:ok, view, _html} =
-               live(conn, ExshomeAutomation.details_path(conn, "automations", "some_id"))
+               live(conn, ExshomeAutomation.details_path(conn, "automations", "wrong_id"))
 
       assert render(view) =~ ~r/Missing dependencies:/
     end
@@ -35,7 +35,7 @@ defmodule ExshomeAutomationTest.Web.AutomationEditorTest do
 
       WorkflowSupervisor.start_child_with_id(workflow_id)
       assert_receive_app_page_stream({{EditorStream, ^workflow_id}, %Operation.ReplaceAll{}})
-      assert count_components(view) == 5
+      refute render(view) =~ ~r/Missing dependencies:/
     end
   end
 
@@ -46,6 +46,7 @@ defmodule ExshomeAutomationTest.Web.AutomationEditorTest do
       assert Workflow.list_items(workflow.id) != NotReady
 
       view = live_with_dependencies(conn, ExshomeAutomation, "automations", workflow.id)
+      :ok = generate_random_components(view, 5)
       resize(view, %{height: @default_height, width: @default_width})
       %{view: view, workflow: workflow}
     end
@@ -86,7 +87,7 @@ defmodule ExshomeAutomationTest.Web.AutomationEditorTest do
   end
 
   defp list_components(view) do
-    find_elements(view, "[data-component^='component-default-rect'")
+    find_elements(view, "[data-component^='component-default-'")
   end
 
   defp count_components(view) do

@@ -78,13 +78,7 @@ defmodule ExshomeAutomation.Services.Workflow.Editor do
 
   @spec load_editor(t(), Schema.t()) :: t()
   def load_editor(%__MODULE__{} = state, %Schema{} = _schema) do
-    items =
-      for _ <- 1..5, into: %{} do
-        item = Item.create(%{type: "rectangle", position: %{x: 0, y: 0}})
-        {item.id, item}
-      end
-
-    state = %__MODULE__{state | items: items}
+    state = %__MODULE__{state | items: %{}}
 
     put_change(
       state,
