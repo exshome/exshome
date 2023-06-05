@@ -146,15 +146,15 @@ defmodule ExshomeAutomation.Web.Live.AutomationEditor do
     %{x: x, y: y} = item.position
     %{selected_id: selected_id, drag: drag} = socket.assigns
     selected? = selected_id == item.id
-    width = 22
-    height = 29
+    width = 34
+    height = 46
 
     %AutomationBlock{
       id: item.id,
       class: """
       fill-green-200
       #{if selected? && drag, do: "opacity-75"}
-      #{if selected?, do: "stroke-[0.7] stroke-yellow-200 dark:stroke-yellow-400"}
+      #{if selected?, do: "stroke-yellow-200 dark:stroke-yellow-400"}
       """,
       height: height,
       width: width,
