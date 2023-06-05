@@ -30,23 +30,24 @@ defmodule ExshomeWeb.SvgCanvasView do
   attr :component, :map, required: true, doc: "Component to render"
   attr :context, :map, required: true, doc: "Component context"
 
-  defp render_component(
-         %{id: dom_id, component: %module{} = component, context: context} = assigns
-       ) do
+  defp render_component(%{component: %module{} = component, context: context} = assigns) do
     component_id = module.id(component)
-    attrs = drag_attrs(dom_id, Map.put(context, :component_id, component_id))
+
+    attrs =
+      context
+      |> Map.put(:component_id, component_id)
+      |> drag_attrs()
 
     assigns
     |> assign(:drag_attrs, attrs)
     |> module.render()
   end
 
-  @spec drag_attrs(String.t(), map()) :: Keyword.t()
-  defp drag_attrs(dom_id, %{name: name, drag: drag, component_id: component_id} = attrs) do
+  @spec drag_attrs(map()) :: Keyword.t()
+  defp drag_attrs(%{name: name, drag: drag, component_id: component_id} = attrs) do
     role = attrs[:role] || "component"
 
     [
-      {:id, dom_id},
       {:"data-drag", drag},
       {:"data-component", "#{role}-#{name}-#{component_id}"}
     ]
