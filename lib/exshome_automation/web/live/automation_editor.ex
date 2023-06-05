@@ -6,7 +6,7 @@ defmodule ExshomeAutomation.Web.Live.AutomationEditor do
   alias Exshome.Dependency
   alias Exshome.Dependency.NotReady
   alias ExshomeAutomation.Services.Workflow
-  alias ExshomeAutomation.Services.Workflow.Editor.Item
+  alias ExshomeAutomation.Services.Workflow.EditorItem
   alias ExshomeAutomation.Streams.EditorStream
   alias ExshomeAutomation.Web.Live.Automation.AutomationBlock
 
@@ -24,7 +24,7 @@ defmodule ExshomeAutomation.Web.Live.AutomationEditor do
       |> assign(selected_id: nil, drag: false, workflow_id: id)
       |> put_dependencies([{{Workflow, id}, :workflow}])
 
-    menu_item = generate_component(socket, %Item{id: "rect", type: "rect"})
+    menu_item = generate_component(socket, %EditorItem{id: "rect", type: "rect"})
 
     workflow_items =
       case Workflow.list_items(id) do
@@ -110,7 +110,7 @@ defmodule ExshomeAutomation.Web.Live.AutomationEditor do
   def on_stream(
         {
           {EditorStream, workflow_id},
-          %Operation.Insert{data: %Item{} = item, key: key}
+          %Operation.Insert{data: %EditorItem{} = item, key: key}
         },
         %Socket{assigns: %{workflow_id: workflow_id}} = socket
       ) do
@@ -126,7 +126,7 @@ defmodule ExshomeAutomation.Web.Live.AutomationEditor do
   end
 
   def on_stream(
-        {{EditorStream, workflow_id}, %Operation.Delete{data: %Item{} = item}},
+        {{EditorStream, workflow_id}, %Operation.Delete{data: %EditorItem{} = item}},
         %Socket{assigns: %{workflow_id: workflow_id}} = socket
       ) do
     component = generate_component(socket, item)
@@ -134,14 +134,14 @@ defmodule ExshomeAutomation.Web.Live.AutomationEditor do
   end
 
   def on_stream(
-        {{EditorStream, workflow_id}, %Operation.Update{data: %Item{} = item}},
+        {{EditorStream, workflow_id}, %Operation.Update{data: %EditorItem{} = item}},
         %Socket{assigns: %{workflow_id: workflow_id}} = socket
       ) do
     component = generate_component(socket, item)
     SvgCanvas.insert_component(socket, component)
   end
 
-  defp generate_component(%Socket{} = socket, %Item{} = item) do
+  defp generate_component(%Socket{} = socket, %EditorItem{} = item) do
     %SvgCanvas{canvas: canvas} = SvgCanvas.get_svg_meta(socket)
     %{x: x, y: y} = item.position
     %{selected_id: selected_id, drag: drag} = socket.assigns

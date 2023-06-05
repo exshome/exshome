@@ -8,7 +8,7 @@ defmodule ExshomeAutomation.Services.Workflow do
   alias Exshome.Dependency.NotReady
   alias Exshome.SystemRegistry
   alias ExshomeAutomation.Services.Workflow.Editor
-  alias ExshomeAutomation.Services.Workflow.Editor.Item
+  alias ExshomeAutomation.Services.Workflow.EditorItem
   alias ExshomeAutomation.Services.Workflow.Schema
   alias ExshomeAutomation.Services.Workflow.WorkflowSupervisor
   alias ExshomeAutomation.Streams.WorkflowStateStream
@@ -64,7 +64,7 @@ defmodule ExshomeAutomation.Services.Workflow do
     :ok = WorkflowSupervisor.terminate_child_with_id(id)
   end
 
-  @spec list_items(String.t()) :: [Item.t()] | NotReady
+  @spec list_items(String.t()) :: [EditorItem.t()] | NotReady
   def list_items(id), do: call(id, :list_items)
 
   @spec create_item(workflow_id :: String.t(), config :: map()) :: :ok
@@ -72,15 +72,15 @@ defmodule ExshomeAutomation.Services.Workflow do
     call(workflow_id, {:create_item, config})
   end
 
-  @spec get_item!(workflow_id :: String.t(), item_id :: String.t()) :: Item.t()
+  @spec get_item!(workflow_id :: String.t(), item_id :: String.t()) :: EditorItem.t()
   def get_item!(workflow_id, item_id) do
-    %Item{} = call(workflow_id, {:get_item, item_id})
+    %EditorItem{} = call(workflow_id, {:get_item, item_id})
   end
 
   @spec move_item!(
           workflow_id :: String.t(),
           item_id :: String.t(),
-          position :: Item.position()
+          position :: EditorItem.position()
         ) :: :ok
   def move_item!(workflow_id, item_id, position) do
     item = get_item!(workflow_id, item_id)

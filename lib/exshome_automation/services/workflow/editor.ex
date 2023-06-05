@@ -5,51 +5,8 @@ defmodule ExshomeAutomation.Services.Workflow.Editor do
 
   alias Exshome.DataStream
   alias Exshome.DataStream.Operation
-  alias ExshomeAutomation.Services.Workflow.Schema
+  alias ExshomeAutomation.Services.Workflow.{EditorItem, Schema}
   alias ExshomeAutomation.Streams.EditorStream
-
-  defmodule Item do
-    @moduledoc """
-    Editor item.
-    """
-    defstruct [
-      :id,
-      :type,
-      position: %{x: 0, y: 0}
-    ]
-
-    @type position() :: %{
-            x: number(),
-            y: number()
-          }
-
-    @type t() :: %__MODULE__{
-            id: String.t(),
-            position: position(),
-            type: String.t()
-          }
-
-    @spec create(map()) :: t()
-    def create(%{type: type, position: position}) when is_binary(type) do
-      %__MODULE__{
-        id: Ecto.UUID.autogenerate(),
-        position: normalize_position(position),
-        type: type
-      }
-    end
-
-    @spec update_position(t(), position()) :: t()
-    def update_position(%__MODULE__{} = item, position) do
-      %__MODULE__{
-        item
-        | position: normalize_position(position)
-      }
-    end
-
-    defp normalize_position(%{x: x, y: y}) do
-      %{x: max(x, 0), y: max(y, 0)}
-    end
-  end
 
   defstruct [
     :id,
@@ -61,7 +18,7 @@ defmodule ExshomeAutomation.Services.Workflow.Editor do
   @type t() :: %__MODULE__{
           id: String.t(),
           items: %{
-            String.t() => Item.t()
+            String.t() => EditorItem.t()
           },
           changes: [Operation.t()],
           operation_key: Operation.key()
@@ -91,32 +48,32 @@ defmodule ExshomeAutomation.Services.Workflow.Editor do
     %__MODULE__{state | operation_key: operation_key}
   end
 
-  @spec list_items(t()) :: [Item.t()]
+  @spec list_items(t()) :: [EditorItem.t()]
   def list_items(%__MODULE__{items: items}) do
     Map.values(items)
   end
 
-  @spec get_item(t(), String.t()) :: Item.t() | nil
+  @spec get_item(t(), String.t()) :: EditorItem.t() | nil
   def get_item(%__MODULE__{items: items}, item_id) do
     Map.get(items, item_id, nil)
   end
 
   @spec create_item(t(), config :: map()) :: t()
   def create_item(%__MODULE__{} = state, config) do
-    %Item{id: id} = item = Item.create(config)
+    %EditorItem{id: id} = item = EditorItem.create(config)
     change = %Operation.Insert{data: item, at: -1, key: state.operation_key}
 
     %__MODULE__{state | items: Map.put(state.items, id, item)}
     |> put_change(change)
   end
 
-  @spec move_item(t(), String.t(), Item.position()) :: t()
+  @spec move_item(t(), String.t(), EditorItem.position()) :: t()
   def move_item(%__MODULE__{} = state, item_id, new_position) do
-    %Item{} =
+    %EditorItem{} =
       item =
       state
       |> get_item(item_id)
-      |> Item.update_position(new_position)
+      |> EditorItem.update_position(new_position)
 
     change = %Operation.Update{data: item, at: -1, key: state.operation_key}
 
@@ -125,7 +82,7 @@ defmodule ExshomeAutomation.Services.Workflow.Editor do
   end
 
   def delete_item(%__MODULE__{} = state, id) do
-    %Item{} = item = get_item(state, id)
+    %EditorItem{} = item = get_item(state, id)
     change = %Operation.Delete{data: item, key: state.operation_key}
 
     %__MODULE__{state | items: Map.delete(state.items, item.id)}
