@@ -24,7 +24,12 @@ defmodule ExshomeAutomation.Web.Live.AutomationEditor do
       |> assign(selected_id: nil, drag: false, workflow_id: id)
       |> put_dependencies([{{Workflow, id}, :workflow}])
 
-    menu_item = generate_component(socket, %EditorItem{id: "rect", type: "rect"})
+    menu_items =
+      for {type, item} <- EditorItem.available_types() do
+        menu_item = %EditorItem{item | id: type}
+
+        generate_component(socket, menu_item)
+      end
 
     workflow_items =
       case Workflow.list_items(id) do
@@ -37,7 +42,7 @@ defmodule ExshomeAutomation.Web.Live.AutomationEditor do
     socket =
       socket
       |> SvgCanvas.replace_components(components)
-      |> SvgCanvas.render_menu_items([menu_item])
+      |> SvgCanvas.render_menu_items(menu_items)
 
     {:ok, socket}
   end
@@ -146,8 +151,8 @@ defmodule ExshomeAutomation.Web.Live.AutomationEditor do
     %{x: x, y: y} = item.position
     %{selected_id: selected_id, drag: drag} = socket.assigns
     selected? = selected_id == item.id
-    width = 34
-    height = 46
+    width = item.width
+    height = item.height
 
     %AutomationBlock{
       id: item.id,
@@ -156,6 +161,7 @@ defmodule ExshomeAutomation.Web.Live.AutomationEditor do
       #{if selected? && drag, do: "opacity-75"}
       #{if selected?, do: "stroke-yellow-200 dark:stroke-yellow-400"}
       """,
+      item: item,
       height: height,
       width: width,
       x: fit_in_box(x, canvas.width - width),

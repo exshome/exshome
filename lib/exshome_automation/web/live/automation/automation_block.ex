@@ -4,11 +4,14 @@ defmodule ExshomeAutomation.Web.Live.Automation.AutomationBlock do
   """
   use ExshomeWeb.Live.SvgCanvas.CanvasComponent
 
+  alias ExshomeAutomation.Services.Workflow.EditorItem
+
   defstruct [
     :id,
     :class,
-    :height,
+    :item,
     :width,
+    :height,
     :x,
     :y
   ]
@@ -16,8 +19,7 @@ defmodule ExshomeAutomation.Web.Live.Automation.AutomationBlock do
   @type t :: %__MODULE__{
           id: String.t(),
           class: String.t(),
-          height: number(),
-          width: number(),
+          item: EditorItem.t(),
           x: number(),
           y: number()
         }
@@ -36,7 +38,14 @@ defmodule ExshomeAutomation.Web.Live.Automation.AutomationBlock do
         width={@component.width}
         height={@component.height}
         {@drag_attrs}
-        d="
+        d={generate_path(@component.item)}
+      />
+    </svg>
+    """
+  end
+
+  defp generate_path(%EditorItem{} = item) do
+    """
     M 5.5 1
     C 4.67157 1 4 1.67157 4 2.5
     L 4 4.5625L3 4.09375C3 4.09375 2.69669 4 2.5 4
@@ -90,9 +99,6 @@ defmodule ExshomeAutomation.Web.Live.Automation.AutomationBlock do
     L 7 1
     L 5.5 1
     Z
-    "
-      />
-    </svg>
     """
   end
 end
