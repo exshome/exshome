@@ -101,8 +101,9 @@ export const SvgCanvas = {
   handleMoveToForeground({component}) {
      const childComponent = this.el.querySelector(`[data-component=${component}]`);
      const parentComponent = childComponent?.parentElement;
-     if (childComponent && parent) {
-       parentComponent.appendChild(childComponent);
+     const canvasComponent = parentComponent?.parentElement;
+     if (parentComponent && canvasComponent) {
+       canvasComponent.appendChild(parentComponent);
      }
   },
 
