@@ -44,7 +44,7 @@ defmodule ExshomeAutomation.Web.Live.Automation.AutomationBlock do
     """
   end
 
-  defp generate_path(%EditorItem{} = item) do
+  defp generate_path(%EditorItem{}) do
     """
     M 5.5 1
     C 4.67157 1 4 1.67157 4 2.5
