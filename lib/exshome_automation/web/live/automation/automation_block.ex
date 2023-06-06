@@ -44,7 +44,7 @@ defmodule ExshomeAutomation.Web.Live.Automation.AutomationBlock do
     """
   end
 
-  defp generate_path(%EditorItem{}) do
+  defp generate_path(%EditorItem{type: "rect"}) do
     """
     M 5.5 1
     C 4.67157 1 4 1.67157 4 2.5
@@ -99,6 +99,63 @@ defmodule ExshomeAutomation.Web.Live.Automation.AutomationBlock do
     L 7 1
     L 5.5 1
     Z
+    """
+  end
+
+  defp generate_path(%EditorItem{}) do
+    [
+      {:move, 4, 2},
+      {:horizontal, 2},
+      {:action_connector, :top, 6},
+      {:horizontal, 10},
+      {:round_corner, :top_right},
+      {:vertical, 1},
+      :child_connector,
+      {:vertical, 2},
+      {:round_corner, :bottom_right},
+      {:horizontal, -10},
+      {:action_connector, :bottom, 6},
+      {:horizontal, -2},
+      {:round_corner, :bottom_left},
+      {:vertical, -2},
+      :parent_connector,
+      {:vertical, -1},
+      {:round_corner, :top_left},
+      :close_path
+    ]
+    |> Enum.map_join(" ", &svg_to_string/1)
+  end
+
+  defp svg_to_string({:move, x, y}), do: "m #{x} #{y}"
+  defp svg_to_string({:horizontal, x}), do: "h #{x}"
+  defp svg_to_string({:vertical, y}), do: "v #{y}"
+  defp svg_to_string({:round_corner, :top_right}), do: "q 1 0 1 1"
+  defp svg_to_string({:round_corner, :bottom_right}), do: "q 0 1 -1 1"
+  defp svg_to_string({:round_corner, :bottom_left}), do: "q -1 0 -1 -1"
+  defp svg_to_string({:round_corner, :top_left}), do: "q 0 -1 1 -1"
+  defp svg_to_string(:close_path), do: "z"
+  defp svg_to_string({:action_connector, :top, width}), do: "l #{width / 2} 2 l #{width / 2} -2"
+
+  defp svg_to_string({:action_connector, :bottom, width}),
+    do: "l -#{width / 2} 2 l -#{width / 2} -2"
+
+  defp svg_to_string(:child_connector) do
+    """
+    v 0.2
+    l -1 -0.2
+    a 1 1 0 0 0 0 2
+    l 1 -0.2
+    v 0.2
+    """
+  end
+
+  defp svg_to_string(:parent_connector) do
+    """
+    v -0.2
+    l -1 0.2
+    a 1 1 0 0 1 0 -2
+    l 1 0.2
+    v -0.2
     """
   end
 end
