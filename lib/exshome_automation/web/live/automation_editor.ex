@@ -25,8 +25,11 @@ defmodule ExshomeAutomation.Web.Live.AutomationEditor do
       |> put_dependencies([{{Workflow, id}, :workflow}])
 
     menu_items =
-      for {type, item} <- EditorItem.available_types() do
-        menu_item = %EditorItem{item | id: type}
+      for type <- Map.keys(EditorItem.available_types()) do
+        menu_item =
+          %{type: type, position: %{x: 0, y: 0}}
+          |> EditorItem.create()
+          |> Map.put(:id, type)
 
         generate_component(socket, menu_item)
       end
