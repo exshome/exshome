@@ -220,6 +220,67 @@ defmodule ExshomeAutomationTest.Services.Workflow.EditorItemTest do
              ] == path_components
     end
 
+    test "with all possible connections" do
+      path_components =
+        generate_path_components(%Config{
+          child_actions: [%{height: @component_height - 1}, %{height: @component_height + 1}],
+          child_connections: [%{height: @component_height - 1}, %{height: @component_height + 1}],
+          has_next_action?: true,
+          has_parent_connection?: true,
+          has_previous_action?: true
+        })
+
+      child_connections_height = @component_height + @component_height + 1
+      child_actions_height = @component_height + @component_height + 1
+      separators_height = 2 * @child_action_separator_height
+      corners_height = 2 * 2 * @corner_height
+
+      left_height =
+        child_connections_height + child_actions_height + separators_height + corners_height
+
+      inner_action_width = @component_width - @child_action_offset
+
+      assert [
+               {:move, @offset_x, @offset_y},
+               {:horizontal, @connector_offset},
+               :parent_action,
+               {:horizontal, @component_width - @action_offset - @action_width},
+               {:round_corner, :top_right},
+               {:vertical, @connector_offset},
+               :child_connector,
+               {:vertical, @component_height - @connector_offset - @connector_height},
+               {:vertical, @connector_offset},
+               :child_connector,
+               {:vertical, @component_height + 1 - @connector_offset - @connector_height},
+               {:round_corner, :bottom_right},
+               {:horizontal, -(inner_action_width - @action_offset - @action_width)},
+               :child_action,
+               {:horizontal, -@action_offset},
+               {:vertical, @component_height},
+               {:horizontal, inner_action_width},
+               {:round_corner, :top_right},
+               {:vertical, @child_action_separator_height},
+               {:round_corner, :bottom_right},
+               {:horizontal, -(inner_action_width - @action_offset - @action_width)},
+               :child_action,
+               {:horizontal, -@action_offset},
+               {:vertical, @component_height + 1},
+               {:horizontal, inner_action_width},
+               {:round_corner, :top_right},
+               {:vertical, @child_action_separator_height},
+               {:round_corner, :bottom_right},
+               {:horizontal, -(@component_width - @action_width - @action_offset)},
+               :child_action,
+               {:horizontal, -@action_offset},
+               {:round_corner, :bottom_left},
+               {:vertical, -(left_height - @connector_height - @connector_offset)},
+               :parent_connector,
+               {:vertical, -@connector_offset},
+               {:round_corner, :top_left},
+               :close_path
+             ] == path_components
+    end
+
     defp generate_path_components(%Config{} = config) do
       item = %EditorItem{
         config: config,
