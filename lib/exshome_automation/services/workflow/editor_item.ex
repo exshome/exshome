@@ -129,6 +129,7 @@ defmodule ExshomeAutomation.Services.Workflow.EditorItem do
   @connector_offset 2
   @child_action_offset 5
   @child_action_separator_height 2
+  @corner_height 1
 
   @type svg_component() ::
           {:move, x :: number(), y :: number()}
@@ -206,21 +207,25 @@ defmodule ExshomeAutomation.Services.Workflow.EditorItem do
     |> put_svg_component({:vertical, -@connector_offset})
   end
 
-  defp compute_left_height(%__MODULE__{config: %Config{} = config}) do
-    child_connections_height =
-      config.child_connections
+  defp compute_left_height(%__MODULE__{} = item) do
+    %Config{child_actions: child_actions, child_connections: child_connections} = item.config
+
+    connections_height =
+      child_connections
       |> Enum.map(&max(&1.height, @component_height))
       |> Enum.sum()
 
-    child_actions_height =
-      config.child_actions
+    actions_height =
+      child_actions
       |> Enum.map(&max(&1.height, @component_height))
       |> Enum.sum()
 
-    child_actions_separator_height = length(config.child_actions) * @child_action_separator_height
+    actions_count = length(child_actions)
+    action_separators_height = actions_count * @child_action_separator_height
+    action_corners_height = actions_count * 2 * @corner_height
+    total_actions_height = actions_height + action_separators_height + action_corners_height
 
-    max(@component_height, child_connections_height) + child_actions_height +
-      child_actions_separator_height
+    max(@component_height, connections_height) + total_actions_height
   end
 
   @spec compute_component_right([svg_component()], t()) :: [svg_component()]

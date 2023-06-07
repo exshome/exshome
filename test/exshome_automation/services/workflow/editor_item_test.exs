@@ -14,6 +14,7 @@ defmodule ExshomeAutomationTest.Services.Workflow.EditorItemTest do
     @connector_offset 2
     @child_action_offset 5
     @child_action_separator_height 2
+    @corner_height 1
 
     test "without connections" do
       path_components =
@@ -155,6 +156,10 @@ defmodule ExshomeAutomationTest.Services.Workflow.EditorItemTest do
 
       inner_action_width = @component_width - @child_action_offset
 
+      left_height =
+        @component_height + @component_height + @child_action_separator_height +
+          @corner_height * 2
+
       assert [
                {:move, @offset_x, @offset_y},
                {:horizontal, @component_width},
@@ -171,8 +176,7 @@ defmodule ExshomeAutomationTest.Services.Workflow.EditorItemTest do
                {:round_corner, :bottom_right},
                {:horizontal, -@component_width},
                {:round_corner, :bottom_left},
-               {:vertical,
-                -(@component_height + @component_height + @child_action_separator_height)},
+               {:vertical, -left_height},
                {:round_corner, :top_left},
                :close_path
              ] == path_components
@@ -190,6 +194,10 @@ defmodule ExshomeAutomationTest.Services.Workflow.EditorItemTest do
 
       inner_action_width = @component_width - @child_action_offset
 
+      left_height =
+        @component_height + @component_height + 1 + @child_action_separator_height +
+          @corner_height * 2
+
       assert [
                {:move, @offset_x, @offset_y},
                {:horizontal, @component_width},
@@ -206,8 +214,7 @@ defmodule ExshomeAutomationTest.Services.Workflow.EditorItemTest do
                {:round_corner, :bottom_right},
                {:horizontal, -@component_width},
                {:round_corner, :bottom_left},
-               {:vertical,
-                -(@component_height + @component_height + @child_action_separator_height + 1)},
+               {:vertical, -left_height},
                {:round_corner, :top_left},
                :close_path
              ] == path_components
