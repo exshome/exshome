@@ -150,12 +150,8 @@ defmodule ExshomeAutomation.Web.Live.AutomationEditor do
   end
 
   defp generate_component(%Socket{} = socket, %EditorItem{} = item) do
-    %SvgCanvas{canvas: canvas} = SvgCanvas.get_svg_meta(socket)
-    %{x: x, y: y} = item.position
     %{selected_id: selected_id, drag: drag} = socket.assigns
     selected? = selected_id == item.id
-    width = item.width
-    height = item.height
 
     %AutomationBlock{
       id: item.id,
@@ -164,17 +160,7 @@ defmodule ExshomeAutomation.Web.Live.AutomationEditor do
       #{if selected? && drag, do: "opacity-75"}
       #{if selected?, do: "stroke-yellow-200 dark:stroke-yellow-400"}
       """,
-      item: item,
-      height: height,
-      width: width,
-      x: fit_in_box(x, canvas.width - width),
-      y: fit_in_box(y, canvas.height - height)
+      item: item
     }
-  end
-
-  defp fit_in_box(coordinate, size) do
-    coordinate
-    |> min(size)
-    |> max(0)
   end
 end

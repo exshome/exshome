@@ -4,6 +4,7 @@ defmodule ExshomeAutomation.Services.Workflow.EditorItem do
   """
 
   alias ExshomeAutomation.Services.Workflow.ItemConfig
+  alias ExshomeAutomation.Services.Workflow.ItemConfig.Properties
 
   defstruct [
     :id,
@@ -12,6 +13,7 @@ defmodule ExshomeAutomation.Services.Workflow.EditorItem do
     :height,
     :width,
     :svg_path,
+    :connectors,
     position: %{x: 0, y: 0}
   ]
 
@@ -27,7 +29,8 @@ defmodule ExshomeAutomation.Services.Workflow.EditorItem do
           height: number(),
           width: number(),
           svg_path: String.t(),
-          type: String.t()
+          type: String.t(),
+          connectors: Properties.connector_mapping()
         }
 
   @spec create(map()) :: t()
@@ -67,12 +70,12 @@ defmodule ExshomeAutomation.Services.Workflow.EditorItem do
           has_next_action?: true,
           has_parent_connection?: true,
           child_actions: [
-            %{height: 3},
-            %{height: 3}
+            %{height: 3, id: "first_action"},
+            %{height: 3, id: "second_action"}
           ],
           child_connections: [
-            %{height: 3},
-            %{height: 3}
+            %{height: 3, id: "first_connection"},
+            %{height: 3, id: "second_connection"}
           ]
         }
       }
@@ -81,14 +84,15 @@ defmodule ExshomeAutomation.Services.Workflow.EditorItem do
 
   @spec refresh_item(t()) :: t()
   defp refresh_item(%__MODULE__{} = item) do
-    svg_path =
-      item.config
-      |> ItemConfig.compute_svg_components()
-      |> ItemConfig.svg_components_to_path()
+    svg_components = ItemConfig.compute_svg_components(item.config)
+    %Properties{} = properties = ItemConfig.compute_item_properties(svg_components)
 
     %__MODULE__{
       item
-      | svg_path: svg_path
+      | svg_path: ItemConfig.svg_components_to_path(svg_components),
+        width: properties.width,
+        height: properties.height,
+        connectors: properties.connectors
     }
   end
 end
