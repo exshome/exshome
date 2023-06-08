@@ -1,7 +1,6 @@
-defmodule ExshomeAutomationTest.Services.Workflow.EditorItemTest do
+defmodule ExshomeAutomationTest.Services.Workflow.ItemConfigTest do
   use ExshomeTest.DataCase, async: true
-  alias ExshomeAutomation.Services.Workflow.EditorItem
-  alias ExshomeAutomation.Services.Workflow.EditorItem.Config
+  alias ExshomeAutomation.Services.Workflow.ItemConfig
 
   describe "compute svg path components" do
     @offset_x 4
@@ -18,7 +17,7 @@ defmodule ExshomeAutomationTest.Services.Workflow.EditorItemTest do
 
     test "without connections" do
       path_components =
-        generate_path_components(%Config{
+        ItemConfig.compute_svg_components(%ItemConfig{
           child_actions: [],
           child_connections: [],
           has_next_action?: false,
@@ -42,7 +41,7 @@ defmodule ExshomeAutomationTest.Services.Workflow.EditorItemTest do
 
     test "with next action" do
       path_components =
-        generate_path_components(%Config{
+        ItemConfig.compute_svg_components(%ItemConfig{
           child_actions: [],
           child_connections: [],
           has_next_action?: true,
@@ -68,7 +67,7 @@ defmodule ExshomeAutomationTest.Services.Workflow.EditorItemTest do
 
     test "with parent connection" do
       path_components =
-        generate_path_components(%Config{
+        ItemConfig.compute_svg_components(%ItemConfig{
           child_actions: [],
           child_connections: [],
           has_next_action?: false,
@@ -94,7 +93,7 @@ defmodule ExshomeAutomationTest.Services.Workflow.EditorItemTest do
 
     test "with child connection, child height smaller than minimum" do
       path_components =
-        generate_path_components(%Config{
+        ItemConfig.compute_svg_components(%ItemConfig{
           child_actions: [],
           child_connections: [%{height: @component_height - 1}],
           has_next_action?: false,
@@ -120,7 +119,7 @@ defmodule ExshomeAutomationTest.Services.Workflow.EditorItemTest do
 
     test "with child connection, child height larger than minimum" do
       path_components =
-        generate_path_components(%Config{
+        ItemConfig.compute_svg_components(%ItemConfig{
           child_actions: [],
           child_connections: [%{height: @component_height + 1}],
           has_next_action?: false,
@@ -146,7 +145,7 @@ defmodule ExshomeAutomationTest.Services.Workflow.EditorItemTest do
 
     test "with child action, child height smaller than minimum" do
       path_components =
-        generate_path_components(%Config{
+        ItemConfig.compute_svg_components(%ItemConfig{
           child_actions: [%{height: @component_height - 1}],
           child_connections: [],
           has_next_action?: false,
@@ -184,7 +183,7 @@ defmodule ExshomeAutomationTest.Services.Workflow.EditorItemTest do
 
     test "with child action, child height larger than minimum" do
       path_components =
-        generate_path_components(%Config{
+        ItemConfig.compute_svg_components(%ItemConfig{
           child_actions: [%{height: @component_height + 1}],
           child_connections: [],
           has_next_action?: false,
@@ -222,7 +221,7 @@ defmodule ExshomeAutomationTest.Services.Workflow.EditorItemTest do
 
     test "with all possible connections" do
       path_components =
-        generate_path_components(%Config{
+        ItemConfig.compute_svg_components(%ItemConfig{
           child_actions: [%{height: @component_height - 1}, %{height: @component_height + 1}],
           child_connections: [%{height: @component_height - 1}, %{height: @component_height + 1}],
           has_next_action?: true,
@@ -279,15 +278,6 @@ defmodule ExshomeAutomationTest.Services.Workflow.EditorItemTest do
                {:round_corner, :top_left},
                :close_path
              ] == path_components
-    end
-
-    defp generate_path_components(%Config{} = config) do
-      item = %EditorItem{
-        config: config,
-        position: %{x: 0, y: 0}
-      }
-
-      EditorItem.compute_svg_components(item)
     end
   end
 end
