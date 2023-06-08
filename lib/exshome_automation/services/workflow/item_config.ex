@@ -26,14 +26,14 @@ defmodule ExshomeAutomation.Services.Workflow.ItemConfig do
           child_actions: [child_action()]
         }
 
-  @offset_x 4
-  @offset_y 2
-  @component_width 25
-  @component_height 10
-  @action_offset 2
-  @action_width 6
-  @connector_height 2
+  @connector_height 4
+  @connector_width 4
   @connector_offset 2
+  @outline_width 1
+  @min_width 25
+  @min_height 10
+  @action_width 6
+  @action_offset 2
   @child_action_offset 5
   @child_action_separator_height 2
   @corner_height 1
@@ -42,7 +42,13 @@ defmodule ExshomeAutomation.Services.Workflow.ItemConfig do
           {:move, x :: number(), y :: number()}
           | {:horizontal, x :: number()}
           | {:vertical, y :: number()}
-          | {:round_corner, :top_right | :bottom_right | :bottom_left | :top_left}
+          | {:round_corner,
+             :top_right
+             | :bottom_right
+             | :bottom_left
+             | :top_left
+             | :inner_top_left
+             | :inner_bottom_left}
           | :close_path
           | :parent_action
           | :child_action
@@ -52,7 +58,7 @@ defmodule ExshomeAutomation.Services.Workflow.ItemConfig do
   @spec compute_svg_components(t()) :: [svg_component()]
   def compute_svg_components(%__MODULE__{} = config) do
     []
-    |> put_svg_component({:move, @offset_x, @offset_y})
+    |> put_svg_component({:move, @connector_width + @outline_width, @outline_width})
     |> compute_component_top(config)
     |> put_svg_component({:round_corner, :top_right})
     |> compute_component_right(config)
@@ -67,11 +73,11 @@ defmodule ExshomeAutomation.Services.Workflow.ItemConfig do
 
   @spec compute_component_top([svg_component()], t()) :: [svg_component()]
   defp compute_component_top(components, %__MODULE__{has_previous_action?: false}) do
-    put_svg_component(components, {:horizontal, @component_width})
+    put_svg_component(components, {:horizontal, @min_width})
   end
 
   defp compute_component_top(components, %__MODULE__{}) do
-    offset = @component_width - @action_offset - @action_width
+    offset = @min_width - @action_offset - @action_width
 
     components
     |> put_svg_component({:horizontal, @action_offset})
@@ -81,11 +87,11 @@ defmodule ExshomeAutomation.Services.Workflow.ItemConfig do
 
   @spec compute_component_bottom([svg_component()], t()) :: [svg_component()]
   defp compute_component_bottom(components, %__MODULE__{has_next_action?: false}) do
-    put_svg_component(components, {:horizontal, -@component_width})
+    put_svg_component(components, {:horizontal, -@min_width})
   end
 
   defp compute_component_bottom(components, %__MODULE__{}) do
-    offset = @component_width - @action_offset - @action_width
+    offset = @min_width - @action_offset - @action_width
 
     components
     |> put_svg_component({:horizontal, -offset})
@@ -115,25 +121,25 @@ defmodule ExshomeAutomation.Services.Workflow.ItemConfig do
   defp compute_left_height(%__MODULE__{} = config) do
     connections_height =
       config.child_connections
-      |> Enum.map(&max(&1.height, @component_height))
+      |> Enum.map(&max(&1.height, @min_height))
       |> Enum.sum()
 
     actions_height =
       config.child_actions
-      |> Enum.map(&max(&1.height, @component_height))
+      |> Enum.map(&max(&1.height, @min_height))
       |> Enum.sum()
 
     actions_count = length(config.child_actions)
     action_separators_height = actions_count * @child_action_separator_height
-    action_corners_height = actions_count * 2 * @corner_height
+    action_corners_height = actions_count * 4 * @corner_height
     total_actions_height = actions_height + action_separators_height + action_corners_height
 
-    max(@component_height, connections_height) + total_actions_height
+    max(@min_height, connections_height) + total_actions_height
   end
 
   @spec compute_component_right([svg_component()], t()) :: [svg_component()]
   defp compute_component_right(components, %__MODULE__{child_actions: [], child_connections: []}) do
-    put_svg_component(components, {:vertical, @component_height})
+    put_svg_component(components, {:vertical, @min_height})
   end
 
   defp compute_component_right(components, %__MODULE__{} = config) do
@@ -144,13 +150,13 @@ defmodule ExshomeAutomation.Services.Workflow.ItemConfig do
 
   @spec compute_child_connections([svg_component()], t()) :: [svg_component()]
   defp compute_child_connections(components, %__MODULE__{child_connections: []}) do
-    put_svg_component(components, {:vertical, @component_height})
+    put_svg_component(components, {:vertical, @min_height})
   end
 
   defp compute_child_connections(components, %__MODULE__{} = config) do
     for %{height: height} <- config.child_connections, reduce: components do
       components ->
-        component_height = max(height, @component_height)
+        component_height = max(height, @min_height)
         remaining_offset = component_height - @connector_offset - @connector_height
 
         components
@@ -166,7 +172,7 @@ defmodule ExshomeAutomation.Services.Workflow.ItemConfig do
   end
 
   defp compute_child_actions(components, %__MODULE__{} = config) do
-    child_action_width = @component_width - @child_action_offset
+    child_action_width = @min_width - @child_action_offset
     child_action_right_offset = child_action_width - @action_width - @action_offset
 
     for %{height: height} <- config.child_actions, reduce: components do
@@ -176,7 +182,9 @@ defmodule ExshomeAutomation.Services.Workflow.ItemConfig do
         |> put_svg_component({:horizontal, -child_action_right_offset})
         |> put_svg_component(:child_action)
         |> put_svg_component({:horizontal, -@action_offset})
-        |> put_svg_component({:vertical, max(height, @component_height)})
+        |> put_svg_component({:round_corner, :inner_top_left})
+        |> put_svg_component({:vertical, max(height, @min_height)})
+        |> put_svg_component({:round_corner, :inner_bottom_left})
         |> put_svg_component({:horizontal, child_action_width})
         |> put_svg_component({:round_corner, :top_right})
         |> put_svg_component({:vertical, @child_action_separator_height})
@@ -201,6 +209,8 @@ defmodule ExshomeAutomation.Services.Workflow.ItemConfig do
   defp svg_to_string({:round_corner, :bottom_right}), do: "q 0 1 -1 1"
   defp svg_to_string({:round_corner, :bottom_left}), do: "q -1 0 -1 -1"
   defp svg_to_string({:round_corner, :top_left}), do: "q 0 -1 1 -1"
+  defp svg_to_string({:round_corner, :inner_top_left}), do: "q -1 0 -1 1"
+  defp svg_to_string({:round_corner, :inner_bottom_left}), do: "q 0 1 1 1"
   defp svg_to_string(:close_path), do: "z"
 
   defp svg_to_string(:parent_action),
@@ -211,21 +221,21 @@ defmodule ExshomeAutomation.Services.Workflow.ItemConfig do
 
   defp svg_to_string(:child_connector) do
     """
-    v 0.2
-    l -1 -0.2
-    a 1 1 0 0 0 0 2
-    l 1 -0.2
-    v 0.2
+    v 0.5
+    l -1.5 -0.5
+    a 2 2 0 0 0 0 4
+    l 1.5 -0.5
+    v 0.5
     """
   end
 
   defp svg_to_string(:parent_connector) do
     """
-    v -0.2
-    l -1 0.2
-    a 1 1 0 0 1 0 -2
-    l 1 0.2
-    v -0.2
+    v -0.5
+    l -1.5 0.5
+    a 2 2 0 0 1 0 -4
+    l 1.5 0.5
+    v -0.5
     """
   end
 end
