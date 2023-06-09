@@ -93,6 +93,16 @@ defmodule ExshomeAutomation.Services.Workflow do
     call(workflow_id, {{:move_item, item.id}, position})
   end
 
+  @spec stop_dragging!(
+          workflow_id :: String.t(),
+          item_id :: String.t(),
+          position :: EditorItem.position()
+        ) :: :ok
+  def stop_dragging!(workflow_id, item_id, position) do
+    item = get_item!(workflow_id, item_id)
+    call(workflow_id, {{:stop_dragging, item.id}, position})
+  end
+
   @spec delete_item!(workflow_id :: String.t(), item_id :: String.t()) :: :ok
   def delete_item!(workflow_id, item_id) do
     item = get_item!(workflow_id, item_id)
@@ -123,6 +133,15 @@ defmodule ExshomeAutomation.Services.Workflow do
 
   def handle_call({{:move_item, item_id}, position}, {request_pid, _}, %DependencyState{} = state) do
     state = update_editor(state, request_pid, &Editor.move_item(&1, item_id, position))
+    {:reply, :ok, state}
+  end
+
+  def handle_call(
+        {{:stop_dragging, item_id}, position},
+        {request_pid, _},
+        %DependencyState{} = state
+      ) do
+    state = update_editor(state, request_pid, &Editor.stop_dragging(&1, item_id, position))
     {:reply, :ok, state}
   end
 

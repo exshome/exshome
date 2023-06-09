@@ -15,6 +15,7 @@ defmodule ExshomeAutomation.Services.Workflow.EditorItem do
     :svg_path,
     :connectors,
     :selected_by,
+    :drag,
     position: %{x: 0, y: 0}
   ]
 
@@ -34,6 +35,7 @@ defmodule ExshomeAutomation.Services.Workflow.EditorItem do
           svg_path: String.t(),
           type: String.t(),
           selected_by: selected_by(),
+          drag: boolean(),
           connectors: Properties.connector_mapping()
         }
 
@@ -89,6 +91,11 @@ defmodule ExshomeAutomation.Services.Workflow.EditorItem do
   @spec set_selected_by(t(), selected_by()) :: t()
   def set_selected_by(%__MODULE__{} = item, selected_by) do
     %__MODULE__{item | selected_by: selected_by}
+  end
+
+  @spec set_drag(t(), boolean()) :: t()
+  def set_drag(%__MODULE__{} = item, drag) do
+    %__MODULE__{item | drag: drag}
   end
 
   @spec refresh_item(t()) :: t()

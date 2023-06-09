@@ -21,7 +21,7 @@ defmodule ExshomeAutomation.Web.Live.AutomationEditor do
 
     socket =
       socket
-      |> assign(drag: false, workflow_id: id)
+      |> assign(workflow_id: id)
       |> put_dependencies([{{Workflow, id}, :workflow}])
 
     menu_items =
@@ -31,7 +31,7 @@ defmodule ExshomeAutomation.Web.Live.AutomationEditor do
           |> EditorItem.create()
           |> Map.put(:id, type)
 
-        generate_component(socket, menu_item)
+        generate_component(menu_item)
       end
 
     workflow_items =
@@ -40,7 +40,7 @@ defmodule ExshomeAutomation.Web.Live.AutomationEditor do
         items -> items
       end
 
-    components = Enum.map(workflow_items, &generate_component(socket, &1))
+    components = Enum.map(workflow_items, &generate_component/1)
 
     socket =
       socket
@@ -70,19 +70,19 @@ defmodule ExshomeAutomation.Web.Live.AutomationEditor do
   @impl SvgCanvas
   def handle_delete(%Socket{} = socket, id) do
     :ok = Workflow.delete_item!(socket.assigns.workflow_id, id)
-    assign(socket, drag: false)
+    socket
   end
 
   @impl SvgCanvas
   def handle_dragend(%Socket{} = socket, %{id: id, position: position}) do
-    :ok = Workflow.move_item!(socket.assigns.workflow_id, id, position)
-    assign(socket, drag: false)
+    :ok = Workflow.stop_dragging!(socket.assigns.workflow_id, id, position)
+    socket
   end
 
   @impl SvgCanvas
   def handle_move(%Socket{} = socket, %{id: id, position: position}) do
     :ok = Workflow.move_item!(socket.assigns.workflow_id, id, position)
-    assign(socket, drag: true)
+    socket
   end
 
   @impl SvgCanvas
@@ -96,7 +96,7 @@ defmodule ExshomeAutomation.Web.Live.AutomationEditor do
         {{EditorStream, workflow_id}, %Operation.ReplaceAll{data: items}},
         %Socket{assigns: %{workflow_id: workflow_id}} = socket
       ) do
-    components = Enum.map(items, &generate_component(socket, &1))
+    components = Enum.map(items, &generate_component/1)
     SvgCanvas.replace_components(socket, components)
   end
 
@@ -107,7 +107,7 @@ defmodule ExshomeAutomation.Web.Live.AutomationEditor do
         },
         %Socket{assigns: %{workflow_id: workflow_id}} = socket
       ) do
-    component = generate_component(socket, item)
+    component = generate_component(item)
 
     if key != self() do
       SvgCanvas.insert_component(socket, component)
@@ -123,7 +123,7 @@ defmodule ExshomeAutomation.Web.Live.AutomationEditor do
         {{EditorStream, workflow_id}, %Operation.Delete{data: %EditorItem{} = item}},
         %Socket{assigns: %{workflow_id: workflow_id}} = socket
       ) do
-    component = generate_component(socket, item)
+    component = generate_component(item)
     SvgCanvas.remove_component(socket, component)
   end
 
@@ -131,20 +131,28 @@ defmodule ExshomeAutomation.Web.Live.AutomationEditor do
         {{EditorStream, workflow_id}, %Operation.Update{data: %EditorItem{} = item}},
         %Socket{assigns: %{workflow_id: workflow_id}} = socket
       ) do
-    component = generate_component(socket, item)
+    component = generate_component(item)
     SvgCanvas.insert_component(socket, component)
   end
 
-  defp generate_component(%Socket{} = socket, %EditorItem{} = item) do
-    %{drag: drag} = socket.assigns
-    selected? = self() == item.selected_by
+  defp generate_component(%EditorItem{} = item) do
+    selected? = item.selected_by != nil
+    selected_by_me? = self() == item.selected_by
+
+    outline_color =
+      case {selected?, selected_by_me?} do
+        {true, true} -> "stroke-yellow-200 dark:stroke-yellow-400"
+        {true, false} -> "stroke-yellow-500 dark:stroke-yellow-700"
+        _ -> "stroke-gray-700 dark:stroke-gray-400"
+      end
 
     %AutomationBlock{
       id: item.id,
       class: """
       fill-green-200
-      #{if selected? && drag, do: "opacity-75"}
-      #{if selected?, do: "stroke-yellow-200 dark:stroke-yellow-400"}
+      #{if item.drag, do: "opacity-75"}
+      #{if selected_by_me?, do: "stroke-1", else: "stroke-[0.1]"}
+      #{outline_color}
       """,
       item: item
     }

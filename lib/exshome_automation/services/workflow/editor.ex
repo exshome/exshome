@@ -13,6 +13,7 @@ defmodule ExshomeAutomation.Services.Workflow.Editor do
     :items,
     :changes,
     :operation_pid,
+    dragged_by: %{},
     subscribers: MapSet.new()
   ]
 
@@ -23,6 +24,7 @@ defmodule ExshomeAutomation.Services.Workflow.Editor do
           },
           changes: [Operation.t()],
           operation_pid: Operation.key(),
+          dragged_by: %{pid() => String.t()},
           subscribers: MapSet.t(pid())
         }
 
@@ -101,7 +103,12 @@ defmodule ExshomeAutomation.Services.Workflow.Editor do
 
   defp clear_selected_by(state, pid) do
     for %EditorItem{} = item <- list_items(state), item.selected_by == pid, reduce: state do
-      state -> update_item(state, %EditorItem{item | selected_by: nil})
+      state ->
+        item = %EditorItem{item | selected_by: nil, drag: false}
+
+        state
+        |> remove_dragged_by(item)
+        |> update_item(item)
     end
   end
 
@@ -120,9 +127,44 @@ defmodule ExshomeAutomation.Services.Workflow.Editor do
       item =
       state
       |> get_item(item_id)
+      |> EditorItem.set_drag(true)
       |> EditorItem.update_position(new_position)
 
-    update_item(state, item)
+    state
+    |> update_item(item)
+    |> update_dragged_by(item)
+  end
+
+  @spec stop_dragging(t(), String.t(), EditorItem.position()) :: t()
+  def stop_dragging(%__MODULE__{} = state, item_id, new_position) do
+    state = move_item(state, item_id, new_position)
+
+    %EditorItem{} =
+      item =
+      state
+      |> get_item(item_id)
+      |> EditorItem.set_drag(false)
+
+    state
+    |> update_item(item)
+    |> remove_dragged_by(item)
+  end
+
+  @spec update_dragged_by(t(), EditorItem.t()) :: t()
+  defp update_dragged_by(%__MODULE__{operation_pid: nil} = state, _), do: state
+
+  defp update_dragged_by(%__MODULE__{} = state, %EditorItem{id: id}) do
+    update_in(state.dragged_by, &Map.put(&1, state.operation_pid, id))
+  end
+
+  @spec remove_dragged_by(t(), EditorItem.t()) :: t()
+  defp remove_dragged_by(%__MODULE__{} = state, %EditorItem{} = item) do
+    dragged_by =
+      state.dragged_by
+      |> Enum.reject(fn {_, item_id} -> item.id == item_id end)
+      |> Enum.into(%{})
+
+    %__MODULE__{state | dragged_by: dragged_by}
   end
 
   def delete_item(%__MODULE__{} = state, id) do
