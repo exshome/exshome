@@ -77,6 +77,12 @@ defmodule ExshomeAutomation.Services.Workflow do
     %EditorItem{} = call(workflow_id, {:get_item, item_id})
   end
 
+  @spec select_item!(workflow_id :: String.t(), item_id :: String.t()) :: :ok
+  def select_item!(workflow_id, item_id) do
+    item = get_item!(workflow_id, item_id)
+    call(workflow_id, {:select_item, item.id})
+  end
+
   @spec move_item!(
           workflow_id :: String.t(),
           item_id :: String.t(),
@@ -110,6 +116,11 @@ defmodule ExshomeAutomation.Services.Workflow do
     {:reply, :ok, state}
   end
 
+  def handle_call({:select_item, item_id}, {request_pid, _}, %DependencyState{} = state) do
+    state = update_editor(state, request_pid, &Editor.select_item(&1, item_id))
+    {:reply, :ok, state}
+  end
+
   def handle_call({{:move_item, item_id}, position}, {request_pid, _}, %DependencyState{} = state) do
     state = update_editor(state, request_pid, &Editor.move_item(&1, item_id, position))
     {:reply, :ok, state}
@@ -120,7 +131,6 @@ defmodule ExshomeAutomation.Services.Workflow do
     {:reply, :ok, state}
   end
 
-  @impl GenServerDependency
   def handle_call({:rename, name}, _, %DependencyState{} = state) do
     value =
       state.value.id
@@ -131,6 +141,12 @@ defmodule ExshomeAutomation.Services.Workflow do
     :ok = broadcast_changes(%Operation.Update{data: value})
     state = update_value(state, fn _ -> value end)
     {:reply, :ok, state}
+  end
+
+  @impl GenServerDependency
+  def handle_info({:EXIT, pid, _reason}, %DependencyState{} = state) do
+    state = update_editor(state, pid, &Editor.unsubscribe(&1, pid))
+    {:noreply, state}
   end
 
   defp call(id, message) when is_binary(id) do
@@ -166,13 +182,14 @@ defmodule ExshomeAutomation.Services.Workflow do
 
   @spec update_editor(DependencyState.t(), Operation.key(), (Editor.t() -> Editor.t())) ::
           DependencyState.t()
-  defp update_editor(%DependencyState{} = state, key, update_fn) do
+  defp update_editor(%DependencyState{} = state, pid, update_fn) do
     update_data(state, fn editor ->
       editor
-      |> Editor.put_operation_key(key)
+      |> Editor.subscribe(pid)
+      |> Editor.put_operation_pid(pid)
       |> update_fn.()
       |> Editor.broadcast_changes()
-      |> Editor.put_operation_key(nil)
+      |> Editor.put_operation_pid(nil)
     end)
   end
 end

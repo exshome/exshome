@@ -12,7 +12,8 @@ defmodule ExshomeAutomation.Services.Workflow.Editor do
     :id,
     :items,
     :changes,
-    :operation_key
+    :operation_pid,
+    subscribers: MapSet.new()
   ]
 
   @type t() :: %__MODULE__{
@@ -21,7 +22,8 @@ defmodule ExshomeAutomation.Services.Workflow.Editor do
             String.t() => EditorItem.t()
           },
           changes: [Operation.t()],
-          operation_key: Operation.key()
+          operation_pid: Operation.key(),
+          subscribers: MapSet.t(pid())
         }
 
   @spec blank_editor(id :: String.t()) :: t()
@@ -39,13 +41,35 @@ defmodule ExshomeAutomation.Services.Workflow.Editor do
 
     put_change(
       state,
-      %Operation.ReplaceAll{data: list_items(state), key: state.operation_key}
+      %Operation.ReplaceAll{data: list_items(state), key: state.operation_pid}
     )
   end
 
-  @spec put_operation_key(t(), Operation.key()) :: t()
-  def put_operation_key(state, operation_key) do
-    %__MODULE__{state | operation_key: operation_key}
+  @spec put_operation_pid(t(), Operation.key()) :: t()
+  def put_operation_pid(state, operation_pid) do
+    %__MODULE__{state | operation_pid: operation_pid}
+  end
+
+  @spec subscribe(t(), Operation.key()) :: t()
+  def subscribe(%__MODULE__{} = state, operation_pid) do
+    if operation_pid && !MapSet.member?(state.subscribers, operation_pid) do
+      Process.link(operation_pid)
+      update_in(state.subscribers, &MapSet.put(&1, operation_pid))
+    else
+      state
+    end
+  end
+
+  @spec unsubscribe(t(), Operation.key()) :: t()
+  def unsubscribe(%__MODULE__{} = state, operation_pid) do
+    if MapSet.member?(state.subscribers, operation_pid) do
+      Process.unlink(operation_pid)
+
+      update_in(state.subscribers, &MapSet.delete(&1, operation_pid))
+      |> clear_selected_by(operation_pid)
+    else
+      state
+    end
   end
 
   @spec list_items(t()) :: [EditorItem.t()]
@@ -58,10 +82,33 @@ defmodule ExshomeAutomation.Services.Workflow.Editor do
     Map.get(items, item_id, nil)
   end
 
+  @spec select_item(t(), String.t()) :: t()
+  def select_item(%__MODULE__{} = state, item_id) do
+    selected_by = state.operation_pid
+
+    state = clear_selected_by(state, selected_by)
+
+    item =
+      state
+      |> get_item(item_id)
+      |> EditorItem.set_selected_by(state.operation_pid)
+
+    update_item(state, item)
+  end
+
+  @spec clear_selected_by(t(), Operation.key()) :: t()
+  defp clear_selected_by(state, nil), do: state
+
+  defp clear_selected_by(state, pid) do
+    for %EditorItem{} = item <- list_items(state), item.selected_by == pid, reduce: state do
+      state -> update_item(state, %EditorItem{item | selected_by: nil})
+    end
+  end
+
   @spec create_item(t(), config :: map()) :: t()
   def create_item(%__MODULE__{} = state, config) do
     %EditorItem{id: id} = item = EditorItem.create(config)
-    change = %Operation.Insert{data: item, at: -1, key: state.operation_key}
+    change = %Operation.Insert{data: item, at: -1, key: state.operation_pid}
 
     %__MODULE__{state | items: Map.put(state.items, id, item)}
     |> put_change(change)
@@ -75,17 +122,22 @@ defmodule ExshomeAutomation.Services.Workflow.Editor do
       |> get_item(item_id)
       |> EditorItem.update_position(new_position)
 
-    change = %Operation.Update{data: item, at: -1, key: state.operation_key}
-
-    %__MODULE__{state | items: Map.put(state.items, item.id, item)}
-    |> put_change(change)
+    update_item(state, item)
   end
 
   def delete_item(%__MODULE__{} = state, id) do
     %EditorItem{} = item = get_item(state, id)
-    change = %Operation.Delete{data: item, key: state.operation_key}
+    change = %Operation.Delete{data: item, key: state.operation_pid}
 
     %__MODULE__{state | items: Map.delete(state.items, item.id)}
+    |> put_change(change)
+  end
+
+  @spec update_item(t(), EditorItem.t()) :: t()
+  defp update_item(%__MODULE__{} = state, item) do
+    change = %Operation.Update{data: item, at: -1, key: state.operation_pid}
+
+    %__MODULE__{state | items: Map.put(state.items, item.id, item)}
     |> put_change(change)
   end
 
@@ -106,6 +158,36 @@ defmodule ExshomeAutomation.Services.Workflow.Editor do
   defp fetch_changes(%__MODULE__{changes: [operation]}), do: operation
 
   defp fetch_changes(%__MODULE__{changes: changes}) do
-    %Operation.Batch{operations: Enum.reverse(changes)}
+    operations = deduplicate_updates(MapSet.new(), changes, [])
+    %Operation.Batch{operations: operations}
+  end
+
+  @spec deduplicate_updates(
+          updated_ids :: MapSet.t(),
+          non_processed_changes :: [Operation.t()],
+          result :: [Operation.t()]
+        ) :: [Operation.t()]
+  defp deduplicate_updates(_, [], operations), do: operations
+
+  defp deduplicate_updates(
+         %MapSet{} = updated_ids,
+         [%Operation.Update{data: %EditorItem{}} = operation | other],
+         result
+       ) do
+    item_id = operation.data.id
+
+    if MapSet.member?(updated_ids, item_id) do
+      deduplicate_updates(updated_ids, other, result)
+    else
+      deduplicate_updates(
+        MapSet.put(updated_ids, item_id),
+        other,
+        [operation | result]
+      )
+    end
+  end
+
+  defp deduplicate_updates(updated_ids, [operation | other], result) do
+    deduplicate_updates(updated_ids, other, [operation | result])
   end
 end

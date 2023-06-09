@@ -14,6 +14,7 @@ defmodule ExshomeAutomation.Services.Workflow.EditorItem do
     :width,
     :svg_path,
     :connectors,
+    :selected_by,
     position: %{x: 0, y: 0}
   ]
 
@@ -21,6 +22,8 @@ defmodule ExshomeAutomation.Services.Workflow.EditorItem do
           x: number(),
           y: number()
         }
+
+  @type selected_by() :: pid() | nil
 
   @type t() :: %__MODULE__{
           id: String.t(),
@@ -30,6 +33,7 @@ defmodule ExshomeAutomation.Services.Workflow.EditorItem do
           width: number(),
           svg_path: String.t(),
           type: String.t(),
+          selected_by: selected_by(),
           connectors: Properties.connector_mapping()
         }
 
@@ -80,6 +84,11 @@ defmodule ExshomeAutomation.Services.Workflow.EditorItem do
         }
       }
     }
+  end
+
+  @spec set_selected_by(t(), selected_by()) :: t()
+  def set_selected_by(%__MODULE__{} = item, selected_by) do
+    %__MODULE__{item | selected_by: selected_by}
   end
 
   @spec refresh_item(t()) :: t()

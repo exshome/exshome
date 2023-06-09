@@ -21,7 +21,7 @@ defmodule ExshomeAutomation.Web.Live.AutomationEditor do
 
     socket =
       socket
-      |> assign(selected_id: nil, drag: false, workflow_id: id)
+      |> assign(drag: false, workflow_id: id)
       |> put_dependencies([{{Workflow, id}, :workflow}])
 
     menu_items =
@@ -70,7 +70,7 @@ defmodule ExshomeAutomation.Web.Live.AutomationEditor do
   @impl SvgCanvas
   def handle_delete(%Socket{} = socket, id) do
     :ok = Workflow.delete_item!(socket.assigns.workflow_id, id)
-    assign(socket, selected_id: nil, drag: false)
+    assign(socket, drag: false)
   end
 
   @impl SvgCanvas
@@ -82,28 +82,13 @@ defmodule ExshomeAutomation.Web.Live.AutomationEditor do
   @impl SvgCanvas
   def handle_move(%Socket{} = socket, %{id: id, position: position}) do
     :ok = Workflow.move_item!(socket.assigns.workflow_id, id, position)
-    assign(socket, selected_id: id, drag: true)
+    assign(socket, drag: true)
   end
 
   @impl SvgCanvas
   def handle_select(%Socket{} = socket, %{id: selected_id}) do
-    old_selected_id = socket.assigns.selected_id
-
-    socket = assign(socket, :selected_id, selected_id)
-
-    ids =
-      case {old_selected_id, selected_id} do
-        {id, id} -> []
-        {nil, new_id} -> [new_id]
-        {old_id, new_id} -> [old_id, new_id]
-      end
-
-    for id <- ids, reduce: socket do
-      socket ->
-        item = Workflow.get_item!(socket.assigns.workflow_id, id)
-        component = generate_component(socket, item)
-        SvgCanvas.insert_component(socket, component)
-    end
+    :ok = Workflow.select_item!(socket.assigns.workflow_id, selected_id)
+    socket
   end
 
   @impl AppPage
@@ -128,6 +113,7 @@ defmodule ExshomeAutomation.Web.Live.AutomationEditor do
       SvgCanvas.insert_component(socket, component)
     else
       socket
+      |> SvgCanvas.insert_component(component)
       |> handle_select(%{id: item.id})
       |> SvgCanvas.select_item(item.id)
     end
@@ -150,8 +136,8 @@ defmodule ExshomeAutomation.Web.Live.AutomationEditor do
   end
 
   defp generate_component(%Socket{} = socket, %EditorItem{} = item) do
-    %{selected_id: selected_id, drag: drag} = socket.assigns
-    selected? = selected_id == item.id
+    %{drag: drag} = socket.assigns
+    selected? = self() == item.selected_by
 
     %AutomationBlock{
       id: item.id,
