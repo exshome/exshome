@@ -262,22 +262,28 @@ defmodule ExshomeAutomation.Services.Workflow.ItemConfig do
     do: "l -#{@action_width / 2} 2 l -#{@action_width / 2} -2"
 
   defp svg_to_string({:child_connector, _}) do
+    vertical_offset = @connector_size / 8
+    connector_radius = @connector_size / 2
+
     """
-    v #{@connector_size / 8}
-    l -#{@connector_size / 2} -#{@connector_size / 8}
-    a #{@connector_size / 2} #{@connector_size / 2} 0 0 0 0 #{@connector_size}
-    l #{@connector_size / 2} -#{@connector_size / 8}
-    v #{@connector_size / 8}
+    v #{vertical_offset}
+    l -#{connector_radius} -#{vertical_offset}
+    a #{connector_radius} #{connector_radius} 0 0 0 0 #{@connector_size}
+    l #{connector_radius} -#{vertical_offset}
+    v #{vertical_offset}
     """
   end
 
   defp svg_to_string({:parent_connector, _}) do
+    vertical_offset = @connector_size / 8
+    connector_radius = @connector_size / 2
+
     """
-    v -#{@connector_size / 8}
-    l -#{@connector_size / 2} #{@connector_size / 8}
-    a #{@connector_size / 2} #{@connector_size / 2} 0 0 1 0 -#{@connector_size}
-    l #{@connector_size / 2} #{@connector_size / 8}
-    v -#{@connector_size / 8}
+    v -#{vertical_offset}
+    l -#{connector_radius} #{vertical_offset}
+    a #{connector_radius} #{connector_radius} 0 0 1 0 -#{@connector_size}
+    l #{connector_radius} #{vertical_offset}
+    v -#{vertical_offset}
     """
   end
 
