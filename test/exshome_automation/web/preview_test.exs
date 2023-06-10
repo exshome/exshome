@@ -61,6 +61,6 @@ defmodule ExshomeAutomationTest.Web.PreviewTest do
   defp make_variable_ready do
     flush_messages()
     assert :ok = Dependency.broadcast_value(PlayerState, %PlayerState{})
-    assert_receive_dependency({AutomationStatus, _})
+    assert_receive_app_page_dependency({AutomationStatus, _})
   end
 end

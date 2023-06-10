@@ -35,6 +35,8 @@ defmodule Exshome.Dependency do
       |> dependency_id()
       |> Exshome.PubSub.subscribe()
 
+    :ok = add_subscription(dependency)
+
     case result do
       NotReady -> get_value(dependency)
       data -> data
@@ -46,6 +48,8 @@ defmodule Exshome.Dependency do
     dependency
     |> dependency_id()
     |> Exshome.PubSub.unsubscribe()
+
+    remove_subscription(dependency)
   end
 
   @spec broadcast_value(dependency(), value()) :: :ok
@@ -123,6 +127,29 @@ defmodule Exshome.Dependency do
     if !module_is_dependency do
       raise "#{inspect(module)} is not a #{inspect(parent_module)}!"
     end
+  end
+
+  @spec subscriptions() :: MapSet.t(dependency)
+  def subscriptions, do: Process.get(__MODULE__, MapSet.new())
+
+  @spec add_subscription(dependency()) :: :ok
+  defp add_subscription(dependency) do
+    Process.put(
+      __MODULE__,
+      MapSet.put(subscriptions(), dependency)
+    )
+
+    :ok
+  end
+
+  @spec remove_subscription(dependency()) :: :ok
+  defp remove_subscription(dependency) do
+    Process.put(
+      __MODULE__,
+      MapSet.delete(subscriptions(), dependency)
+    )
+
+    :ok
   end
 
   defmacro __using__(_) do

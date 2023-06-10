@@ -157,6 +157,18 @@ defmodule ExshomeWeb.Live.AppPage do
       | private: Map.put(socket.private, {__MODULE__, :deps}, mapping)
     }
     |> assign(deps: deps)
+    |> unsubscribe_depes_for_not_connected_socket()
+  end
+
+  @spec unsubscribe_depes_for_not_connected_socket(Socket.t()) :: Socket.t()
+  defp unsubscribe_depes_for_not_connected_socket(%Socket{} = socket) do
+    if not connected?(socket) do
+      for dependency <- Dependency.subscriptions() do
+        Dependency.unsubscribe(dependency)
+      end
+    end
+
+    socket
   end
 
   defp get_dependencies(%Socket{private: private}), do: Map.fetch!(private, {__MODULE__, :deps})

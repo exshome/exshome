@@ -53,7 +53,7 @@ defmodule ExshomeAutomationTest.Web.VariablesTest do
       for type <- Datatype.available_types() do
         assert count_variables(view) == 0
         create_new_variable(view, type)
-        assert_receive_dependency({VariableRegistry, _})
+        assert_receive_app_page_dependency({VariableRegistry, _})
         assert count_variables(view) == 1
 
         variable_id =
