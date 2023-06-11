@@ -22,7 +22,7 @@ DIY Experimental Elixir-based smart home.
 - Setup database `mix ecto.setup`
 - Start Phoenix endpoint with `mix phx.server` or inside IEx with `iex -S mix phx.server`. Now you can visit [`localhost:4000`](http://localhost:4000) from your browser.
 
-### Example pre-commmit hook
+### Example pre-commit hook
 You can use a pre-commit hook to check that CI will not fail on most frequent errors.
 You will need to put it into `.git/hooks/pre-commit` and make it executable (`chmod +x .git/hooks/pre-commit`).
 
