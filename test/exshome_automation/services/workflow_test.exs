@@ -53,7 +53,7 @@ defmodule ExshomeAutomationTest.Services.WorkflowTest do
                Workflow.list_items(workflow_id)
     end
 
-    test "deletes_item", %{workflow_id: workflow_id} do
+    test "deletes item", %{workflow_id: workflow_id} do
       %EditorItem{id: item_id, position: position} = create_random_item(workflow_id)
       new_x = position.x + 1
       new_y = position.y + 1
@@ -68,6 +68,29 @@ defmodule ExshomeAutomationTest.Services.WorkflowTest do
       :ok = TestRegistry.stop_agent!(pid)
 
       assert [] == Workflow.list_items(workflow_id)
+    end
+
+    test "works fine after move", %{workflow_id: workflow_id} do
+      %EditorItem{id: item_id, position: position} = create_random_item(workflow_id)
+      move_x = position.x + 1
+      move_y = position.y + 1
+      final_x = position.x + 2
+      final_y = position.y + 2
+
+      pid =
+        TestRegistry.start_agent!(fn ->
+          Workflow.select_item!(workflow_id, item_id)
+          Workflow.move_item!(workflow_id, item_id, %{x: move_x, y: move_y})
+          Workflow.stop_dragging!(workflow_id, item_id, %{x: final_x, y: final_y})
+        end)
+
+      assert [%EditorItem{selected_by: ^pid, drag: false, position: %{x: ^final_x, y: ^final_y}}] =
+               Workflow.list_items(workflow_id)
+
+      :ok = TestRegistry.stop_agent!(pid)
+
+      assert [%EditorItem{selected_by: nil, drag: false, position: %{x: ^final_x, y: ^final_y}}] =
+               Workflow.list_items(workflow_id)
     end
   end
 
