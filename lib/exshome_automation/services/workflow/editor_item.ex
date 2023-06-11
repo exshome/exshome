@@ -39,8 +39,8 @@ defmodule ExshomeAutomation.Services.Workflow.EditorItem do
           connectors: Properties.connector_mapping()
         }
 
-  @spec create(map()) :: t()
-  def create(%{type: type, position: position}) when is_binary(type) do
+  @spec create(type :: String.t(), position :: position()) :: t()
+  def create(type, position) when is_binary(type) do
     default_values = available_types()[type]
 
     %__MODULE__{

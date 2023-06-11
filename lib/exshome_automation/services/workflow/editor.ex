@@ -112,9 +112,9 @@ defmodule ExshomeAutomation.Services.Workflow.Editor do
     end
   end
 
-  @spec create_item(t(), config :: map()) :: t()
-  def create_item(%__MODULE__{} = state, config) do
-    %EditorItem{id: id} = item = EditorItem.create(config)
+  @spec create_item(t(), type :: String.t(), position :: EditorItem.position()) :: t()
+  def create_item(%__MODULE__{} = state, type, position) do
+    %EditorItem{id: id} = item = EditorItem.create(type, position)
     change = %Operation.Insert{data: item, at: -1, key: state.operation_pid}
 
     %__MODULE__{state | items: Map.put(state.items, id, item)}

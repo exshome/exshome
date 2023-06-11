@@ -27,8 +27,8 @@ defmodule ExshomeAutomation.Web.Live.AutomationEditor do
     menu_items =
       for type <- Map.keys(EditorItem.available_types()) do
         menu_item =
-          %{type: type, position: %{x: 0, y: 0}}
-          |> EditorItem.create()
+          type
+          |> EditorItem.create(%{x: 0, y: 0})
           |> Map.put(:id, type)
 
         generate_component(menu_item)
@@ -58,11 +58,7 @@ defmodule ExshomeAutomation.Web.Live.AutomationEditor do
 
   @impl SvgCanvas
   def handle_create(%Socket{} = socket, %{type: type, position: position}) do
-    :ok =
-      Workflow.create_item(
-        socket.assigns.workflow_id,
-        %{type: type, position: position}
-      )
+    :ok = Workflow.create_item(socket.assigns.workflow_id, type, position)
 
     socket
   end

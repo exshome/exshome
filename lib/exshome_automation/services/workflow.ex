@@ -67,9 +67,13 @@ defmodule ExshomeAutomation.Services.Workflow do
   @spec list_items(String.t()) :: [EditorItem.t()] | NotReady
   def list_items(id), do: call(id, :list_items)
 
-  @spec create_item(workflow_id :: String.t(), config :: map()) :: :ok
-  def create_item(workflow_id, config) do
-    call(workflow_id, {:create_item, config})
+  @spec create_item(
+          workflow_id :: String.t(),
+          type :: String.t(),
+          position :: EditorItem.position()
+        ) :: :ok
+  def create_item(workflow_id, type, position) do
+    call(workflow_id, {:create_item, type, position})
   end
 
   @spec get_item!(workflow_id :: String.t(), item_id :: String.t()) :: EditorItem.t()
@@ -121,8 +125,8 @@ defmodule ExshomeAutomation.Services.Workflow do
     {:reply, Editor.get_item(state.data, item_id), state}
   end
 
-  def handle_call({:create_item, config}, {request_pid, _}, %DependencyState{} = state) do
-    state = update_editor(state, request_pid, &Editor.create_item(&1, config))
+  def handle_call({:create_item, type, position}, {request_pid, _}, %DependencyState{} = state) do
+    state = update_editor(state, request_pid, &Editor.create_item(&1, type, position))
     {:reply, :ok, state}
   end
 
