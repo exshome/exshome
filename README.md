@@ -22,6 +22,20 @@ DIY Experimental Elixir-based smart home.
 - Setup database `mix ecto.setup`
 - Start Phoenix endpoint with `mix phx.server` or inside IEx with `iex -S mix phx.server`. Now you can visit [`localhost:4000`](http://localhost:4000) from your browser.
 
+### Example pre-commmit hook
+You can use a pre-commit hook to check that CI will not fail on most frequent errors.
+You will need to put it into `.git/hooks/pre-commit` and make it executable (`chmod +x .git/hooks/pre-commit`).
+
+Example hook:
+```
+#!/bin/bash
+
+MIX_ENV=test mix dialyzer || exit 1
+MIX_ENV=test mix format --check-formatted || exit 1
+MIX_ENV=test mix credo list --strict || exit 1
+MIX_ENV=test mix coveralls --warnings-as-errors || exit 1
+```
+
 ## Launching as a script
 You can use `bin/exshome` to start an application. It is an executable Elixir script. It downloads Exshome and starts the application.
 
