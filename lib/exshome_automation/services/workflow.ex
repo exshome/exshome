@@ -168,7 +168,7 @@ defmodule ExshomeAutomation.Services.Workflow do
 
   @impl GenServerDependency
   def handle_info({:EXIT, pid, _reason}, %DependencyState{} = state) do
-    state = update_editor(state, pid, &Editor.unsubscribe(&1, pid))
+    state = update_editor(state, pid, &Editor.clear_process_data(&1, pid))
     {:noreply, state}
   end
 
@@ -208,7 +208,6 @@ defmodule ExshomeAutomation.Services.Workflow do
   defp update_editor(%DependencyState{} = state, pid, update_fn) do
     update_data(state, fn editor ->
       editor
-      |> Editor.subscribe(pid)
       |> Editor.put_operation_pid(pid)
       |> update_fn.()
       |> Editor.broadcast_changes()

@@ -52,6 +52,23 @@ defmodule ExshomeAutomationTest.Services.WorkflowTest do
       assert [%EditorItem{selected_by: nil, drag: false, position: %{x: ^new_x, y: ^new_y}}] =
                Workflow.list_items(workflow_id)
     end
+
+    test "deletes_item", %{workflow_id: workflow_id} do
+      %EditorItem{id: item_id, position: position} = create_random_item(workflow_id)
+      new_x = position.x + 1
+      new_y = position.y + 1
+
+      pid =
+        TestRegistry.start_agent!(fn ->
+          Workflow.select_item!(workflow_id, item_id)
+          Workflow.move_item!(workflow_id, item_id, %{x: new_x, y: new_y})
+          Workflow.delete_item!(workflow_id, item_id)
+        end)
+
+      :ok = TestRegistry.stop_agent!(pid)
+
+      assert [] == Workflow.list_items(workflow_id)
+    end
   end
 
   defp create_random_item(workflow_id) do

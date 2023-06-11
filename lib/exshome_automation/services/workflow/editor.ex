@@ -13,8 +13,7 @@ defmodule ExshomeAutomation.Services.Workflow.Editor do
     :items,
     :changes,
     :operation_pid,
-    dragged_by: %{},
-    subscribers: MapSet.new()
+    dragged_items: %{}
   ]
 
   @type t() :: %__MODULE__{
@@ -24,8 +23,7 @@ defmodule ExshomeAutomation.Services.Workflow.Editor do
           },
           changes: [Operation.t()],
           operation_pid: Operation.key(),
-          dragged_by: %{pid() => String.t()},
-          subscribers: MapSet.t(pid())
+          dragged_items: %{pid() => String.t() | nil}
         }
 
   @spec blank_editor(id :: String.t()) :: t()
@@ -50,28 +48,33 @@ defmodule ExshomeAutomation.Services.Workflow.Editor do
   @spec put_operation_pid(t(), Operation.key()) :: t()
   def put_operation_pid(state, operation_pid) do
     %__MODULE__{state | operation_pid: operation_pid}
+    |> regiter_client(operation_pid)
   end
 
-  @spec subscribe(t(), Operation.key()) :: t()
-  def subscribe(%__MODULE__{} = state, operation_pid) do
-    if operation_pid && !MapSet.member?(state.subscribers, operation_pid) do
+  @spec regiter_client(t(), Operation.key()) :: t()
+  defp regiter_client(%__MODULE__{} = state, operation_pid) do
+    if operation_pid && !Map.has_key?(state.dragged_items, operation_pid) do
       Process.link(operation_pid)
-      update_in(state.subscribers, &MapSet.put(&1, operation_pid))
+      update_in(state.dragged_items, &Map.put(&1, operation_pid, nil))
     else
       state
     end
   end
 
-  @spec unsubscribe(t(), Operation.key()) :: t()
-  def unsubscribe(%__MODULE__{} = state, operation_pid) do
-    if MapSet.member?(state.subscribers, operation_pid) do
-      Process.unlink(operation_pid)
+  @spec clear_process_data(t(), Operation.key()) :: t()
+  def clear_process_data(%__MODULE__{} = state, operation_pid) do
+    Process.unlink(operation_pid)
 
-      update_in(state.subscribers, &MapSet.delete(&1, operation_pid))
-      |> clear_selected_by(operation_pid)
-    else
-      state
-    end
+    dragged_item_id = state.dragged_items[operation_pid]
+
+    state =
+      case get_item(state, dragged_item_id) do
+        %EditorItem{position: position} -> stop_dragging(state, dragged_item_id, position)
+        _ -> state
+      end
+
+    update_in(state.dragged_items, &Map.delete(&1, operation_pid))
+    |> clear_selected_by(operation_pid)
   end
 
   @spec list_items(t()) :: [EditorItem.t()]
@@ -104,11 +107,9 @@ defmodule ExshomeAutomation.Services.Workflow.Editor do
   defp clear_selected_by(state, pid) do
     for %EditorItem{} = item <- list_items(state), item.selected_by == pid, reduce: state do
       state ->
-        item = %EditorItem{item | selected_by: nil, drag: false}
+        item = %EditorItem{item | selected_by: nil}
 
-        state
-        |> remove_dragged_by(item)
-        |> update_item(item)
+        update_item(state, item)
     end
   end
 
@@ -147,24 +148,21 @@ defmodule ExshomeAutomation.Services.Workflow.Editor do
 
     state
     |> update_item(item)
-    |> remove_dragged_by(item)
+    |> remove_dragged_item_id()
   end
 
   @spec update_dragged_by(t(), EditorItem.t()) :: t()
   defp update_dragged_by(%__MODULE__{operation_pid: nil} = state, _), do: state
 
   defp update_dragged_by(%__MODULE__{} = state, %EditorItem{id: id}) do
-    update_in(state.dragged_by, &Map.put(&1, state.operation_pid, id))
+    update_in(state.dragged_items, &Map.put(&1, state.operation_pid, id))
   end
 
-  @spec remove_dragged_by(t(), EditorItem.t()) :: t()
-  defp remove_dragged_by(%__MODULE__{} = state, %EditorItem{} = item) do
-    dragged_by =
-      state.dragged_by
-      |> Enum.reject(fn {_, item_id} -> item.id == item_id end)
-      |> Enum.into(%{})
+  @spec remove_dragged_item_id(t()) :: t()
+  defp remove_dragged_item_id(%__MODULE__{operation_pid: nil} = state), do: state
 
-    %__MODULE__{state | dragged_by: dragged_by}
+  defp remove_dragged_item_id(%__MODULE__{} = state) do
+    update_in(state.dragged_items, &Map.put(&1, state.operation_pid, nil))
   end
 
   def delete_item(%__MODULE__{} = state, id) do
