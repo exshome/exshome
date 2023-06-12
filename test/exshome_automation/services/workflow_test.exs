@@ -29,7 +29,7 @@ defmodule ExshomeAutomationTest.Services.WorkflowTest do
   describe "correct cleanup when the process is dead" do
     test "clears selection", %{workflow_id: workflow_id} do
       %EditorItem{id: item_id} = create_random_item(workflow_id)
-      pid = TestRegistry.start_agent!(fn -> Workflow.select_item!(workflow_id, item_id) end)
+      pid = TestRegistry.start_agent!(fn -> Workflow.select_item(workflow_id, item_id) end)
       assert [%EditorItem{selected_by: ^pid}] = Workflow.list_items(workflow_id)
       :ok = TestRegistry.stop_agent!(pid)
       assert [%EditorItem{selected_by: nil}] = Workflow.list_items(workflow_id)
@@ -42,8 +42,8 @@ defmodule ExshomeAutomationTest.Services.WorkflowTest do
 
       pid =
         TestRegistry.start_agent!(fn ->
-          Workflow.select_item!(workflow_id, item_id)
-          Workflow.move_item!(workflow_id, item_id, %{x: new_x, y: new_y})
+          Workflow.select_item(workflow_id, item_id)
+          Workflow.move_item(workflow_id, item_id, %{x: new_x, y: new_y})
         end)
 
       assert [%EditorItem{selected_by: ^pid, drag: true}] = Workflow.list_items(workflow_id)
@@ -60,9 +60,9 @@ defmodule ExshomeAutomationTest.Services.WorkflowTest do
 
       pid =
         TestRegistry.start_agent!(fn ->
-          Workflow.select_item!(workflow_id, item_id)
-          Workflow.move_item!(workflow_id, item_id, %{x: new_x, y: new_y})
-          Workflow.delete_item!(workflow_id, item_id)
+          Workflow.select_item(workflow_id, item_id)
+          Workflow.move_item(workflow_id, item_id, %{x: new_x, y: new_y})
+          Workflow.delete_item(workflow_id, item_id)
         end)
 
       :ok = TestRegistry.stop_agent!(pid)
@@ -79,9 +79,9 @@ defmodule ExshomeAutomationTest.Services.WorkflowTest do
 
       pid =
         TestRegistry.start_agent!(fn ->
-          Workflow.select_item!(workflow_id, item_id)
-          Workflow.move_item!(workflow_id, item_id, %{x: move_x, y: move_y})
-          Workflow.stop_dragging!(workflow_id, item_id, %{x: final_x, y: final_y})
+          Workflow.select_item(workflow_id, item_id)
+          Workflow.move_item(workflow_id, item_id, %{x: move_x, y: move_y})
+          Workflow.stop_dragging(workflow_id, item_id, %{x: final_x, y: final_y})
         end)
 
       assert [%EditorItem{selected_by: ^pid, drag: false, position: %{x: ^final_x, y: ^final_y}}] =
@@ -91,6 +91,29 @@ defmodule ExshomeAutomationTest.Services.WorkflowTest do
 
       assert [%EditorItem{selected_by: nil, drag: false, position: %{x: ^final_x, y: ^final_y}}] =
                Workflow.list_items(workflow_id)
+    end
+  end
+
+  describe "check logic constraints" do
+    test "select non-existing item", %{workflow_id: workflow_id} do
+      assert {:error, _reason} = Workflow.select_item(workflow_id, "non-existing")
+    end
+
+    test "move non-existing item", %{workflow_id: workflow_id} do
+      assert {:error, _reason} = Workflow.move_item(workflow_id, "non-existing", %{x: 0, y: 0})
+    end
+
+    test "stop dragging non-existing item", %{workflow_id: workflow_id} do
+      assert {:error, _reason} =
+               Workflow.stop_dragging(
+                 workflow_id,
+                 "non-existing",
+                 %{x: 0, y: 0}
+               )
+    end
+
+    test "delete non-existing item", %{workflow_id: workflow_id} do
+      assert {:error, _reason} = Workflow.delete_item(workflow_id, "non-existing")
     end
   end
 

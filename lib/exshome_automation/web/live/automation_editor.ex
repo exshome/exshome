@@ -65,25 +65,25 @@ defmodule ExshomeAutomation.Web.Live.AutomationEditor do
 
   @impl SvgCanvas
   def handle_delete(%Socket{} = socket, id) do
-    :ok = Workflow.delete_item!(socket.assigns.workflow_id, id)
+    :ok = Workflow.delete_item(socket.assigns.workflow_id, id)
     socket
   end
 
   @impl SvgCanvas
   def handle_dragend(%Socket{} = socket, %{id: id, position: position}) do
-    :ok = Workflow.stop_dragging!(socket.assigns.workflow_id, id, position)
+    :ok = Workflow.stop_dragging(socket.assigns.workflow_id, id, position)
     socket
   end
 
   @impl SvgCanvas
   def handle_move(%Socket{} = socket, %{id: id, position: position}) do
-    :ok = Workflow.move_item!(socket.assigns.workflow_id, id, position)
+    :ok = Workflow.move_item(socket.assigns.workflow_id, id, position)
     socket
   end
 
   @impl SvgCanvas
   def handle_select(%Socket{} = socket, %{id: selected_id}) do
-    :ok = Workflow.select_item!(socket.assigns.workflow_id, selected_id)
+    :ok = Workflow.select_item(socket.assigns.workflow_id, selected_id)
     socket
   end
 

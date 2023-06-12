@@ -21,6 +21,8 @@ defmodule ExshomeAutomation.Services.Workflow do
           name: String.t()
         }
 
+  @type editor_item_response() :: :ok | {:error, reason :: String.t()}
+
   use Exshome.Dependency.GenServerDependency,
     name: "automation_workflow",
     child_module: WorkflowSupervisor
@@ -81,36 +83,32 @@ defmodule ExshomeAutomation.Services.Workflow do
     %EditorItem{} = call(workflow_id, {:get_item, item_id})
   end
 
-  @spec select_item!(workflow_id :: String.t(), item_id :: String.t()) :: :ok
-  def select_item!(workflow_id, item_id) do
-    item = get_item!(workflow_id, item_id)
-    call(workflow_id, {:select_item, item.id})
+  @spec select_item(workflow_id :: String.t(), item_id :: String.t()) :: editor_item_response()
+  def select_item(workflow_id, item_id) do
+    call(workflow_id, {:select_item, item_id})
   end
 
-  @spec move_item!(
+  @spec move_item(
           workflow_id :: String.t(),
           item_id :: String.t(),
           position :: EditorItem.position()
-        ) :: :ok
-  def move_item!(workflow_id, item_id, position) do
-    item = get_item!(workflow_id, item_id)
-    call(workflow_id, {{:move_item, item.id}, position})
+        ) :: editor_item_response()
+  def move_item(workflow_id, item_id, position) do
+    call(workflow_id, {{:move_item, item_id}, position})
   end
 
-  @spec stop_dragging!(
+  @spec stop_dragging(
           workflow_id :: String.t(),
           item_id :: String.t(),
           position :: EditorItem.position()
-        ) :: :ok
-  def stop_dragging!(workflow_id, item_id, position) do
-    item = get_item!(workflow_id, item_id)
-    call(workflow_id, {{:stop_dragging, item.id}, position})
+        ) :: editor_item_response()
+  def stop_dragging(workflow_id, item_id, position) do
+    call(workflow_id, {{:stop_dragging, item_id}, position})
   end
 
-  @spec delete_item!(workflow_id :: String.t(), item_id :: String.t()) :: :ok
-  def delete_item!(workflow_id, item_id) do
-    item = get_item!(workflow_id, item_id)
-    call(workflow_id, {:delete_item, item.id})
+  @spec delete_item(workflow_id :: String.t(), item_id :: String.t()) :: editor_item_response()
+  def delete_item(workflow_id, item_id) do
+    call(workflow_id, {:delete_item, item_id})
   end
 
   @spec rename(String.t(), String.t()) :: :ok
@@ -131,13 +129,21 @@ defmodule ExshomeAutomation.Services.Workflow do
   end
 
   def handle_call({:select_item, item_id}, {request_pid, _}, %DependencyState{} = state) do
-    state = update_editor(state, request_pid, &Editor.select_item(&1, item_id))
-    {:reply, :ok, state}
+    item_operation(
+      state,
+      request_pid,
+      item_id,
+      &Editor.select_item(&1, item_id)
+    )
   end
 
   def handle_call({{:move_item, item_id}, position}, {request_pid, _}, %DependencyState{} = state) do
-    state = update_editor(state, request_pid, &Editor.move_item(&1, item_id, position))
-    {:reply, :ok, state}
+    item_operation(
+      state,
+      request_pid,
+      item_id,
+      &Editor.move_item(&1, item_id, position)
+    )
   end
 
   def handle_call(
@@ -145,13 +151,21 @@ defmodule ExshomeAutomation.Services.Workflow do
         {request_pid, _},
         %DependencyState{} = state
       ) do
-    state = update_editor(state, request_pid, &Editor.stop_dragging(&1, item_id, position))
-    {:reply, :ok, state}
+    item_operation(
+      state,
+      request_pid,
+      item_id,
+      &Editor.stop_dragging(&1, item_id, position)
+    )
   end
 
   def handle_call({:delete_item, item_id}, {request_pid, _}, %DependencyState{} = state) do
-    state = update_editor(state, request_pid, &Editor.delete_item(&1, item_id))
-    {:reply, :ok, state}
+    item_operation(
+      state,
+      request_pid,
+      item_id,
+      &Editor.delete_item(&1, item_id)
+    )
   end
 
   def handle_call({:rename, name}, _, %DependencyState{} = state) do
@@ -201,6 +215,23 @@ defmodule ExshomeAutomation.Services.Workflow do
   defp broadcast_changes(%{data: %__MODULE__{}} = changes) do
     :ok = DataStream.broadcast(WorkflowStateStream, changes)
     :ok = DataStream.broadcast({WorkflowStateStream, changes.data.id}, changes)
+  end
+
+  @spec item_operation(
+          DependencyState.t(),
+          Operation.key(),
+          item_id :: String.t(),
+          (Editor.t() -> Editor.t())
+        ) :: {:reply, editor_item_response(), DependencyState.t()}
+  def item_operation(state, pid, item_id, update_fn) do
+    case Editor.get_item(state.data, item_id) do
+      %EditorItem{} ->
+        state = update_editor(state, pid, update_fn)
+        {:reply, :ok, state}
+
+      _ ->
+        {:reply, {:error, "Item not found"}, state}
+    end
   end
 
   @spec update_editor(DependencyState.t(), Operation.key(), (Editor.t() -> Editor.t())) ::
