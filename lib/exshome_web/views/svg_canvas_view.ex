@@ -24,6 +24,7 @@ defmodule ExshomeWeb.SvgCanvasView do
   attr :menu, :any, doc: "map with render settings for menu"
   attr :menu_items, :list, doc: "menu items"
   attr :name, :string, doc: "svg canvas name"
+  attr :screen, :map, doc: "canvas scrren properties"
   defp render_menu(assigns), do: menu(assigns)
 
   attr :id, :string, required: true, doc: "Dom ID of the component"

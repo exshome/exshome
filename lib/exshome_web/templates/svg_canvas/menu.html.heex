@@ -1,58 +1,52 @@
-<svg class="h-full w-1/2 relative" x="0" y="0">
-  <foreignObject
-    id={"menu-data-#{@name}"}
-    x="0"
-    y="0"
-    height="100%"
-    width="100%"
-    class={if @menu.open?, do: "", else: "hidden"}
+<foreignObject
+  id={"menu-data-#{@name}"}
+  height={@screen.height}
+  width={@screen.width}
+  class={if @menu.open?, do: "", else: "hidden"}
+>
+  <section
+    id={"menu-overlay-#{@name}"}
+    class="bg-gray-200/20 dark:bg-gray-700/20 h-full w-full"
+    phx-click={"menu-close-#{@name}"}
+    phx-hook="StopEvents"
+    data-stop-events="mousewheel, DOMMouseScroll"
   >
     <section
-      id={"menu-overlay-#{@name}"}
-      class="fill-gray-200/20 dark:fill-gray-700/20 h-full w-full"
-      phx-click={"menu-close-#{@name}"}
-      phx-hook="StopEvents"
-      data-stop-events="mousewheel, DOMMouseScroll"
-    >
-      <section
-        id={"menu-background-#{@name}"}
-        class="
-                 flex justify-center
-                 h-full w-full md:w-1/2 lg:w-2/6
-                 bg-gray-500/80 rounded-r-lg overflow-hidden
+      id={"menu-background-#{@name}"}
+      class="
+             flex justify-center
+             h-full w-full md:w-1/2 lg:w-2/6
+             bg-gray-500/80 rounded-r-lg overflow-hidden
           "
-        phx-hook="StopEvents"
-        data-stop-events="click, touchend"
-      >
-        <section class="w-1/2 overflow-y-auto" />
-        <section class="w-1/2 overflow-y-auto">
-          <%= for menu_item <- @menu_items do %>
-            <svg
-              class="w-full p-5"
-              viewbox={"0 0 #{menu_item.item.width} #{menu_item.item.height}"}
-            >
-              <.render_component
-                id={menu_item.id}
-                component={menu_item}
-                context={%{name: @name, drag: "create", role: "menu-item"}}
-              />
-            </svg>
-          <% end %>
-        </section>
+      phx-hook="StopEvents"
+      data-stop-events="click, touchend"
+    >
+      <section class="w-1/2 overflow-y-auto" />
+      <section class="w-1/2 overflow-y-auto">
+        <%= for menu_item <- @menu_items do %>
+          <svg class="w-full p-5" viewbox={"0 0 #{menu_item.item.width} #{menu_item.item.height}"}>
+            <.render_component
+              id={menu_item.id}
+              component={menu_item}
+              context={%{name: @name, drag: "create", role: "menu-item"}}
+            />
+          </svg>
+        <% end %>
       </section>
     </section>
-  </foreignObject>
-  <svg
-    height={@menu.size}
-    width={@menu.size}
-    x={@menu.x}
-    y={@menu.y}
-    viewbox="-30 10 154 124"
-    class="fill-gray-200/80 hover:fill-gray-200 dark:fill-gray-700/80 dark:hover:fill-gray-700"
-    phx-click={"menu-toggle-#{@name}"}
-  >
-    <%= if @menu.open? do %>
-      <path d="
+  </section>
+</foreignObject>
+<svg
+  height={@menu.size}
+  width={@menu.size}
+  x={@menu.x}
+  y={@menu.y}
+  viewbox="-30 10 154 124"
+  class="fill-gray-200/80 hover:fill-gray-200 dark:fill-gray-700/80 dark:hover:fill-gray-700"
+  phx-click={"menu-toggle-#{@name}"}
+>
+  <%= if @menu.open? do %>
+    <path d="
            M 10,30
            L 30,50
            Q 40,60 30,70
@@ -72,8 +66,8 @@
            Q 0,0 10,30
            Z
            " />
-    <% else %>
-      <path d="
+  <% else %>
+    <path d="
            M 112, 6
            H 12
            C 5.4, 6, 0, 11.4, 0, 18
@@ -83,7 +77,7 @@
            S 118.6, 6, 112, 6
            z
            " />
-      <path d="
+    <path d="
            M 112, 50
            H 12
            C 5.4, 50, 0, 55.4, 0, 62
@@ -93,7 +87,7 @@
            C 124, 55.4, 118.6, 50, 112, 50
            z
            " />
-      <path d="
+    <path d="
            M 112, 94
            H 12
            c -6.6, 0, -12, 5.4, -12, 12
@@ -103,7 +97,6 @@
            S 118.6, 94, 112, 94
            z
            " />
-    <% end %>
-    <rect x="0" y="0" height="100%" width="100%" class="fill-transparent" />
-  </svg>
+  <% end %>
+  <rect x="0" y="0" height="100%" width="100%" class="fill-transparent" />
 </svg>

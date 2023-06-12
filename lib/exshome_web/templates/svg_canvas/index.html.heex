@@ -85,6 +85,11 @@
       data-component={"scroll-body-y-#{@meta.name}"}
     />
     <.render_trashbin id={"#{@meta.name}-trashbin"} trashbin={@meta.trashbin} />
-    <.render_menu name={@meta.name} menu={@meta.menu} menu_items={@menu_items} />
+    <.render_menu
+      name={@meta.name}
+      menu={@meta.menu}
+      menu_items={@menu_items}
+      screen={@meta.screen}
+    />
   </svg>
 </section>
