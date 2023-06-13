@@ -10,12 +10,9 @@ defmodule ExshomeWeb.Live.SvgCanvas do
     :name,
     :selected,
     canvas: %{height: 500, width: 500},
-    class: "opacity-0",
+    class: "h-px opacity-0",
     menu: %{
-      open?: false,
-      size: 70,
-      x: 0,
-      y: 0
+      open?: false
     },
     screen: %{height: 100, width: 100},
     scroll: %{
@@ -45,10 +42,7 @@ defmodule ExshomeWeb.Live.SvgCanvas do
           },
           class: String.t(),
           menu: %{
-            open?: boolean(),
-            size: number(),
-            x: number(),
-            y: number()
+            open?: boolean()
           },
           screen: %{
             height: number(),
@@ -535,16 +529,8 @@ defmodule ExshomeWeb.Live.SvgCanvas do
     String.replace(component, prefix, "")
   end
 
-  defp refresh_menu(%__MODULE__{screen: screen, scroll: scroll} = data) do
-    Map.update!(
-      data,
-      :menu,
-      &%{
-        &1
-        | y: screen.height - scroll.height - &1.size,
-          open?: false
-      }
-    )
+  defp refresh_menu(%__MODULE__{} = data) do
+    Map.update!(data, :menu, &%{&1 | open?: false})
   end
 
   defp refresh_trashbin_position(%__MODULE__{screen: screen, scroll: scroll} = data) do

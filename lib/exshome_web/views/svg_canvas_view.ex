@@ -21,10 +21,9 @@ defmodule ExshomeWeb.SvgCanvasView do
   attr :trashbin, :any, doc: "map with render settings for trashbin"
   defp render_trashbin(assigns), do: trashbin(assigns)
 
-  attr :menu, :any, doc: "map with render settings for menu"
+  attr :open?, :boolean, doc: "shows if menu is open"
   attr :menu_items, :list, doc: "menu items"
   attr :name, :string, doc: "svg canvas name"
-  attr :screen, :map, doc: "canvas scrren properties"
   defp render_menu(assigns), do: menu(assigns)
 
   attr :id, :string, required: true, doc: "Dom ID of the component"

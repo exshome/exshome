@@ -24,72 +24,70 @@
       </.button>
     </div>
   </section>
-  <svg
-    id={"#{@meta.name}-screen"}
-    class={"grow w-full select-none relative #{@meta.class}"}
-    viewBox={"0 0 #{@meta.screen.width} #{@meta.screen.height}"}
+  <section
+    id={"#{@meta.name}-wrapper"}
+    class="flex-grow h-screen select-none relative"
     data-viewbox-x={@meta.viewbox.x}
     data-viewbox-y={@meta.viewbox.y}
-    xmlns="http://www.w3.org/2000/svg"
     phx-hook="SvgCanvas"
   >
     <svg
-      id={"#{@meta.name}-body"}
-      class="h-full w-full select-none"
-      viewBox={
-          "#{@meta.viewbox.x} #{@meta.viewbox.y} #{@meta.viewbox.width} #{@meta.viewbox.height}"
-        }
+      id={"#{@meta.name}-screen"}
+      class={"max-h-full #{@meta.class}"}
+      viewBox={"0 0 #{@meta.screen.width} #{@meta.screen.height}"}
       xmlns="http://www.w3.org/2000/svg"
     >
+      <svg
+        id={"#{@meta.name}-body"}
+        class="h-full w-full select-none"
+        viewBox={"#{@meta.viewbox.x} #{@meta.viewbox.y} #{@meta.viewbox.width} #{@meta.viewbox.height}"}
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <rect
+          data-component={"canvas-background-#{@meta.name}"}
+          x={@meta.viewbox.x}
+          y={@meta.viewbox.y}
+          height={@meta.viewbox.height}
+          width={@meta.viewbox.width}
+          data-drag="move-background"
+          class="fill-transparent"
+        />
+        <g phx-update="stream" id={"#{@meta.name}-content"} class="h-full w-full">
+          <%= for {id, component} <- @components do %>
+            <.render_component
+              id={id}
+              component={component}
+              context={%{name: @meta.name, drag: "move"}}
+            />
+          <% end %>
+        </g>
+      </svg>
       <rect
-        data-component={"canvas-background-#{@meta.name}"}
-        x={@meta.viewbox.x}
-        y={@meta.viewbox.y}
-        height={@meta.viewbox.height}
-        width={@meta.viewbox.width}
-        data-drag="move-background"
-        class="fill-transparent"
+        :if={@meta.viewbox.width < @meta.canvas.width}
+        class="fill-gray-200/80 hover:fill-gray-200 dark:fill-gray-700/80 dark:hover:fill-gray-700"
+        rx="10"
+        ry="10"
+        x={@meta.scroll.x}
+        y={@meta.screen.height - @meta.scroll.height}
+        height={@meta.scroll.height}
+        width={@meta.scroll.size_x}
+        data-drag="scroll-body-x"
+        data-component={"scroll-body-x-#{@meta.name}"}
       />
-      <g phx-update="stream" id={"#{@meta.name}-content"} class="h-full w-full">
-        <%= for {id, component} <- @components do %>
-          <.render_component
-            id={id}
-            component={component}
-            context={%{name: @meta.name, drag: "move"}}
-          />
-        <% end %>
-      </g>
+      <rect
+        :if={@meta.viewbox.height < @meta.canvas.height}
+        class="fill-gray-200/80 hover:fill-gray-200 dark:fill-gray-700/80 dark:hover:fill-gray-700"
+        rx="10"
+        ry="10"
+        x={@meta.screen.width - @meta.scroll.height}
+        y={@meta.scroll.y}
+        height={@meta.scroll.size_y}
+        width={@meta.scroll.height}
+        data-drag="scroll-body-y"
+        data-component={"scroll-body-y-#{@meta.name}"}
+      />
+      <.render_trashbin id={"#{@meta.name}-trashbin"} trashbin={@meta.trashbin} />
     </svg>
-    <rect
-      :if={@meta.viewbox.width < @meta.canvas.width}
-      class="fill-gray-200/80 hover:fill-gray-200 dark:fill-gray-700/80 dark:hover:fill-gray-700"
-      rx="10"
-      ry="10"
-      x={@meta.scroll.x}
-      y={@meta.screen.height - @meta.scroll.height}
-      height={@meta.scroll.height}
-      width={@meta.scroll.size_x}
-      data-drag="scroll-body-x"
-      data-component={"scroll-body-x-#{@meta.name}"}
-    />
-    <rect
-      :if={@meta.viewbox.height < @meta.canvas.height}
-      class="fill-gray-200/80 hover:fill-gray-200 dark:fill-gray-700/80 dark:hover:fill-gray-700"
-      rx="10"
-      ry="10"
-      x={@meta.screen.width - @meta.scroll.height}
-      y={@meta.scroll.y}
-      height={@meta.scroll.size_y}
-      width={@meta.scroll.height}
-      data-drag="scroll-body-y"
-      data-component={"scroll-body-y-#{@meta.name}"}
-    />
-    <.render_trashbin id={"#{@meta.name}-trashbin"} trashbin={@meta.trashbin} />
-    <.render_menu
-      name={@meta.name}
-      menu={@meta.menu}
-      menu_items={@menu_items}
-      screen={@meta.screen}
-    />
-  </svg>
+    <.render_menu name={@meta.name} open?={@meta.menu.open?} menu_items={@menu_items} />
+  </section>
 </section>
