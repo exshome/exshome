@@ -7,6 +7,7 @@ defmodule ExshomeAutomationTest.Web.ShowVariableModalTest do
   alias Exshome.Dependency.NotReady
   alias Exshome.Variable
   alias Exshome.Variable.VariableStateStream
+  alias ExshomeAutomation.Services.VariableRegistry
   alias ExshomePlayer.Services.MpvSocket
   alias ExshomePlayer.Services.PlayerState
   alias ExshomePlayer.Variables.Position
@@ -66,6 +67,20 @@ defmodule ExshomeAutomationTest.Web.ShowVariableModalTest do
       assert {:ok, %Variable{name: ^new_name}} = Variable.get_by_id(variable.id)
       toggle_rename_input(view)
       assert view |> find_rename_form() |> render() =~ new_name
+    end
+
+    test "deletes a variable when modal is open", %{view: view} do
+      create_new_variable(view, Enum.random(Datatype.available_types()))
+
+      assert_receive_app_page_stream(
+        {VariableStateStream,
+         %Operation.Insert{data: %Variable{id: variable_id, dependency: dependency}}}
+      )
+
+      open_modal(view, dependency)
+      :ok = Variable.delete_by_id!(variable_id)
+      assert_receive_app_page_dependency({VariableRegistry, _})
+      refute render(view) =~ variable_id
     end
 
     defp create_new_variable(view, datatype) do

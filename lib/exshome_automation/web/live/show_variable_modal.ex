@@ -50,4 +50,8 @@ defmodule ExshomeAutomation.Web.Live.ShowVariableModal do
   def on_stream({{VariableStateStream, _id}, %Operation.Update{data: data}}, %Socket{} = socket) do
     assign(socket, :config, data)
   end
+
+  def on_stream({{VariableStateStream, _id}, %Operation.Delete{}}, %Socket{} = socket) do
+    close_modal(socket)
+  end
 end
