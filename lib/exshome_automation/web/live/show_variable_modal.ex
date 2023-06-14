@@ -4,6 +4,7 @@ defmodule ExshomeAutomation.Web.Live.ShowVariableModal do
   """
   alias Exshome.DataStream.Operation
   alias Exshome.Dependency
+  alias Exshome.Dependency.NotReady
   alias Exshome.Variable
   alias Exshome.Variable.VariableStateStream
   use ExshomeWeb.Live.AppPage, dependencies: []
@@ -52,6 +53,6 @@ defmodule ExshomeAutomation.Web.Live.ShowVariableModal do
   end
 
   def on_stream({{VariableStateStream, _id}, %Operation.Delete{}}, %Socket{} = socket) do
-    close_modal(socket)
+    assign(socket, :config, NotReady)
   end
 end
