@@ -80,6 +80,7 @@ defmodule ExshomeAutomationTest.Web.ShowVariableModalTest do
       open_modal(view, dependency)
       :ok = Variable.delete_by_id!(variable_id)
       assert_receive_app_page_dependency({VariableRegistry, _})
+      Process.sleep(10)
       refute render(view) =~ variable_id
     end
 
