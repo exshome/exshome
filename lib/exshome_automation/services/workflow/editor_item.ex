@@ -67,21 +67,44 @@ defmodule ExshomeAutomation.Services.Workflow.EditorItem do
 
   def available_types do
     %{
-      "rect" => %__MODULE__{
+      "simple_action" => %__MODULE__{
         height: 46,
         width: 34,
         position: %{x: 0, y: 0},
         config: %ItemConfig{
           has_previous_action?: true,
           has_next_action?: true,
+          has_parent_connection?: false,
+          child_actions: [],
+          child_connections: []
+        }
+      },
+      "value" => %__MODULE__{
+        height: 46,
+        width: 34,
+        position: %{x: 0, y: 0},
+        config: %ItemConfig{
+          has_previous_action?: false,
+          has_next_action?: false,
           has_parent_connection?: true,
+          child_actions: [],
+          child_connections: []
+        }
+      },
+      "if" => %__MODULE__{
+        height: 46,
+        width: 34,
+        position: %{x: 0, y: 0},
+        config: %ItemConfig{
+          has_previous_action?: true,
+          has_next_action?: true,
+          has_parent_connection?: false,
           child_actions: [
-            %{height: 3, id: "first_action"},
-            %{height: 3, id: "second_action"}
+            %{height: 3, id: "if clause"},
+            %{height: 3, id: "then clause"}
           ],
           child_connections: [
-            %{height: 3, id: "first_connection"},
-            %{height: 3, id: "second_connection"}
+            %{height: 3, id: "condition"}
           ]
         }
       }
