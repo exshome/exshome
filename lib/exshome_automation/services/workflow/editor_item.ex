@@ -16,7 +16,8 @@ defmodule ExshomeAutomation.Services.Workflow.EditorItem do
     :connectors,
     :selected_by,
     :drag,
-    position: %{x: 0, y: 0}
+    position: %{x: 0, y: 0},
+    connections: %{}
   ]
 
   @type position() :: %{
@@ -25,6 +26,9 @@ defmodule ExshomeAutomation.Services.Workflow.EditorItem do
         }
 
   @type selected_by() :: pid() | nil
+  @type connection_type() :: :hover | :connected
+
+  @type remote_key :: {item_id :: String.t(), Properties.connector_key()}
 
   @type t() :: %__MODULE__{
           id: String.t(),
@@ -36,7 +40,13 @@ defmodule ExshomeAutomation.Services.Workflow.EditorItem do
           type: String.t(),
           selected_by: selected_by(),
           drag: boolean(),
-          connectors: Properties.connector_mapping()
+          connectors: Properties.connector_mapping(),
+          connections: %{
+            Properties.connector_key() => %{
+              remote_key: remote_key(),
+              type: connection_type()
+            }
+          }
         }
 
   @spec create(type :: String.t(), position :: position()) :: t()
@@ -59,6 +69,24 @@ defmodule ExshomeAutomation.Services.Workflow.EditorItem do
       | position: normalize_position(position)
     }
     |> refresh_item()
+  end
+
+  @spec put_connection(
+          t(),
+          own_key :: Properties.connector_key(),
+          remote_key :: remote_key(),
+          type :: connection_type()
+        ) :: t()
+  def put_connection(%__MODULE__{} = item, own_key, remote_key, type) do
+    update_in(
+      item.connections,
+      &Map.put(&1, own_key, %{type: type, remote_key: remote_key})
+    )
+  end
+
+  @spec delete_connection(t(), own_key :: Properties.connector_key()) :: t()
+  def delete_connection(%__MODULE__{} = item, own_key) do
+    update_in(item.connections, &Map.delete(&1, own_key))
   end
 
   defp normalize_position(%{x: x, y: y}) do
