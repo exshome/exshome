@@ -5,7 +5,7 @@ defmodule ExshomeAutomation.Services.Workflow.Editor do
 
   alias Exshome.DataStream
   alias Exshome.DataStream.Operation
-  alias ExshomeAutomation.Services.Workflow.{EditorItem, Schema}
+  alias ExshomeAutomation.Services.Workflow.{EditorItem, ItemConfig, Schema}
   alias ExshomeAutomation.Streams.EditorStream
 
   defstruct [
@@ -13,7 +13,13 @@ defmodule ExshomeAutomation.Services.Workflow.Editor do
     :items,
     :changes,
     :operation_pid,
-    dragged_items: %{}
+    dragged_items: %{},
+    available_connectors: %{
+      action_in: %{},
+      action_out: %{},
+      connector_in: %{},
+      connector_out: %{}
+    }
   ]
 
   @type t() :: %__MODULE__{
@@ -22,6 +28,12 @@ defmodule ExshomeAutomation.Services.Workflow.Editor do
             String.t() => EditorItem.t()
           },
           changes: [Operation.t()],
+          available_connectors: %{
+            (type :: atom()) => %{
+              {item_id :: String.t(), ItemConfig.Properties.connector_key()} =>
+                ItemConfig.Properties.connector_position()
+            }
+          },
           operation_pid: Operation.key(),
           dragged_items: %{pid() => String.t() | nil}
         }
@@ -134,6 +146,7 @@ defmodule ExshomeAutomation.Services.Workflow.Editor do
     state
     |> update_item(item)
     |> update_dragged_by(item)
+    |> update_item_connectors(item)
   end
 
   @spec stop_dragging(t(), String.t(), EditorItem.position()) :: t()
@@ -179,6 +192,20 @@ defmodule ExshomeAutomation.Services.Workflow.Editor do
 
     %__MODULE__{state | items: Map.put(state.items, item.id, item)}
     |> put_change(change)
+  end
+
+  @spec update_item_connectors(t(), EditorItem.t()) :: t()
+  defp update_item_connectors(%__MODULE__{} = state, %EditorItem{} = item) do
+    for {{connector_type, _} = connector_key, data} <- item.connectors, reduce: state do
+      state ->
+        connector_data = %{data | x: item.position.x + data.x, y: item.position.y + data.y}
+        key = {item.id, connector_key}
+
+        update_in(
+          state.available_connectors[connector_type],
+          &Map.put(&1, key, connector_data)
+        )
+    end
   end
 
   @spec put_change(t(), Operation.single_operation()) :: t()
