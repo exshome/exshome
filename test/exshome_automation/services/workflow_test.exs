@@ -117,6 +117,23 @@ defmodule ExshomeAutomationTest.Services.WorkflowTest do
     end
   end
 
+  describe "check sort order" do
+    test "list_items returns items sorted by their update time", %{workflow_id: workflow_id} do
+      %EditorItem{id: id1} = create_random_item(workflow_id)
+      %EditorItem{id: id2} = create_random_item(workflow_id)
+
+      assert workflow_item_ids(workflow_id) == [id1, id2]
+      :ok = Workflow.move_item(workflow_id, id1, %{x: 0, y: 0})
+      assert workflow_item_ids(workflow_id) == [id2, id1]
+    end
+
+    defp workflow_item_ids(workflow_id) do
+      workflow_id
+      |> Workflow.list_items()
+      |> Enum.map(& &1.id)
+    end
+  end
+
   defp create_random_item(workflow_id) do
     type =
       EditorItem.available_types()

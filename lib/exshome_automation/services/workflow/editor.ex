@@ -13,6 +13,7 @@ defmodule ExshomeAutomation.Services.Workflow.Editor do
     :items,
     :changes,
     :operation_pid,
+    :operation_timestamp,
     dragged_items: %{},
     available_connectors: %{
       action_in: %{},
@@ -34,6 +35,7 @@ defmodule ExshomeAutomation.Services.Workflow.Editor do
             }
           },
           operation_pid: Operation.key(),
+          operation_timestamp: DateTime.t() | nil,
           dragged_items: %{pid() => String.t() | nil}
         }
 
@@ -60,6 +62,11 @@ defmodule ExshomeAutomation.Services.Workflow.Editor do
   def put_operation_pid(state, operation_pid) do
     %__MODULE__{state | operation_pid: operation_pid}
     |> regiter_client(operation_pid)
+  end
+
+  @spec put_operation_timestamp(t(), DateTime.t() | nil) :: t()
+  def put_operation_timestamp(state, operation_timestamp) do
+    %__MODULE__{state | operation_timestamp: operation_timestamp}
   end
 
   @spec regiter_client(t(), Operation.key()) :: t()
@@ -90,7 +97,9 @@ defmodule ExshomeAutomation.Services.Workflow.Editor do
 
   @spec list_items(t()) :: [EditorItem.t()]
   def list_items(%__MODULE__{items: items}) do
-    Map.values(items)
+    items
+    |> Map.values()
+    |> Enum.sort(&(DateTime.compare(&1.updated_at, &2.updated_at) == :lt))
   end
 
   @spec get_item(t(), String.t()) :: EditorItem.t() | nil
@@ -126,12 +135,21 @@ defmodule ExshomeAutomation.Services.Workflow.Editor do
 
   @spec create_item(t(), type :: String.t(), position :: EditorItem.position()) :: t()
   def create_item(%__MODULE__{} = state, type, position) do
-    %EditorItem{id: id} = item = EditorItem.create(type, position)
+    %EditorItem{id: id} =
+      item =
+      type
+      |> EditorItem.create(position)
+      |> maybe_put_updated_at(state.operation_timestamp)
+
     change = %Operation.Insert{data: item, at: -1, key: state.operation_pid}
 
     %__MODULE__{state | items: Map.put(state.items, id, item)}
     |> put_change(change)
   end
+
+  @spec maybe_put_updated_at(EditorItem.t(), DateTime.t() | nil) :: EditorItem.t()
+  def maybe_put_updated_at(item, nil), do: item
+  def maybe_put_updated_at(item, timestamp), do: EditorItem.put_updated_at(item, timestamp)
 
   @spec move_item(t(), String.t(), EditorItem.position()) :: t()
   def move_item(%__MODULE__{} = state, item_id, new_position) do
@@ -141,6 +159,7 @@ defmodule ExshomeAutomation.Services.Workflow.Editor do
       |> get_item(item_id)
       |> EditorItem.set_drag(true)
       |> EditorItem.update_position(new_position)
+      |> EditorItem.put_updated_at(state.operation_timestamp)
 
     state
     |> update_item(item)
@@ -209,7 +228,7 @@ defmodule ExshomeAutomation.Services.Workflow.Editor do
   end
 
   @spec update_connections(t(), EditorItem.t()) :: t()
-  defp update_connections(%__MODULE__{} = state, %EditorItem{} = item) do
+  defp update_connections(%__MODULE__{} = state, %EditorItem{} = _item) do
     state
   end
 

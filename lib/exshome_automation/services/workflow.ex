@@ -237,12 +237,16 @@ defmodule ExshomeAutomation.Services.Workflow do
   @spec update_editor(DependencyState.t(), Operation.key(), (Editor.t() -> Editor.t())) ::
           DependencyState.t()
   defp update_editor(%DependencyState{} = state, pid, update_fn) do
+    operation_timestamp = DateTime.now!("Etc/UTC")
+
     update_data(state, fn editor ->
       editor
+      |> Editor.put_operation_timestamp(operation_timestamp)
       |> Editor.put_operation_pid(pid)
       |> update_fn.()
       |> Editor.broadcast_changes()
       |> Editor.put_operation_pid(nil)
+      |> Editor.put_operation_timestamp(nil)
     end)
   end
 end

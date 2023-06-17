@@ -15,6 +15,7 @@ defmodule ExshomeAutomation.Services.Workflow.EditorItem do
     :svg_path,
     :connectors,
     :selected_by,
+    :updated_at,
     :drag,
     position: %{x: 0, y: 0},
     connections: %{}
@@ -41,6 +42,7 @@ defmodule ExshomeAutomation.Services.Workflow.EditorItem do
           selected_by: selected_by(),
           drag: boolean(),
           connectors: Properties.connector_mapping(),
+          updated_at: DateTime.t(),
           connections: %{
             Properties.connector_key() => %{
               remote_key: remote_key(),
@@ -69,6 +71,11 @@ defmodule ExshomeAutomation.Services.Workflow.EditorItem do
       | position: normalize_position(position)
     }
     |> refresh_item()
+  end
+
+  @spec put_updated_at(t(), DateTime.t()) :: t()
+  def put_updated_at(%__MODULE__{} = item, %DateTime{} = timestamp) do
+    %__MODULE__{item | updated_at: timestamp}
   end
 
   @spec put_connection(
