@@ -26,6 +26,35 @@ defmodule ExshomeTest.VersionTest do
       end
     end
 
+    test "CI files" do
+      ci_workflows_dir = ["..", "..", ".github", "workflows"]
+      workflow_files = ci_workflows_dir |> Path.join() |> Path.expand(__DIR__) |> File.ls!()
+
+      workflow_file_versions =
+        for filename <- workflow_files, into: %{} do
+          file_contents = read_file!(ci_workflows_dir ++ [filename])
+
+          elixir_version =
+            ~r/elixir-version:\s+(?<version>[^\s]+)/
+            |> Regex.named_captures(file_contents)
+            |> Map.fetch!("version")
+
+          erlang_version =
+            ~r/otp-version:\s+(?<version>[^\s]+)/
+            |> Regex.named_captures(file_contents)
+            |> Map.fetch!("version")
+
+          {filename, %{"elixir" => elixir_version, "erlang" => erlang_version}}
+        end
+
+      expected_versions =
+        for filename <- workflow_files, into: %{} do
+          {filename, get_dependency_versions()}
+        end
+
+      assert expected_versions == workflow_file_versions
+    end
+
     defp get_dependency_versions do
       ["..", "..", ".tool-versions"]
       |> read_file!()
