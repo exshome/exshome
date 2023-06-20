@@ -197,7 +197,7 @@ defmodule Exshome.Dependency.GenServerDependency.Subscription do
       def on_dependency_change(state) do
         module = Exshome.Dependency.get_module(state.dependency)
 
-        Logger.warn("""
+        Logger.warning("""
         Some module dependency changed.
         Please implement on_dependency_change/1 callback for #{module}
         """)
@@ -209,7 +209,7 @@ defmodule Exshome.Dependency.GenServerDependency.Subscription do
       def on_event(%DependencyState{} = state, event) do
         module = Exshome.Dependency.get_module(state.dependency)
 
-        Logger.warn("""
+        Logger.warning("""
         Received unexpected event #{inspect(event)},
         Please implement on_event/2 callback for #{module}
         """)
@@ -221,7 +221,7 @@ defmodule Exshome.Dependency.GenServerDependency.Subscription do
       def on_stream(%DependencyState{} = state, {_stream, stream_event}) do
         module = Exshome.Dependency.get_module(state.dependency)
 
-        Logger.warn("""
+        Logger.warning("""
         Received unexpected stream event #{inspect(stream_event)},
         Please implement on_stream/2 callback for #{module}
         """)

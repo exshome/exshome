@@ -77,11 +77,11 @@ defmodule ExshomePlayer.Services.MpvServer do
   defp mpv_server_command(program) when is_list(program) do
     [
       program,
-      '--no-video',
-      '--idle',
-      '--no-cache',
-      '--no-terminal',
-      '--input-ipc-server=#{socket_path()}'
+      ~c"--no-video",
+      ~c"--idle",
+      ~c"--no-cache",
+      ~c"--no-terminal",
+      ~c"--input-ipc-server=#{socket_path()}"
     ]
   end
 

@@ -48,7 +48,7 @@ defmodule ExshomeTest.TestRegistry do
     :ok = ExUnit.Callbacks.stop_supervised!(module)
   end
 
-  @spec start_agent!((() -> any())) :: pid()
+  @spec start_agent!((-> any())) :: pid()
   def start_agent!(start_fn) do
     current_pid = get_parent()
 
