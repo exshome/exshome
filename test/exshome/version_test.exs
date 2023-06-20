@@ -15,18 +15,25 @@ defmodule ExshomeTest.VersionTest do
     assert changelog =~ version_regex
   end
 
-  test "dependency version in docs" do
-    dependency_data =
+  describe "dependency versions" do
+    test "installation instructions for SBC" do
+      installation_instructions = read_file!(["..", "..", "guides", "install_sbc.md"])
+
+      for {tool, version} <- get_dependency_versions() do
+        assert installation_instructions =~ "asdf plugin add #{tool}"
+        assert installation_instructions =~ "asdf install #{tool} #{version}"
+        assert installation_instructions =~ "asdf global #{tool} #{version}"
+      end
+    end
+
+    defp get_dependency_versions do
       ["..", "..", ".tool-versions"]
       |> read_file!()
       |> String.split(~r/\R/)
-
-    installation_instructions = read_file!(["..", "..", "guides", "install_sbc.md"])
-
-    for line <- dependency_data, String.trim(line) != "", [tool, version] = String.split(line) do
-      assert installation_instructions =~ "asdf plugin add #{tool}"
-      assert installation_instructions =~ "asdf install #{tool} #{version}"
-      assert installation_instructions =~ "asdf global #{tool} #{version}"
+      |> Enum.reject(&(String.trim(&1) == ""))
+      |> Enum.map(&String.split(&1, ~r/\s+/))
+      |> Enum.map(&List.to_tuple/1)
+      |> Enum.into(%{})
     end
   end
 

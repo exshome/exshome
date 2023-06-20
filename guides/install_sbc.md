@@ -29,8 +29,8 @@ sudo apt install erlang
 We can install the latest Elixir version with [asdf](https://asdf-vm.com/guide/getting-started.html):
 ```
 asdf plugin add elixir
-asdf install elixir 1.15.0-otp-25
-asdf global elixir 1.15.0-otp-25
+asdf install elixir 1.14.4-otp-25
+asdf global elixir 1.14.4-otp-25
 ```
 
 ## Installing Exshome
