@@ -56,9 +56,7 @@ config :exshome, ExshomeWeb.Endpoint,
     patterns: [
       ~r"priv/static/.*(js|css|png|jpeg|jpg|gif|svg)$",
       ~r"priv/gettext/.*(po)$",
-      ~r"lib/exshome_web/(live|views)/.*(ex)$",
-      ~r"lib/exshome_web/templates/.*(eex)$",
-      ~r"lib/exshome.*/web/.*(ex)$"
+      ~r"lib/exshome.*/.*(ex)$"
     ]
   ]
 
