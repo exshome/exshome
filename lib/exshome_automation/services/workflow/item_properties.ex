@@ -31,4 +31,21 @@ defmodule ExshomeAutomation.Services.Workflow.ItemProperties do
   def connector_type(:parent_action), do: :parent
   def connector_type({:action, _}), do: :action
   def connector_type({:connector, _}), do: :connector
+
+  @spec parent_type(connector_key()) :: connector_type()
+  def parent_type(:parent_connector), do: :connector
+  def parent_type(:parent_action), do: :action
+
+  @spec position_intersects?(connector_position(), connector_position()) :: boolean()
+  def position_intersects?(p1, p2) do
+    intersects_x_1 = p1.x <= p2.x && p1.x + p1.width >= p2.x
+    intersects_x_2 = p2.x <= p1.x && p2.x + p2.width >= p1.x
+    intersects_x = intersects_x_1 || intersects_x_2
+
+    intersects_y_1 = p1.y <= p2.y && p1.y + p1.height >= p2.y
+    intersects_y_2 = p2.y <= p1.y && p2.y + p2.height >= p1.y
+    intersects_y = intersects_y_1 || intersects_y_2
+
+    intersects_x && intersects_y
+  end
 end

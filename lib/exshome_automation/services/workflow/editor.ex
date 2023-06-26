@@ -150,8 +150,8 @@ defmodule ExshomeAutomation.Services.Workflow.Editor do
   def maybe_put_updated_at(item, nil), do: item
   def maybe_put_updated_at(item, timestamp), do: EditorItem.put_updated_at(item, timestamp)
 
-  @spec move_item(t(), String.t(), EditorItem.position()) :: t()
-  def move_item(%__MODULE__{} = state, item_id, new_position) do
+  @spec move_item(t(), String.t(), EditorItem.position(), EditorItem.connection_type()) :: t()
+  def move_item(%__MODULE__{} = state, item_id, new_position, type \\ :hover) do
     %EditorItem{} =
       item =
       state
@@ -164,12 +164,12 @@ defmodule ExshomeAutomation.Services.Workflow.Editor do
     |> update_item(item)
     |> update_dragged_by(item)
     |> update_connectors(item)
-    |> update_connections(item)
+    |> update_connections(item_id, type)
   end
 
   @spec stop_dragging(t(), String.t(), EditorItem.position()) :: t()
   def stop_dragging(%__MODULE__{} = state, item_id, new_position) do
-    state = move_item(state, item_id, new_position)
+    state = move_item(state, item_id, new_position, :connected)
 
     %EditorItem{} =
       item =
@@ -217,7 +217,7 @@ defmodule ExshomeAutomation.Services.Workflow.Editor do
     for {connector_key, data} <- item.connectors, reduce: state do
       state ->
         connector_data = %{data | x: item.position.x + data.x, y: item.position.y + data.y}
-        key = {item.id, connector_key}
+        key = EditorItem.remote_key(item, connector_key)
         connector_type = ItemProperties.connector_type(connector_key)
 
         update_in(
@@ -227,9 +227,89 @@ defmodule ExshomeAutomation.Services.Workflow.Editor do
     end
   end
 
-  @spec update_connections(t(), EditorItem.t()) :: t()
-  defp update_connections(%__MODULE__{} = state, %EditorItem{} = _item) do
+  @spec update_connections(t(), String.t(), EditorItem.connection_type()) :: t()
+  defp update_connections(%__MODULE__{} = state, item_id, connection_type) do
+    parent_keys =
+      state
+      |> get_item(item_id)
+      |> EditorItem.get_parent_keys()
+
+    for parent_key <- parent_keys, reduce: state do
+      state ->
+        %EditorItem{} = item = get_item(state, item_id)
+
+        state =
+          case item.connections[parent_key] do
+            %{remote_key: {remote_id, key}} ->
+              remote_item =
+                state
+                |> get_item(remote_id)
+                |> EditorItem.delete_connection(key)
+
+              current_item = EditorItem.delete_connection(item, parent_key)
+
+              state
+              |> update_item(current_item)
+              |> update_item(remote_item)
+
+            _ ->
+              state
+          end
+
+        remote_key = EditorItem.remote_key(item, parent_key)
+        connection = intersecting_connector(state, remote_key)
+
+        if connection do
+          connect_items(state, remote_key, connection, connection_type)
+        else
+          state
+        end
+    end
+  end
+
+  @spec intersecting_connector(t(), EditorItem.remote_key()) :: EditorItem.remote_key() | nil
+  defp intersecting_connector(%__MODULE__{} = state, {_, parent_key} = remote_key) do
+    position = Map.fetch!(state.available_connectors.parent, remote_key)
+    connector_type = ItemProperties.parent_type(parent_key)
+
+    state.available_connectors
+    |> Map.fetch!(connector_type)
+    |> Enum.filter(fn {_, candidate_position} ->
+      ItemProperties.position_intersects?(position, candidate_position)
+    end)
+    |> Enum.map(fn {key, _position} -> key end)
+    |> Enum.sort_by(
+      fn {id, _} -> get_item(state, id).updated_at end,
+      fn date_1, date_2 -> DateTime.compare(date_1, date_2) == :gt end
+    )
+    |> List.first()
+  end
+
+  @spec connect_items(
+          t(),
+          from :: EditorItem.remote_key(),
+          to :: EditorItem.remote_key(),
+          EditorItem.connection_type()
+        ) :: t()
+  defp connect_items(
+         %__MODULE__{} = state,
+         {from_id, from_key} = from,
+         {to_id, to_key} = to,
+         connection_type
+       ) do
+    to_item =
+      state
+      |> get_item(to_id)
+      |> EditorItem.put_connection(to_key, from, connection_type)
+
+    from_item =
+      state
+      |> get_item(from_id)
+      |> EditorItem.put_connection(from_key, to, connection_type)
+
     state
+    |> update_item(to_item)
+    |> update_item(from_item)
   end
 
   @spec put_change(t(), Operation.single_operation()) :: t()

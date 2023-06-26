@@ -70,7 +70,6 @@ defmodule ExshomeAutomation.Services.Workflow.EditorItem do
       item
       | position: normalize_position(position)
     }
-    |> refresh_item()
   end
 
   @spec put_updated_at(t(), DateTime.t()) :: t()
@@ -89,6 +88,7 @@ defmodule ExshomeAutomation.Services.Workflow.EditorItem do
       item.connections,
       &Map.put(&1, own_key, %{type: type, remote_key: remote_key})
     )
+    |> refresh_item()
   end
 
   @spec delete_connection(t(), own_key :: ItemProperties.connector_key()) :: t()
@@ -152,6 +152,17 @@ defmodule ExshomeAutomation.Services.Workflow.EditorItem do
   def set_drag(%__MODULE__{} = item, drag) do
     %__MODULE__{item | drag: drag}
   end
+
+  @spec get_parent_keys(t()) :: [ItemProperties.connector_key()]
+  def get_parent_keys(%__MODULE__{} = item) do
+    Enum.filter(
+      [:parent_action, :parent_connector],
+      &Map.has_key?(item.connectors, &1)
+    )
+  end
+
+  @spec remote_key(t(), ItemProperties.connector_key()) :: remote_key()
+  def remote_key(%__MODULE__{id: id}, key), do: {id, key}
 
   @spec refresh_item(t()) :: t()
   defp refresh_item(%__MODULE__{} = item) do
