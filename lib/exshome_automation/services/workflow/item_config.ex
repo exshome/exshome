@@ -2,38 +2,11 @@ defmodule ExshomeAutomation.Services.Workflow.ItemConfig do
   @moduledoc """
   Editor item configuration.
   """
-  defmodule Properties do
-    @moduledoc """
-    Struct for storing item property settings
-    """
-
-    defstruct [
-      :height,
-      :width,
-      connectors: %{}
-    ]
-
-    @type connector_key() ::
-            {:action_in | :action_out | :connector_in | :connector_out, id :: String.t()}
-    @type connector_position() :: %{
-            x: number(),
-            y: number(),
-            height: number(),
-            width: number()
-          }
-    @type connector_mapping() :: %{connector_key() => connector_position()}
-
-    @type t() :: %__MODULE__{
-            height: number(),
-            width: number(),
-            connectors: connector_mapping()
-          }
-  end
+  alias ExshomeAutomation.Services.Workflow.ItemProperties
 
   defstruct [
-    :has_previous_action?,
+    :parent,
     :has_next_action?,
-    :has_parent_connection?,
     child_connections: [],
     child_actions: []
   ]
@@ -49,9 +22,8 @@ defmodule ExshomeAutomation.Services.Workflow.ItemConfig do
         }
 
   @type t() :: %__MODULE__{
-          has_previous_action?: boolean(),
+          parent: :connection | :action | nil,
           has_next_action?: boolean(),
-          has_parent_connection?: boolean(),
           child_connections: [child_connection()],
           child_actions: [child_action()]
         }
@@ -80,9 +52,9 @@ defmodule ExshomeAutomation.Services.Workflow.ItemConfig do
              | :inner_top_left
              | :inner_bottom_left}
           | :close_path
-          | {:parent_action, String.t()}
+          | :parent_action
           | {:child_action, String.t()}
-          | {:parent_connector, String.t()}
+          | :parent_connector
           | {:child_connector, String.t()}
 
   @spec compute_svg_components(t()) :: [svg_component()]
@@ -102,17 +74,17 @@ defmodule ExshomeAutomation.Services.Workflow.ItemConfig do
   end
 
   @spec compute_component_top([svg_component()], t()) :: [svg_component()]
-  defp compute_component_top(components, %__MODULE__{has_previous_action?: false}) do
-    put_svg_component(components, {:horizontal, @min_width})
-  end
-
-  defp compute_component_top(components, %__MODULE__{}) do
+  defp compute_component_top(components, %__MODULE__{parent: :action}) do
     offset = @min_width - @action_offset - @action_width
 
     components
     |> put_svg_component({:horizontal, @action_offset})
-    |> put_svg_component({:parent_action, "parent"})
+    |> put_svg_component(:parent_action)
     |> put_svg_component({:horizontal, offset})
+  end
+
+  defp compute_component_top(components, %__MODULE__{}) do
+    put_svg_component(components, {:horizontal, @min_width})
   end
 
   @spec compute_component_bottom([svg_component()], t()) :: [svg_component()]
@@ -130,22 +102,19 @@ defmodule ExshomeAutomation.Services.Workflow.ItemConfig do
   end
 
   @spec compute_component_left([svg_component()], t()) :: [svg_component()]
-  defp compute_component_left(
-         components,
-         %__MODULE__{has_parent_connection?: false} = config
-       ) do
-    height = compute_left_height(config)
-    put_svg_component(components, {:vertical, -height})
-  end
-
-  defp compute_component_left(components, %__MODULE__{} = config) do
+  defp compute_component_left(components, %__MODULE__{parent: :connection} = config) do
     height = compute_left_height(config)
     offset = height - @connector_size - @connector_offset
 
     components
     |> put_svg_component({:vertical, -offset})
-    |> put_svg_component({:parent_connector, "parent"})
+    |> put_svg_component(:parent_connector)
     |> put_svg_component({:vertical, -@connector_offset})
+  end
+
+  defp compute_component_left(components, %__MODULE__{} = config) do
+    height = compute_left_height(config)
+    put_svg_component(components, {:vertical, -height})
   end
 
   defp compute_left_height(%__MODULE__{} = config) do
@@ -255,7 +224,7 @@ defmodule ExshomeAutomation.Services.Workflow.ItemConfig do
   defp svg_to_string({:round_corner, :inner_bottom_left}),
     do: "q 0 #{@corner_size} #{@corner_size} #{@corner_size}"
 
-  defp svg_to_string({:parent_action, _}),
+  defp svg_to_string(:parent_action),
     do: "l #{@action_width / 2} 2 l #{@action_width / 2} -2"
 
   defp svg_to_string({:child_action, _}),
@@ -274,7 +243,7 @@ defmodule ExshomeAutomation.Services.Workflow.ItemConfig do
     """
   end
 
-  defp svg_to_string({:parent_connector, _}) do
+  defp svg_to_string(:parent_connector) do
     vertical_offset = @connector_size / 8
     connector_radius = @connector_size / 2
 
@@ -292,10 +261,10 @@ defmodule ExshomeAutomation.Services.Workflow.ItemConfig do
           y: number(),
           width: number(),
           height: number(),
-          connectors: Properties.connector_mapping()
+          connectors: ItemProperties.connector_mapping()
         }
 
-  @spec compute_item_properties([svg_component()]) :: Properties.t()
+  @spec compute_item_properties([svg_component()]) :: ItemProperties.t()
   def compute_item_properties(svg_components) do
     initial_data = %{x: 0, y: 0, width: 0, height: 0, connectors: %{}}
 
@@ -304,7 +273,7 @@ defmodule ExshomeAutomation.Services.Workflow.ItemConfig do
         intermediate_data -> collect_item_data(component, intermediate_data)
       end
 
-    %Properties{
+    %ItemProperties{
       height: item_data.height + @outline_size,
       width: item_data.width + @outline_size,
       connectors: item_data.connectors
@@ -335,8 +304,8 @@ defmodule ExshomeAutomation.Services.Workflow.ItemConfig do
   defp collect_item_data({:round_corner, :inner_bottom_left}, data),
     do: update_position(data, %{x: @corner_size, y: @corner_size})
 
-  defp collect_item_data({:parent_action, id}, data) do
-    key = {:action_in, id}
+  defp collect_item_data(:parent_action, data) do
+    key = :parent_action
     value = %{x: data.x, y: data.y, height: @action_height, width: @action_width}
     connectors = Map.put(data.connectors, key, value)
 
@@ -346,7 +315,7 @@ defmodule ExshomeAutomation.Services.Workflow.ItemConfig do
   end
 
   defp collect_item_data({:child_action, id}, data) do
-    key = {:action_out, id}
+    key = {:action, id}
     value = %{x: data.x + -@action_width, y: data.y, height: @action_height, width: @action_width}
     connectors = Map.put(data.connectors, key, value)
 
@@ -356,7 +325,7 @@ defmodule ExshomeAutomation.Services.Workflow.ItemConfig do
   end
 
   defp collect_item_data({:child_connector, id}, data) do
-    key = {:connector_in, id}
+    key = {:connector, id}
 
     value = %{
       x: data.x - @connector_size,
@@ -372,8 +341,8 @@ defmodule ExshomeAutomation.Services.Workflow.ItemConfig do
     |> update_position(%{x: @connector_size, y: 0})
   end
 
-  defp collect_item_data({:parent_connector, id}, data) do
-    key = {:connector_out, id}
+  defp collect_item_data(:parent_connector, data) do
+    key = :parent_connector
 
     value = %{
       x: data.x - @connector_size,

@@ -5,7 +5,7 @@ defmodule ExshomeAutomation.Services.Workflow.Editor do
 
   alias Exshome.DataStream
   alias Exshome.DataStream.Operation
-  alias ExshomeAutomation.Services.Workflow.{EditorItem, ItemConfig, Schema}
+  alias ExshomeAutomation.Services.Workflow.{EditorItem, ItemProperties, Schema}
   alias ExshomeAutomation.Streams.EditorStream
 
   defstruct [
@@ -16,10 +16,9 @@ defmodule ExshomeAutomation.Services.Workflow.Editor do
     :operation_timestamp,
     dragged_items: %{},
     available_connectors: %{
-      action_in: %{},
-      action_out: %{},
-      connector_in: %{},
-      connector_out: %{}
+      parent: %{},
+      action: %{},
+      connector: %{}
     }
   ]
 
@@ -31,7 +30,7 @@ defmodule ExshomeAutomation.Services.Workflow.Editor do
           changes: [Operation.t()],
           available_connectors: %{
             (type :: atom()) => %{
-              EditorItem.remote_key() => ItemConfig.Properties.connector_position()
+              EditorItem.remote_key() => ItemProperties.connector_position()
             }
           },
           operation_pid: Operation.key(),
@@ -215,10 +214,11 @@ defmodule ExshomeAutomation.Services.Workflow.Editor do
 
   @spec update_connectors(t(), EditorItem.t()) :: t()
   defp update_connectors(%__MODULE__{} = state, %EditorItem{} = item) do
-    for {{connector_type, _} = connector_key, data} <- item.connectors, reduce: state do
+    for {connector_key, data} <- item.connectors, reduce: state do
       state ->
         connector_data = %{data | x: item.position.x + data.x, y: item.position.y + data.y}
         key = {item.id, connector_key}
+        connector_type = ItemProperties.connector_type(connector_key)
 
         update_in(
           state.available_connectors[connector_type],

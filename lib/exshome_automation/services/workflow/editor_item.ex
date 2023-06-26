@@ -4,7 +4,7 @@ defmodule ExshomeAutomation.Services.Workflow.EditorItem do
   """
 
   alias ExshomeAutomation.Services.Workflow.ItemConfig
-  alias ExshomeAutomation.Services.Workflow.ItemConfig.Properties
+  alias ExshomeAutomation.Services.Workflow.ItemProperties
 
   defstruct [
     :id,
@@ -29,7 +29,7 @@ defmodule ExshomeAutomation.Services.Workflow.EditorItem do
   @type selected_by() :: pid() | nil
   @type connection_type() :: :hover | :connected
 
-  @type remote_key :: {item_id :: String.t(), Properties.connector_key()}
+  @type remote_key :: {item_id :: String.t(), ItemProperties.connector_key()}
 
   @type t() :: %__MODULE__{
           id: String.t(),
@@ -41,10 +41,10 @@ defmodule ExshomeAutomation.Services.Workflow.EditorItem do
           type: String.t(),
           selected_by: selected_by(),
           drag: boolean(),
-          connectors: Properties.connector_mapping(),
+          connectors: ItemProperties.connector_mapping(),
           updated_at: DateTime.t(),
           connections: %{
-            Properties.connector_key() => %{
+            ItemProperties.connector_key() => %{
               remote_key: remote_key(),
               type: connection_type()
             }
@@ -80,7 +80,7 @@ defmodule ExshomeAutomation.Services.Workflow.EditorItem do
 
   @spec put_connection(
           t(),
-          own_key :: Properties.connector_key(),
+          own_key :: ItemProperties.connector_key(),
           remote_key :: remote_key(),
           type :: connection_type()
         ) :: t()
@@ -91,7 +91,7 @@ defmodule ExshomeAutomation.Services.Workflow.EditorItem do
     )
   end
 
-  @spec delete_connection(t(), own_key :: Properties.connector_key()) :: t()
+  @spec delete_connection(t(), own_key :: ItemProperties.connector_key()) :: t()
   def delete_connection(%__MODULE__{} = item, own_key) do
     update_in(item.connections, &Map.delete(&1, own_key))
   end
@@ -107,9 +107,8 @@ defmodule ExshomeAutomation.Services.Workflow.EditorItem do
         width: 34,
         position: %{x: 0, y: 0},
         config: %ItemConfig{
-          has_previous_action?: true,
+          parent: :action,
           has_next_action?: true,
-          has_parent_connection?: false,
           child_actions: [],
           child_connections: []
         }
@@ -119,9 +118,8 @@ defmodule ExshomeAutomation.Services.Workflow.EditorItem do
         width: 34,
         position: %{x: 0, y: 0},
         config: %ItemConfig{
-          has_previous_action?: false,
+          parent: :connection,
           has_next_action?: false,
-          has_parent_connection?: true,
           child_actions: [],
           child_connections: []
         }
@@ -131,9 +129,8 @@ defmodule ExshomeAutomation.Services.Workflow.EditorItem do
         width: 34,
         position: %{x: 0, y: 0},
         config: %ItemConfig{
-          has_previous_action?: true,
+          parent: :action,
           has_next_action?: true,
-          has_parent_connection?: false,
           child_actions: [
             %{height: 3, id: "if clause"},
             %{height: 3, id: "then clause"}
@@ -159,7 +156,7 @@ defmodule ExshomeAutomation.Services.Workflow.EditorItem do
   @spec refresh_item(t()) :: t()
   defp refresh_item(%__MODULE__{} = item) do
     svg_components = ItemConfig.compute_svg_components(item.config)
-    %Properties{} = properties = ItemConfig.compute_item_properties(svg_components)
+    %ItemProperties{} = properties = ItemConfig.compute_item_properties(svg_components)
 
     %__MODULE__{
       item
