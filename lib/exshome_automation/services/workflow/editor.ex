@@ -169,7 +169,10 @@ defmodule ExshomeAutomation.Services.Workflow.Editor do
 
   @spec stop_dragging(t(), String.t(), EditorItem.position()) :: t()
   def stop_dragging(%__MODULE__{} = state, item_id, new_position) do
-    state = move_item(state, item_id, new_position, :connected)
+    state =
+      state
+      |> move_item(item_id, new_position, :connected)
+      |> maybe_adjust_item_position(item_id)
 
     %EditorItem{} =
       item =
@@ -180,6 +183,31 @@ defmodule ExshomeAutomation.Services.Workflow.Editor do
     state
     |> update_item(item)
     |> remove_dragged_item_id()
+  end
+
+  @spec maybe_adjust_item_position(t(), String.t()) :: t()
+  defp maybe_adjust_item_position(%__MODULE__{} = state, item_id) do
+    parent_keys =
+      state
+      |> get_item(item_id)
+      |> EditorItem.get_parent_keys()
+
+    for key <- parent_keys, reduce: state do
+      state ->
+        %EditorItem{} = item = get_item(state, item_id)
+
+        case item.connections[key] do
+          %{type: :connected, remote_key: remote_key} ->
+            own_connector_position = fetch_connector_position(state, {item_id, key})
+            other_connector_position = fetch_connector_position(state, remote_key)
+            new_x = item.position.x - own_connector_position.x + other_connector_position.x
+            new_y = item.position.y - own_connector_position.y + other_connector_position.y
+            move_item(state, item_id, %{x: new_x, y: new_y}, :connected)
+
+          _ ->
+            state
+        end
+    end
   end
 
   @spec update_dragged_by(t(), EditorItem.t()) :: t()
@@ -269,7 +297,7 @@ defmodule ExshomeAutomation.Services.Workflow.Editor do
 
   @spec intersecting_connector(t(), EditorItem.remote_key()) :: EditorItem.remote_key() | nil
   defp intersecting_connector(%__MODULE__{} = state, {_, parent_key} = remote_key) do
-    position = Map.fetch!(state.available_connectors.parent, remote_key)
+    position = fetch_connector_position(state, remote_key)
     connector_type = ItemProperties.parent_type(parent_key)
 
     state.available_connectors
@@ -283,6 +311,16 @@ defmodule ExshomeAutomation.Services.Workflow.Editor do
       fn date_1, date_2 -> DateTime.compare(date_1, date_2) == :gt end
     )
     |> List.first()
+  end
+
+  @spec fetch_connector_position(t(), EditorItem.remote_key()) ::
+          ItemProperties.connector_position()
+  defp fetch_connector_position(%__MODULE__{} = state, {_, connector_key} = key) do
+    connector_type = ItemProperties.connector_type(connector_key)
+
+    state.available_connectors
+    |> Map.fetch!(connector_type)
+    |> Map.fetch!(key)
   end
 
   @spec connect_items(
