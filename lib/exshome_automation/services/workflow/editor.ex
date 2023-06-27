@@ -152,19 +152,75 @@ defmodule ExshomeAutomation.Services.Workflow.Editor do
 
   @spec move_item(t(), String.t(), EditorItem.position(), EditorItem.connection_type()) :: t()
   def move_item(%__MODULE__{} = state, item_id, new_position, type \\ :hover) do
-    %EditorItem{} =
+    %EditorItem{} = item = get_item(state, item_id)
+
+    drag = type == :hover
+
+    new_position = %{x: max(new_position.x, 0), y: max(new_position.y, 0)}
+    initial_position = item.position
+    diff = %{x: initial_position.x - new_position.x, y: initial_position.y - new_position.y}
+
+    state
+    |> update_position(item_id, diff, drag)
+    |> update_dragged_by(item_id)
+    |> update_parent_connections(item_id, type)
+    |> move_children(item_id, diff, drag)
+  end
+
+  @spec update_position(t(), String.t(), EditorItem.position(), boolean()) :: t()
+  defp update_position(%__MODULE__{} = state, item_id, %{x: diff_x, y: diff_y}, drag) do
+    %EditorItem{position: position} =
       item =
       state
       |> get_item(item_id)
-      |> EditorItem.set_drag(true)
+      |> EditorItem.set_drag(drag)
+
+    new_position = %{x: position.x - diff_x, y: position.y - diff_y}
+
+    item =
+      item
       |> EditorItem.update_position(new_position)
       |> EditorItem.put_updated_at(state.operation_timestamp)
 
     state
     |> update_item(item)
-    |> update_dragged_by(item)
     |> update_connectors(item)
-    |> update_connections(item_id, type)
+  end
+
+  @spec move_children(t(), String.t(), EditorItem.position(), boolean()) :: t()
+  defp move_children(%__MODULE__{} = state, item_id, diff, drag) do
+    for child_id <- list_children_ids(state, item_id), reduce: state do
+      state -> update_position(state, child_id, diff, drag)
+    end
+  end
+
+  @spec list_children_ids(t(), String.t()) :: MapSet.t(String.t())
+  defp list_children_ids(%__MODULE__{} = state, item_id) do
+    state
+    |> recursive_list_children_ids([item_id], MapSet.new())
+    |> MapSet.delete(item_id)
+  end
+
+  @spec recursive_list_children_ids(
+          t(),
+          ids_to_check :: [String.t()],
+          result :: MapSet.t(String.t())
+        ) :: MapSet.t(String.t())
+  defp recursive_list_children_ids(_, [], result), do: result
+
+  defp recursive_list_children_ids(%__MODULE__{} = state, [item_id | rest], result) do
+    children_ids =
+      state
+      |> get_item(item_id)
+      |> EditorItem.list_children_ids()
+      |> Enum.reject(&MapSet.member?(result, &1))
+
+    new_result =
+      children_ids
+      |> MapSet.new()
+      |> MapSet.union(result)
+
+    recursive_list_children_ids(state, rest ++ children_ids, new_result)
   end
 
   @spec stop_dragging(t(), String.t(), EditorItem.position()) :: t()
@@ -210,11 +266,11 @@ defmodule ExshomeAutomation.Services.Workflow.Editor do
     end
   end
 
-  @spec update_dragged_by(t(), EditorItem.t()) :: t()
+  @spec update_dragged_by(t(), String.t()) :: t()
   defp update_dragged_by(%__MODULE__{operation_pid: nil} = state, _), do: state
 
-  defp update_dragged_by(%__MODULE__{} = state, %EditorItem{id: id}) do
-    update_in(state.dragged_items, &Map.put(&1, state.operation_pid, id))
+  defp update_dragged_by(%__MODULE__{} = state, item_id) do
+    update_in(state.dragged_items, &Map.put(&1, state.operation_pid, item_id))
   end
 
   @spec remove_dragged_item_id(t()) :: t()
@@ -255,8 +311,8 @@ defmodule ExshomeAutomation.Services.Workflow.Editor do
     end
   end
 
-  @spec update_connections(t(), String.t(), EditorItem.connection_type()) :: t()
-  defp update_connections(%__MODULE__{} = state, item_id, connection_type) do
+  @spec update_parent_connections(t(), String.t(), EditorItem.connection_type()) :: t()
+  defp update_parent_connections(%__MODULE__{} = state, item_id, connection_type) do
     parent_keys =
       state
       |> get_item(item_id)

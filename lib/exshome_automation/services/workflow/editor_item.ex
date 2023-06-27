@@ -6,6 +6,8 @@ defmodule ExshomeAutomation.Services.Workflow.EditorItem do
   alias ExshomeAutomation.Services.Workflow.ItemConfig
   alias ExshomeAutomation.Services.Workflow.ItemProperties
 
+  @parent_keys [:parent_action, :parent_connector]
+
   defstruct [
     :id,
     :type,
@@ -156,9 +158,20 @@ defmodule ExshomeAutomation.Services.Workflow.EditorItem do
   @spec get_parent_keys(t()) :: [ItemProperties.connector_key()]
   def get_parent_keys(%__MODULE__{} = item) do
     Enum.filter(
-      [:parent_action, :parent_connector],
+      @parent_keys,
       &Map.has_key?(item.connectors, &1)
     )
+  end
+
+  @spec list_children_ids(t()) :: [String.t()]
+  def list_children_ids(%__MODULE__{} = item) do
+    item.connections
+    |> Enum.reject(fn {key, %{type: type}} ->
+      not_connected = type != :connected
+      parent = key in @parent_keys
+      parent || not_connected
+    end)
+    |> Enum.map(fn {_, %{remote_key: {id, _}}} -> id end)
   end
 
   @spec remote_key(t(), ItemProperties.connector_key()) :: remote_key()
