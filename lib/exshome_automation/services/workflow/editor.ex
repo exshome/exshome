@@ -112,12 +112,20 @@ defmodule ExshomeAutomation.Services.Workflow.Editor do
 
     state = clear_selected_by(state, selected_by)
 
-    item =
+    selected_items =
       state
-      |> get_item(item_id)
-      |> EditorItem.set_selected_by(state.operation_pid)
+      |> list_children_ids(item_id)
+      |> MapSet.put(item_id)
 
-    update_item(state, item)
+    for id <- selected_items, reduce: state do
+      state ->
+        item =
+          state
+          |> get_item(id)
+          |> EditorItem.set_selected_by(state.operation_pid)
+
+        update_item(state, item)
+    end
   end
 
   @spec clear_selected_by(t(), Operation.key()) :: t()
