@@ -440,8 +440,6 @@ defmodule ExshomeAutomation.Services.Workflow.Editor do
         state
         |> update_connectors(item)
         |> update_item(item)
-
-        state
     end
   end
 
