@@ -341,17 +341,8 @@ defmodule ExshomeAutomation.Services.Workflow.Editor do
 
         state =
           case item.connections[parent_key] do
-            %{remote_key: {remote_id, key}} ->
-              remote_item =
-                state
-                |> get_item(remote_id)
-                |> EditorItem.delete_connection(key)
-
-              current_item = EditorItem.delete_connection(item, parent_key)
-
-              state
-              |> update_item(current_item)
-              |> update_item(remote_item)
+            %{remote_key: remote_key} ->
+              disconnect_items(state, remote_key, {item_id, parent_key})
 
             _ ->
               state
@@ -376,10 +367,15 @@ defmodule ExshomeAutomation.Services.Workflow.Editor do
     state.available_connectors
     |> Map.fetch!(connector_type)
     |> Enum.filter(fn {_, candidate_data} ->
-      not_connected = candidate_data.type != :connected
+      not_connected? = candidate_data.type != :connected
 
-      not_connected &&
-        ItemProperties.position_intersects?(own_data.position, candidate_data.position)
+      intersects? =
+        ItemProperties.position_intersects?(
+          own_data.position,
+          candidate_data.position
+        )
+
+      not_connected? && intersects?
     end)
     |> Enum.map(fn {key, _data} -> key end)
     |> Enum.sort_by(
@@ -410,19 +406,43 @@ defmodule ExshomeAutomation.Services.Workflow.Editor do
          {to_id, to_key} = to,
          connection_type
        ) do
-    to_item =
-      state
-      |> get_item(to_id)
-      |> EditorItem.put_connection(to_key, from, connection_type)
+    connections = [
+      {to_id, to_key, from},
+      {from_id, from_key, to}
+    ]
 
-    from_item =
-      state
-      |> get_item(from_id)
-      |> EditorItem.put_connection(from_key, to, connection_type)
+    for {id, own_key, remote_key} <- connections, reduce: state do
+      state ->
+        item =
+          state
+          |> get_item(id)
+          |> EditorItem.put_connection(own_key, remote_key, connection_type)
 
-    state
-    |> update_item(to_item)
-    |> update_item(from_item)
+        state
+        |> update_connectors(item)
+        |> update_item(item)
+    end
+  end
+
+  @spec disconnect_items(
+          t(),
+          from :: EditorItem.remote_key(),
+          to :: EditorItem.remote_key()
+        ) :: t()
+  defp disconnect_items(%__MODULE__{} = state, from, to) do
+    for {id, key} <- [from, to], reduce: state do
+      state ->
+        item =
+          state
+          |> get_item(id)
+          |> EditorItem.delete_connection(key)
+
+        state
+        |> update_connectors(item)
+        |> update_item(item)
+
+        state
+    end
   end
 
   @spec put_change(t(), Operation.single_operation()) :: t()
