@@ -16,7 +16,7 @@ defmodule Exshome.MixProject do
         plt_add_apps: [:mix, :ex_unit]
       ],
       docs: docs(),
-      elixir: "~> 1.12",
+      elixir: "~> 1.15",
       elixirc_paths: elixirc_paths(Mix.env()),
       homepage_url: @source_url,
       name: "Exshome - Elixir Smart Home",

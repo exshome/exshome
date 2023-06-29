@@ -40,7 +40,7 @@ defmodule ExshomeTest.TestMpvServer do
     @enforce_keys [:init_fn]
     defstruct [:init_fn]
 
-    @type t() :: %__MODULE__{init_fn: (() -> any())}
+    @type t() :: %__MODULE__{init_fn: (-> any())}
   end
 
   @type response_fn() :: (request_id :: String.t(), data :: map() -> map())

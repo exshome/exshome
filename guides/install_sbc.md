@@ -17,8 +17,8 @@ sudo apt install mpv
 If your SBC has enough resources (at least 1 GB of RAM), you can try compiling Erlang from sources via [asdf](https://asdf-vm.com/guide/getting-started.html).
 ```
 asdf plugin add erlang
-asdf install erlang 25.3.2
-asdf global erlang 25.3.2
+asdf install erlang 26.0.2
+asdf global erlang 26.0.2
 ```
 
 Otherwise you can install Erlang with your package manager. It may be not the latest version, but it should work.
@@ -29,8 +29,8 @@ sudo apt install erlang
 We can install the latest Elixir version with [asdf](https://asdf-vm.com/guide/getting-started.html):
 ```
 asdf plugin add elixir
-asdf install elixir 1.14.4-otp-25
-asdf global elixir 1.14.4-otp-25
+asdf install elixir 1.15.0-otp-26
+asdf global elixir 1.15.0-otp-26
 ```
 
 ## Installing Exshome
