@@ -20,12 +20,15 @@ defmodule ExshomeAutomationTest.Services.Workflow.ItemConfigTest do
   describe "compute svg path components" do
     test "without connections" do
       path_components =
-        ItemConfig.compute_svg_components(%ItemConfig{
-          child_actions: [],
-          child_connections: [],
-          parent: nil,
-          has_next_action?: false
-        })
+        ItemConfig.compute_svg_components(
+          %ItemConfig{
+            child_actions: [],
+            child_connections: [],
+            parent: nil,
+            has_next_action?: false
+          },
+          %{}
+        )
 
       assert [
                {:move, @offset_x, @offset_y},
@@ -43,12 +46,15 @@ defmodule ExshomeAutomationTest.Services.Workflow.ItemConfigTest do
 
     test "with previous action" do
       path_components =
-        ItemConfig.compute_svg_components(%ItemConfig{
-          child_actions: [],
-          child_connections: [],
-          has_next_action?: false,
-          parent: :action
-        })
+        ItemConfig.compute_svg_components(
+          %ItemConfig{
+            child_actions: [],
+            child_connections: [],
+            has_next_action?: false,
+            parent: :action
+          },
+          %{}
+        )
 
       assert [
                {:move, @offset_x, @offset_y},
@@ -68,12 +74,15 @@ defmodule ExshomeAutomationTest.Services.Workflow.ItemConfigTest do
 
     test "with next action" do
       path_components =
-        ItemConfig.compute_svg_components(%ItemConfig{
-          child_actions: [],
-          child_connections: [],
-          has_next_action?: true,
-          parent: nil
-        })
+        ItemConfig.compute_svg_components(
+          %ItemConfig{
+            child_actions: [],
+            child_connections: [],
+            has_next_action?: true,
+            parent: nil
+          },
+          %{}
+        )
 
       assert [
                {:move, @offset_x, @offset_y},
@@ -93,12 +102,15 @@ defmodule ExshomeAutomationTest.Services.Workflow.ItemConfigTest do
 
     test "with parent connection" do
       path_components =
-        ItemConfig.compute_svg_components(%ItemConfig{
-          child_actions: [],
-          child_connections: [],
-          has_next_action?: false,
-          parent: :connection
-        })
+        ItemConfig.compute_svg_components(
+          %ItemConfig{
+            child_actions: [],
+            child_connections: [],
+            has_next_action?: false,
+            parent: :connection
+          },
+          %{}
+        )
 
       assert [
                {:move, @offset_x, @offset_y},
@@ -118,12 +130,15 @@ defmodule ExshomeAutomationTest.Services.Workflow.ItemConfigTest do
 
     test "with child connection, child height smaller than minimum" do
       path_components =
-        ItemConfig.compute_svg_components(%ItemConfig{
-          child_actions: [],
-          child_connections: [%{height: @min_height - 1, id: "conn_1"}],
-          has_next_action?: false,
-          parent: nil
-        })
+        ItemConfig.compute_svg_components(
+          %ItemConfig{
+            child_actions: [],
+            child_connections: ["conn_1"],
+            has_next_action?: false,
+            parent: nil
+          },
+          %{{:connection, "conn_1"} => %{height: 0, width: 0}}
+        )
 
       assert [
                {:move, @offset_x, @offset_y},
@@ -143,12 +158,15 @@ defmodule ExshomeAutomationTest.Services.Workflow.ItemConfigTest do
 
     test "with child connection, child height larger than minimum" do
       path_components =
-        ItemConfig.compute_svg_components(%ItemConfig{
-          child_actions: [],
-          child_connections: [%{height: @min_height + 1, id: "conn_1"}],
-          has_next_action?: false,
-          parent: nil
-        })
+        ItemConfig.compute_svg_components(
+          %ItemConfig{
+            child_actions: [],
+            child_connections: ["conn_1"],
+            has_next_action?: false,
+            parent: nil
+          },
+          %{{:connection, "conn_1"} => %{height: @min_height + 1, width: 0}}
+        )
 
       assert [
                {:move, @offset_x, @offset_y},
@@ -168,12 +186,15 @@ defmodule ExshomeAutomationTest.Services.Workflow.ItemConfigTest do
 
     test "with child action, child height smaller than minimum" do
       path_components =
-        ItemConfig.compute_svg_components(%ItemConfig{
-          child_actions: [%{height: @min_height - 1, id: "action_1"}],
-          child_connections: [],
-          has_next_action?: false,
-          parent: nil
-        })
+        ItemConfig.compute_svg_components(
+          %ItemConfig{
+            child_actions: ["action_1"],
+            child_connections: [],
+            has_next_action?: false,
+            parent: nil
+          },
+          %{{:action, "action_1"} => %{height: 0, width: 0}}
+        )
 
       inner_action_width = @min_width - @child_action_offset - @corner_size
 
@@ -207,12 +228,15 @@ defmodule ExshomeAutomationTest.Services.Workflow.ItemConfigTest do
 
     test "with child action, child height larger than minimum" do
       path_components =
-        ItemConfig.compute_svg_components(%ItemConfig{
-          child_actions: [%{height: @min_height + 1, id: "action_1"}],
-          child_connections: [],
-          has_next_action?: false,
-          parent: nil
-        })
+        ItemConfig.compute_svg_components(
+          %ItemConfig{
+            child_actions: ["action_1"],
+            child_connections: [],
+            has_next_action?: false,
+            parent: nil
+          },
+          %{{:action, "action_1"} => %{width: 0, height: @min_height + 1}}
+        )
 
       inner_action_width = @min_width - @child_action_offset - @corner_size
 
@@ -245,23 +269,31 @@ defmodule ExshomeAutomationTest.Services.Workflow.ItemConfigTest do
     end
 
     test "with all possible connections" do
-      child_components = [
-        %{height: @min_height - 1, id: "1"},
-        %{height: @min_height + 1, id: "2"}
-      ]
+      child_actions = %{
+        {:action, "action_1"} => %{height: @min_height - 1, width: 0},
+        {:action, "action_2"} => %{height: @min_height + 1, width: 0}
+      }
+
+      child_connections = %{
+        {:connection, "conn_1"} => %{height: @min_height - 1, width: 0},
+        {:connection, "conn_2"} => %{height: @min_height + 1, width: 0}
+      }
 
       path_components =
-        ItemConfig.compute_svg_components(%ItemConfig{
-          child_actions: child_components,
-          child_connections: child_components,
-          has_next_action?: true,
-          parent: :connection
-        })
+        ItemConfig.compute_svg_components(
+          %ItemConfig{
+            child_actions: ["action_1", "action_2"],
+            child_connections: ["conn_1", "conn_2"],
+            has_next_action?: true,
+            parent: :connection
+          },
+          Map.merge(child_actions, child_connections)
+        )
 
       child_connections_height = @min_height + @min_height + 1
       child_actions_height = @min_height + @min_height + 1
-      separators_height = length(child_components) * @child_action_separator_height
-      corners_height = length(child_components) * 4 * @corner_size
+      separators_height = Enum.count(child_connections) * @child_action_separator_height
+      corners_height = Enum.count(child_connections) * 4 * @corner_size
 
       left_height =
         child_connections_height + child_actions_height + separators_height + corners_height
@@ -273,14 +305,14 @@ defmodule ExshomeAutomationTest.Services.Workflow.ItemConfigTest do
                {:horizontal, @min_width},
                {:round_corner, :top_right},
                {:vertical, @connector_offset},
-               {:child_connector, "1"},
+               {:child_connector, "conn_1"},
                {:vertical, @min_height - @connector_offset - @connector_size},
                {:vertical, @connector_offset},
-               {:child_connector, "2"},
+               {:child_connector, "conn_2"},
                {:vertical, @min_height + 1 - @connector_offset - @connector_size},
                {:round_corner, :bottom_right},
                {:horizontal, -(inner_action_width - @action_offset - @action_width)},
-               {:child_action, "1"},
+               {:child_action, "action_1"},
                {:horizontal, -@action_offset},
                {:round_corner, :inner_top_left},
                {:vertical, @min_height},
@@ -290,7 +322,7 @@ defmodule ExshomeAutomationTest.Services.Workflow.ItemConfigTest do
                {:vertical, @child_action_separator_height},
                {:round_corner, :bottom_right},
                {:horizontal, -(inner_action_width - @action_offset - @action_width)},
-               {:child_action, "2"},
+               {:child_action, "action_2"},
                {:horizontal, -@action_offset},
                {:round_corner, :inner_top_left},
                {:vertical, @min_height + 1},
@@ -325,12 +357,15 @@ defmodule ExshomeAutomationTest.Services.Workflow.ItemConfigTest do
 
     test "without connections", %{empty_height: height, empty_width: width} do
       item_properties =
-        compute_item_properties(%ItemConfig{
-          child_actions: [],
-          child_connections: [],
-          has_next_action?: false,
-          parent: nil
-        })
+        compute_item_properties(
+          %ItemConfig{
+            child_actions: [],
+            child_connections: [],
+            has_next_action?: false,
+            parent: nil
+          },
+          %{}
+        )
 
       assert %ItemProperties{
                height: height,
@@ -341,12 +376,15 @@ defmodule ExshomeAutomationTest.Services.Workflow.ItemConfigTest do
 
     test "with previous action", %{empty_height: empty_height, empty_width: empty_width} do
       item_properties =
-        compute_item_properties(%ItemConfig{
-          child_actions: [],
-          child_connections: [],
-          has_next_action?: false,
-          parent: :action
-        })
+        compute_item_properties(
+          %ItemConfig{
+            child_actions: [],
+            child_connections: [],
+            has_next_action?: false,
+            parent: :action
+          },
+          %{}
+        )
 
       assert %ItemProperties{
                height: empty_height,
@@ -364,12 +402,15 @@ defmodule ExshomeAutomationTest.Services.Workflow.ItemConfigTest do
 
     test "with next action", %{empty_height: empty_height, empty_width: empty_width} do
       item_properties =
-        compute_item_properties(%ItemConfig{
-          child_actions: [],
-          child_connections: [],
-          has_next_action?: true,
-          parent: nil
-        })
+        compute_item_properties(
+          %ItemConfig{
+            child_actions: [],
+            child_connections: [],
+            has_next_action?: true,
+            parent: nil
+          },
+          %{}
+        )
 
       height = empty_height + @action_height
 
@@ -389,12 +430,15 @@ defmodule ExshomeAutomationTest.Services.Workflow.ItemConfigTest do
 
     test "with parent connection", %{empty_height: empty_height, empty_width: empty_width} do
       item_properties =
-        compute_item_properties(%ItemConfig{
-          child_actions: [],
-          child_connections: [],
-          has_next_action?: false,
-          parent: :connection
-        })
+        compute_item_properties(
+          %ItemConfig{
+            child_actions: [],
+            child_connections: [],
+            has_next_action?: false,
+            parent: :connection
+          },
+          %{}
+        )
 
       assert %ItemProperties{
                height: empty_height,
@@ -415,12 +459,17 @@ defmodule ExshomeAutomationTest.Services.Workflow.ItemConfigTest do
       empty_width: empty_width
     } do
       item_properties =
-        compute_item_properties(%ItemConfig{
-          child_actions: [],
-          child_connections: [%{height: @min_height - 1, id: "conn_1"}],
-          has_next_action?: false,
-          parent: nil
-        })
+        compute_item_properties(
+          %ItemConfig{
+            child_actions: [],
+            child_connections: ["conn_1"],
+            has_next_action?: false,
+            parent: nil
+          },
+          %{
+            {:connection, "conn_1"} => %{height: @min_height - 1, width: 0}
+          }
+        )
 
       assert %ItemProperties{
                height: empty_height,
@@ -441,12 +490,17 @@ defmodule ExshomeAutomationTest.Services.Workflow.ItemConfigTest do
       empty_width: empty_width
     } do
       item_properties =
-        compute_item_properties(%ItemConfig{
-          child_actions: [],
-          child_connections: [%{height: @min_height + 1, id: "conn_1"}],
-          has_next_action?: false,
-          parent: nil
-        })
+        compute_item_properties(
+          %ItemConfig{
+            child_actions: [],
+            child_connections: ["conn_1"],
+            has_next_action?: false,
+            parent: nil
+          },
+          %{
+            {:connection, "conn_1"} => %{height: @min_height + 1, width: 0}
+          }
+        )
 
       assert %ItemProperties{
                height: empty_height + 1,
@@ -467,12 +521,17 @@ defmodule ExshomeAutomationTest.Services.Workflow.ItemConfigTest do
       empty_width: empty_width
     } do
       item_properties =
-        compute_item_properties(%ItemConfig{
-          child_actions: [%{height: @min_height - 1, id: "action_1"}],
-          child_connections: [],
-          has_next_action?: false,
-          parent: nil
-        })
+        compute_item_properties(
+          %ItemConfig{
+            child_actions: ["action_1"],
+            child_connections: [],
+            has_next_action?: false,
+            parent: nil
+          },
+          %{
+            {:action, "action_1"} => %{height: @min_height - 1, width: 0}
+          }
+        )
 
       height = empty_height + @min_height + 4 * @corner_size + @child_action_separator_height
 
@@ -495,14 +554,19 @@ defmodule ExshomeAutomationTest.Services.Workflow.ItemConfigTest do
       empty_width: empty_width
     } do
       item_properties =
-        compute_item_properties(%ItemConfig{
-          child_actions: [%{height: @min_height + 1, id: "action_1"}],
-          child_connections: [],
-          has_next_action?: false,
-          parent: nil
-        })
+        compute_item_properties(
+          %ItemConfig{
+            child_actions: ["action_1"],
+            child_connections: [],
+            has_next_action?: false,
+            parent: nil
+          },
+          %{
+            {:actton, "action_1"} => %{height: @min_height + 1, width: 0}
+          }
+        )
 
-      height = empty_height + @min_height + 4 * @corner_size + @child_action_separator_height + 1
+      height = empty_height + @min_height + 4 * @corner_size + @child_action_separator_height
 
       assert %ItemProperties{
                height: height,
@@ -519,18 +583,26 @@ defmodule ExshomeAutomationTest.Services.Workflow.ItemConfigTest do
     end
 
     test "with all possible connections", %{empty_width: empty_width} do
-      child_components = [
-        %{height: @min_height - 1, id: "1"},
-        %{height: @min_height + 1, id: "2"}
-      ]
+      child_actions = %{
+        {:action, "action_1"} => %{height: @min_height - 1, width: 0},
+        {:action, "action_2"} => %{height: @min_height + 1, width: 0}
+      }
+
+      child_connections = %{
+        {:connection, "conn_1"} => %{height: @min_height - 1, width: 0},
+        {:connection, "conn_2"} => %{height: @min_height + 1, width: 0}
+      }
 
       item_properties =
-        compute_item_properties(%ItemConfig{
-          child_actions: child_components,
-          child_connections: child_components,
-          has_next_action?: true,
-          parent: :action
-        })
+        compute_item_properties(
+          %ItemConfig{
+            child_actions: ["action_1", "action_2"],
+            child_connections: ["conn_1", "conn_2"],
+            has_next_action?: true,
+            parent: :action
+          },
+          Map.merge(child_actions, child_connections)
+        )
 
       first_connector_block_height = @min_height
       second_connector_block_height = @min_height + 1
@@ -564,25 +636,25 @@ defmodule ExshomeAutomationTest.Services.Workflow.ItemConfigTest do
                    width: @action_width,
                    height: @action_height
                  },
-                 {:action, "1"} => %{
+                 {:action, "action_1"} => %{
                    x: @offset_x + @action_offset + @child_action_offset + @corner_size,
                    y: height_after_child_connectors + @corner_size,
                    width: @action_width,
                    height: @action_height
                  },
-                 {:action, "2"} => %{
+                 {:action, "action_2"} => %{
                    x: @offset_x + @action_offset + @child_action_offset + @corner_size,
                    y: height_after_child_connectors + first_child_action_height + @corner_size,
                    width: @action_width,
                    height: @action_height
                  },
-                 {:connector, "1"} => %{
+                 {:connector, "conn_1"} => %{
                    x: empty_width - @outline_size - @connector_size,
                    y: @outline_size + @corner_size + @connector_offset,
                    width: @connector_size,
                    height: @connector_size
                  },
-                 {:connector, "2"} => %{
+                 {:connector, "conn_2"} => %{
                    x: empty_width - @outline_size - @connector_size,
                    y:
                      @outline_size + @corner_size + @connector_offset +
@@ -594,10 +666,10 @@ defmodule ExshomeAutomationTest.Services.Workflow.ItemConfigTest do
              } == item_properties
     end
 
-    @spec compute_item_properties(ItemConfig.t()) :: ItemProperties.t()
-    defp compute_item_properties(%ItemConfig{} = config) do
+    @spec compute_item_properties(ItemConfig.t(), map()) :: ItemProperties.t()
+    defp compute_item_properties(%ItemConfig{} = config, connections) do
       config
-      |> ItemConfig.compute_svg_components()
+      |> ItemConfig.compute_svg_components(connections)
       |> ItemConfig.compute_item_properties()
     end
   end

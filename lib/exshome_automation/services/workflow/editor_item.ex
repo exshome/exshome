@@ -45,23 +45,18 @@ defmodule ExshomeAutomation.Services.Workflow.EditorItem do
           drag: boolean(),
           connectors: ItemProperties.connector_mapping(),
           updated_at: DateTime.t(),
-          connections: %{
-            ItemProperties.connector_key() => %{
-              remote_key: remote_key(),
-              type: connection_type()
-            }
-          }
+          connections: ItemProperties.connection_mapping()
         }
 
   @spec create(type :: String.t(), position :: position()) :: t()
   def create(type, position) when is_binary(type) do
-    default_values = available_types()[type]
+    config = Map.fetch!(available_types(), type)
 
     %__MODULE__{
-      default_values
-      | id: Ecto.UUID.autogenerate(),
-        position: normalize_position(position),
-        type: type
+      id: Ecto.UUID.autogenerate(),
+      position: normalize_position(position),
+      type: type,
+      config: config
     }
     |> refresh_item()
   end
@@ -88,7 +83,7 @@ defmodule ExshomeAutomation.Services.Workflow.EditorItem do
   def put_connection(%__MODULE__{} = item, own_key, remote_key, type) do
     update_in(
       item.connections,
-      &Map.put(&1, own_key, %{type: type, remote_key: remote_key})
+      &Map.put(&1, own_key, %{type: type, remote_key: remote_key, height: 0, width: 0})
     )
     |> refresh_item()
   end
@@ -104,43 +99,23 @@ defmodule ExshomeAutomation.Services.Workflow.EditorItem do
 
   def available_types do
     %{
-      "simple_action" => %__MODULE__{
-        height: 46,
-        width: 34,
-        position: %{x: 0, y: 0},
-        config: %ItemConfig{
-          parent: :action,
-          has_next_action?: true,
-          child_actions: [],
-          child_connections: []
-        }
+      "simple_action" => %ItemConfig{
+        parent: :action,
+        has_next_action?: true,
+        child_actions: [],
+        child_connections: []
       },
-      "value" => %__MODULE__{
-        height: 46,
-        width: 34,
-        position: %{x: 0, y: 0},
-        config: %ItemConfig{
-          parent: :connection,
-          has_next_action?: false,
-          child_actions: [],
-          child_connections: []
-        }
+      "value" => %ItemConfig{
+        parent: :connection,
+        has_next_action?: false,
+        child_actions: [],
+        child_connections: []
       },
-      "if" => %__MODULE__{
-        height: 46,
-        width: 34,
-        position: %{x: 0, y: 0},
-        config: %ItemConfig{
-          parent: :action,
-          has_next_action?: true,
-          child_actions: [
-            %{height: 3, id: "if clause"},
-            %{height: 3, id: "then clause"}
-          ],
-          child_connections: [
-            %{height: 3, id: "condition"}
-          ]
-        }
+      "if" => %ItemConfig{
+        parent: :action,
+        has_next_action?: true,
+        child_actions: ["if clause", "then clause"],
+        child_connections: ["condition"]
       }
     }
   end
@@ -179,7 +154,7 @@ defmodule ExshomeAutomation.Services.Workflow.EditorItem do
 
   @spec refresh_item(t()) :: t()
   defp refresh_item(%__MODULE__{} = item) do
-    svg_components = ItemConfig.compute_svg_components(item.config)
+    svg_components = ItemConfig.compute_svg_components(item.config, item.connections)
     %ItemProperties{} = properties = ItemConfig.compute_item_properties(svg_components)
 
     %__MODULE__{

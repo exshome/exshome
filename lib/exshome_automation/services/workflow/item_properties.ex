@@ -9,9 +9,10 @@ defmodule ExshomeAutomation.Services.Workflow.ItemProperties do
     connectors: %{}
   ]
 
+  @type child_connector_type() :: :action | :connector
   @type connector_key() ::
-          :parent_connector | :parent_action | {:action | :connector, id :: String.t()}
-  @type connector_type() :: :parent | :action | :connector
+          :parent_connector | :parent_action | {child_connector_type(), id :: String.t()}
+  @type connector_type() :: :parent | child_connector_type()
   @type connector_position() :: %{
           x: number(),
           y: number(),
@@ -24,6 +25,17 @@ defmodule ExshomeAutomation.Services.Workflow.ItemProperties do
           height: number(),
           width: number(),
           connectors: connector_mapping()
+        }
+
+  @type remote_key :: {item_id :: String.t(), connector_key()}
+  @type connection_type() :: :hover | :connected
+  @type connection_mapping() :: %{
+          connector_key() => %{
+            remote_key: remote_key(),
+            type: connection_type(),
+            height: number(),
+            width: number()
+          }
         }
 
   @spec connector_type(connector_key()) :: connector_type()
@@ -48,4 +60,7 @@ defmodule ExshomeAutomation.Services.Workflow.ItemProperties do
 
     intersects_x && intersects_y
   end
+
+  @spec child_connector_key(child_connector_type(), String.t()) :: connector_key()
+  def child_connector_key(type, id), do: {type, id}
 end

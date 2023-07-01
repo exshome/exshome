@@ -11,34 +11,12 @@ defmodule ExshomeAutomation.Services.Workflow.ItemConfig do
     child_actions: []
   ]
 
-  @type child_connection() :: %{
-          id: String.t(),
-          height: number()
-        }
-
-  @type child_action() :: %{
-          id: String.t(),
-          height: number()
-        }
-
   @type t() :: %__MODULE__{
           parent: :connection | :action | nil,
           has_next_action?: boolean(),
-          child_connections: [child_connection()],
-          child_actions: [child_action()]
+          child_connections: [String.t()],
+          child_actions: [String.t()]
         }
-
-  @connector_size 4
-  @connector_offset 2
-  @outline_size 1
-  @min_width 25
-  @min_height 10
-  @action_width 6
-  @action_height 2
-  @action_offset 2
-  @child_action_offset 5
-  @child_action_separator_height 2
-  @corner_size 1
 
   @type svg_component() ::
           {:move, x :: number(), y :: number()}
@@ -57,17 +35,58 @@ defmodule ExshomeAutomation.Services.Workflow.ItemConfig do
           | :parent_connector
           | {:child_connector, String.t()}
 
-  @spec compute_svg_components(t()) :: [svg_component()]
-  def compute_svg_components(%__MODULE__{} = config) do
+  @type size_data() :: %{
+          atom() => [
+            %{
+              id: String.t(),
+              height: number(),
+              width: number()
+            }
+          ]
+        }
+
+  @connector_size 4
+  @connector_offset 2
+  @outline_size 1
+  @min_width 25
+  @min_height 10
+  @action_width 6
+  @action_height 2
+  @action_offset 2
+  @child_action_offset 5
+  @child_action_separator_height 2
+  @corner_size 1
+
+  @spec compute_svg_components(t(), ItemProperties.connection_mapping()) :: [svg_component()]
+  def compute_svg_components(%__MODULE__{} = config, connection_mapping) do
+    child_data = [{:action, config.child_actions}, {:connection, config.child_connections}]
+
+    size_data =
+      for {child_type, child_items} <- child_data, into: %{} do
+        items =
+          Enum.map(child_items, fn id ->
+            key = ItemProperties.child_connector_key(child_type, id)
+            connection = connection_mapping[key] || %{height: 0, width: 0}
+
+            %{
+              id: id,
+              height: max(@min_height, connection.height),
+              width: max(@min_width, connection.width)
+            }
+          end)
+
+        {child_type, items}
+      end
+
     []
     |> put_svg_component({:move, @connector_size + @outline_size + @corner_size, @outline_size})
     |> compute_component_top(config)
     |> put_svg_component({:round_corner, :top_right})
-    |> compute_component_right(config)
+    |> compute_component_right(config, size_data)
     |> put_svg_component({:round_corner, :bottom_right})
     |> compute_component_bottom(config)
     |> put_svg_component({:round_corner, :bottom_left})
-    |> compute_component_left(config)
+    |> compute_component_left(config, size_data)
     |> put_svg_component({:round_corner, :top_left})
     |> put_svg_component(:close_path)
     |> Enum.reverse()
@@ -101,9 +120,9 @@ defmodule ExshomeAutomation.Services.Workflow.ItemConfig do
     |> put_svg_component({:horizontal, -@action_offset})
   end
 
-  @spec compute_component_left([svg_component()], t()) :: [svg_component()]
-  defp compute_component_left(components, %__MODULE__{parent: :connection} = config) do
-    height = compute_left_height(config)
+  @spec compute_component_left([svg_component()], t(), size_data()) :: [svg_component()]
+  defp compute_component_left(components, %__MODULE__{parent: :connection} = config, size_data) do
+    height = compute_left_height(config, size_data)
     offset = height - @connector_size - @connector_offset
 
     components
@@ -112,19 +131,19 @@ defmodule ExshomeAutomation.Services.Workflow.ItemConfig do
     |> put_svg_component({:vertical, -@connector_offset})
   end
 
-  defp compute_component_left(components, %__MODULE__{} = config) do
-    height = compute_left_height(config)
+  defp compute_component_left(components, %__MODULE__{} = config, size_data) do
+    height = compute_left_height(config, size_data)
     put_svg_component(components, {:vertical, -height})
   end
 
-  defp compute_left_height(%__MODULE__{} = config) do
+  defp compute_left_height(%__MODULE__{} = config, size_data) do
     connections_height =
-      config.child_connections
+      size_data.connection
       |> Enum.map(&max(&1.height, @min_height))
       |> Enum.sum()
 
     actions_height =
-      config.child_actions
+      size_data.action
       |> Enum.map(&max(&1.height, @min_height))
       |> Enum.sum()
 
@@ -136,27 +155,30 @@ defmodule ExshomeAutomation.Services.Workflow.ItemConfig do
     max(@min_height, connections_height) + total_actions_height
   end
 
-  @spec compute_component_right([svg_component()], t()) :: [svg_component()]
-  defp compute_component_right(components, %__MODULE__{child_actions: [], child_connections: []}) do
+  @spec compute_component_right([svg_component()], t(), size_data()) :: [svg_component()]
+  defp compute_component_right(
+         components,
+         %__MODULE__{child_actions: [], child_connections: []},
+         _
+       ) do
     put_svg_component(components, {:vertical, @min_height})
   end
 
-  defp compute_component_right(components, %__MODULE__{} = config) do
+  defp compute_component_right(components, %__MODULE__{} = config, size_data) do
     components
-    |> compute_child_connections(config)
-    |> compute_child_actions(config)
+    |> compute_child_connections(config, size_data)
+    |> compute_child_actions(config, size_data)
   end
 
-  @spec compute_child_connections([svg_component()], t()) :: [svg_component()]
-  defp compute_child_connections(components, %__MODULE__{child_connections: []}) do
+  @spec compute_child_connections([svg_component()], t(), size_data()) :: [svg_component()]
+  defp compute_child_connections(components, %__MODULE__{child_connections: []}, _) do
     put_svg_component(components, {:vertical, @min_height})
   end
 
-  defp compute_child_connections(components, %__MODULE__{} = config) do
-    for %{height: height, id: id} <- config.child_connections, reduce: components do
+  defp compute_child_connections(components, _config, size_data) do
+    for %{height: height, id: id} <- size_data.connection, reduce: components do
       components ->
-        component_height = max(height, @min_height)
-        remaining_offset = component_height - @connector_offset - @connector_size
+        remaining_offset = height - @connector_offset - @connector_size
 
         components
         |> put_svg_component({:vertical, @connector_offset})
@@ -165,16 +187,16 @@ defmodule ExshomeAutomation.Services.Workflow.ItemConfig do
     end
   end
 
-  @spec compute_child_actions([svg_component()], t()) :: [svg_component()]
-  defp compute_child_actions(components, %__MODULE__{child_actions: []}) do
+  @spec compute_child_actions([svg_component()], t(), size_data()) :: [svg_component()]
+  defp compute_child_actions(components, %__MODULE__{child_actions: []}, _) do
     components
   end
 
-  defp compute_child_actions(components, %__MODULE__{} = config) do
+  defp compute_child_actions(components, _config, size_data) do
     child_action_width = @min_width - @child_action_offset - @corner_size
     child_action_right_offset = child_action_width - @action_width - @action_offset
 
-    for %{height: height, id: id} <- config.child_actions, reduce: components do
+    for %{height: height, id: id} <- size_data.action, reduce: components do
       components ->
         components
         |> put_svg_component({:round_corner, :bottom_right})
