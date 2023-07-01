@@ -12,15 +12,15 @@ defmodule ExshomeAutomation.Services.Workflow.EditorItem do
     :id,
     :type,
     :config,
-    :height,
-    :width,
-    :svg_path,
-    :connectors,
     :selected_by,
     :updated_at,
-    :drag,
+    svg_path: "",
+    height: 0,
+    width: 0,
+    drag: false,
     position: %{x: 0, y: 0},
-    connections: %{}
+    connectors: %{},
+    connected_items: %{}
   ]
 
   @type position() :: %{
@@ -43,9 +43,9 @@ defmodule ExshomeAutomation.Services.Workflow.EditorItem do
           type: String.t(),
           selected_by: selected_by(),
           drag: boolean(),
-          connectors: ItemProperties.connector_mapping(),
+          connectors: ItemProperties.connectors(),
           updated_at: DateTime.t(),
-          connections: ItemProperties.connection_mapping()
+          connected_items: ItemProperties.connected_items()
         }
 
   @spec create(type :: String.t(), position :: position()) :: t()
@@ -56,7 +56,8 @@ defmodule ExshomeAutomation.Services.Workflow.EditorItem do
       id: Ecto.UUID.autogenerate(),
       position: normalize_position(position),
       type: type,
-      config: config
+      config: config,
+      updated_at: DateTime.now!("Etc/UTC")
     }
     |> refresh_item()
   end
@@ -77,20 +78,19 @@ defmodule ExshomeAutomation.Services.Workflow.EditorItem do
   @spec put_connection(
           t(),
           own_key :: ItemProperties.connector_key(),
-          remote_key :: remote_key(),
-          type :: connection_type()
+          ItemProperties.connection()
         ) :: t()
-  def put_connection(%__MODULE__{} = item, own_key, remote_key, type) do
-    update_in(
-      item.connections,
-      &Map.put(&1, own_key, %{type: type, remote_key: remote_key, height: 0, width: 0})
-    )
+  def put_connection(%__MODULE__{} = item, own_key, connection) do
+    item.connected_items
+    |> update_in(&Map.put(&1, own_key, connection))
     |> refresh_item()
   end
 
   @spec delete_connection(t(), own_key :: ItemProperties.connector_key()) :: t()
   def delete_connection(%__MODULE__{} = item, own_key) do
-    update_in(item.connections, &Map.delete(&1, own_key))
+    item.connected_items
+    |> update_in(&Map.delete(&1, own_key))
+    |> refresh_item()
   end
 
   defp normalize_position(%{x: x, y: y}) do
@@ -140,7 +140,7 @@ defmodule ExshomeAutomation.Services.Workflow.EditorItem do
 
   @spec list_children_ids(t()) :: [String.t()]
   def list_children_ids(%__MODULE__{} = item) do
-    item.connections
+    item.connected_items
     |> Enum.reject(fn {key, %{type: type}} ->
       not_connected = type != :connected
       parent = key in @parent_keys
@@ -154,7 +154,7 @@ defmodule ExshomeAutomation.Services.Workflow.EditorItem do
 
   @spec refresh_item(t()) :: t()
   defp refresh_item(%__MODULE__{} = item) do
-    svg_components = ItemConfig.compute_svg_components(item.config, item.connections)
+    svg_components = ItemConfig.compute_svg_components(item.config, item.connected_items)
     %ItemProperties{} = properties = ItemConfig.compute_item_properties(svg_components)
 
     %__MODULE__{

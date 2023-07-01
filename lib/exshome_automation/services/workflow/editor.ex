@@ -263,7 +263,7 @@ defmodule ExshomeAutomation.Services.Workflow.Editor do
       state ->
         %EditorItem{} = item = get_item(state, item_id)
 
-        case item.connections[key] do
+        case item.connected_items[key] do
           %{type: :connected, remote_key: remote_key} ->
             own_connector_position = fetch_connector_data(state, {item_id, key}).position
             other_connector_position = fetch_connector_data(state, remote_key).position
@@ -311,7 +311,7 @@ defmodule ExshomeAutomation.Services.Workflow.Editor do
   defp update_connectors(%__MODULE__{} = state, %EditorItem{} = item) do
     for {connector_key, data} <- item.connectors, reduce: state do
       state ->
-        connection = item.connections[connector_key]
+        connection = item.connected_items[connector_key]
 
         connector_data = %{
           position: %{data | x: item.position.x + data.x, y: item.position.y + data.y},
@@ -340,7 +340,7 @@ defmodule ExshomeAutomation.Services.Workflow.Editor do
         %EditorItem{} = item = get_item(state, item_id)
 
         state =
-          case item.connections[parent_key] do
+          case item.connected_items[parent_key] do
             %{remote_key: remote_key} ->
               disconnect_items(state, remote_key, {item_id, parent_key})
 
@@ -411,12 +411,19 @@ defmodule ExshomeAutomation.Services.Workflow.Editor do
       {from_id, from_key, to}
     ]
 
-    for {id, own_key, remote_key} <- connections, reduce: state do
+    for {id, own_key, {remote_id, _} = remote_key} <- connections, reduce: state do
       state ->
+        %EditorItem{width: remote_width, height: remote_height} = get_item(state, remote_id)
+
         item =
           state
           |> get_item(id)
-          |> EditorItem.put_connection(own_key, remote_key, connection_type)
+          |> EditorItem.put_connection(own_key, %{
+            remote_key: remote_key,
+            type: connection_type,
+            height: remote_height,
+            width: remote_width
+          })
 
         state
         |> update_connectors(item)

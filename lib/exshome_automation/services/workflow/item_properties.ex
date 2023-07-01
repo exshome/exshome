@@ -19,24 +19,23 @@ defmodule ExshomeAutomation.Services.Workflow.ItemProperties do
           height: number(),
           width: number()
         }
-  @type connector_mapping() :: %{connector_key() => connector_position()}
+  @type connectors() :: %{connector_key() => connector_position()}
 
   @type t() :: %__MODULE__{
           height: number(),
           width: number(),
-          connectors: connector_mapping()
+          connectors: connectors()
         }
 
   @type remote_key :: {item_id :: String.t(), connector_key()}
   @type connection_type() :: :hover | :connected
-  @type connection_mapping() :: %{
-          connector_key() => %{
-            remote_key: remote_key(),
-            type: connection_type(),
-            height: number(),
-            width: number()
-          }
+  @type connection() :: %{
+          remote_key: remote_key(),
+          type: connection_type(),
+          height: number(),
+          width: number()
         }
+  @type connected_items() :: %{connector_key() => connection()}
 
   @spec connector_type(connector_key()) :: connector_type()
   def connector_type(:parent_connector), do: :parent

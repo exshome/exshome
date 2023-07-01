@@ -27,7 +27,7 @@ defmodule ExshomeAutomation.Web.Live.Automation.AutomationBlock do
     <svg id={@id} x={@component.item.position.x} y={@component.item.position.y}>
       <%= for {connector_id, connector} <- @component.item.connectors do %>
         <rect
-          class={"fill-red-300 dark:fill-red-400 #{if match?(%{type: :hover}, @component.item.connections[connector_id]), do: 'opacity-70', else: 'opacity-0'}"}
+          class={"fill-red-300 dark:fill-red-400 #{if match?(%{type: :hover}, @component.item.connected_items[connector_id]), do: 'opacity-70', else: 'opacity-0'}"}
           x={connector.x}
           y={connector.y}
           width={connector.width}

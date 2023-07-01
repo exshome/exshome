@@ -57,8 +57,8 @@ defmodule ExshomeAutomation.Services.Workflow.ItemConfig do
   @child_action_separator_height 2
   @corner_size 1
 
-  @spec compute_svg_components(t(), ItemProperties.connection_mapping()) :: [svg_component()]
-  def compute_svg_components(%__MODULE__{} = config, connection_mapping) do
+  @spec compute_svg_components(t(), ItemProperties.connected_items()) :: [svg_component()]
+  def compute_svg_components(%__MODULE__{} = config, connected_items) do
     child_data = [{:action, config.child_actions}, {:connection, config.child_connections}]
 
     size_data =
@@ -66,7 +66,7 @@ defmodule ExshomeAutomation.Services.Workflow.ItemConfig do
         items =
           Enum.map(child_items, fn id ->
             key = ItemProperties.child_connector_key(child_type, id)
-            connection = connection_mapping[key] || %{height: 0, width: 0}
+            connection = connected_items[key] || %{height: 0, width: 0}
 
             %{
               id: id,
@@ -283,7 +283,7 @@ defmodule ExshomeAutomation.Services.Workflow.ItemConfig do
           y: number(),
           width: number(),
           height: number(),
-          connectors: ItemProperties.connector_mapping()
+          connectors: ItemProperties.connectors()
         }
 
   @spec compute_item_properties([svg_component()]) :: ItemProperties.t()
