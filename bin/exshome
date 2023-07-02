@@ -28,6 +28,7 @@ Application.put_all_env(
       ]},
     {ExshomeWeb.Endpoint,
      [
+       adapter: Bandit.PhoenixAdapter,
        cache_static_manifest: {:exshome, "priv/static/cache_manifest.json"},
        http: [ip: host, port: port],
        check_origin: false,
