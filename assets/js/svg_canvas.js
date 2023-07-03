@@ -1,19 +1,15 @@
 // Drag and drop inspiration from https://www.petercollingridge.co.uk/tutorials/svg/interactive/dragging/
 
-const debounce = (func, timeout = 200) => {
-  let timer;
-  return function(...args) {
-    clearTimeout(timer);
-    timer = setTimeout(() => func.apply(this, args), timeout);
-  }
-}
-
 export const SvgCanvas = {
+  eventQueue: [],
   pointerPosition: {x: 0, y: 0},
   originalTouches: null,
   selectedElement: null,
+  sending: false,
 
   mounted() {
+    this.queueEvent = this.queueEvent.bind(this);
+    this.processEventQueue = this.processEventQueue.bind(this);
     this.extractPointerPosition = this.extractPointerPosition.bind(this);
 
     this.onResize = this.onResize.bind(this);
@@ -24,10 +20,10 @@ export const SvgCanvas = {
     this.el.addEventListener("mousedown", withPointer(this.onDragStart));
     this.el.addEventListener("touchstart", withPointer(this.onDragStart));
 
-    const onDragDesktop = debounce(this.onDragDesktop.bind(this), 3);
+    const onDragDesktop = this.onDragDesktop.bind(this);
     this.el.addEventListener("mousemove", withPointer(onDragDesktop));
 
-    const onDragMobile = debounce(this.onDragMobile.bind(this), 5);
+    const onDragMobile = this.onDragMobile.bind(this);
     this.el.addEventListener("touchmove", withPointer(onDragMobile));
 
     this.el.addEventListener("mouseup", withPointer(this.onDragEnd));
@@ -38,7 +34,7 @@ export const SvgCanvas = {
     this.el.addEventListener("touchleave", withPointer(this.onDragEnd));
     this.el.addEventListener("touchcancel", withPointer(this.onDragEnd));
 
-    const onScrollDesktop = debounce(this.onScrollDesktop.bind(this), 10);
+    const onScrollDesktop = this.onScrollDesktop.bind(this);
     this.el.addEventListener("mousewheel", withPointer(onScrollDesktop));
     this.el.addEventListener("DOMMouseScroll", withPointer(onScrollDesktop));
 
@@ -114,7 +110,7 @@ export const SvgCanvas = {
 
     this.selectedElement = this.el.querySelector(`[data-component=${component}]`)
     if (this.selectedElement) {
-      this.pushEvent("select", {
+      this.queueEvent("select", {
         component: this.selectedElement.dataset.component,
         pointer: this.pointerPosition,
         offset: this.getSelectedElementOffset(),
@@ -135,7 +131,7 @@ export const SvgCanvas = {
 
   onDragEnd() {
     if (this.selectedElement) {
-      this.pushEvent(
+      this.queueEvent(
         "dragend",
         {
           pointer: this.pointerPosition
@@ -170,7 +166,7 @@ export const SvgCanvas = {
   },
 
   onResize() {
-    this.pushEvent("resize", {height: this.el.clientHeight, width: this.el.clientWidth});
+    this.queueEvent("resize", {height: this.el.clientHeight, width: this.el.clientWidth});
   },
 
   onScrollDesktop(e) {
@@ -180,8 +176,33 @@ export const SvgCanvas = {
         -1,
         Math.min(1, e.wheelDelta || -e.detail)
       );
-      this.pushEvent("zoom-desktop", {pointer: this.pointerPosition, delta});
+      this.queueEvent("zoom-desktop", {pointer: this.pointerPosition, delta});
     }
+  },
+
+  processEventQueue() {
+    if (this.sending) {
+      return;
+    }
+
+    const event = this.eventQueue.shift();
+    if (event) {
+      this.sending = true;
+      this.pushEvent(event.name, event.payload, () => {
+        this.sending = false;
+        this.processEventQueue();
+      })
+    }
+  },
+
+  queueEvent(name, payload) {
+    const event = {name, payload};
+    const previousEvent = this.eventQueue.pop()
+    if (previousEvent && previousEvent.name !== event.name) {
+      this.eventQueue.push(previousEvent);
+    }
+    this.eventQueue.push(event);
+    this.processEventQueue();
   },
 
   reconnected() {
@@ -189,7 +210,7 @@ export const SvgCanvas = {
   },
 
   sendDragEvent(e) {
-    this.pushEvent(
+    this.queueEvent(
       this.selectedElement.dataset["drag"],
       {
         pointer: this.pointerPosition
@@ -226,7 +247,7 @@ export const SvgCanvas = {
 
   zoomMobile(touches) {
     if (this.originalTouches) {
-      this.pushEvent("zoom-mobile", {original: this.originalTouches, current: touches});
+      this.queueEvent("zoom-mobile", {original: this.originalTouches, current: touches});
     }
   },
 }
