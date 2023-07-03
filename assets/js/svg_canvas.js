@@ -197,9 +197,8 @@ export const SvgCanvas = {
 
   queueEvent(name, payload) {
     const event = {name, payload};
-    const previousEvent = this.eventQueue.pop()
-    if (previousEvent && previousEvent.name !== event.name) {
-      this.eventQueue.push(previousEvent);
+    while (this.eventQueue[this.eventQueue.length - 1]?.name === name) {
+      this.eventQueue.pop();
     }
     this.eventQueue.push(event);
     this.processEventQueue();
