@@ -291,12 +291,21 @@ defmodule ExshomeAutomation.Services.Workflow.Editor do
     update_in(state.dragged_items, &Map.put(&1, state.operation_pid, nil))
   end
 
-  def delete_item(%__MODULE__{} = state, id) do
-    %EditorItem{} = item = get_item(state, id)
-    change = %Operation.Delete{data: item, key: state.operation_pid}
+  def delete_item(%__MODULE__{} = state, item_id) do
+    ids_to_delete =
+      state
+      |> list_children_ids(item_id)
+      |> MapSet.put(item_id)
 
-    %__MODULE__{state | items: Map.delete(state.items, item.id)}
-    |> put_change(change)
+    for id <- ids_to_delete, reduce: state do
+      state ->
+        %EditorItem{} = item = get_item(state, id)
+        change = %Operation.Delete{data: item, key: state.operation_pid}
+
+        %__MODULE__{state | items: Map.delete(state.items, item.id)}
+        |> delete_connectors(item)
+        |> put_change(change)
+    end
   end
 
   @spec update_item(t(), EditorItem.t()) :: t()
@@ -324,6 +333,20 @@ defmodule ExshomeAutomation.Services.Workflow.Editor do
         update_in(
           state.available_connectors[connector_type],
           &Map.put(&1, key, connector_data)
+        )
+    end
+  end
+
+  @spec delete_connectors(t(), EditorItem.t()) :: t()
+  defp delete_connectors(%__MODULE__{} = state, %EditorItem{} = item) do
+    for {connector_key, _} <- item.connectors, reduce: state do
+      state ->
+        key = EditorItem.remote_key(item, connector_key)
+        connector_type = ItemProperties.connector_type(connector_key)
+
+        update_in(
+          state.available_connectors[connector_type],
+          &Map.delete(&1, key)
         )
     end
   end
