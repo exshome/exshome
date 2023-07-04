@@ -255,26 +255,19 @@ defmodule ExshomeAutomation.Services.Workflow.Editor do
 
   @spec maybe_adjust_item_position(t(), String.t()) :: t()
   defp maybe_adjust_item_position(%__MODULE__{} = state, item_id) do
-    parent_keys =
-      state
-      |> get_item(item_id)
-      |> EditorItem.get_parent_keys()
+    item = get_item(state, item_id)
+    parent_key = EditorItem.get_parent_key(item)
 
-    for key <- parent_keys, reduce: state do
-      state ->
-        %EditorItem{} = item = get_item(state, item_id)
+    case item.connected_items[parent_key] do
+      %{type: :connected, remote_key: remote_key} ->
+        own_connector_position = fetch_connector_data(state, {item_id, parent_key}).position
+        other_connector_position = fetch_connector_data(state, remote_key).position
+        new_x = item.position.x - own_connector_position.x + other_connector_position.x
+        new_y = item.position.y - own_connector_position.y + other_connector_position.y
+        move_item(state, item_id, %{x: new_x, y: new_y}, :connected)
 
-        case item.connected_items[key] do
-          %{type: :connected, remote_key: remote_key} ->
-            own_connector_position = fetch_connector_data(state, {item_id, key}).position
-            other_connector_position = fetch_connector_data(state, remote_key).position
-            new_x = item.position.x - own_connector_position.x + other_connector_position.x
-            new_y = item.position.y - own_connector_position.y + other_connector_position.y
-            move_item(state, item_id, %{x: new_x, y: new_y}, :connected)
-
-          _ ->
-            state
-        end
+      _ ->
+        state
     end
   end
 
@@ -354,32 +347,29 @@ defmodule ExshomeAutomation.Services.Workflow.Editor do
 
   @spec update_parent_connections(t(), String.t(), EditorItem.connection_type()) :: t()
   defp update_parent_connections(%__MODULE__{} = state, item_id, connection_type) do
-    parent_keys =
-      state
-      |> get_item(item_id)
-      |> EditorItem.get_parent_keys()
+    %EditorItem{} = item = get_item(state, item_id)
+    parent_key = EditorItem.get_parent_key(item)
 
-    for parent_key <- parent_keys, reduce: state do
-      state ->
-        %EditorItem{} = item = get_item(state, item_id)
+    state =
+      case item.connected_items[parent_key] do
+        %{remote_key: remote_key} ->
+          disconnect_items(state, remote_key, {item_id, parent_key})
 
-        state =
-          case item.connected_items[parent_key] do
-            %{remote_key: remote_key} ->
-              disconnect_items(state, remote_key, {item_id, parent_key})
-
-            _ ->
-              state
-          end
-
-        remote_key = EditorItem.remote_key(item, parent_key)
-        connection = intersecting_connector(state, remote_key)
-
-        if connection do
-          connect_items(state, remote_key, connection, connection_type)
-        else
+        _ ->
           state
-        end
+      end
+
+    if parent_key do
+      remote_key = EditorItem.remote_key(item, parent_key)
+      connection = intersecting_connector(state, remote_key)
+
+      if connection do
+        connect_items(state, remote_key, connection, connection_type)
+      else
+        state
+      end
+    else
+      state
     end
   end
 

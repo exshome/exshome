@@ -130,9 +130,9 @@ defmodule ExshomeAutomation.Services.Workflow.EditorItem do
     %__MODULE__{item | drag: drag}
   end
 
-  @spec get_parent_keys(t()) :: [ItemProperties.connector_key()]
-  def get_parent_keys(%__MODULE__{} = item) do
-    Enum.filter(
+  @spec get_parent_key(t()) :: ItemProperties.connector_key() | nil
+  def get_parent_key(%__MODULE__{} = item) do
+    Enum.find(
       @parent_keys,
       &Map.has_key?(item.connectors, &1)
     )
