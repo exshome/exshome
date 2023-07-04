@@ -144,7 +144,7 @@ defmodule ExshomeAutomationTest.Services.WorkflowTest do
       %EditorItem{} = child = create_item(workflow_id, "if")
       %EditorItem{} = parent = Workflow.get_item!(workflow_id, parent_id)
 
-      parent_connector = parent.connectors[{:action, "if clause"}]
+      parent_connector = parent.connectors[{:action, "then"}]
       child_connector = child.connectors[:parent_action]
 
       expected_position = %{
@@ -204,9 +204,9 @@ defmodule ExshomeAutomationTest.Services.WorkflowTest do
 
     test "move_connected_item", %{workflow_id: workflow_id, parent_id: parent_id} do
       %EditorItem{id: child_id} = create_item(workflow_id, "if")
-      connect_items(workflow_id, {parent_id, {:action, "if clause"}}, {child_id, :parent_action})
-      %EditorItem{position: parent_position} = Workflow.get_item!(workflow_id, parent_id)
-      %EditorItem{position: child_position} = Workflow.get_item!(workflow_id, child_id)
+      connect_items(workflow_id, {parent_id, {:action, "then"}}, {child_id, :parent_action})
+      parent_position = item_position(workflow_id, parent_id)
+      child_position = item_position(workflow_id, child_id)
 
       :ok = Workflow.select_item(workflow_id, parent_id)
 
@@ -216,12 +216,10 @@ defmodule ExshomeAutomationTest.Services.WorkflowTest do
           y: parent_position.y + 1
         })
 
-      %EditorItem{position: updated_position} = Workflow.get_item!(workflow_id, child_id)
-
       assert %{
                x: child_position.x + 1,
                y: child_position.y + 1
-             } == updated_position
+             } == item_position(workflow_id, child_id)
 
       :ok =
         Workflow.stop_dragging(workflow_id, parent_id, %{
@@ -229,12 +227,46 @@ defmodule ExshomeAutomationTest.Services.WorkflowTest do
           y: parent_position.y + 2
         })
 
-      %EditorItem{position: updated_position} = Workflow.get_item!(workflow_id, child_id)
-
       assert %{
                x: child_position.x + 2,
                y: child_position.y + 2
-             } == updated_position
+             } == item_position(workflow_id, child_id)
+    end
+
+    test "move siblings", %{workflow_id: workflow_id, parent_id: grandparent_id} do
+      grandparent_position = item_position(workflow_id, grandparent_id)
+      %EditorItem{id: parent_id} = create_item(workflow_id, "if")
+      %EditorItem{id: parent_sibling_id} = create_item(workflow_id, "if")
+      %EditorItem{id: child_id} = create_item(workflow_id, "if")
+      %EditorItem{id: sibling_id} = create_item(workflow_id, "if")
+
+      connect_items(
+        workflow_id,
+        {grandparent_id, {:action, "else"}},
+        {parent_sibling_id, :parent_action}
+      )
+
+      connect_items(workflow_id, {parent_id, {:action, "else"}}, {sibling_id, :parent_action})
+
+      parent_sibling_position = item_position(workflow_id, parent_sibling_id)
+      connect_items(workflow_id, {grandparent_id, {:action, "then"}}, {parent_id, :parent_action})
+      updated_parent_sibling_position = item_position(workflow_id, parent_sibling_id)
+      assert parent_sibling_position.y < updated_parent_sibling_position.y
+
+      sibling_position = item_position(workflow_id, sibling_id)
+      connect_items(workflow_id, {parent_id, {:action, "then"}}, {child_id, :parent_action})
+      assert sibling_position.y < item_position(workflow_id, sibling_id).y
+      assert updated_parent_sibling_position.y < item_position(workflow_id, parent_sibling_id).y
+
+      :ok = Workflow.select_item(workflow_id, child_id)
+      :ok = Workflow.stop_dragging(workflow_id, child_id, grandparent_position)
+      assert sibling_position.y == item_position(workflow_id, sibling_id).y
+      assert updated_parent_sibling_position.y == item_position(workflow_id, parent_sibling_id).y
+    end
+
+    defp item_position(workflow_id, item_id) do
+      %EditorItem{position: position} = Workflow.get_item!(workflow_id, item_id)
+      position
     end
   end
 

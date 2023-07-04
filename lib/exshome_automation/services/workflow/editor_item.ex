@@ -114,7 +114,7 @@ defmodule ExshomeAutomation.Services.Workflow.EditorItem do
       "if" => %ItemConfig{
         parent: :action,
         has_next_action?: true,
-        child_actions: ["if clause", "then clause"],
+        child_actions: ["then", "else"],
         child_connections: ["condition"]
       }
     }
