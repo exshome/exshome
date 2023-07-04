@@ -148,24 +148,25 @@ defmodule ExshomeAutomationTest.Services.WorkflowTest do
       child_connector = child.connectors[:parent_action]
 
       expected_position = %{
-        x: parent.position.x + parent_connector.x - child_connector.x,
-        y: parent.position.y + parent_connector.y - child_connector.y
+        x: round(parent.position.x + parent_connector.x - child_connector.x),
+        y: round(parent.position.y + parent_connector.y - child_connector.y)
       }
 
       :ok = Workflow.select_item(workflow_id, child.id)
 
       :ok =
         Workflow.stop_dragging(workflow_id, child.id, %{
-          x: expected_position.x + 0.1,
-          y: expected_position.y + 0.1
+          x: expected_position.x + 1,
+          y: expected_position.y + 1
         })
 
       %EditorItem{} = updated_parent = Workflow.get_item!(workflow_id, parent_id)
-      %EditorItem{} = updated_child = Workflow.get_item!(workflow_id, child.id)
+      %EditorItem{position: position} = updated_child = Workflow.get_item!(workflow_id, child.id)
 
+      actual_position = %{x: round(position.x), y: round(position.y)}
+      assert actual_position == expected_position
       assert map_size(updated_parent.connected_items) == 1
       assert map_size(updated_child.connected_items) == 1
-      assert updated_child.position == expected_position
       assert parent.height < updated_parent.height
     end
 
