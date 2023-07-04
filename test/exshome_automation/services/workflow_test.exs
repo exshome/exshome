@@ -200,6 +200,41 @@ defmodule ExshomeAutomationTest.Services.WorkflowTest do
       %EditorItem{} = child = Workflow.get_item!(workflow_id, child_id)
       assert map_size(child.connected_items) == 1
     end
+
+    test "move_connected_item", %{workflow_id: workflow_id, parent_id: parent_id} do
+      %EditorItem{id: child_id} = create_item(workflow_id, "if")
+      connect_items(workflow_id, {parent_id, {:action, "if clause"}}, {child_id, :parent_action})
+      %EditorItem{position: parent_position} = Workflow.get_item!(workflow_id, parent_id)
+      %EditorItem{position: child_position} = Workflow.get_item!(workflow_id, child_id)
+
+      :ok = Workflow.select_item(workflow_id, parent_id)
+
+      :ok =
+        Workflow.move_item(workflow_id, parent_id, %{
+          x: parent_position.x + 1,
+          y: parent_position.y + 1
+        })
+
+      %EditorItem{position: updated_position} = Workflow.get_item!(workflow_id, child_id)
+
+      assert %{
+               x: child_position.x + 1,
+               y: child_position.y + 1
+             } == updated_position
+
+      :ok =
+        Workflow.stop_dragging(workflow_id, parent_id, %{
+          x: parent_position.x + 2,
+          y: parent_position.y + 2
+        })
+
+      %EditorItem{position: updated_position} = Workflow.get_item!(workflow_id, child_id)
+
+      assert %{
+               x: child_position.x + 2,
+               y: child_position.y + 2
+             } == updated_position
+    end
   end
 
   defp create_random_item(workflow_id) do
