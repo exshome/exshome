@@ -134,12 +134,84 @@ defmodule ExshomeAutomationTest.Services.WorkflowTest do
     end
   end
 
+  describe "connect items" do
+    setup %{workflow_id: workflow_id} do
+      %EditorItem{id: parent_id} = create_item(workflow_id, "if")
+      %{parent_id: parent_id}
+    end
+
+    test "adjust position", %{workflow_id: workflow_id, parent_id: parent_id} do
+      %EditorItem{} = child = create_item(workflow_id, "if")
+      %EditorItem{} = parent = Workflow.get_item!(workflow_id, parent_id)
+
+      parent_connector = parent.connectors[{:action, "if clause"}]
+      child_connector = child.connectors[:parent_action]
+
+      expected_position = %{
+        x: parent.position.x + parent_connector.x - child_connector.x,
+        y: parent.position.y + parent_connector.y - child_connector.y
+      }
+
+      :ok = Workflow.select_item(workflow_id, child.id)
+
+      :ok =
+        Workflow.stop_dragging(workflow_id, child.id, %{
+          x: expected_position.x + 0.1,
+          y: expected_position.y + 0.1
+        })
+
+      %EditorItem{} = updated_parent = Workflow.get_item!(workflow_id, parent_id)
+      %EditorItem{} = updated_child = Workflow.get_item!(workflow_id, child.id)
+
+      assert map_size(updated_parent.connected_items) == 1
+      assert map_size(updated_child.connected_items) == 1
+      assert updated_child.position == expected_position
+      assert parent.height < updated_parent.height
+    end
+
+    test "action", %{workflow_id: workflow_id, parent_id: parent_id} do
+      %EditorItem{id: child_id} = create_item(workflow_id, "if")
+      %EditorItem{} = parent = Workflow.get_item!(workflow_id, parent_id)
+
+      random_action =
+        parent
+        |> EditorItem.get_child_keys()
+        |> Enum.filter(fn {type, _} -> type == :action end)
+        |> Enum.random()
+
+      connect_items(workflow_id, {parent_id, random_action}, {child_id, :parent_action})
+
+      %EditorItem{} = child = Workflow.get_item!(workflow_id, child_id)
+      assert map_size(child.connected_items) == 1
+    end
+
+    test "connector", %{workflow_id: workflow_id, parent_id: parent_id} do
+      %EditorItem{id: child_id} = create_item(workflow_id, "value")
+      %EditorItem{} = parent = Workflow.get_item!(workflow_id, parent_id)
+
+      random_action =
+        parent
+        |> EditorItem.get_child_keys()
+        |> Enum.filter(fn {type, _} -> type == :connector end)
+        |> Enum.random()
+
+      connect_items(workflow_id, {parent_id, random_action}, {child_id, :parent_connector})
+
+      %EditorItem{} = child = Workflow.get_item!(workflow_id, child_id)
+      assert map_size(child.connected_items) == 1
+    end
+  end
+
   defp create_random_item(workflow_id) do
     type =
       EditorItem.available_types()
       |> Map.keys()
       |> Enum.random()
 
+    create_item(workflow_id, type)
+  end
+
+  defp create_item(workflow_id, type) do
     Workflow.create_item(
       workflow_id,
       type,
@@ -152,5 +224,18 @@ defmodule ExshomeAutomationTest.Services.WorkflowTest do
     })
 
     item
+  end
+
+  defp connect_items(workflow_id, {parent_id, parent_key}, {child_id, child_key}) do
+    %EditorItem{} = parent = Workflow.get_item!(workflow_id, parent_id)
+    %EditorItem{} = child = Workflow.get_item!(workflow_id, child_id)
+
+    new_child_position = %{
+      x: parent.position.x + parent.connectors[parent_key].x - child.connectors[child_key].x,
+      y: parent.position.y + parent.connectors[parent_key].y - child.connectors[child_key].y
+    }
+
+    :ok = Workflow.select_item(workflow_id, child_id)
+    :ok = Workflow.stop_dragging(workflow_id, child_id, new_child_position)
   end
 end

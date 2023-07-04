@@ -155,6 +155,7 @@ defmodule ExshomeAutomation.Services.Workflow.Editor do
 
     %__MODULE__{state | items: Map.put(state.items, id, item)}
     |> put_change(change)
+    |> update_connectors(item)
   end
 
   @spec maybe_put_updated_at(EditorItem.t(), DateTime.t() | nil) :: EditorItem.t()

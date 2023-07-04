@@ -138,6 +138,13 @@ defmodule ExshomeAutomation.Services.Workflow.EditorItem do
     )
   end
 
+  @spec get_child_keys(t()) :: [ItemProperties.connector_key()]
+  def get_child_keys(%__MODULE__{connectors: connectors}) do
+    connectors
+    |> Map.keys()
+    |> Enum.reject(&(&1 in @parent_keys))
+  end
+
   @spec list_children_ids(t()) :: [String.t()]
   def list_children_ids(%__MODULE__{} = item) do
     item.connected_items
