@@ -24,7 +24,14 @@ defmodule ExshomeAutomation.Web.Live.Automation.AutomationBlock do
   @impl CanvasComponent
   def render(assigns) do
     ~H"""
-    <svg id={@id} x={@component.item.position.x} y={@component.item.position.y}>
+    <svg
+      id={@id}
+      height={@component.item.height}
+      width={@component.item.width}
+      x={@component.item.position.x}
+      y={@component.item.position.y}
+      xmlns="http://www.w3.org/2000/svg"
+    >
       <%= for {connector_id, connector} <- @component.item.connectors do %>
         <rect
           class={"fill-red-300 dark:fill-red-400 #{if match?(%{type: :hover}, @component.item.connected_items[connector_id]), do: 'opacity-70', else: 'opacity-0'}"}
