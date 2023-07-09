@@ -233,16 +233,17 @@ defmodule ExshomeAutomationTest.Services.WorkflowTest do
              } == item_position(workflow_id, child_id)
     end
 
-    test "resize parents and move siblings", %{
+    test "resize parents and move siblings workflow", %{
       workflow_id: workflow_id,
       parent_id: grandparent_id
     } do
       grandparent_position = item_position(workflow_id, grandparent_id)
-      %EditorItem{id: parent_id} = create_item(workflow_id, "if")
-      %EditorItem{id: parent_sibling_id} = create_item(workflow_id, "if")
-      %EditorItem{id: child_id} = create_item(workflow_id, "if")
-      %EditorItem{id: sibling_id} = create_item(workflow_id, "if")
+      %EditorItem{id: parent_id} = create_item(workflow_id, "if", %{x: 500, y: 0})
+      %EditorItem{id: parent_sibling_id} = create_item(workflow_id, "if", %{x: 1000, y: 0})
+      %EditorItem{id: child_id} = create_item(workflow_id, "if", %{x: 1500, y: 0})
+      %EditorItem{id: sibling_id} = create_item(workflow_id, "if", %{x: 2000, y: 0})
 
+      # connect sibling of the parent to the grandparent
       initial_grandparent_height = item_height(workflow_id, grandparent_id)
 
       connect_items(
@@ -251,26 +252,45 @@ defmodule ExshomeAutomationTest.Services.WorkflowTest do
         {parent_sibling_id, :parent_action}
       )
 
+      assert count_connections(workflow_id, grandparent_id) == 1
+      height_diff = item_height_diff(workflow_id, parent_sibling_id)
       grandparent_height_with_one_child = item_height(workflow_id, grandparent_id)
-      assert grandparent_height_with_one_child > initial_grandparent_height
+      assert grandparent_height_with_one_child == initial_grandparent_height + height_diff
 
+      # connect sibling of the child to the parent
       connect_items(workflow_id, {parent_id, {:action, "else"}}, {sibling_id, :parent_action})
-
       parent_sibling_position = item_position(workflow_id, parent_sibling_id)
-      connect_items(workflow_id, {grandparent_id, {:action, "then"}}, {parent_id, :parent_action})
-      updated_parent_sibling_position = item_position(workflow_id, parent_sibling_id)
-      assert parent_sibling_position.y < updated_parent_sibling_position.y
-      grandparent_height_with_two_children = item_height(workflow_id, grandparent_id)
-      assert grandparent_height_with_two_children > grandparent_height_with_one_child
+      assert count_connections(workflow_id, parent_id) == 1
 
+      # connect parent to the grandparent
+      connect_items(workflow_id, {grandparent_id, {:action, "then"}}, {parent_id, :parent_action})
+      assert count_connections(workflow_id, grandparent_id) == 2
+      assert count_connections(workflow_id, parent_id) == 2
+      updated_parent_sibling_position = item_position(workflow_id, parent_sibling_id)
+      height_diff = item_height_diff(workflow_id, parent_id)
+      assert updated_parent_sibling_position.y == parent_sibling_position.y + height_diff
+      grandparent_height_with_two_children = item_height(workflow_id, grandparent_id)
+
+      assert grandparent_height_with_two_children ==
+               grandparent_height_with_one_child + height_diff
+
+      # connect child to the parent
       sibling_position = item_position(workflow_id, sibling_id)
       connect_items(workflow_id, {parent_id, {:action, "then"}}, {child_id, :parent_action})
-      assert sibling_position.y < item_position(workflow_id, sibling_id).y
-      assert updated_parent_sibling_position.y < item_position(workflow_id, parent_sibling_id).y
-      assert grandparent_height_with_two_children < item_height(workflow_id, grandparent_id)
+      assert count_connections(workflow_id, parent_id) == 3
+      height_diff = item_height_diff(workflow_id, child_id)
+      assert item_position(workflow_id, sibling_id).y == sibling_position.y + height_diff
 
+      assert item_position(workflow_id, parent_sibling_id).y ==
+               updated_parent_sibling_position.y + height_diff
+
+      assert item_height(workflow_id, grandparent_id) ==
+               grandparent_height_with_two_children + height_diff
+
+      # disconnect child
       :ok = Workflow.select_item(workflow_id, child_id)
       :ok = Workflow.stop_dragging(workflow_id, child_id, grandparent_position)
+      assert count_connections(workflow_id, parent_id) == 2
       assert sibling_position.y == item_position(workflow_id, sibling_id).y
       assert updated_parent_sibling_position.y == item_position(workflow_id, parent_sibling_id).y
       assert grandparent_height_with_two_children == item_height(workflow_id, grandparent_id)
@@ -285,6 +305,23 @@ defmodule ExshomeAutomationTest.Services.WorkflowTest do
       %EditorItem{height: height} = Workflow.get_item!(workflow_id, item_id)
       height
     end
+
+    defp item_height_diff(workflow_id, item_id) do
+      Workflow.get_item!(workflow_id, item_id)
+
+      %{height: height} =
+        workflow_id
+        |> Workflow.get_item!(item_id)
+        |> EditorItem.min_size_diff()
+
+      height
+    end
+
+    defp count_connections(workflow_id, item_id) do
+      %EditorItem{connected_items: connected_items} = Workflow.get_item!(workflow_id, item_id)
+
+      map_size(connected_items)
+    end
   end
 
   defp create_random_item(workflow_id) do
@@ -296,12 +333,8 @@ defmodule ExshomeAutomationTest.Services.WorkflowTest do
     create_item(workflow_id, type)
   end
 
-  defp create_item(workflow_id, type) do
-    Workflow.create_item(
-      workflow_id,
-      type,
-      %{x: unique_integer(), y: unique_integer()}
-    )
+  defp create_item(workflow_id, type, position \\ %{x: unique_integer(), y: unique_integer()}) do
+    Workflow.create_item(workflow_id, type, position)
 
     assert_receive_stream({
       {EditorStream, ^workflow_id},
