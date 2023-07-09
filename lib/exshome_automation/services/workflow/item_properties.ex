@@ -36,6 +36,7 @@ defmodule ExshomeAutomation.Services.Workflow.ItemProperties do
           width: number()
         }
   @type connected_items() :: %{connector_key() => connection()}
+  @type size() :: %{height: number, width: number()}
 
   @spec connector_type(connector_key()) :: connector_type()
   def connector_type(:parent_connector), do: :parent

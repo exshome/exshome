@@ -233,12 +233,17 @@ defmodule ExshomeAutomationTest.Services.WorkflowTest do
              } == item_position(workflow_id, child_id)
     end
 
-    test "move siblings", %{workflow_id: workflow_id, parent_id: grandparent_id} do
+    test "resize parents and move siblings", %{
+      workflow_id: workflow_id,
+      parent_id: grandparent_id
+    } do
       grandparent_position = item_position(workflow_id, grandparent_id)
       %EditorItem{id: parent_id} = create_item(workflow_id, "if")
       %EditorItem{id: parent_sibling_id} = create_item(workflow_id, "if")
       %EditorItem{id: child_id} = create_item(workflow_id, "if")
       %EditorItem{id: sibling_id} = create_item(workflow_id, "if")
+
+      initial_grandparent_height = item_height(workflow_id, grandparent_id)
 
       connect_items(
         workflow_id,
@@ -246,27 +251,39 @@ defmodule ExshomeAutomationTest.Services.WorkflowTest do
         {parent_sibling_id, :parent_action}
       )
 
+      grandparent_height_with_one_child = item_height(workflow_id, grandparent_id)
+      assert grandparent_height_with_one_child > initial_grandparent_height
+
       connect_items(workflow_id, {parent_id, {:action, "else"}}, {sibling_id, :parent_action})
 
       parent_sibling_position = item_position(workflow_id, parent_sibling_id)
       connect_items(workflow_id, {grandparent_id, {:action, "then"}}, {parent_id, :parent_action})
       updated_parent_sibling_position = item_position(workflow_id, parent_sibling_id)
       assert parent_sibling_position.y < updated_parent_sibling_position.y
+      grandparent_height_with_two_children = item_height(workflow_id, grandparent_id)
+      assert grandparent_height_with_two_children > grandparent_height_with_one_child
 
       sibling_position = item_position(workflow_id, sibling_id)
       connect_items(workflow_id, {parent_id, {:action, "then"}}, {child_id, :parent_action})
       assert sibling_position.y < item_position(workflow_id, sibling_id).y
       assert updated_parent_sibling_position.y < item_position(workflow_id, parent_sibling_id).y
+      assert grandparent_height_with_two_children < item_height(workflow_id, grandparent_id)
 
       :ok = Workflow.select_item(workflow_id, child_id)
       :ok = Workflow.stop_dragging(workflow_id, child_id, grandparent_position)
       assert sibling_position.y == item_position(workflow_id, sibling_id).y
       assert updated_parent_sibling_position.y == item_position(workflow_id, parent_sibling_id).y
+      assert grandparent_height_with_two_children == item_height(workflow_id, grandparent_id)
     end
 
     defp item_position(workflow_id, item_id) do
       %EditorItem{position: position} = Workflow.get_item!(workflow_id, item_id)
       position
+    end
+
+    defp item_height(workflow_id, item_id) do
+      %EditorItem{height: height} = Workflow.get_item!(workflow_id, item_id)
+      height
     end
   end
 

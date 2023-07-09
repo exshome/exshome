@@ -393,4 +393,7 @@ defmodule ExshomeAutomation.Services.Workflow.ItemConfig do
         height: max(data.height, new_y)
     }
   end
+
+  @spec min_item_size() :: ItemProperties.size()
+  def min_item_size, do: %{width: @min_width, height: @min_height}
 end

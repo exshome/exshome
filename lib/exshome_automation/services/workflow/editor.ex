@@ -235,6 +235,86 @@ defmodule ExshomeAutomation.Services.Workflow.Editor do
     recursive_list_children_ids(state, rest ++ children_ids, new_result)
   end
 
+  @spec update_siblings(t(), String.t(), connection_type :: :connected | :disconnected) :: t()
+  defp update_siblings(%__MODULE__{} = state, item_id, connection_type) do
+    case traverse_parents(state, item_id) do
+      [] ->
+        state
+
+      [{root_id, _} | _] ->
+        %EditorItem{} = item = get_item(state, item_id)
+        size_diff = EditorItem.min_size_diff(item)
+
+        diff = %{
+          x: 0,
+          y: if(connection_type == :connected, do: -size_diff.height, else: size_diff.height)
+        }
+
+        item_ids_to_exclude =
+          state
+          |> list_children_ids(item_id)
+          |> MapSet.put(item_id)
+
+        affected_item_ids =
+          state
+          |> list_children_ids(root_id)
+          |> MapSet.difference(item_ids_to_exclude)
+
+        for affected_id <- affected_item_ids, reduce: state do
+          state ->
+            %EditorItem{} = affected_item = get_item(state, affected_id)
+
+            if item.position.y < affected_item.position.y do
+              update_position(state, affected_id, diff, false)
+            else
+              state
+            end
+        end
+    end
+  end
+
+  @spec refresh_connection_sizes(t(), [ItemProperties.remote_key()]) :: t()
+  defp refresh_connection_sizes(%__MODULE__{} = state, connections) do
+    for {parent_id, parent_key} <- Enum.reverse(connections), reduce: state do
+      state ->
+        %EditorItem{} = parent = get_item(state, parent_id)
+
+        case parent.connected_items[parent_key] do
+          %{remote_key: {child_id, _}, type: :connected} = connection ->
+            %EditorItem{} = child = get_item(state, child_id)
+
+            updated_connection = %{
+              connection
+              | width: child.width,
+                height: child.height
+            }
+
+            parent = EditorItem.put_connection(parent, parent_key, updated_connection)
+
+            update_item(state, parent)
+
+          _ ->
+            state
+        end
+    end
+  end
+
+  @spec traverse_parents(t(), String.t(), [ItemProperties.remote_key()]) :: [
+          ItemProperties.remote_key()
+        ]
+  defp traverse_parents(%__MODULE__{} = state, item_id, result \\ []) do
+    %EditorItem{} = item = get_item(state, item_id)
+    parent_key = EditorItem.get_parent_key(item)
+
+    case item.connected_items[parent_key] do
+      %{remote_key: {parent_id, _} = parent_key} ->
+        traverse_parents(state, parent_id, [parent_key | result])
+
+      _ ->
+        result
+    end
+  end
+
   @spec stop_dragging(t(), String.t(), EditorItem.position()) :: t()
   def stop_dragging(%__MODULE__{} = state, item_id, new_position) do
     state =
@@ -353,7 +433,15 @@ defmodule ExshomeAutomation.Services.Workflow.Editor do
     state =
       case item.connected_items[parent_key] do
         %{remote_key: remote_key} ->
-          disconnect_items(state, remote_key, {item_id, parent_key})
+          parent_connections =
+            state
+            |> traverse_parents(item_id)
+            |> Enum.reverse()
+
+          state
+          |> update_siblings(item_id, :disconnected)
+          |> disconnect_items(remote_key, {item_id, parent_key})
+          |> refresh_connection_sizes(parent_connections)
 
         _ ->
           state
@@ -364,7 +452,17 @@ defmodule ExshomeAutomation.Services.Workflow.Editor do
       connection = intersecting_connector(state, remote_key)
 
       if connection do
-        connect_items(state, remote_key, connection, connection_type)
+        state =
+          state
+          |> connect_items(remote_key, connection, connection_type)
+          |> update_siblings(item_id, :connected)
+
+        parent_connections =
+          state
+          |> traverse_parents(item_id)
+          |> Enum.reverse()
+
+        refresh_connection_sizes(state, parent_connections)
       else
         state
       end
@@ -410,19 +508,19 @@ defmodule ExshomeAutomation.Services.Workflow.Editor do
 
   @spec connect_items(
           t(),
-          from :: EditorItem.remote_key(),
-          to :: EditorItem.remote_key(),
+          parent :: EditorItem.remote_key(),
+          child :: EditorItem.remote_key(),
           EditorItem.connection_type()
         ) :: t()
   defp connect_items(
          %__MODULE__{} = state,
-         {from_id, from_key} = from,
-         {to_id, to_key} = to,
+         {parent_id, parent_key} = parent,
+         {child_id, child_key} = child,
          connection_type
        ) do
     connections = [
-      {to_id, to_key, from},
-      {from_id, from_key, to}
+      {child_id, child_key, parent},
+      {parent_id, parent_key, child}
     ]
 
     for {id, own_key, {remote_id, _} = remote_key} <- connections, reduce: state do
@@ -447,11 +545,11 @@ defmodule ExshomeAutomation.Services.Workflow.Editor do
 
   @spec disconnect_items(
           t(),
-          from :: EditorItem.remote_key(),
-          to :: EditorItem.remote_key()
+          parent :: EditorItem.remote_key(),
+          child :: EditorItem.remote_key()
         ) :: t()
-  defp disconnect_items(%__MODULE__{} = state, from, to) do
-    for {id, key} <- [from, to], reduce: state do
+  defp disconnect_items(%__MODULE__{} = state, parent, child) do
+    for {id, key} <- [parent, child], reduce: state do
       state ->
         item =
           state

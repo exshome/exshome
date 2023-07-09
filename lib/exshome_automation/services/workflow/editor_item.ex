@@ -172,4 +172,14 @@ defmodule ExshomeAutomation.Services.Workflow.EditorItem do
         connectors: properties.connectors
     }
   end
+
+  @spec min_size_diff(t()) :: ItemProperties.size()
+  def min_size_diff(%__MODULE__{} = item) do
+    min_size = ItemConfig.min_item_size()
+
+    %{
+      height: item.height - min_size.height,
+      width: item.width - min_size.width
+    }
+  end
 end
