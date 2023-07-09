@@ -124,8 +124,8 @@ export const SvgCanvas = {
     if (this.selectedElement && buttonIsPressed) {
       e.preventDefault();
       this.sendDragEvent(e);
-    } else {
-      this.clearSelectedElement();
+    } else if (this.selectedElement) {
+      this.onDragEnd();
     }
   },
 
