@@ -32,6 +32,7 @@ defmodule ExshomeAutomation.Services.Workflow.ItemConfig do
           | :close_path
           | :parent_action
           | {:child_action, String.t()}
+          | {:child_action, :next_action}
           | :parent_connector
           | {:child_connector, String.t()}
 
@@ -116,7 +117,7 @@ defmodule ExshomeAutomation.Services.Workflow.ItemConfig do
 
     components
     |> put_svg_component({:horizontal, -offset})
-    |> put_svg_component({:child_action, "next_action"})
+    |> put_svg_component({:child_action, :next_action})
     |> put_svg_component({:horizontal, -@action_offset})
   end
 
@@ -395,5 +396,9 @@ defmodule ExshomeAutomation.Services.Workflow.ItemConfig do
   end
 
   @spec min_item_size() :: ItemProperties.size()
-  def min_item_size, do: %{width: @min_width, height: @min_height}
+  def min_item_size,
+    do: %{
+      width: @min_width,
+      height: @min_height
+    }
 end

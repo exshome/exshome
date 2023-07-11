@@ -91,7 +91,7 @@ defmodule ExshomeAutomationTest.Services.Workflow.ItemConfigTest do
                {:vertical, @min_height},
                {:round_corner, :bottom_right},
                {:horizontal, -(@min_width - @action_width - @action_offset)},
-               {:child_action, "next_action"},
+               {:child_action, :next_action},
                {:horizontal, -@action_offset},
                {:round_corner, :bottom_left},
                {:vertical, -@min_height},
@@ -332,7 +332,7 @@ defmodule ExshomeAutomationTest.Services.Workflow.ItemConfigTest do
                {:vertical, @child_action_separator_height},
                {:round_corner, :bottom_right},
                {:horizontal, -(@min_width - @action_width - @action_offset)},
-               {:child_action, "next_action"},
+               {:child_action, :next_action},
                {:horizontal, -@action_offset},
                {:round_corner, :bottom_left},
                {:vertical, -(left_height - @connector_size - @connector_offset)},
@@ -418,7 +418,7 @@ defmodule ExshomeAutomationTest.Services.Workflow.ItemConfigTest do
                height: height,
                width: empty_width,
                connectors: %{
-                 {:action, "next_action"} => %{
+                 {:action, :next_action} => %{
                    x: @offset_x + @action_offset,
                    y: height - @action_height - @outline_size,
                    width: @action_width,
@@ -630,7 +630,7 @@ defmodule ExshomeAutomationTest.Services.Workflow.ItemConfigTest do
                    width: @action_width,
                    height: @action_height
                  },
-                 {:action, "next_action"} => %{
+                 {:action, :next_action} => %{
                    x: @offset_x + @action_offset,
                    y: height - @outline_size - @action_height,
                    width: @action_width,

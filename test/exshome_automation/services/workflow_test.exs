@@ -296,6 +296,23 @@ defmodule ExshomeAutomationTest.Services.WorkflowTest do
       assert grandparent_height_with_two_children == item_height(workflow_id, grandparent_id)
     end
 
+    test "work with child action size", %{workflow_id: workflow_id, parent_id: grandparent_id} do
+      %EditorItem{id: parent_id} = create_item(workflow_id, "if", %{x: 500, y: 0})
+      parent_height = item_height(workflow_id, parent_id)
+      %EditorItem{id: child_id} = create_item(workflow_id, "if", %{x: 1000, y: 0})
+
+      connect_items(workflow_id, {parent_id, {:action, :next_action}}, {child_id, :parent_action})
+      assert item_height(workflow_id, parent_id) == parent_height
+
+      grandparent_height = item_height(workflow_id, grandparent_id)
+      connect_items(workflow_id, {grandparent_id, {:action, "then"}}, {parent_id, :parent_action})
+
+      expected_grandparent_height =
+        grandparent_height + item_height_diff(workflow_id, child_id) + parent_height
+
+      assert item_height(workflow_id, grandparent_id) == expected_grandparent_height
+    end
+
     defp item_position(workflow_id, item_id) do
       %EditorItem{position: position} = Workflow.get_item!(workflow_id, item_id)
       position

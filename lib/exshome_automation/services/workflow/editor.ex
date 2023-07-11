@@ -243,11 +243,11 @@ defmodule ExshomeAutomation.Services.Workflow.Editor do
 
       [{root_id, _} | _] ->
         %EditorItem{} = item = get_item(state, item_id)
-        size_diff = EditorItem.min_size_diff(item)
+        %{height: diff_height} = EditorItem.min_size_diff(item)
 
         diff = %{
           x: 0,
-          y: if(connection_type == :connected, do: -size_diff.height, else: size_diff.height)
+          y: if(connection_type == :connected, do: -diff_height, else: diff_height)
         }
 
         item_ids_to_exclude =
@@ -270,6 +270,24 @@ defmodule ExshomeAutomation.Services.Workflow.Editor do
               state
             end
         end
+    end
+  end
+
+  @spec compute_item_size(t(), String.t()) :: ItemProperties.size()
+  defp compute_item_size(%__MODULE__{} = state, item_id, previous_size \\ %{height: 0, width: 0}) do
+    %EditorItem{} = item = get_item(state, item_id)
+
+    item_size = %{
+      height: item.height + previous_size.height,
+      width: max(item.width, previous_size.width)
+    }
+
+    case item.connected_items[{:action, :next_action}] do
+      nil ->
+        item_size
+
+      %{remote_key: {child_id, _}} ->
+        compute_item_size(state, child_id, item_size)
     end
   end
 
@@ -525,7 +543,7 @@ defmodule ExshomeAutomation.Services.Workflow.Editor do
 
     for {id, own_key, {remote_id, _} = remote_key} <- connections, reduce: state do
       state ->
-        %EditorItem{width: remote_width, height: remote_height} = get_item(state, remote_id)
+        %{height: remote_height, width: remote_width} = compute_item_size(state, remote_id)
 
         item =
           state
