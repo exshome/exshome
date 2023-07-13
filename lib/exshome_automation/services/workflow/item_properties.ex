@@ -6,6 +6,7 @@ defmodule ExshomeAutomation.Services.Workflow.ItemProperties do
   defstruct [
     :height,
     :width,
+    :raw_size,
     connectors: %{}
   ]
 
@@ -20,11 +21,13 @@ defmodule ExshomeAutomation.Services.Workflow.ItemProperties do
           width: number()
         }
   @type connectors() :: %{connector_key() => connector_position()}
+  @type size() :: %{height: number, width: number()}
 
   @type t() :: %__MODULE__{
           height: number(),
           width: number(),
-          connectors: connectors()
+          connectors: connectors(),
+          raw_size: size()
         }
 
   @type remote_key :: {item_id :: String.t(), connector_key()}
@@ -36,7 +39,6 @@ defmodule ExshomeAutomation.Services.Workflow.ItemProperties do
           width: number()
         }
   @type connected_items() :: %{connector_key() => connection()}
-  @type size() :: %{height: number, width: number()}
 
   @spec connector_type(connector_key()) :: connector_type()
   def connector_type(:parent_connector), do: :parent

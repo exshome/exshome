@@ -253,7 +253,7 @@ defmodule ExshomeAutomationTest.Services.WorkflowTest do
       )
 
       assert count_connections(workflow_id, grandparent_id) == 1
-      height_diff = item_height_diff(workflow_id, parent_sibling_id)
+      height_diff = raw_item_height(workflow_id, parent_sibling_id)
       grandparent_height_with_one_child = item_height(workflow_id, grandparent_id)
       assert grandparent_height_with_one_child == initial_grandparent_height + height_diff
 
@@ -267,7 +267,7 @@ defmodule ExshomeAutomationTest.Services.WorkflowTest do
       assert count_connections(workflow_id, grandparent_id) == 2
       assert count_connections(workflow_id, parent_id) == 2
       updated_parent_sibling_position = item_position(workflow_id, parent_sibling_id)
-      height_diff = item_height_diff(workflow_id, parent_id)
+      height_diff = raw_item_height(workflow_id, parent_id)
       assert updated_parent_sibling_position.y == parent_sibling_position.y + height_diff
       grandparent_height_with_two_children = item_height(workflow_id, grandparent_id)
 
@@ -278,7 +278,7 @@ defmodule ExshomeAutomationTest.Services.WorkflowTest do
       sibling_position = item_position(workflow_id, sibling_id)
       connect_items(workflow_id, {parent_id, {:action, "then"}}, {child_id, :parent_action})
       assert count_connections(workflow_id, parent_id) == 3
-      height_diff = item_height_diff(workflow_id, child_id)
+      height_diff = raw_item_height(workflow_id, child_id)
       assert item_position(workflow_id, sibling_id).y == sibling_position.y + height_diff
 
       assert item_position(workflow_id, parent_sibling_id).y ==
@@ -308,7 +308,8 @@ defmodule ExshomeAutomationTest.Services.WorkflowTest do
       connect_items(workflow_id, {grandparent_id, {:action, "then"}}, {parent_id, :parent_action})
 
       expected_grandparent_height =
-        grandparent_height + item_height_diff(workflow_id, child_id) + parent_height
+        grandparent_height + raw_item_height(workflow_id, child_id) +
+          raw_item_height(workflow_id, parent_id)
 
       assert item_height(workflow_id, grandparent_id) == expected_grandparent_height
     end
@@ -323,14 +324,8 @@ defmodule ExshomeAutomationTest.Services.WorkflowTest do
       height
     end
 
-    defp item_height_diff(workflow_id, item_id) do
-      Workflow.get_item!(workflow_id, item_id)
-
-      %{height: height} =
-        workflow_id
-        |> Workflow.get_item!(item_id)
-        |> EditorItem.min_size_diff()
-
+    defp raw_item_height(workflow_id, item_id) do
+      %EditorItem{raw_size: %{height: height}} = Workflow.get_item!(workflow_id, item_id)
       height
     end
 

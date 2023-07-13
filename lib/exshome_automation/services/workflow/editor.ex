@@ -242,8 +242,8 @@ defmodule ExshomeAutomation.Services.Workflow.Editor do
         state
 
       [{root_id, _} | _] ->
+        %{height: diff_height} = compute_item_size(state, item_id)
         %EditorItem{} = item = get_item(state, item_id)
-        %{height: diff_height} = EditorItem.min_size_diff(item)
 
         diff = %{
           x: 0,
@@ -278,8 +278,8 @@ defmodule ExshomeAutomation.Services.Workflow.Editor do
     %EditorItem{} = item = get_item(state, item_id)
 
     item_size = %{
-      height: item.height + previous_size.height,
-      width: max(item.width, previous_size.width)
+      height: item.raw_size.height + previous_size.height,
+      width: max(item.raw_size.width, previous_size.width)
     }
 
     case item.connected_items[{:action, :next_action}] do

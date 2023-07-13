@@ -20,7 +20,8 @@ defmodule ExshomeAutomation.Services.Workflow.EditorItem do
     drag: false,
     position: %{x: 0, y: 0},
     connectors: %{},
-    connected_items: %{}
+    connected_items: %{},
+    raw_size: %{height: 0, width: 0}
   ]
 
   @type position() :: %{
@@ -45,7 +46,8 @@ defmodule ExshomeAutomation.Services.Workflow.EditorItem do
           drag: boolean(),
           connectors: ItemProperties.connectors(),
           updated_at: DateTime.t(),
-          connected_items: ItemProperties.connected_items()
+          connected_items: ItemProperties.connected_items(),
+          raw_size: ItemProperties.size()
         }
 
   @spec create(type :: String.t(), position :: position()) :: t()
@@ -162,14 +164,17 @@ defmodule ExshomeAutomation.Services.Workflow.EditorItem do
   @spec refresh_item(t()) :: t()
   defp refresh_item(%__MODULE__{} = item) do
     svg_components = ItemConfig.compute_svg_components(item.config, item.connected_items)
-    %ItemProperties{} = properties = ItemConfig.compute_item_properties(svg_components)
+
+    %ItemProperties{} =
+      properties = ItemConfig.compute_item_properties(svg_components, item.config)
 
     %__MODULE__{
       item
       | svg_path: ItemConfig.svg_components_to_path(svg_components),
         width: properties.width,
         height: properties.height,
-        connectors: properties.connectors
+        connectors: properties.connectors,
+        raw_size: properties.raw_size
     }
   end
 

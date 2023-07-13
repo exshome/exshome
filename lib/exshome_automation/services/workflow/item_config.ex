@@ -149,7 +149,7 @@ defmodule ExshomeAutomation.Services.Workflow.ItemConfig do
 
     actions_height =
       size_data.action
-      |> Enum.map(&max(&1.height, @child_action_empty_height))
+      |> Enum.map(&(&1.height + @child_action_empty_height))
       |> Enum.sum()
 
     actions_count = length(config.child_actions)
@@ -209,7 +209,7 @@ defmodule ExshomeAutomation.Services.Workflow.ItemConfig do
         |> put_svg_component({:child_action, id})
         |> put_svg_component({:horizontal, -@action_offset})
         |> put_svg_component({:round_corner, :inner_top_left})
-        |> put_svg_component({:vertical, max(height, @child_action_empty_height)})
+        |> put_svg_component({:vertical, height + @child_action_empty_height})
         |> put_svg_component({:round_corner, :inner_bottom_left})
         |> put_svg_component({:horizontal, child_action_width})
         |> put_svg_component({:round_corner, :top_right})
@@ -291,8 +291,8 @@ defmodule ExshomeAutomation.Services.Workflow.ItemConfig do
           connectors: ItemProperties.connectors()
         }
 
-  @spec compute_item_properties([svg_component()]) :: ItemProperties.t()
-  def compute_item_properties(svg_components) do
+  @spec compute_item_properties([svg_component()], t()) :: ItemProperties.t()
+  def compute_item_properties(svg_components, %__MODULE__{} = config) do
     initial_data = %{x: 0, y: 0, width: 0, height: 0, connectors: %{}}
 
     item_data =
@@ -300,10 +300,18 @@ defmodule ExshomeAutomation.Services.Workflow.ItemConfig do
         intermediate_data -> collect_item_data(component, intermediate_data)
       end
 
+    height = item_data.height + @outline_size
+    width = item_data.width + @outline_size
+
     %ItemProperties{
-      height: item_data.height + @outline_size,
-      width: item_data.width + @outline_size,
-      connectors: item_data.connectors
+      height: height,
+      width: width,
+      connectors: item_data.connectors,
+      raw_size: %{
+        height:
+          height - 2 * @outline_size - if(config.has_next_action?, do: @action_height, else: 0),
+        width: width - 2 * @outline_size - @connector_size
+      }
     }
   end
 

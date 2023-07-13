@@ -242,7 +242,7 @@ defmodule ExshomeAutomationTest.Services.Workflow.ItemConfigTest do
       inner_action_width = @min_width - @child_action_offset - @corner_size
 
       left_height =
-        @min_height + @min_height + @child_action_separator_height +
+        @min_height + @min_height + @child_action_empty_height + @child_action_separator_height +
           @corner_size * 4
 
       assert [
@@ -255,7 +255,7 @@ defmodule ExshomeAutomationTest.Services.Workflow.ItemConfigTest do
                {:child_action, "action_1"},
                {:horizontal, -@action_offset},
                {:round_corner, :inner_top_left},
-               {:vertical, @min_height},
+               {:vertical, @min_height + @child_action_empty_height},
                {:round_corner, :inner_bottom_left},
                {:horizontal, inner_action_width},
                {:round_corner, :top_right},
@@ -292,7 +292,7 @@ defmodule ExshomeAutomationTest.Services.Workflow.ItemConfigTest do
       number_of_child_actions = 2
 
       child_connections_height = @min_height + @min_height
-      child_actions_height = @child_action_empty_height + @min_height
+      child_actions_height = 2 * @child_action_empty_height + @min_height
       separators_height = number_of_child_actions * @child_action_separator_height
       corners_height = number_of_child_actions * 4 * @corner_size
 
@@ -326,7 +326,7 @@ defmodule ExshomeAutomationTest.Services.Workflow.ItemConfigTest do
                {:child_action, "action_2"},
                {:horizontal, -@action_offset},
                {:round_corner, :inner_top_left},
-               {:vertical, @min_height},
+               {:vertical, @min_height + @child_action_empty_height},
                {:round_corner, :inner_bottom_left},
                {:horizontal, inner_action_width},
                {:round_corner, :top_right},
@@ -372,6 +372,10 @@ defmodule ExshomeAutomationTest.Services.Workflow.ItemConfigTest do
       assert %ItemProperties{
                height: height,
                width: width,
+               raw_size: %{
+                 height: @min_height + 2 * @corner_size,
+                 width: @min_width + 2 * @corner_size
+               },
                connectors: %{}
              } == item_properties
     end
@@ -391,6 +395,10 @@ defmodule ExshomeAutomationTest.Services.Workflow.ItemConfigTest do
       assert %ItemProperties{
                height: empty_height,
                width: empty_width,
+               raw_size: %{
+                 height: @min_height + 2 * @corner_size,
+                 width: @min_width + 2 * @corner_size
+               },
                connectors: %{
                  parent_action: %{
                    x: @offset_x + @action_offset,
@@ -419,6 +427,10 @@ defmodule ExshomeAutomationTest.Services.Workflow.ItemConfigTest do
       assert %ItemProperties{
                height: height,
                width: empty_width,
+               raw_size: %{
+                 height: @min_height + 2 * @corner_size,
+                 width: @min_width + 2 * @corner_size
+               },
                connectors: %{
                  {:action, :next_action} => %{
                    x: @offset_x + @action_offset,
@@ -445,6 +457,10 @@ defmodule ExshomeAutomationTest.Services.Workflow.ItemConfigTest do
       assert %ItemProperties{
                height: empty_height,
                width: empty_width,
+               raw_size: %{
+                 height: @min_height + 2 * @corner_size,
+                 width: @min_width + 2 * @corner_size
+               },
                connectors: %{
                  parent_connector: %{
                    x: @outline_size,
@@ -474,6 +490,10 @@ defmodule ExshomeAutomationTest.Services.Workflow.ItemConfigTest do
       assert %ItemProperties{
                height: empty_height,
                width: empty_width,
+               raw_size: %{
+                 height: @min_height + 2 * @corner_size,
+                 width: @min_width + 2 * @corner_size
+               },
                connectors: %{
                  {:connector, "conn_1"} => %{
                    x: empty_width - @outline_size - @connector_size,
@@ -505,6 +525,10 @@ defmodule ExshomeAutomationTest.Services.Workflow.ItemConfigTest do
       assert %ItemProperties{
                height: empty_height + 1,
                width: empty_width,
+               raw_size: %{
+                 height: @min_height + 1 + 2 * @corner_size,
+                 width: @min_width + 2 * @corner_size
+               },
                connectors: %{
                  {:connector, "conn_1"} => %{
                    x: empty_width - @outline_size - @connector_size,
@@ -535,9 +559,17 @@ defmodule ExshomeAutomationTest.Services.Workflow.ItemConfigTest do
         empty_height + @child_action_empty_height + 4 * @corner_size +
           @child_action_separator_height
 
+      raw_height =
+        @min_height + @child_action_empty_height + 4 * @corner_size +
+          @child_action_separator_height + 2 * @corner_size
+
       assert %ItemProperties{
                height: height,
                width: empty_width,
+               raw_size: %{
+                 height: raw_height,
+                 width: @min_width + 2 * @corner_size
+               },
                connectors: %{
                  {:action, "action_1"} => %{
                    x: @offset_x + @child_action_offset + @corner_size + @action_offset,
@@ -567,8 +599,12 @@ defmodule ExshomeAutomationTest.Services.Workflow.ItemConfigTest do
         )
 
       assert %ItemProperties{
-               height: empty_height + @min_height - 1,
+               height: empty_height + @min_height - @corner_size,
                width: empty_width,
+               raw_size: %{
+                 height: 2 * @min_height + @corner_size,
+                 width: @min_width + 2 * @corner_size
+               },
                connectors: %{
                  {:action, "action_1"} => %{
                    x: @offset_x + @child_action_offset + @corner_size + @action_offset,
@@ -610,7 +646,9 @@ defmodule ExshomeAutomationTest.Services.Workflow.ItemConfigTest do
       first_child_action_height =
         @child_action_empty_height + 4 * @corner_size + @child_action_separator_height
 
-      second_child_action_height = @min_height + 4 * @corner_size + @child_action_separator_height
+      second_child_action_height =
+        @min_height + @child_action_empty_height + 4 * @corner_size +
+          @child_action_separator_height
 
       height =
         height_after_child_connectors + first_child_action_height + second_child_action_height +
@@ -619,6 +657,10 @@ defmodule ExshomeAutomationTest.Services.Workflow.ItemConfigTest do
       assert %ItemProperties{
                height: height,
                width: empty_width,
+               raw_size: %{
+                 height: height - 2 * @outline_size - @action_height,
+                 width: @min_width + 2 * @corner_size
+               },
                connectors: %{
                  :parent_action => %{
                    x: @offset_x + @action_offset,
@@ -666,7 +708,7 @@ defmodule ExshomeAutomationTest.Services.Workflow.ItemConfigTest do
     defp compute_item_properties(%ItemConfig{} = config, connections) do
       config
       |> ItemConfig.compute_svg_components(connections)
-      |> ItemConfig.compute_item_properties()
+      |> ItemConfig.compute_item_properties(config)
     end
   end
 end
