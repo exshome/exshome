@@ -54,16 +54,20 @@ defmodule ExshomeAutomation.Services.Workflow.ItemConfig do
   @action_width 6
   @action_height 2
   @action_offset 2
+  @child_action_empty_height 3
   @child_action_offset 5
   @child_action_separator_height 2
   @corner_size 1
 
   @spec compute_svg_components(t(), ItemProperties.connected_items()) :: [svg_component()]
   def compute_svg_components(%__MODULE__{} = config, connected_items) do
-    child_data = [{:action, config.child_actions}, {:connection, config.child_connections}]
+    child_data = [
+      {:action, config.child_actions, 0},
+      {:connection, config.child_connections, @min_height}
+    ]
 
     size_data =
-      for {child_type, child_items} <- child_data, into: %{} do
+      for {child_type, child_items, min_height} <- child_data, into: %{} do
         items =
           Enum.map(child_items, fn id ->
             key = ItemProperties.child_connector_key(child_type, id)
@@ -71,7 +75,7 @@ defmodule ExshomeAutomation.Services.Workflow.ItemConfig do
 
             %{
               id: id,
-              height: max(@min_height, connection.height),
+              height: max(min_height, connection.height),
               width: max(@min_width, connection.width)
             }
           end)
@@ -145,7 +149,7 @@ defmodule ExshomeAutomation.Services.Workflow.ItemConfig do
 
     actions_height =
       size_data.action
-      |> Enum.map(&max(&1.height, @min_height))
+      |> Enum.map(&max(&1.height, @child_action_empty_height))
       |> Enum.sum()
 
     actions_count = length(config.child_actions)
@@ -205,7 +209,7 @@ defmodule ExshomeAutomation.Services.Workflow.ItemConfig do
         |> put_svg_component({:child_action, id})
         |> put_svg_component({:horizontal, -@action_offset})
         |> put_svg_component({:round_corner, :inner_top_left})
-        |> put_svg_component({:vertical, max(height, @min_height)})
+        |> put_svg_component({:vertical, max(height, @child_action_empty_height)})
         |> put_svg_component({:round_corner, :inner_bottom_left})
         |> put_svg_component({:horizontal, child_action_width})
         |> put_svg_component({:round_corner, :top_right})
@@ -398,7 +402,7 @@ defmodule ExshomeAutomation.Services.Workflow.ItemConfig do
   @spec min_item_size() :: ItemProperties.size()
   def min_item_size,
     do: %{
-      width: @min_width,
-      height: @min_height
+      width: @min_width + @outline_size * 2 + @connector_size,
+      height: @min_height + @outline_size * 2
     }
 end
