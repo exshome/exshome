@@ -299,12 +299,12 @@ defmodule ExshomeAutomation.Services.Workflow.Editor do
 
         case parent.connected_items[parent_key] do
           %{remote_key: {child_id, _}, type: :connected} = connection ->
-            %EditorItem{} = child = get_item(state, child_id)
+            child_size = compute_item_size(state, child_id)
 
             updated_connection = %{
               connection
-              | width: child.width,
-                height: child.height
+              | width: child_size.width,
+                height: child_size.height
             }
 
             parent = EditorItem.put_connection(parent, parent_key, updated_connection)
