@@ -451,10 +451,7 @@ defmodule ExshomeAutomation.Services.Workflow.Editor do
     state =
       case item.connected_items[parent_key] do
         %{remote_key: remote_key} ->
-          parent_connections =
-            state
-            |> traverse_parents(item_id)
-            |> Enum.reverse()
+          parent_connections = traverse_parents(state, item_id)
 
           state
           |> update_siblings(item_id, :disconnected)
@@ -475,10 +472,7 @@ defmodule ExshomeAutomation.Services.Workflow.Editor do
           |> connect_items(remote_key, connection, connection_type)
           |> update_siblings(item_id, :connected)
 
-        parent_connections =
-          state
-          |> traverse_parents(item_id)
-          |> Enum.reverse()
+        parent_connections = traverse_parents(state, item_id)
 
         refresh_connection_sizes(state, parent_connections)
       else
