@@ -406,4 +406,11 @@ defmodule ExshomeAutomation.Services.Workflow.ItemConfig do
         height: max(data.height, new_y)
     }
   end
+
+  @spec min_child_item_size() :: %{atom() => ItemProperties.size()}
+  def min_child_item_size do
+    %{
+      connection: %{height: @min_height + 2 * @corner_size, width: @min_width + 2 * @corner_size}
+    }
+  end
 end

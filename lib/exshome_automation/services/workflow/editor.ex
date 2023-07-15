@@ -241,19 +241,25 @@ defmodule ExshomeAutomation.Services.Workflow.Editor do
       [] ->
         state
 
-      [{root_id, _} | _] ->
-        %{height: diff_height} = compute_item_size(state, item_id)
+      [{root_id, _} | _] = parents ->
+        %{height: item_height} = compute_item_size(state, item_id)
         %EditorItem{} = item = get_item(state, item_id)
+
+        %{height: min_height} = EditorItem.get_min_item_size(item)
+        diff_height = item_height - min_height
 
         diff = %{
           x: 0,
           y: if(connection_type == :connected, do: -diff_height, else: diff_height)
         }
 
+        {parent_id, _} = List.last(parents)
+
         item_ids_to_exclude =
           state
           |> list_children_ids(item_id)
           |> MapSet.put(item_id)
+          |> MapSet.put(parent_id)
 
         affected_item_ids =
           state

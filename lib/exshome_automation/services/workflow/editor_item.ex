@@ -177,4 +177,10 @@ defmodule ExshomeAutomation.Services.Workflow.EditorItem do
         raw_size: properties.raw_size
     }
   end
+
+  @spec get_min_item_size(t()) :: ItemProperties.size()
+  def get_min_item_size(%__MODULE__{config: %{parent: parent}}) do
+    ItemConfig.min_child_item_size()
+    |> Map.get(parent, %{height: 0, width: 0})
+  end
 end
