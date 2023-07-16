@@ -194,9 +194,7 @@ defmodule ExshomeAutomation.Services.Workflow.Editor do
       |> EditorItem.update_position(new_position)
       |> EditorItem.put_updated_at(state.operation_timestamp)
 
-    state
-    |> update_item(item)
-    |> update_connectors(item)
+    update_item(state, item)
   end
 
   @spec move_children(t(), String.t(), EditorItem.position(), boolean()) :: t()
@@ -412,6 +410,7 @@ defmodule ExshomeAutomation.Services.Workflow.Editor do
 
     %__MODULE__{state | items: Map.put(state.items, item.id, item)}
     |> put_change(change)
+    |> update_connectors(item)
   end
 
   @spec update_connectors(t(), EditorItem.t()) :: t()
@@ -555,9 +554,7 @@ defmodule ExshomeAutomation.Services.Workflow.Editor do
             width: remote_width
           })
 
-        state
-        |> update_connectors(item)
-        |> update_item(item)
+        update_item(state, item)
     end
   end
 
@@ -574,9 +571,7 @@ defmodule ExshomeAutomation.Services.Workflow.Editor do
           |> get_item(id)
           |> EditorItem.delete_connection(key)
 
-        state
-        |> update_connectors(item)
-        |> update_item(item)
+        update_item(state, item)
     end
   end
 
