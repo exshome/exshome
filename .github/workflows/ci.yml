@@ -29,7 +29,7 @@ jobs:
       uses: erlef/setup-beam@v1
       with:
         otp-version: 26.0.2
-        elixir-version: 1.15.1-otp-26
+        elixir-version: 1.15.4-otp-26
 
     - name: Build project
       run: |
