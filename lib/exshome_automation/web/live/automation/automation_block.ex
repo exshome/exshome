@@ -41,8 +41,10 @@ defmodule ExshomeAutomation.Web.Live.Automation.AutomationBlock do
           height={connector.height}
         />
       <% end %>
+      <path class={@component.class} d={@component.item.svg_path} />
+      <text x="5" y="10" class="text-[5px] font-bold font-mono"><%= @component.item.type %></text>
       <path
-        class={"draggable cursor-move #{@component.class}"}
+        class="opacity-0 draggable cursor-move"
         x={@component.item.position.x}
         y={@component.item.position.y}
         width={@component.item.width}
