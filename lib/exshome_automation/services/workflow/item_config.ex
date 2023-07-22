@@ -5,6 +5,7 @@ defmodule ExshomeAutomation.Services.Workflow.ItemConfig do
   alias ExshomeAutomation.Services.Workflow.ItemProperties
 
   defstruct [
+    :label,
     :parent,
     :has_next_action?,
     child_connections: [],
@@ -12,6 +13,7 @@ defmodule ExshomeAutomation.Services.Workflow.ItemConfig do
   ]
 
   @type t() :: %__MODULE__{
+          label: String.t(),
           parent: :connection | :action | nil,
           has_next_action?: boolean(),
           child_connections: [String.t()],
@@ -307,6 +309,7 @@ defmodule ExshomeAutomation.Services.Workflow.ItemConfig do
       height: height,
       width: width,
       connectors: item_data.connectors,
+      labels: compute_labels(config, item_data),
       raw_size: %{
         height:
           height - 2 * @outline_size - if(config.has_next_action?, do: @action_height, else: 0),
@@ -405,6 +408,11 @@ defmodule ExshomeAutomation.Services.Workflow.ItemConfig do
         width: max(data.width, new_x),
         height: max(data.height, new_y)
     }
+  end
+
+  @spec compute_labels(t(), property_data()) :: [ItemProperties.label()]
+  defp compute_labels(%__MODULE__{label: label}, _) do
+    [%{text: label, x: 10, y: 10}]
   end
 
   @spec min_child_item_size() :: %{atom() => ItemProperties.size()}

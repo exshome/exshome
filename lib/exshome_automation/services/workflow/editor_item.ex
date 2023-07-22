@@ -17,6 +17,7 @@ defmodule ExshomeAutomation.Services.Workflow.EditorItem do
     svg_path: "",
     height: 0,
     width: 0,
+    labels: [],
     drag: false,
     position: %{x: 0, y: 0},
     connectors: %{},
@@ -42,6 +43,7 @@ defmodule ExshomeAutomation.Services.Workflow.EditorItem do
           width: number(),
           svg_path: String.t(),
           type: String.t(),
+          labels: [ItemProperties.label()],
           selected_by: selected_by(),
           drag: boolean(),
           connectors: ItemProperties.connectors(),
@@ -102,18 +104,21 @@ defmodule ExshomeAutomation.Services.Workflow.EditorItem do
   def available_types do
     %{
       "simple_action" => %ItemConfig{
+        label: "action",
         parent: :action,
         has_next_action?: true,
         child_actions: [],
         child_connections: []
       },
       "value" => %ItemConfig{
+        label: "value",
         parent: :connection,
         has_next_action?: false,
         child_actions: [],
         child_connections: []
       },
       "if" => %ItemConfig{
+        label: "if",
         parent: :action,
         has_next_action?: true,
         child_actions: ["then", "else"],
@@ -174,7 +179,8 @@ defmodule ExshomeAutomation.Services.Workflow.EditorItem do
         width: properties.width,
         height: properties.height,
         connectors: properties.connectors,
-        raw_size: properties.raw_size
+        raw_size: properties.raw_size,
+        labels: properties.labels
     }
   end
 

@@ -7,6 +7,7 @@ defmodule ExshomeAutomation.Services.Workflow.ItemProperties do
     :height,
     :width,
     :raw_size,
+    labels: [],
     connectors: %{}
   ]
 
@@ -22,11 +23,17 @@ defmodule ExshomeAutomation.Services.Workflow.ItemProperties do
         }
   @type connectors() :: %{connector_key() => connector_position()}
   @type size() :: %{height: number, width: number()}
+  @type label() :: %{
+          x: number(),
+          y: number(),
+          text: String.t()
+        }
 
   @type t() :: %__MODULE__{
           height: number(),
           width: number(),
           connectors: connectors(),
+          labels: [label()],
           raw_size: size()
         }
 

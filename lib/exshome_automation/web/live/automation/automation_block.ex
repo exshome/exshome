@@ -50,9 +50,11 @@ defmodule ExshomeAutomation.Web.Live.Automation.AutomationBlock do
         {@drag_attrs}
         d={@component.item.svg_path}
       />
-      <text x="5" y="10" class="text-[5px] font-bold font-mono pointer-events-none">
-        <%= @component.item.type %>
-      </text>
+      <%= for label <- @component.item.labels do %>
+        <text x={label.x} y={label.y} class="text-[5px] font-bold font-mono pointer-events-none">
+          <%= label.text %>
+        </text>
+      <% end %>
     </svg>
     """
   end
