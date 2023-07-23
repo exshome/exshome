@@ -60,6 +60,8 @@ defmodule ExshomeAutomation.Services.Workflow.ItemConfig do
   @child_action_offset 5
   @child_action_separator_height 2
   @corner_size 1
+  @letter_height 3
+  @letter_width 2
 
   @spec compute_svg_components(t(), ItemProperties.connected_items()) :: [svg_component()]
   def compute_svg_components(%__MODULE__{} = config, connected_items) do
@@ -411,8 +413,36 @@ defmodule ExshomeAutomation.Services.Workflow.ItemConfig do
   end
 
   @spec compute_labels(t(), property_data()) :: [ItemProperties.label()]
-  defp compute_labels(%__MODULE__{label: label}, _) do
-    [%{text: label, x: 10, y: 10}]
+  defp compute_labels(%__MODULE__{} = config, property_data) do
+    title_label = %{
+      text: config.label,
+      x: @outline_size * 2 + @connector_size,
+      y: @outline_size * 2 + @action_height + @letter_height
+    }
+
+    connection_labels =
+      for label <- config.child_connections do
+        %{x: x, y: y} = property_data.connectors[{:connector, label}]
+
+        %{
+          text: label,
+          x: x - @outline_size - String.length(label) * @letter_width,
+          y: y + @letter_height
+        }
+      end
+
+    action_labels =
+      for label <- config.child_actions do
+        %{y: y} = property_data.connectors[{:action, label}]
+
+        %{
+          text: label,
+          x: @outline_size * 2 + @connector_size,
+          y: y + @letter_height
+        }
+      end
+
+    [title_label] ++ connection_labels ++ action_labels
   end
 
   @spec min_child_item_size() :: %{atom() => ItemProperties.size()}
