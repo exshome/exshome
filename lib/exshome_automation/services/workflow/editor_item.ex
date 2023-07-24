@@ -117,6 +117,13 @@ defmodule ExshomeAutomation.Services.Workflow.EditorItem do
         child_actions: [],
         child_connections: []
       },
+      "sum" => %ItemConfig{
+        label: "sum",
+        parent: :connection,
+        has_next_action?: false,
+        child_actions: [],
+        child_connections: ["a", "b"]
+      },
       "if" => %ItemConfig{
         label: "if",
         parent: :action,

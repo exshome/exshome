@@ -365,7 +365,7 @@ defmodule ExshomeAutomation.Services.Workflow.ItemConfig do
   end
 
   defp collect_item_data({:child_connector, id}, data) do
-    key = {:connector, id}
+    key = {:connection, id}
 
     value = %{
       x: data.x - @connector_size,
@@ -422,7 +422,7 @@ defmodule ExshomeAutomation.Services.Workflow.ItemConfig do
 
     connection_labels =
       for label <- config.child_connections do
-        %{x: x, y: y} = property_data.connectors[{:connector, label}]
+        %{x: x, y: y} = property_data.connectors[{:connection, label}]
 
         %{
           text: label,

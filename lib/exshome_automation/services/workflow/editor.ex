@@ -18,7 +18,7 @@ defmodule ExshomeAutomation.Services.Workflow.Editor do
     available_connectors: %{
       parent: %{},
       action: %{},
-      connector: %{}
+      connection: %{}
     }
   ]
 

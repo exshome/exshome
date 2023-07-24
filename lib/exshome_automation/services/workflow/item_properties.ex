@@ -11,7 +11,7 @@ defmodule ExshomeAutomation.Services.Workflow.ItemProperties do
     connectors: %{}
   ]
 
-  @type child_connector_type() :: :action | :connector
+  @type child_connector_type() :: :action | :connection
   @type connector_key() ::
           :parent_connector | :parent_action | {child_connector_type(), id :: String.t()}
   @type connector_type() :: :parent | child_connector_type()
@@ -51,10 +51,10 @@ defmodule ExshomeAutomation.Services.Workflow.ItemProperties do
   def connector_type(:parent_connector), do: :parent
   def connector_type(:parent_action), do: :parent
   def connector_type({:action, _}), do: :action
-  def connector_type({:connector, _}), do: :connector
+  def connector_type({:connection, _}), do: :connection
 
   @spec parent_type(connector_key()) :: connector_type()
-  def parent_type(:parent_connector), do: :connector
+  def parent_type(:parent_connector), do: :connection
   def parent_type(:parent_action), do: :action
 
   @spec position_intersects?(connector_position(), connector_position()) :: boolean()
