@@ -38,40 +38,62 @@ defmodule ExshomeAutomation.Services.Workflow.ItemConfig do
           | :parent_connector
           | {:child_connector, String.t()}
 
+  @type child_data() :: %{
+          id: String.t(),
+          height: number(),
+          width: number()
+        }
+
   @type size_data() :: %{
-          atom() => [
-            %{
-              id: String.t(),
-              height: number(),
-              width: number()
-            }
-          ]
+          action: [child_data()],
+          connection: [child_data()],
+          width: number(),
+          child_label_width: number()
         }
 
   @connector_size 4
   @connector_offset 2
   @outline_size 1
-  @min_width 25
-  @min_height 10
+  @min_width 20
+  @min_height 2 * @connector_offset + @connector_size + @outline_size
   @action_width 6
   @action_height 2
   @action_offset 2
-  @child_action_empty_height 3
-  @child_action_offset 5
-  @child_action_separator_height 2
+  @labels_gap_size 6
+  @child_action_empty_height 2
+  @min_child_action_offset 5
+  @child_action_separator_height 1
   @corner_size 1
   @letter_height 3
-  @letter_width 2
+  @letter_width 1.85
 
   @spec compute_svg_components(t(), ItemProperties.connected_items()) :: [svg_component()]
   def compute_svg_components(%__MODULE__{} = config, connected_items) do
+    max_child_label_width =
+      config.child_actions
+      |> Enum.map(&(String.length(&1) * @letter_width + @outline_size))
+      |> Enum.max(fn -> @min_child_action_offset end)
+
+    max_connection_label_width =
+      config.child_connections
+      |> Enum.map(&(String.length(&1) * @letter_width + @outline_size))
+      |> Enum.max(fn -> 0 end)
+
+    component_width =
+      String.length(config.label) * @letter_width + max_connection_label_width + @labels_gap_size
+
+    size_data = %{
+      child_label_width: max_child_label_width,
+      width: max(component_width, @min_width)
+    }
+
     child_data = [
       {:action, config.child_actions, 0},
       {:connection, config.child_connections, @min_height}
     ]
 
     size_data =
-      for {child_type, child_items, min_height} <- child_data, into: %{} do
+      for {child_type, child_items, min_height} <- child_data, into: size_data do
         items =
           Enum.map(child_items, fn id ->
             key = ItemProperties.child_connector_key(child_type, id)
@@ -89,11 +111,11 @@ defmodule ExshomeAutomation.Services.Workflow.ItemConfig do
 
     []
     |> put_svg_component({:move, @connector_size + @outline_size + @corner_size, @outline_size})
-    |> compute_component_top(config)
+    |> compute_component_top(config, size_data)
     |> put_svg_component({:round_corner, :top_right})
     |> compute_component_right(config, size_data)
     |> put_svg_component({:round_corner, :bottom_right})
-    |> compute_component_bottom(config)
+    |> compute_component_bottom(config, size_data)
     |> put_svg_component({:round_corner, :bottom_left})
     |> compute_component_left(config, size_data)
     |> put_svg_component({:round_corner, :top_left})
@@ -101,9 +123,9 @@ defmodule ExshomeAutomation.Services.Workflow.ItemConfig do
     |> Enum.reverse()
   end
 
-  @spec compute_component_top([svg_component()], t()) :: [svg_component()]
-  defp compute_component_top(components, %__MODULE__{parent: :action}) do
-    offset = @min_width - @action_offset - @action_width
+  @spec compute_component_top([svg_component()], t(), size_data()) :: [svg_component()]
+  defp compute_component_top(components, %__MODULE__{parent: :action}, %{width: width}) do
+    offset = width - @action_offset - @action_width
 
     components
     |> put_svg_component({:horizontal, @action_offset})
@@ -111,17 +133,17 @@ defmodule ExshomeAutomation.Services.Workflow.ItemConfig do
     |> put_svg_component({:horizontal, offset})
   end
 
-  defp compute_component_top(components, %__MODULE__{}) do
-    put_svg_component(components, {:horizontal, @min_width})
+  defp compute_component_top(components, %__MODULE__{}, %{width: width}) do
+    put_svg_component(components, {:horizontal, width})
   end
 
-  @spec compute_component_bottom([svg_component()], t()) :: [svg_component()]
-  defp compute_component_bottom(components, %__MODULE__{has_next_action?: false}) do
-    put_svg_component(components, {:horizontal, -@min_width})
+  @spec compute_component_bottom([svg_component()], t(), size_data()) :: [svg_component()]
+  defp compute_component_bottom(components, %__MODULE__{has_next_action?: false}, %{width: width}) do
+    put_svg_component(components, {:horizontal, -width})
   end
 
-  defp compute_component_bottom(components, %__MODULE__{}) do
-    offset = @min_width - @action_offset - @action_width
+  defp compute_component_bottom(components, %__MODULE__{}, %{width: width}) do
+    offset = width - @action_offset - @action_width
 
     components
     |> put_svg_component({:horizontal, -offset})
@@ -202,7 +224,7 @@ defmodule ExshomeAutomation.Services.Workflow.ItemConfig do
   end
 
   defp compute_child_actions(components, _config, size_data) do
-    child_action_width = @min_width - @child_action_offset - @corner_size
+    child_action_width = size_data.width - size_data.child_label_width - @corner_size
     child_action_right_offset = child_action_width - @action_width - @action_offset
 
     for %{height: height, id: id} <- size_data.action, reduce: components do
@@ -438,7 +460,7 @@ defmodule ExshomeAutomation.Services.Workflow.ItemConfig do
         %{
           text: label,
           x: @outline_size * 2 + @connector_size,
-          y: y + @letter_height
+          y: y + @letter_height - @outline_size
         }
       end
 
