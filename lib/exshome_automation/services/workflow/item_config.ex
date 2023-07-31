@@ -40,6 +40,7 @@ defmodule ExshomeAutomation.Services.Workflow.ItemConfig do
 
   @type child_data() :: %{
           id: String.t(),
+          last?: boolean(),
           height: number(),
           width: number()
         }
@@ -54,8 +55,10 @@ defmodule ExshomeAutomation.Services.Workflow.ItemConfig do
   @connector_size 4
   @connector_offset 2
   @outline_size 1
+  @corner_size 1
   @min_width 20
   @min_height 2 * @connector_offset + @connector_size + @outline_size
+  @min_child_connection_height @min_height + 2 * @corner_size
   @action_width 6
   @action_height 2
   @action_offset 2
@@ -63,7 +66,6 @@ defmodule ExshomeAutomation.Services.Workflow.ItemConfig do
   @child_action_empty_height 2
   @min_child_action_offset 5
   @child_action_separator_height 1
-  @corner_size 1
   @letter_height 3
   @letter_width 1.85
 
@@ -89,19 +91,24 @@ defmodule ExshomeAutomation.Services.Workflow.ItemConfig do
 
     child_data = [
       {:action, config.child_actions, 0},
-      {:connection, config.child_connections, @min_height}
+      {:connection, config.child_connections, @min_child_connection_height}
     ]
 
     size_data =
       for {child_type, child_items, min_height} <- child_data, into: size_data do
+        last_index = length(child_items) - 1
+
         items =
-          Enum.map(child_items, fn id ->
+          child_items
+          |> Enum.with_index()
+          |> Enum.map(fn {id, index} ->
             key = ItemProperties.child_connector_key(child_type, id)
             connection = connected_items[key] || %{height: 0, width: 0}
 
             %{
               id: id,
               height: max(min_height, connection.height),
+              last?: index == last_index,
               width: max(@min_width, connection.width)
             }
           end)
@@ -170,8 +177,15 @@ defmodule ExshomeAutomation.Services.Workflow.ItemConfig do
   defp compute_left_height(%__MODULE__{} = config, size_data) do
     connections_height =
       size_data.connection
-      |> Enum.map(&max(&1.height, @min_height))
+      |> Enum.map(&max(&1.height, @min_child_connection_height))
       |> Enum.sum()
+
+    connections_height =
+      if config.child_connections == [] do
+        connections_height
+      else
+        connections_height - 2 * @corner_size
+      end
 
     actions_height =
       size_data.action
@@ -207,9 +221,16 @@ defmodule ExshomeAutomation.Services.Workflow.ItemConfig do
   end
 
   defp compute_child_connections(components, _config, size_data) do
-    for %{height: height, id: id} <- size_data.connection, reduce: components do
+    for %{height: height, id: id, last?: last?} <- size_data.connection, reduce: components do
       components ->
         remaining_offset = height - @connector_offset - @connector_size
+
+        remaining_offset =
+          if last? do
+            remaining_offset - 2 * @corner_size
+          else
+            remaining_offset
+          end
 
         components
         |> put_svg_component({:vertical, @connector_offset})
@@ -470,7 +491,7 @@ defmodule ExshomeAutomation.Services.Workflow.ItemConfig do
   @spec min_child_item_size() :: %{atom() => ItemProperties.size()}
   def min_child_item_size do
     %{
-      connection: %{height: @min_height + 2 * @corner_size, width: @min_width + 2 * @corner_size}
+      connection: %{height: @min_child_connection_height, width: @min_width + 2 * @corner_size}
     }
   end
 end
