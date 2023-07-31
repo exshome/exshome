@@ -251,13 +251,13 @@ defmodule ExshomeAutomation.Services.Workflow.Editor do
           y: if(connection_type == :connected, do: -diff_height, else: diff_height)
         }
 
-        {parent_id, _} = List.last(parents)
+        parent_ids = for {parent_id, _} <- parents, into: MapSet.new(), do: parent_id
 
         item_ids_to_exclude =
           state
           |> list_children_ids(item_id)
           |> MapSet.put(item_id)
-          |> MapSet.put(parent_id)
+          |> MapSet.union(parent_ids)
 
         affected_item_ids =
           state
