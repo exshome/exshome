@@ -84,6 +84,13 @@ defmodule ExshomeAutomation.Services.Workflow.ItemConfig do
     component_width =
       String.length(config.label) * @letter_width + max_connection_label_width + @labels_gap_size
 
+    component_width =
+      if Enum.empty?(config.child_actions) do
+        component_width
+      else
+        max(component_width, max_child_label_width + @min_width)
+      end
+
     size_data = %{
       child_label_width: max_child_label_width,
       width: max(component_width, @min_width)

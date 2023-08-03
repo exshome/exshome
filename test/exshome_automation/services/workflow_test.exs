@@ -193,7 +193,7 @@ defmodule ExshomeAutomationTest.Services.WorkflowTest do
       random_action =
         parent
         |> EditorItem.get_child_keys()
-        |> Enum.filter(fn {type, _} -> type == :connector end)
+        |> Enum.filter(fn {type, _} -> type == :connection end)
         |> Enum.random()
 
       connect_items(workflow_id, {parent_id, random_action}, {child_id, :parent_connector})
