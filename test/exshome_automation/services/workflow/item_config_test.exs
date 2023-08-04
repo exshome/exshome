@@ -527,22 +527,15 @@ defmodule ExshomeAutomationTest.Services.Workflow.ItemConfigTest do
   end
 
   describe "compute item properties" do
-    setup do
-      empty_height =
-        @outline_size + @corner_size + @min_height + @corner_size + @outline_size
+    @item_label "test"
+    @empty_height @outline_size + @corner_size + @min_height + @corner_size + @outline_size
+    @empty_width @outline_size * 2 + @corner_size * 2 + @connector_size + @min_width
 
-      empty_width =
-        @outline_size + @connector_size + @corner_size + @min_width + @corner_size +
-          @outline_size
-
-      %{empty_height: empty_height, empty_width: empty_width}
-    end
-
-    test "without connections", %{empty_height: height, empty_width: width} do
+    test "without connections" do
       item_properties =
         compute_item_properties(
           %ItemConfig{
-            label: "test",
+            label: @item_label,
             child_actions: [],
             child_connections: [],
             has_next_action?: false,
@@ -552,10 +545,10 @@ defmodule ExshomeAutomationTest.Services.Workflow.ItemConfigTest do
         )
 
       assert %ItemProperties{
-               height: height,
-               width: width,
+               height: @empty_height,
+               width: @empty_width,
                labels: [
-                 %{text: "test", y: @item_label_y, x: @item_label_x}
+                 %{text: @item_label, y: @item_label_y, x: @item_label_x}
                ],
                raw_size: %{
                  height: @min_height + 2 * @corner_size,
@@ -565,11 +558,11 @@ defmodule ExshomeAutomationTest.Services.Workflow.ItemConfigTest do
              } == item_properties
     end
 
-    test "with previous action", %{empty_height: empty_height, empty_width: empty_width} do
+    test "with previous action" do
       item_properties =
         compute_item_properties(
           %ItemConfig{
-            label: "test",
+            label: @item_label,
             child_actions: [],
             child_connections: [],
             has_next_action?: false,
@@ -579,14 +572,14 @@ defmodule ExshomeAutomationTest.Services.Workflow.ItemConfigTest do
         )
 
       assert %ItemProperties{
-               height: empty_height,
-               width: empty_width,
+               height: @empty_height,
+               width: @empty_width,
                raw_size: %{
                  height: @min_height + 2 * @corner_size,
                  width: @min_width + 2 * @corner_size
                },
                labels: [
-                 %{text: "test", y: @item_label_y, x: @item_label_x}
+                 %{text: @item_label, y: @item_label_y, x: @item_label_x}
                ],
                connectors: %{
                  parent_action: %{
@@ -599,11 +592,11 @@ defmodule ExshomeAutomationTest.Services.Workflow.ItemConfigTest do
              } == item_properties
     end
 
-    test "with next action", %{empty_height: empty_height, empty_width: empty_width} do
+    test "with next action" do
       item_properties =
         compute_item_properties(
           %ItemConfig{
-            label: "test",
+            label: @item_label,
             child_actions: [],
             child_connections: [],
             has_next_action?: true,
@@ -612,17 +605,17 @@ defmodule ExshomeAutomationTest.Services.Workflow.ItemConfigTest do
           %{}
         )
 
-      height = empty_height + @action_height
+      height = @empty_height + @action_height
 
       assert %ItemProperties{
                height: height,
-               width: empty_width,
+               width: @empty_width,
                raw_size: %{
                  height: @min_height + 2 * @corner_size,
                  width: @min_width + 2 * @corner_size
                },
                labels: [
-                 %{text: "test", y: @item_label_y, x: @item_label_x}
+                 %{text: @item_label, y: @item_label_y, x: @item_label_x}
                ],
                connectors: %{
                  {:action, :next_action} => %{
@@ -635,11 +628,11 @@ defmodule ExshomeAutomationTest.Services.Workflow.ItemConfigTest do
              } == item_properties
     end
 
-    test "with parent connection", %{empty_height: empty_height, empty_width: empty_width} do
+    test "with parent connection" do
       item_properties =
         compute_item_properties(
           %ItemConfig{
-            label: "test",
+            label: @item_label,
             child_actions: [],
             child_connections: [],
             has_next_action?: false,
@@ -649,14 +642,14 @@ defmodule ExshomeAutomationTest.Services.Workflow.ItemConfigTest do
         )
 
       assert %ItemProperties{
-               height: empty_height,
-               width: empty_width,
+               height: @empty_height,
+               width: @empty_width,
                raw_size: %{
                  height: @min_height + 2 * @corner_size,
                  width: @min_width + 2 * @corner_size
                },
                labels: [
-                 %{text: "test", y: @item_label_y, x: @item_label_x}
+                 %{text: @item_label, y: @item_label_y, x: @item_label_x}
                ],
                connectors: %{
                  parent_connector: %{
@@ -669,32 +662,43 @@ defmodule ExshomeAutomationTest.Services.Workflow.ItemConfigTest do
              } == item_properties
     end
 
-    test "with child connection, child is not connected", %{
-      empty_height: empty_height,
-      empty_width: empty_width
-    } do
+    test "with child connection, child is not connected" do
+      connector_label = "conn_1"
+
       item_properties =
         compute_item_properties(
           %ItemConfig{
-            label: "test",
+            label: @item_label,
             child_actions: [],
-            child_connections: ["conn_1"],
+            child_connections: [connector_label],
             has_next_action?: false,
             parent: nil
           },
           %{}
         )
 
+      width =
+        (String.length(@item_label) + String.length(connector_label)) * @letter_width +
+          @labels_gap_size + @connector_size + 2 * @corner_size + 3 * @outline_size
+
+      connector_label_x =
+        width - 2 * @outline_size - @connector_size -
+          String.length(connector_label) * @letter_width
+
       assert %ItemProperties{
-               height: empty_height,
-               width: empty_width,
+               height: @empty_height,
+               width: width,
                raw_size: %{
                  height: @min_height + 2 * @corner_size,
-                 width: @min_width + 2 * @corner_size
+                 width: width - @connector_size - 2 * @corner_size
                },
+               labels: [
+                 %{text: @item_label, y: @item_label_y, x: @item_label_x},
+                 %{text: connector_label, y: @item_label_y, x: connector_label_x}
+               ],
                connectors: %{
-                 {:connection, "conn_1"} => %{
-                   x: empty_width - @outline_size - @connector_size,
+                 {:connection, connector_label} => %{
+                   x: width - @outline_size - @connector_size,
                    y: @outline_size + @corner_size + @connector_offset,
                    width: @connector_size,
                    height: @connector_size
@@ -703,34 +707,45 @@ defmodule ExshomeAutomationTest.Services.Workflow.ItemConfigTest do
              } == item_properties
     end
 
-    test "with child connection, child connected", %{
-      empty_height: empty_height,
-      empty_width: empty_width
-    } do
+    test "with child connection, child connected" do
+      connector_label = "conn_1"
+
       item_properties =
         compute_item_properties(
           %ItemConfig{
-            label: "test",
+            label: @item_label,
             child_actions: [],
-            child_connections: ["conn_1"],
+            child_connections: [connector_label],
             has_next_action?: false,
             parent: nil
           },
           %{
-            {:connection, "conn_1"} => %{height: @min_height + 1, width: 0}
+            {:connection, connector_label} => %{height: @min_height + 1, width: 0}
           }
         )
 
+      width =
+        (String.length(@item_label) + String.length(connector_label)) * @letter_width +
+          @labels_gap_size + @connector_size + 2 * @corner_size + 3 * @outline_size
+
+      connector_label_x =
+        width - 2 * @outline_size - @connector_size -
+          String.length(connector_label) * @letter_width
+
       assert %ItemProperties{
-               height: empty_height + 1,
-               width: empty_width,
+               height: @empty_height,
+               width: width,
                raw_size: %{
-                 height: @min_height + 1 + 2 * @corner_size,
-                 width: @min_width + 2 * @corner_size
+                 height: @min_height + 2 * @corner_size,
+                 width: width - 2 * @corner_size - @connector_size
                },
+               labels: [
+                 %{text: @item_label, y: @item_label_y, x: @item_label_x},
+                 %{text: connector_label, y: @item_label_y, x: connector_label_x}
+               ],
                connectors: %{
-                 {:connection, "conn_1"} => %{
-                   x: empty_width - @outline_size - @connector_size,
+                 {:connection, connector_label} => %{
+                   x: width - @outline_size - @connector_size,
                    y: @outline_size + @corner_size + @connector_offset,
                    width: @connector_size,
                    height: @connector_size
@@ -739,15 +754,14 @@ defmodule ExshomeAutomationTest.Services.Workflow.ItemConfigTest do
              } == item_properties
     end
 
-    test "with child action, child is not connected", %{
-      empty_height: empty_height,
-      empty_width: empty_width
-    } do
+    test "with child action, child is not connected" do
+      action_label = "action_1"
+
       item_properties =
         compute_item_properties(
           %ItemConfig{
-            label: "test",
-            child_actions: ["action_1"],
+            label: @item_label,
+            child_actions: [action_label],
             child_connections: [],
             has_next_action?: false,
             parent: nil
@@ -756,27 +770,42 @@ defmodule ExshomeAutomationTest.Services.Workflow.ItemConfigTest do
         )
 
       height =
-        empty_height + @child_action_empty_height + 4 * @corner_size +
-          @child_action_separator_height
+        @min_height + @child_action_empty_height + 3 * @corner_size +
+          @child_action_separator_height + @min_child_action_offset
 
       raw_height =
         @min_height + @child_action_empty_height + 4 * @corner_size +
           @child_action_separator_height + 2 * @corner_size
 
+      width =
+        String.length(action_label) * @letter_width + @min_width + @connector_size * 2 +
+          @outline_size
+
+      action_y = @outline_size + 2 * @corner_size + @min_height
+
+      action_x =
+        2 * @outline_size + @connector_size + String.length(action_label) * @letter_width +
+          @connector_offset + 2 * @corner_size
+
       assert %ItemProperties{
                height: height,
-               width: empty_width,
+               width: width,
                raw_size: %{
                  height: raw_height,
-                 width: @min_width + 2 * @corner_size
+                 width: width - 2 * @corner_size - @connector_size
                },
                labels: [
-                 %{text: "test", x: @item_label_x, y: @item_label_y}
+                 %{text: @item_label, x: @item_label_x, y: @item_label_y},
+                 %{
+                   text: action_label,
+                   x: 2 * @outline_size + @connector_size,
+                   y: action_y + @letter_height - @outline_size
+                 }
                ],
                connectors: %{
-                 {:action, "action_1"} => %{
-                   x: @offset_x + @min_child_action_offset + @corner_size + @action_offset,
-                   y: @offset_y + @corner_size + @min_height + @corner_size,
+                 {:action, action_label} => %{
+                   x: action_x,
+                   y: action_y,
                    width: @action_width,
                    height: @action_height
                  }
@@ -784,35 +813,52 @@ defmodule ExshomeAutomationTest.Services.Workflow.ItemConfigTest do
              } == item_properties
     end
 
-    test "with child action, child connected", %{
-      empty_height: empty_height,
-      empty_width: empty_width
-    } do
+    test "with child action, child connected" do
+      action_label = "action_1"
+
       item_properties =
         compute_item_properties(
           %ItemConfig{
-            label: "test",
-            child_actions: ["action_1"],
+            label: @item_label,
+            child_actions: [action_label],
             child_connections: [],
             has_next_action?: false,
             parent: nil
           },
           %{
-            {:actton, "action_1"} => %{height: @min_height, width: 0}
+            {:actton, action_label} => %{height: @min_height, width: 0}
           }
         )
 
+      width =
+        String.length(action_label) * @letter_width + @min_width + @connector_size * 2 +
+          @outline_size
+
+      action_y = @outline_size + 2 * @corner_size + @min_height
+
+      action_x =
+        2 * @outline_size + @connector_size + String.length(action_label) * @letter_width +
+          @connector_offset + 2 * @corner_size
+
       assert %ItemProperties{
-               height: empty_height + @min_height - @corner_size,
-               width: empty_width,
+               height: @empty_height + @min_height - 2 * @corner_size,
+               width: width,
                raw_size: %{
-                 height: 2 * @min_height + @corner_size,
-                 width: @min_width + 2 * @corner_size
+                 height: @empty_height + @min_height - 2 * @corner_size - 2 * @outline_size,
+                 width: width - 2 * @corner_size - @connector_size
                },
+               labels: [
+                 %{text: @item_label, x: @item_label_x, y: @item_label_y},
+                 %{
+                   text: action_label,
+                   x: 2 * @outline_size + @connector_size,
+                   y: action_y + @letter_height - @outline_size
+                 }
+               ],
                connectors: %{
-                 {:action, "action_1"} => %{
-                   x: @offset_x + @min_child_action_offset + @corner_size + @action_offset,
-                   y: @offset_y + @corner_size + @min_height + @corner_size,
+                 {:action, action_label} => %{
+                   x: action_x,
+                   y: action_y,
                    width: @action_width,
                    height: @action_height
                  }
@@ -820,7 +866,7 @@ defmodule ExshomeAutomationTest.Services.Workflow.ItemConfigTest do
              } == item_properties
     end
 
-    test "with multiple children", %{empty_width: empty_width} do
+    test "with multiple children" do
       child_actions = %{
         {:action, "action_2"} => %{height: @min_height, width: 0}
       }
@@ -832,7 +878,7 @@ defmodule ExshomeAutomationTest.Services.Workflow.ItemConfigTest do
       item_properties =
         compute_item_properties(
           %ItemConfig{
-            label: "test",
+            label: @item_label,
             child_actions: ["action_1", "action_2"],
             child_connections: ["conn_1", "conn_2"],
             has_next_action?: true,
@@ -861,11 +907,14 @@ defmodule ExshomeAutomationTest.Services.Workflow.ItemConfigTest do
 
       assert %ItemProperties{
                height: height,
-               width: empty_width,
+               width: @min_width,
                raw_size: %{
                  height: height - 2 * @outline_size - @action_height,
                  width: @min_width + 2 * @corner_size
                },
+               labels: [
+                 %{text: @item_label, x: @item_label_x, y: @item_label_y}
+               ],
                connectors: %{
                  :parent_action => %{
                    x: @offset_x + @action_offset,
@@ -892,13 +941,13 @@ defmodule ExshomeAutomationTest.Services.Workflow.ItemConfigTest do
                    height: @action_height
                  },
                  {:connection, "conn_1"} => %{
-                   x: empty_width - @outline_size - @connector_size,
+                   x: @min_width - @outline_size - @connector_size,
                    y: @outline_size + @corner_size + @connector_offset,
                    width: @connector_size,
                    height: @connector_size
                  },
                  {:connection, "conn_2"} => %{
-                   x: empty_width - @outline_size - @connector_size,
+                   x: @min_width - @outline_size - @connector_size,
                    y:
                      @outline_size + @corner_size + @connector_offset +
                        first_connector_block_height,
