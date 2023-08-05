@@ -867,28 +867,37 @@ defmodule ExshomeAutomationTest.Services.Workflow.ItemConfigTest do
     end
 
     test "with multiple children" do
+      action_1 = "a_1"
+      action_2 = "action_2"
+
+      connection_1 = "conn_1"
+      connection_2 = "connection_2"
+
+      actions = [action_1, action_2]
+      connections = [connection_1, connection_2]
+
       child_actions = %{
-        {:action, "action_2"} => %{height: @min_height, width: 0}
+        {:action, action_2} => %{height: @min_height, width: @min_width + 1}
       }
 
       child_connections = %{
-        {:connection, "conn_2"} => %{height: @min_height + 1, width: 0}
+        {:connection, connection_2} => %{height: @min_height + 1, width: @min_width + 1}
       }
 
       item_properties =
         compute_item_properties(
           %ItemConfig{
             label: @item_label,
-            child_actions: ["action_1", "action_2"],
-            child_connections: ["conn_1", "conn_2"],
+            child_actions: actions,
+            child_connections: connections,
             has_next_action?: true,
             parent: :action
           },
           Map.merge(child_actions, child_connections)
         )
 
-      first_connector_block_height = @min_height
-      second_connector_block_height = @min_height + 1
+      first_connector_block_height = @min_height + 2 * @corner_size
+      second_connector_block_height = @min_height + 1 - @corner_size
 
       height_after_child_connectors =
         @outline_size + @corner_size + first_connector_block_height +
@@ -905,15 +914,58 @@ defmodule ExshomeAutomationTest.Services.Workflow.ItemConfigTest do
         height_after_child_connectors + first_child_action_height + second_child_action_height +
           @corner_size + @outline_size + @action_height
 
+      max_action_label_length = actions |> Enum.map(&String.length/1) |> Enum.max()
+      max_connection_label_length = connections |> Enum.map(&String.length/1) |> Enum.max()
+
+      top_width =
+        (String.length(@item_label) + max_connection_label_length) * @letter_width +
+          3 * @outline_size + @connector_size + @labels_gap_size + 2 * @corner_size
+
+      bottom_width =
+        max_action_label_length * @letter_width + @min_width + 3 * @outline_size + @connector_size +
+          2 * @corner_size
+
+      width = max(top_width, bottom_width)
+
+      connection_x = width - @outline_size - @connector_size
+
+      action_x =
+        max_action_label_length * @letter_width + 3 * @outline_size + @connector_size +
+          @connector_offset + @corner_size
+
       assert %ItemProperties{
                height: height,
-               width: @min_width,
+               width: width,
                raw_size: %{
                  height: height - 2 * @outline_size - @action_height,
-                 width: @min_width + 2 * @corner_size
+                 width: width - 2 * @outline_size - @connector_size
                },
                labels: [
-                 %{text: @item_label, x: @item_label_x, y: @item_label_y}
+                 %{text: @item_label, x: @item_label_x, y: @item_label_y},
+                 %{
+                   text: connection_1,
+                   x: connection_x - @outline_size - String.length(connection_1) * @letter_width,
+                   y: @item_label_y
+                 },
+                 %{
+                   text: connection_2,
+                   x: connection_x - @outline_size - String.length(connection_2) * @letter_width,
+                   y: @item_label_y + first_connector_block_height
+                 },
+                 %{
+                   text: action_1,
+                   x:
+                     action_x - @corner_size - @connector_offset - @outline_size -
+                       String.length(action_1) * @letter_width,
+                   y: height_after_child_connectors + @letter_height
+                 },
+                 %{
+                   text: action_2,
+                   x:
+                     action_x - @corner_size - @connector_offset - @outline_size -
+                       String.length(action_2) * @letter_width,
+                   y: height_after_child_connectors + first_child_action_height + @letter_height
+                 }
                ],
                connectors: %{
                  :parent_action => %{
@@ -928,26 +980,26 @@ defmodule ExshomeAutomationTest.Services.Workflow.ItemConfigTest do
                    width: @action_width,
                    height: @action_height
                  },
-                 {:action, "action_1"} => %{
-                   x: @offset_x + @action_offset + @min_child_action_offset + @corner_size,
+                 {:action, action_1} => %{
+                   x: action_x,
                    y: height_after_child_connectors + @corner_size,
                    width: @action_width,
                    height: @action_height
                  },
-                 {:action, "action_2"} => %{
-                   x: @offset_x + @action_offset + @min_child_action_offset + @corner_size,
+                 {:action, action_2} => %{
+                   x: action_x,
                    y: height_after_child_connectors + first_child_action_height + @corner_size,
                    width: @action_width,
                    height: @action_height
                  },
-                 {:connection, "conn_1"} => %{
-                   x: @min_width - @outline_size - @connector_size,
+                 {:connection, connection_1} => %{
+                   x: connection_x,
                    y: @outline_size + @corner_size + @connector_offset,
                    width: @connector_size,
                    height: @connector_size
                  },
-                 {:connection, "conn_2"} => %{
-                   x: @min_width - @outline_size - @connector_size,
+                 {:connection, connection_2} => %{
+                   x: connection_x,
                    y:
                      @outline_size + @corner_size + @connector_offset +
                        first_connector_block_height,

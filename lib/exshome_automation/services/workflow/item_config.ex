@@ -406,7 +406,7 @@ defmodule ExshomeAutomation.Services.Workflow.ItemConfig do
 
   defp collect_item_data({:child_action, id}, data) do
     key = {:action, id}
-    value = %{x: data.x + -@action_width, y: data.y, height: @action_height, width: @action_width}
+    value = %{x: data.x - @action_width, y: data.y, height: @action_height, width: @action_width}
     connectors = Map.put(data.connectors, key, value)
 
     %{data | connectors: connectors}
@@ -483,11 +483,13 @@ defmodule ExshomeAutomation.Services.Workflow.ItemConfig do
 
     action_labels =
       for label <- config.child_actions do
-        %{y: y} = property_data.connectors[{:action, label}]
+        %{x: x, y: y} = property_data.connectors[{:action, label}]
 
         %{
           text: label,
-          x: @outline_size * 2 + @connector_size,
+          x:
+            x - @outline_size - String.length(label) * @letter_width - @corner_size -
+              @connector_offset,
           y: y + @letter_height - @outline_size
         }
       end
