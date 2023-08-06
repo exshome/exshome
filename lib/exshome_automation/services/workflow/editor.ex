@@ -41,6 +41,16 @@ defmodule ExshomeAutomation.Services.Workflow.Editor do
           dragged_items: %{pid() => String.t() | nil}
         }
 
+  @type parent_t() :: EditorItem.remote_key()
+  @type child_t() :: EditorItem.remote_key()
+
+  @type connection_info() ::
+          {:disconnect, parent_t(), child_t()}
+          | {:connect, parent_t(), child_t(), diff :: EditorItem.position()}
+          | {:change_type, parent_t(), child_t(), type :: EditorItem.connection_type(),
+             diff :: EditorItem.position()}
+          | {:move, parent_t(), child_t(), diff :: EditorItem.position()}
+
   @spec blank_editor(id :: String.t()) :: t()
   def blank_editor(id) do
     %__MODULE__{
