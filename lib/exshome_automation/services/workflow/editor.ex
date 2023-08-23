@@ -16,7 +16,8 @@ defmodule ExshomeAutomation.Services.Workflow.Editor do
     :operation_timestamp,
     dragged_items: %{},
     available_connectors: %{
-      parent: %{},
+      parent_action: %{},
+      parent_connector: %{},
       action: %{},
       connection: %{}
     }
@@ -25,6 +26,12 @@ defmodule ExshomeAutomation.Services.Workflow.Editor do
   @type connector_data() :: %{
           position: ItemProperties.connector_position(),
           type: EditorItem.connection_type()
+        }
+
+  @type connector_opts() :: %{
+          key: ItemProperties.connector_key(),
+          remote_key: ItemProperties.remote_key(),
+          parent?: boolean()
         }
 
   @type t() :: %__MODULE__{
@@ -46,10 +53,8 @@ defmodule ExshomeAutomation.Services.Workflow.Editor do
 
   @type connection_info() ::
           {:disconnect, parent_t(), child_t()}
-          | {:connect, parent_t(), child_t(), diff :: EditorItem.position()}
-          | {:change_type, parent_t(), child_t(), type :: EditorItem.connection_type(),
-             diff :: EditorItem.position()}
-          | {:move, parent_t(), child_t(), diff :: EditorItem.position()}
+          | {:connect, parent_t(), child_t()}
+          | {:keep, parent_t(), child_t()}
 
   @spec blank_editor(id :: String.t()) :: t()
   def blank_editor(id) do
@@ -174,6 +179,9 @@ defmodule ExshomeAutomation.Services.Workflow.Editor do
 
   @spec move_item(t(), String.t(), EditorItem.position(), EditorItem.connection_type()) :: t()
   def move_item(%__MODULE__{} = state, item_id, new_position, type \\ :hover) do
+    state
+    |> connections_diff(item_id, new_position, type)
+
     %EditorItem{} = item = get_item(state, item_id)
 
     drag = type == :hover
@@ -365,6 +373,99 @@ defmodule ExshomeAutomation.Services.Workflow.Editor do
     |> remove_dragged_item_id()
   end
 
+  @spec connections_diff(t(), String.t(), EditorItem.position(), EditorItem.connection_type()) ::
+          [connection_info()]
+  defp connections_diff(%__MODULE__{} = state, item_id, position, type) do
+    %EditorItem{} =
+      item =
+      state
+      |> get_item(item_id)
+      |> EditorItem.update_position(position)
+
+    connectors =
+      case EditorItem.get_parent_key(item) do
+        nil ->
+          []
+
+        parent_key ->
+          [
+            %{
+              key: parent_key,
+              remote_key: EditorItem.remote_key(item, parent_key),
+              parent?: true
+            }
+          ]
+      end
+
+    connectors =
+      for key <- EditorItem.get_child_keys(item), reduce: connectors do
+        prev ->
+          [
+            %{
+              key: key,
+              remote_key: EditorItem.remote_key(item, key),
+              parent?: false
+            }
+            | prev
+          ]
+      end
+
+    connector_data = compute_connectors(item)
+
+    for connector <- connectors, reduce: [] do
+      diff ->
+        connection = item.connected_items[connector.key]
+        data = connector_data[connector.remote_key]
+
+        if connection do
+          remote_data = fetch_connector_data(state, connection.remote_key)
+
+          same_connection? =
+            ItemProperties.position_intersects?(data.position, remote_data.position)
+
+          same_connection_type? = connection.type == type
+
+          {parent, child} =
+            if connector.parent?,
+              do: {connection.remote_key, connector.remote_key},
+              else: {connector.remote_key, connection.remote_key}
+
+          case {same_connection?, same_connection_type?} do
+            {true, true} ->
+              [{:keep, parent, child} | diff]
+
+            {true, false} ->
+              [{:disconnect, parent, child}, {:connect, parent, child} | diff]
+
+            {false, _} ->
+              diff = [{:disconnect, parent, child} | diff]
+              find_new_connection(state, diff, connector, data)
+          end
+        else
+          find_new_connection(state, diff, connector, data)
+        end
+    end
+  end
+
+  @spec find_new_connection(t(), [connection_info()], connector_opts(), connector_data()) :: [
+          connection_info()
+        ]
+  defp find_new_connection(state, diff, connector, data) do
+    parent_type = ItemProperties.opposite_type(connector.key)
+    intersecting_connector_key = find_intersecting_connector(state, parent_type, data)
+
+    if intersecting_connector_key do
+      {parent, child} =
+        if connector.parent?,
+          do: {intersecting_connector_key, connector.remote_key},
+          else: {connector.remote_key, intersecting_connector_key}
+
+      [{:connect, parent, child} | diff]
+    else
+      diff
+    end
+  end
+
   @spec maybe_adjust_item_position(t(), String.t()) :: t()
   defp maybe_adjust_item_position(%__MODULE__{} = state, item_id) do
     item = get_item(state, item_id)
@@ -425,22 +526,30 @@ defmodule ExshomeAutomation.Services.Workflow.Editor do
 
   @spec update_connectors(t(), EditorItem.t()) :: t()
   defp update_connectors(%__MODULE__{} = state, %EditorItem{} = item) do
-    for {connector_key, data} <- item.connectors, reduce: state do
+    for {remote_key = {_, key}, data} <- compute_connectors(item), reduce: state do
       state ->
-        connection = item.connected_items[connector_key]
-
-        connector_data = %{
-          position: %{data | x: item.position.x + data.x, y: item.position.y + data.y},
-          type: if(connection, do: connection.type, else: nil)
-        }
-
-        key = EditorItem.remote_key(item, connector_key)
-        connector_type = ItemProperties.connector_type(connector_key)
+        connector_type = ItemProperties.connector_type(key)
 
         update_in(
           state.available_connectors[connector_type],
-          &Map.put(&1, key, connector_data)
+          &Map.put(&1, remote_key, data)
         )
+    end
+  end
+
+  @spec compute_connectors(EditorItem.t()) :: %{EditorItem.remote_key() => connector_data()}
+  defp compute_connectors(item) do
+    for {key, data} <- item.connectors, into: %{} do
+      connection = item.connected_items[key]
+
+      connector_data = %{
+        position: %{data | x: item.position.x + data.x, y: item.position.y + data.y},
+        type: if(connection, do: connection.type, else: nil)
+      }
+
+      remote_key = EditorItem.remote_key(item, key)
+
+      {remote_key, connector_data}
     end
   end
 
@@ -499,12 +608,17 @@ defmodule ExshomeAutomation.Services.Workflow.Editor do
   end
 
   @spec intersecting_connector(t(), EditorItem.remote_key()) :: EditorItem.remote_key() | nil
-  defp intersecting_connector(%__MODULE__{} = state, {_, parent_key} = remote_key) do
+  defp intersecting_connector(%__MODULE__{} = state, {_, key} = remote_key) do
     own_data = fetch_connector_data(state, remote_key)
-    connector_type = ItemProperties.parent_type(parent_key)
+    parent_type = ItemProperties.opposite_type(key)
+    find_intersecting_connector(state, parent_type, own_data)
+  end
 
+  @spec find_intersecting_connector(t(), ItemProperties.connector_type(), connector_data()) ::
+          EditorItem.remote_key() | nil
+  defp find_intersecting_connector(%__MODULE__{} = state, parent_type, own_data) do
     state.available_connectors
-    |> Map.fetch!(connector_type)
+    |> Map.fetch!(parent_type)
     |> Enum.filter(fn {_, candidate_data} ->
       not_connected? = candidate_data.type != :connected
 

@@ -14,7 +14,7 @@ defmodule ExshomeAutomation.Services.Workflow.ItemProperties do
   @type child_connector_type() :: :action | :connection
   @type connector_key() ::
           :parent_connector | :parent_action | {child_connector_type(), id :: String.t()}
-  @type connector_type() :: :parent | child_connector_type()
+  @type connector_type() :: :parent_connector | :parent_action | child_connector_type()
   @type connector_position() :: %{
           x: number(),
           y: number(),
@@ -48,14 +48,16 @@ defmodule ExshomeAutomation.Services.Workflow.ItemProperties do
   @type connected_items() :: %{connector_key() => connection()}
 
   @spec connector_type(connector_key()) :: connector_type()
-  def connector_type(:parent_connector), do: :parent
-  def connector_type(:parent_action), do: :parent
+  def connector_type(:parent_connector), do: :parent_connector
+  def connector_type(:parent_action), do: :parent_action
   def connector_type({:action, _}), do: :action
   def connector_type({:connection, _}), do: :connection
 
-  @spec parent_type(connector_key()) :: connector_type()
-  def parent_type(:parent_connector), do: :connection
-  def parent_type(:parent_action), do: :action
+  @spec opposite_type(connector_key()) :: connector_type()
+  def opposite_type(:parent_connector), do: :connection
+  def opposite_type(:parent_action), do: :action
+  def opposite_type({:action, _}), do: :parent_action
+  def opposite_type({:connection, _}), do: :parent_connector
 
   @spec position_intersects?(connector_position(), connector_position()) :: boolean()
   def position_intersects?(p1, p2) do
