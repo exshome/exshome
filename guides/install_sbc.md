@@ -15,6 +15,7 @@ sudo apt install mpv
 ## Installing Elixir and Erlang
 
 If your SBC has enough resources (at least 1 GB of RAM), you can try compiling Erlang from sources via [asdf](https://asdf-vm.com/guide/getting-started.html).
+Make sure that you have installed [all dependencies for building erlang](https://github.com/asdf-vm/asdf-erlang#before-asdf-install).
 ```
 asdf plugin add erlang
 asdf install erlang 26.0.2
