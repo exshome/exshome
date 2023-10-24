@@ -51,11 +51,6 @@ defmodule ExshomeAutomation.Services.Workflow.Editor do
   @type parent_t() :: EditorItem.remote_key()
   @type child_t() :: EditorItem.remote_key()
 
-  @type connection_info() ::
-          {:disconnect, parent_t(), child_t()}
-          | {:connect, parent_t(), child_t()}
-          | {:keep, parent_t(), child_t()}
-
   @spec blank_editor(id :: String.t()) :: t()
   def blank_editor(id) do
     %__MODULE__{
@@ -373,96 +368,67 @@ defmodule ExshomeAutomation.Services.Workflow.Editor do
     |> remove_dragged_item_id()
   end
 
-  @spec connections_diff(t(), String.t(), EditorItem.position(), EditorItem.connection_type()) ::
-          [connection_info()]
-  defp connections_diff(%__MODULE__{} = state, item_id, position, type) do
+  defp connections_diff(%__MODULE__{} = state, item_id, position, :hover) do
     %EditorItem{} =
       item =
       state
       |> get_item(item_id)
       |> EditorItem.update_position(position)
 
-    connectors =
-      case EditorItem.get_parent_key(item) do
-        nil ->
+    parent_key = EditorItem.get_parent_key(item)
+
+    result =
+      case item.connected_items[parent_key] do
+        %{type: :connected, remote_key: remote_key} ->
+          [remote_key]
+
+        %{type: :hover, remote_key: remote_key} ->
+          [remote_key]
+
+        _ ->
           []
-
-        parent_key ->
-          [
-            %{
-              key: parent_key,
-              remote_key: EditorItem.remote_key(item, parent_key),
-              parent?: true
-            }
-          ]
       end
 
-    connectors =
-      for key <- EditorItem.get_child_keys(item), reduce: connectors do
-        prev ->
-          [
-            %{
-              key: key,
-              remote_key: EditorItem.remote_key(item, key),
-              parent?: false
-            }
-            | prev
-          ]
-      end
-
-    connector_data = compute_connectors(item)
-
-    for connector <- connectors, reduce: [] do
-      diff ->
-        connection = item.connected_items[connector.key]
-        data = connector_data[connector.remote_key]
-
-        if connection do
-          remote_data = fetch_connector_data(state, connection.remote_key)
-
-          same_connection? =
-            ItemProperties.position_intersects?(data.position, remote_data.position)
-
-          same_connection_type? = connection.type == type
-
-          {parent, child} =
-            if connector.parent?,
-              do: {connection.remote_key, connector.remote_key},
-              else: {connector.remote_key, connection.remote_key}
-
-          case {same_connection?, same_connection_type?} do
-            {true, true} ->
-              [{:keep, parent, child} | diff]
-
-            {true, false} ->
-              [{:disconnect, parent, child}, {:connect, parent, child} | diff]
-
-            {false, _} ->
-              diff = [{:disconnect, parent, child} | diff]
-              find_new_connection(state, diff, connector, data)
-          end
-        else
-          find_new_connection(state, diff, connector, data)
+    for child_key <- EditorItem.get_child_keys(item),
+        child = item.connected_items[child_key],
+        reduce: result do
+      result ->
+        case child do
+          nil -> result
+          %{type: :connected, remote_key: remote_key} -> [remote_key | result]
+          %{type: :hover, remote_key: remote_key} -> [remote_key | result]
         end
     end
   end
 
-  @spec find_new_connection(t(), [connection_info()], connector_opts(), connector_data()) :: [
-          connection_info()
-        ]
-  defp find_new_connection(state, diff, connector, data) do
-    parent_type = ItemProperties.opposite_type(connector.key)
-    intersecting_connector_key = find_intersecting_connector(state, parent_type, data)
+  defp connections_diff(%__MODULE__{} = state, item_id, position, :connected) do
+    %EditorItem{} =
+      item =
+      state
+      |> get_item(item_id)
+      |> EditorItem.update_position(position)
 
-    if intersecting_connector_key do
-      {parent, child} =
-        if connector.parent?,
-          do: {intersecting_connector_key, connector.remote_key},
-          else: {connector.remote_key, intersecting_connector_key}
+    result =
+      case item.connected_items[EditorItem.get_parent_key(item)] do
+        %{type: :connected, remote_key: remote_key} ->
+          [remote_key]
 
-      [{:connect, parent, child} | diff]
-    else
-      diff
+        %{type: :hover, remote_key: remote_key} ->
+          [remote_key]
+
+        _ ->
+          []
+      end
+
+    for child_key <- EditorItem.get_child_keys(item),
+        child = item.connected_items[child_key],
+        reduce: result do
+      result ->
+        case child do
+          nil -> result
+          %{type: :connected, remote_key: remote_key} -> [remote_key | result]
+          %{type: :hover, remote_key: remote_key} -> [remote_key | result]
+        end
     end
   end
 
