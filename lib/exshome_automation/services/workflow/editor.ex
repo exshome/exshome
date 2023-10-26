@@ -51,6 +51,11 @@ defmodule ExshomeAutomation.Services.Workflow.Editor do
   @type parent_t() :: EditorItem.remote_key()
   @type child_t() :: EditorItem.remote_key()
 
+  @type connection_diff_item() ::
+          {:delete, parent_t(), child_t()}
+          | {:connect, parent_t(), child_t(), EditorItem.connection_type()}
+          | {:change_type, parent_t(), child_t(), EditorItem.connection_type()}
+
   @spec blank_editor(id :: String.t()) :: t()
   def blank_editor(id) do
     %__MODULE__{
@@ -368,67 +373,63 @@ defmodule ExshomeAutomation.Services.Workflow.Editor do
     |> remove_dragged_item_id()
   end
 
-  defp connections_diff(%__MODULE__{} = state, item_id, position, :hover) do
-    %EditorItem{} =
-      item =
-      state
-      |> get_item(item_id)
-      |> EditorItem.update_position(position)
+  @spec connections_diff(t(), String.t(), EditorItem.position(), EditorItem.connection_type()) ::
+          [
+            connection_diff_item()
+          ]
+  defp connections_diff(%__MODULE__{} = state, item_id, new_position, type) do
+    %EditorItem{position: initial_position} = item = get_item(state, item_id)
 
-    parent_key = EditorItem.get_parent_key(item)
+    new_position = %{x: max(new_position.x, 0), y: max(new_position.y, 0)}
 
-    result =
-      case item.connected_items[parent_key] do
-        %{type: :connected, remote_key: remote_key} ->
-          [remote_key]
+    position_diff = %{
+      x: initial_position.x - new_position.x,
+      y: initial_position.y - new_position.y
+    }
 
-        %{type: :hover, remote_key: remote_key} ->
-          [remote_key]
-
-        _ ->
-          []
-      end
-
-    for child_key <- EditorItem.get_child_keys(item),
-        child = item.connected_items[child_key],
-        reduce: result do
-      result ->
-        case child do
-          nil -> result
-          %{type: :connected, remote_key: remote_key} -> [remote_key | result]
-          %{type: :hover, remote_key: remote_key} -> [remote_key | result]
-        end
-    end
+    parent_connection_diff(state, item, position_diff, type)
   end
 
-  defp connections_diff(%__MODULE__{} = state, item_id, position, :connected) do
-    %EditorItem{} =
-      item =
-      state
-      |> get_item(item_id)
-      |> EditorItem.update_position(position)
+  @spec parent_connection_diff(
+          t(),
+          EditorItem.t(),
+          EditorItem.position(),
+          EditorItem.connection_type()
+        ) :: [
+          connection_diff_item()
+        ]
+  defp parent_connection_diff(%__MODULE__{} = state, %EditorItem{} = item, position_diff, type) do
+    parent_key = EditorItem.get_parent_key(item)
+    connector_data = item.connectors[parent_key] || %{x: 0, y: 0, width: 0, height: 0}
 
-    result =
-      case item.connected_items[EditorItem.get_parent_key(item)] do
-        %{type: :connected, remote_key: remote_key} ->
-          [remote_key]
+    position = %{
+      connector_data
+      | x: item.position.x + connector_data.x + position_diff.x,
+        y: item.position.y + connector_data.y + position_diff.y
+    }
 
-        %{type: :hover, remote_key: remote_key} ->
-          [remote_key]
+    new_connector_data = %{type: type, position: position}
 
-        _ ->
+    case {parent_key, item.connected_items[parent_key]} do
+      {nil, _} ->
+        []
+
+      {_, nil} ->
+        parent_connector =
+          find_intersecting_connector(
+            state,
+            ItemProperties.opposite_type(parent_key),
+            new_connector_data
+          )
+
+        if parent_connector do
+          [{:connect, parent_connector, {item.id, parent_key}, type}]
+        else
           []
-      end
-
-    for child_key <- EditorItem.get_child_keys(item),
-        child = item.connected_items[child_key],
-        reduce: result do
-      result ->
-        case child do
-          nil -> result
-          %{type: :connected, remote_key: remote_key} -> [remote_key | result]
-          %{type: :hover, remote_key: remote_key} -> [remote_key | result]
         end
+
+      {_, _parent_data} ->
+        []
     end
   end
 
