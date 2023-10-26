@@ -52,9 +52,10 @@ defmodule ExshomeAutomation.Services.Workflow.Editor do
   @type child_t() :: EditorItem.remote_key()
 
   @type connection_diff_item() ::
-          {:delete, parent_t(), child_t()}
-          | {:connect, parent_t(), child_t(), EditorItem.connection_type()}
+          {:connect, parent_t(), child_t(), EditorItem.connection_type()}
+          | {:keep, parent_t(), child_t()}
           | {:change_type, parent_t(), child_t(), EditorItem.connection_type()}
+          | {:delete, parent_t(), child_t()}
 
   @spec blank_editor(id :: String.t()) :: t()
   def blank_editor(id) do
@@ -409,6 +410,7 @@ defmodule ExshomeAutomation.Services.Workflow.Editor do
     }
 
     new_connector_data = %{type: type, position: position}
+    own_key = {item.id, parent_key}
 
     case {parent_key, item.connected_items[parent_key]} do
       {nil, _} ->
@@ -423,13 +425,52 @@ defmodule ExshomeAutomation.Services.Workflow.Editor do
           )
 
         if parent_connector do
-          [{:connect, parent_connector, {item.id, parent_key}, type}]
+          [{:connect, parent_connector, own_key, type}]
         else
           []
         end
 
-      {_, _parent_data} ->
-        []
+      {_, %{remote_key: remote_key}} ->
+        find_parent_connector(state, own_key, new_connector_data, remote_key)
+    end
+  end
+
+  @spec find_parent_connector(
+          t(),
+          EditorItem.remote_key(),
+          connector_data(),
+          EditorItem.remote_key()
+        ) :: [connection_diff_item()]
+  defp find_parent_connector(
+         %__MODULE__{} = state,
+         {_, parent_key} = own_key,
+         connector_data,
+         old_parent_key
+       ) do
+    parent_connector = fetch_connector_data(state, old_parent_key)
+
+    if ItemProperties.position_intersects?(connector_data.position, parent_connector.position) do
+      if parent_connector.type == connector_data.type do
+        [{:keep, old_parent_key, own_key}]
+      else
+        [{:change_type, old_parent_key, own_key, connector_data.type}]
+      end
+    else
+      new_parent =
+        find_intersecting_connector(
+          state,
+          ItemProperties.opposite_type(parent_key),
+          connector_data
+        )
+
+      extra_operations =
+        if new_parent do
+          [{:connect, new_parent, own_key, connector_data.type}]
+        else
+          []
+        end
+
+      [{:delete, old_parent_key, own_key} | extra_operations]
     end
   end
 
