@@ -48,15 +48,6 @@ defmodule ExshomeAutomation.Services.Workflow.Editor do
           dragged_items: %{pid() => String.t() | nil}
         }
 
-  @type parent_t() :: EditorItem.remote_key()
-  @type child_t() :: EditorItem.remote_key()
-
-  @type connection_diff_item() ::
-          {:connect, parent_t(), child_t(), EditorItem.connection_type()}
-          | {:keep, parent_t(), child_t()}
-          | {:change_type, parent_t(), child_t(), EditorItem.connection_type()}
-          | {:delete, parent_t(), child_t()}
-
   @spec blank_editor(id :: String.t()) :: t()
   def blank_editor(id) do
     %__MODULE__{
@@ -180,9 +171,6 @@ defmodule ExshomeAutomation.Services.Workflow.Editor do
 
   @spec move_item(t(), String.t(), EditorItem.position(), EditorItem.connection_type()) :: t()
   def move_item(%__MODULE__{} = state, item_id, new_position, type \\ :hover) do
-    state
-    |> connections_diff(item_id, new_position, type)
-
     %EditorItem{} = item = get_item(state, item_id)
 
     drag = type == :hover
@@ -372,106 +360,6 @@ defmodule ExshomeAutomation.Services.Workflow.Editor do
     state
     |> update_item(item)
     |> remove_dragged_item_id()
-  end
-
-  @spec connections_diff(t(), String.t(), EditorItem.position(), EditorItem.connection_type()) ::
-          [
-            connection_diff_item()
-          ]
-  defp connections_diff(%__MODULE__{} = state, item_id, new_position, type) do
-    %EditorItem{position: initial_position} = item = get_item(state, item_id)
-
-    new_position = %{x: max(new_position.x, 0), y: max(new_position.y, 0)}
-
-    position_diff = %{
-      x: initial_position.x - new_position.x,
-      y: initial_position.y - new_position.y
-    }
-
-    parent_connection_diff(state, item, position_diff, type)
-  end
-
-  @spec parent_connection_diff(
-          t(),
-          EditorItem.t(),
-          EditorItem.position(),
-          EditorItem.connection_type()
-        ) :: [
-          connection_diff_item()
-        ]
-  defp parent_connection_diff(%__MODULE__{} = state, %EditorItem{} = item, position_diff, type) do
-    parent_key = EditorItem.get_parent_key(item)
-    connector_data = item.connectors[parent_key] || %{x: 0, y: 0, width: 0, height: 0}
-
-    position = %{
-      connector_data
-      | x: item.position.x + connector_data.x + position_diff.x,
-        y: item.position.y + connector_data.y + position_diff.y
-    }
-
-    new_connector_data = %{type: type, position: position}
-    own_key = {item.id, parent_key}
-
-    case {parent_key, item.connected_items[parent_key]} do
-      {nil, _} ->
-        []
-
-      {_, nil} ->
-        parent_connector =
-          find_intersecting_connector(
-            state,
-            ItemProperties.opposite_type(parent_key),
-            new_connector_data
-          )
-
-        if parent_connector do
-          [{:connect, parent_connector, own_key, type}]
-        else
-          []
-        end
-
-      {_, %{remote_key: remote_key}} ->
-        find_parent_connector(state, own_key, new_connector_data, remote_key)
-    end
-  end
-
-  @spec find_parent_connector(
-          t(),
-          EditorItem.remote_key(),
-          connector_data(),
-          EditorItem.remote_key()
-        ) :: [connection_diff_item()]
-  defp find_parent_connector(
-         %__MODULE__{} = state,
-         {_, parent_key} = own_key,
-         connector_data,
-         old_parent_key
-       ) do
-    parent_connector = fetch_connector_data(state, old_parent_key)
-
-    if ItemProperties.position_intersects?(connector_data.position, parent_connector.position) do
-      if parent_connector.type == connector_data.type do
-        [{:keep, old_parent_key, own_key}]
-      else
-        [{:change_type, old_parent_key, own_key, connector_data.type}]
-      end
-    else
-      new_parent =
-        find_intersecting_connector(
-          state,
-          ItemProperties.opposite_type(parent_key),
-          connector_data
-        )
-
-      extra_operations =
-        if new_parent do
-          [{:connect, new_parent, own_key, connector_data.type}]
-        else
-          []
-        end
-
-      [{:delete, old_parent_key, own_key} | extra_operations]
-    end
   end
 
   @spec maybe_adjust_item_position(t(), String.t()) :: t()
