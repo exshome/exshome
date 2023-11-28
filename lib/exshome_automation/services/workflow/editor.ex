@@ -79,7 +79,7 @@ defmodule ExshomeAutomation.Services.Workflow.Editor do
   @spec put_operation_pid(t(), Operation.key()) :: t()
   def put_operation_pid(state, operation_pid) do
     %__MODULE__{state | operation_pid: operation_pid}
-    |> regiter_client(operation_pid)
+    |> register_client(operation_pid)
   end
 
   @spec put_operation_timestamp(t(), DateTime.t() | nil) :: t()
@@ -87,8 +87,8 @@ defmodule ExshomeAutomation.Services.Workflow.Editor do
     %__MODULE__{state | operation_timestamp: operation_timestamp}
   end
 
-  @spec regiter_client(t(), Operation.key()) :: t()
-  defp regiter_client(%__MODULE__{} = state, operation_pid) do
+  @spec register_client(t(), Operation.key()) :: t()
+  defp register_client(%__MODULE__{} = state, operation_pid) do
     if operation_pid && !Map.has_key?(state.dragged_items, operation_pid) do
       Process.link(operation_pid)
       update_in(state.dragged_items, &Map.put(&1, operation_pid, nil))
