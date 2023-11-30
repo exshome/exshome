@@ -1,6 +1,6 @@
 # Exshome
 
-[![CI](https://github.com/exshome/exshome/workflows/CI/badge.svg?branch=main)](https://github.com/exshome/exshome/actions/workflows/ci.yml?query=branch%3Amain)
+[![CI](https://github.com/exshome/exshome/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/exshome/exshome/actions/workflows/ci.yml?query=branch%3Amain)
 [![codecov](https://codecov.io/gh/exshome/exshome/branch/main/graph/badge.svg?token=N0HBNURO8P)](https://codecov.io/gh/exshome/exshome)
 [![Hex Package](https://img.shields.io/hexpm/v/exshome.svg?color=green)](https://hex.pm/packages/exshome)
 [![Hex Docs](https://img.shields.io/badge/hex-docs-blue.svg)](https://hexdocs.pm/exshome)
