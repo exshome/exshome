@@ -18,4 +18,14 @@ defmodule ExshomePlayer do
       _ -> false
     end
   end
+
+  use Exshome.Behaviours.AppBehaviour
+
+  @impl AppBehaviour
+  def app_settings,
+    do: %AppBehaviour{
+      pages: [Live.Player, Live.Playlist],
+      prefix: "player",
+      preview: Live.Preview
+    }
 end
