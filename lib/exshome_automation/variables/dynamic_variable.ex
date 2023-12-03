@@ -69,7 +69,11 @@ defmodule ExshomeAutomation.Variables.DynamicVariable do
   def create_variable!(Datatype.Unknown), do: raise("Unable to create variable for unknown type")
 
   def create_variable!(type) do
-    %Schema{id: id} = Schema.create!(type.name())
+    %Schema{id: id} =
+      type
+      |> Datatype.name()
+      |> Schema.create!()
+
     VariableSupervisor.start_child_with_id(id)
   end
 

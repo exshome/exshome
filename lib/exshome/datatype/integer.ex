@@ -3,14 +3,14 @@ defmodule Exshome.Datatype.Integer do
   Integer datatype.
   """
 
-  use Exshome.Datatype,
+  use Exshome.Behaviours.DatatypeBehaviour,
     base_type: :integer,
     default: 0,
     icon: "🔢",
     name: "integer",
     validations: [:min, :max]
 
-  @impl Datatype
+  @impl DatatypeBehaviour
   def validate(value, :min, min_value) when is_integer(min_value) do
     if value >= min_value do
       {:ok, value}
@@ -23,11 +23,11 @@ defmodule Exshome.Datatype.Integer do
     if value <= max_value do
       {:ok, value}
     else
-      {:error, "Should less than or equal to #{max_value}"}
+      {:error, "Should be less than or equal to #{max_value}"}
     end
   end
 
-  @impl Datatype
+  @impl DatatypeBehaviour
   def to_string(value) when is_integer(value), do: {:ok, "#{value}"}
-  def to_string(_value), do: :error
+  def to_string(value), do: {:error, "#{inspect(value)} is not an integer."}
 end

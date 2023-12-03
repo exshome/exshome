@@ -3,9 +3,13 @@ defmodule Exshome.Datatype.Boolean do
   Boolean datatype.
   """
 
-  use Exshome.Datatype, base_type: :boolean, default: false, icon: "✅", name: "boolean"
+  use Exshome.Behaviours.DatatypeBehaviour,
+    base_type: :boolean,
+    default: false,
+    icon: "✅",
+    name: "boolean"
 
-  @impl Datatype
+  @impl DatatypeBehaviour
   def to_string(value) when is_boolean(value), do: {:ok, "#{value}"}
-  def to_string(_), do: :error
+  def to_string(value), do: {:error, "#{inspect(value)} is not a boolean."}
 end

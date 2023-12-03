@@ -2,41 +2,13 @@ defmodule Exshome.Datatype do
   @moduledoc """
   Stores generic ways to work with custom datatypes.
   """
+  alias Exshome.BehaviourMapping
+  alias Exshome.Behaviours.DatatypeBehaviour
   alias Exshome.Datatype.Unknown
+  alias Exshome.Mappings.DatatypeByNameMapping
 
   @type t() :: atom() | Unknown
   @type parse_result() :: {:ok, any()} | {:error, String.t()}
-
-  @callback to_string(value :: any()) :: parse_result()
-  @callback validate(value :: any(), validation :: atom(), opts :: any()) :: parse_result()
-
-  @optional_callbacks [validate: 3]
-
-  @spec validate_module!(Macro.Env.t(), String.t()) :: keyword()
-  def validate_module!(%Macro.Env{module: module}, _) do
-    NimbleOptions.validate!(
-      module.__config__(),
-      base_type: [
-        type: :atom,
-        required: true
-      ],
-      default: [
-        type: :any,
-        required: true
-      ],
-      icon: [
-        type: :string,
-        required: true
-      ],
-      name: [
-        type: :string,
-        required: true
-      ],
-      validations: [
-        type: {:list, :atom}
-      ]
-    )
-  end
 
   @spec parse(t(), value :: any(), validations :: %{atom() => any()}) :: parse_result()
   def parse(module, value, validations \\ %{}) do
@@ -53,7 +25,7 @@ defmodule Exshome.Datatype do
 
   @spec validate(t(), value :: any(), %{atom() => any()}) :: parse_result()
   defp validate(module, value, validations) do
-    available_validations = MapSet.new(module.__config__[:validations] || [])
+    available_validations = MapSet.new(module.__datatype_config__()[:validations] || [])
 
     {validations, unknown_validations} =
       Enum.split_with(validations, fn {key, _opts} -> key in available_validations end)
@@ -85,7 +57,7 @@ defmodule Exshome.Datatype do
 
   def icon(module) do
     raise_if_not_datatype!(module)
-    module.__config__()[:icon]
+    module.__datatype_config__()[:icon]
   end
 
   @spec name(t()) :: String.t()
@@ -93,26 +65,26 @@ defmodule Exshome.Datatype do
 
   def name(module) do
     raise_if_not_datatype!(module)
-    module.__config__()[:name]
+    module.__datatype_config__()[:name]
   end
 
-  @spec to_string(t(), any()) :: parse_result()
+  @spec(to_string(t(), any()) :: {:ok, String.t()}, {:error, String.t()})
   def to_string(module, value) do
     raise_if_not_datatype!(module)
     module.to_string(value)
   end
 
-  @spec available_types() :: MapSet.t()
+  @spec available_types() :: MapSet.t(module())
   def available_types do
-    Map.fetch!(
-      Exshome.Tag.tag_mapping(),
-      __MODULE__
-    )
+    BehaviourMapping.behaviour_mapping!(DatatypeBehaviour)
   end
 
   @spec get_by_name(String.t()) :: t()
   def get_by_name(name) when is_binary(name) do
-    case Exshome.Named.get_module_by_name(name) do
+    DatatypeByNameMapping
+    |> BehaviourMapping.custom_mapping!()
+    |> Map.fetch(name)
+    |> case do
       {:ok, module} ->
         if module_is_datatype?(module), do: module, else: Unknown
 
@@ -128,41 +100,8 @@ defmodule Exshome.Datatype do
   end
 
   defp module_is_datatype?(module) do
-    Exshome.Tag.tag_mapping()
-    |> Map.fetch!(__MODULE__)
+    DatatypeBehaviour
+    |> BehaviourMapping.behaviour_mapping!()
     |> MapSet.member?(module)
-  end
-
-  defmacro __using__(config) do
-    quote do
-      alias Exshome.Datatype
-
-      import Exshome.Tag, only: [add_tag: 1]
-
-      use Exshome.Named, "datatype:#{unquote(config[:name])}"
-      use Ecto.Type
-
-      add_tag(Datatype)
-
-      def __config__, do: unquote(config)
-
-      @after_compile {Datatype, :validate_module!}
-
-      @behaviour Datatype
-
-      @impl Ecto.Type
-      def type, do: unquote(config[:base_type])
-
-      @impl Ecto.Type
-      def cast(data), do: Ecto.Type.cast(type(), data)
-
-      @impl Ecto.Type
-      def dump(data), do: Ecto.Type.dump(type(), data)
-
-      @impl Ecto.Type
-      def load(data), do: Ecto.Type.load(type(), data)
-
-      defoverridable(Ecto.Type)
-    end
   end
 end

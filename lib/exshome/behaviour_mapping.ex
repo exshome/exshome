@@ -69,6 +69,11 @@ defmodule Exshome.BehaviourMapping do
     end
   end
 
+  @spec behaviour_mapping!(module()) :: MapSet.t(module())
+  def behaviour_mapping!(module) do
+    Map.fetch!(behaviour_mapping(), module)
+  end
+
   @spec custom_mapping() :: custom_mapping_t()
   def custom_mapping do
     case :persistent_term.get(@custom_mapping_key, @mapping_not_found) do
@@ -79,5 +84,10 @@ defmodule Exshome.BehaviourMapping do
       result ->
         result
     end
+  end
+
+  @spec custom_mapping!(module()) :: term()
+  def custom_mapping!(module) do
+    Map.fetch!(custom_mapping(), module)
   end
 end

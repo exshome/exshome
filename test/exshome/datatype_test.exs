@@ -4,11 +4,12 @@ defmodule ExshomeTest.DatatypeTest do
   """
   use ExUnit.Case, async: true
 
+  alias Exshome.Behaviours.DatatypeBehaviour
   alias Exshome.Datatype
 
   describe "validate_module!/2" do
     test "calls validate_config!/2" do
-      Datatype.validate_module!(
+      DatatypeBehaviour.validate_module!(
         %Macro.Env{
           module: Datatype.String
         },
@@ -33,13 +34,14 @@ defmodule ExshomeTest.DatatypeTest do
   describe "to_string/2" do
     test "returns error for unknown value" do
       for type <- Datatype.available_types() do
-        assert :error == Datatype.to_string(type, Datatype.Unknown)
+        assert {:error, error_message} = Datatype.to_string(type, Datatype.Unknown)
+        assert is_binary(error_message)
       end
     end
 
     test "returns valid string for default value" do
       for type <- Datatype.available_types() do
-        default_value = type.__config__()[:default]
+        default_value = type.__datatype_config__()[:default]
 
         {:ok, value} = Datatype.to_string(type, default_value)
         assert is_binary(value)

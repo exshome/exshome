@@ -12,8 +12,12 @@ defmodule ExshomeAutomationTest.Variables.DynamicVariable.VariableSupervisorTest
   end
 
   test "starts with valid datatype" do
-    datatype = Enum.random(Datatype.available_types())
-    %Schema{id: id} = Schema.create!(datatype.name())
+    datatype_name =
+      Datatype.available_types()
+      |> Enum.random()
+      |> Datatype.name()
+
+    %Schema{id: id} = Schema.create!(datatype_name)
     start_dynamic_variable_supervisor()
     assert get_dynamic_variable_value(id) != NotReady
   end

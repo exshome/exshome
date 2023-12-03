@@ -84,9 +84,11 @@ defmodule ExshomeAutomationTest.Web.ShowVariableModalTest do
     end
 
     defp create_new_variable(view, datatype) do
+      datatype_name = Exshome.Datatype.name(datatype)
+
       view
       |> form("form[phx-submit='new_variable']")
-      |> render_submit(%{type: datatype.name()})
+      |> render_submit(%{type: datatype_name})
     end
   end
 

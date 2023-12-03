@@ -1,7 +1,7 @@
 <section class="h-full max-h-full w-full p-4 flex flex-col overflow-hidden">
   <form class="mb-3 w-full flex items-center justify-center" phx-submit="new_variable">
     <.custom_select name="type" values={Enum.sort(Exshome.Datatype.available_types())}>
-      <:value :let={type}><%= type.name() %></:value>
+      <:value :let={type}><%= Exshome.Datatype.name(type) %></:value>
       <:label :let={type}>
         <%= Exshome.Datatype.icon(type) %>
         <%= Exshome.Datatype.name(type) %>
