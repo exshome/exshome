@@ -37,13 +37,19 @@ defmodule Exshome.BehaviourMapping do
           end
       end
 
-    for module <- :cover.modules(), into: compiled_mapping do
-      behaviours =
-        module.__info__(:attributes)
-        |> Keyword.get_values(:behaviour)
-        |> List.flatten()
+    case Code.ensure_compiled(:cover) do
+      {:module, compiled_module} ->
+        for module <- compiled_module.modules(), into: compiled_mapping do
+          behaviours =
+            module.__info__(:attributes)
+            |> Keyword.get_values(:behaviour)
+            |> List.flatten()
 
-      {module, behaviours}
+          {module, behaviours}
+        end
+
+      _ ->
+        compiled_mapping
     end
   end
 
