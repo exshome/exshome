@@ -19,9 +19,8 @@ defmodule Exshome.BehaviourMapping do
     end
   end
 
-  @spec recompute_mapping() :: {behaviour_mapping_t(), custom_mapping_t()}
-  def recompute_mapping do
-    behaviours_by_module =
+  defp list_module_behaviours do
+    compiled_mapping =
       for {_, beam_file, _} <- :code.all_available(), reduce: %{} do
         mapping ->
           case :beam_lib.chunks(beam_file, [:attributes]) do
@@ -38,8 +37,20 @@ defmodule Exshome.BehaviourMapping do
           end
       end
 
+    for module <- :cover.modules(), into: compiled_mapping do
+      behaviours =
+        module.__info__(:attributes)
+        |> Keyword.get_values(:behaviour)
+        |> List.flatten()
+
+      {module, behaviours}
+    end
+  end
+
+  @spec recompute_mapping() :: {behaviour_mapping_t(), custom_mapping_t()}
+  def recompute_mapping do
     computed_behaviour_mapping =
-      for {module, behaviours} <- behaviours_by_module,
+      for {module, behaviours} <- list_module_behaviours(),
           behaviour <- behaviours,
           reduce: %{} do
         mapping ->
