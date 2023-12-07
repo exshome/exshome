@@ -5,18 +5,15 @@ defmodule ExshomeClock do
 
   alias ExshomeClock.Web.Live
 
-  use ExshomeWeb.App,
-    pages: [Live.Clock, Live.Settings],
+  use Exshome.Behaviours.AppBehaviour,
+    pages: [
+      {Live.Clock, []},
+      {Live.Settings, []}
+    ],
     prefix: "clock",
-    preview: Live.Preview
-
-  use Exshome.Behaviours.AppBehaviour
+    preview: Live.Preview,
+    template_root: "./exshome_clock/web/templates"
 
   @impl AppBehaviour
-  def app_settings,
-    do: %AppBehaviour{
-      pages: [Live.Clock, Live.Settings],
-      prefix: "clock",
-      preview: Live.Preview
-    }
+  def can_start?, do: true
 end

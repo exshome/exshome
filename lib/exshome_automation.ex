@@ -5,24 +5,18 @@ defmodule ExshomeAutomation do
 
   alias ExshomeAutomation.Web.Live
 
-  use ExshomeWeb.App,
+  use Exshome.Behaviours.AppBehaviour,
     pages: [
       {Live.Automations,
        [
          {".*", Live.AutomationEditor}
        ]},
-      Live.Variables
+      {Live.Variables, []}
     ],
     prefix: "automation",
-    preview: Live.Preview
-
-  use Exshome.Behaviours.AppBehaviour
+    preview: Live.Preview,
+    template_root: "./exshome_automation/web/templates"
 
   @impl AppBehaviour
-  def app_settings,
-    do: %AppBehaviour{
-      pages: [Live.Automations, Live.AutomationEditor, Live.Variables],
-      prefix: "automation",
-      preview: Live.Preview
-    }
+  def can_start?, do: true
 end

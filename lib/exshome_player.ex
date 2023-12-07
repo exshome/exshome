@@ -6,26 +6,20 @@ defmodule ExshomePlayer do
   alias ExshomePlayer.Services.MpvServer
   alias ExshomePlayer.Web.Live
 
-  use ExshomeWeb.App,
-    pages: [Live.Player, Live.Playlist],
+  use Exshome.Behaviours.AppBehaviour,
+    pages: [
+      {Live.Player, []},
+      {Live.Playlist, []}
+    ],
     prefix: "player",
-    preview: Live.Preview
+    preview: Live.Preview,
+    template_root: "./exshome_player/web/templates"
 
-  @impl App
+  @impl AppBehaviour
   def can_start? do
     case MpvServer.find_mpv_executable() do
       {:ok, _} -> true
       _ -> false
     end
   end
-
-  use Exshome.Behaviours.AppBehaviour
-
-  @impl AppBehaviour
-  def app_settings,
-    do: %AppBehaviour{
-      pages: [Live.Player, Live.Playlist],
-      prefix: "player",
-      preview: Live.Preview
-    }
 end
