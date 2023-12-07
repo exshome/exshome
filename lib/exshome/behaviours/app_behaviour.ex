@@ -50,14 +50,13 @@ defmodule Exshome.Behaviours.AppBehaviour do
   defmacro __using__(config) do
     quote do
       alias Exshome.Behaviours.AppBehaviour
+      alias ExshomeWeb.Router.Helpers, as: Routes
 
       @after_compile {AppBehaviour, :validate_module!}
       @behaviour AppBehaviour
 
       @impl AppBehaviour
       def __app_config__, do: unquote(config)
-
-      use Supervisor, shutdown: :infinity
 
       def start_link(opts), do: AppBehaviour.start_app_link(__MODULE__, opts)
 
@@ -67,16 +66,33 @@ defmodule Exshome.Behaviours.AppBehaviour do
 
       def preview, do: unquote(config[:preview])
 
-      def path(conn_or_endpoint, action, params \\ []) do
-        ExshomeWeb.App.path(__MODULE__, conn_or_endpoint, action, params)
-      end
-
-      def details_path(conn_or_endpoint, action, id, params \\ []) do
-        ExshomeWeb.App.details_path(__MODULE__, conn_or_endpoint, action, id, params)
-      end
+      use Supervisor, shutdown: :infinity
 
       @impl Supervisor
       def init(opts), do: AppBehaviour.init_app(__MODULE__, opts)
+
+      @spec path(struct(), String.t(), Keyword.t()) :: String.t()
+      def path(conn_or_endpoint, action, params \\ []) do
+        Routes.router_path(
+          conn_or_endpoint,
+          :index,
+          unquote(config[:prefix]),
+          action,
+          params
+        )
+      end
+
+      @spec details_path(struct(), String.t(), String.t(), Keyword.t()) :: String.t()
+      def details_path(conn_or_endpoint, action, id, params \\ []) do
+        Routes.router_path(
+          conn_or_endpoint,
+          :details,
+          unquote(config[:prefix]),
+          action,
+          id,
+          params
+        )
+      end
     end
   end
 end

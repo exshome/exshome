@@ -3,7 +3,6 @@ defmodule ExshomeWeb.Live.Navigation do
   Adds navigation support for every live page.
   """
 
-  alias ExshomeWeb.App
   alias ExshomeWeb.Router.Helpers, as: Routes
   alias Phoenix.Component
   alias Phoenix.LiveView.Socket
@@ -46,7 +45,7 @@ defmodule ExshomeWeb.Live.Navigation do
           icon: page.icon(),
           name: page.action(),
           selected: page.action() == action,
-          path: App.path(app_module, socket, page.action())
+          path: app_module.path(socket, page.action())
         }
       end
 
