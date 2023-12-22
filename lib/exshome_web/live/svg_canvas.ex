@@ -490,7 +490,7 @@ defmodule ExshomeWeb.Live.SvgCanvas do
     result = :math.sqrt(:math.pow(x1 - x2, 2) + :math.pow(y1 - y2, 2))
 
     case result do
-      0.0 -> 1
+      zero when zero in [0.0, -0.0] -> 1
       _ -> result
     end
   end

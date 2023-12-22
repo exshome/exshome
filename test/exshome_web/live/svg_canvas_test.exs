@@ -53,7 +53,8 @@ defmodule ExshomeWebTest.SvgCanvasTest do
     test "scroll-x", %{view: view} do
       select_element(view, "scroll-body-x-default")
       render_hook(view, "scroll-body-x", %{pointer: %{x: 60}})
-      %{x: x, y: 0.0} = get_body_viewbox(view)
+      %{x: x, y: y} = get_body_viewbox(view)
+      assert_in_delta(y, 0.0, 0.1)
       assert_in_delta(x, 75.4, 0.1)
     end
 
@@ -67,7 +68,8 @@ defmodule ExshomeWebTest.SvgCanvasTest do
     test "scroll-y", %{view: view} do
       select_element(view, "scroll-body-y-default")
       render_hook(view, "scroll-body-y", %{pointer: %{y: 60}})
-      %{x: 0.0, y: y} = get_body_viewbox(view)
+      %{x: x, y: y} = get_body_viewbox(view)
+      assert_in_delta(x, 0.0, 0.1)
       assert_in_delta(y, 73.6, 0.1)
     end
 
