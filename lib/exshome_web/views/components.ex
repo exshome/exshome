@@ -3,7 +3,8 @@ defmodule ExshomeWeb.Components do
   Generic application components.
   """
 
-  use Phoenix.HTML
+  use PhoenixHTMLHelpers
+
   use Phoenix.Component, global_prefixes: ~w(phx-)
   import ExshomeWeb.ErrorHelpers
 
