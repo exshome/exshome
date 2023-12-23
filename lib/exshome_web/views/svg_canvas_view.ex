@@ -6,7 +6,7 @@ defmodule ExshomeWeb.SvgCanvasView do
   use ExshomeWeb, :html
   alias ExshomeWeb.Live.SvgCanvas
 
-  embed_templates("../templates/svg_canvas/*")
+  embed_templates("svg_canvas/*")
 
   attr :components, :list, required: true, doc: "components to render"
   attr :menu_items, :list, required: true, doc: "canvas menu items"
