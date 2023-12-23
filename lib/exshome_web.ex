@@ -55,7 +55,7 @@ defmodule ExshomeWeb do
     quote do
       use Phoenix.LiveView,
         container: {:div, [class: "h-full"]},
-        layout: {ExshomeWeb.LayoutView, :live}
+        layout: {ExshomeWeb.Layouts, :live}
 
       extra_hooks = Application.compile_env(:exshome, :hooks, [])[:live_view] || []
 
@@ -137,7 +137,4 @@ defmodule ExshomeWeb do
   defmacro __using__(which) when is_atom(which) do
     apply(__MODULE__, which, [])
   end
-
-  def template_root, do: "lib/exshome_web/templates"
-  def namespace, do: __MODULE__
 end
