@@ -108,14 +108,12 @@ defmodule ExshomeWeb do
       # Use all HTML functionality (forms, tags, etc)
       import Phoenix.HTML
       import Phoenix.HTML.Form
-      use PhoenixHTMLHelpers
 
       # Import LiveView and .heex helpers (live_render, live_patch, <.form>, etc)
       use Phoenix.Component
 
-      import ExshomeWeb.ErrorHelpers
       import ExshomeWeb.Gettext
-      import ExshomeWeb.Components
+      import ExshomeWeb.CoreComponents
       import ExshomeWeb.DatatypeView, only: [datatype_value: 1, datatype_input: 1]
       alias ExshomeWeb.Router.Helpers, as: Routes
       unquote(verified_routes())

@@ -7,13 +7,18 @@ defmodule ExshomeWeb.Live.SettingsComponent do
   alias Exshome.Settings
 
   @impl Phoenix.LiveComponent
-  def update(%{settings: %module{} = settings}, socket) do
-    socket =
-      socket
-      |> assign_new(:changeset, fn -> Settings.changeset(settings) end)
-      |> assign_new(:module, fn -> module end)
+  def render(assigns) do
+    ~H"""
+    <div class="flex flex-grow h-full items-center justify-center w-full md:w-3/4 lg:w-1/2 mx-auto">
+      <.live_form changeset={@changeset} phx-target={@myself} as={:settings} fields={@module.fields} />
+    </div>
+    """
+  end
 
-    {:ok, socket}
+  @impl Phoenix.LiveComponent
+  def update(%{settings: %module{} = settings}, socket) do
+    changeset = Settings.changeset(settings)
+    {:ok, assign(socket, module: module, changeset: changeset)}
   end
 
   @impl Phoenix.LiveComponent
@@ -33,25 +38,11 @@ defmodule ExshomeWeb.Live.SettingsComponent do
           invalid_changeset
       end
 
-    {:noreply, assign(socket, changeset: changeset)}
+    {:noreply, assign(socket, :changeset, changeset)}
   end
 
   def handle_event("validate", %{"settings" => settings}, socket) do
     changeset = Settings.changeset(socket.assigns.module, settings)
-    {:noreply, assign(socket, changeset: changeset)}
-  end
-
-  @impl Phoenix.LiveComponent
-  def render(assigns) do
-    ~H"""
-    <div class="flex flex-grow h-full items-center justify-center w-full md:w-3/4 lg:w-1/2 mx-auto">
-      <.live_form
-        changeset={@changeset}
-        phx-target={@myself}
-        as={:settings}
-        fields={@module.fields()}
-      />
-    </div>
-    """
+    {:noreply, assign(socket, :changeset, changeset)}
   end
 end
