@@ -21,21 +21,19 @@ defmodule Exshome.BehaviourMapping do
 
   defp list_module_behaviours do
     compiled_mapping =
-      for {_, beam_file, _} <- :code.all_available(), reduce: %{} do
-        mapping ->
-          case :beam_lib.chunks(beam_file, [:attributes]) do
-            {:ok, {module, [attributes: attrs]}} ->
-              behaviours =
-                attrs
-                |> Keyword.get_values(:behaviour)
-                |> List.flatten()
-
-              Map.put(mapping, module, behaviours)
-
-            {:error, :beam_lib, _reason} ->
-              mapping
+      :code.all_available()
+      |> Enum.map(&elem(&1, 1))
+      |> Task.async_stream(:beam_lib, :chunks, [[:attributes]], ordered: false)
+      |> Enum.reduce(%{}, fn
+        {:ok, {:ok, {module, [attributes: attrs]}}}, acc ->
+          case Keyword.get_values(attrs, :behaviour) do
+            [] -> acc
+            behaviours -> Map.put(acc, module, List.flatten(behaviours))
           end
-      end
+
+        _, acc ->
+          acc
+      end)
 
     case Code.ensure_compiled(:cover) do
       {:module, compiled_module} ->
