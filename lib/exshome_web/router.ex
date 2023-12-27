@@ -21,6 +21,7 @@ defmodule ExshomeWeb.Router do
 
     live("/app/:app/:action", ExshomeWeb.Live.AppPage, :index, as: :router)
     live("/app/:app/:action/:id", ExshomeWeb.Live.AppPage, :details, as: :router)
+    match(:*, "/test/:app/*link", ExshomeWeb.AppRouter, [], as: :app_router)
   end
 
   # Other scopes may use custom stacks.
