@@ -1,11 +1,11 @@
-defmodule ExshomeWebTest.DatatypeViewTest do
+defmodule ExshomeWebTest.DatatypeComponentTest do
   use ExshomeWebTest.ConnCase, async: true
   alias Exshome.Datatype
-  alias ExshomeWeb.DatatypeView
+  alias ExshomeWeb.DatatypeComponent
 
   test "Every DataType has own renderer" do
     renderers =
-      DatatypeView.available_renderers()
+      DatatypeComponent.available_renderers()
       |> Map.keys()
       |> MapSet.new()
 

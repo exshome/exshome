@@ -1,10 +1,10 @@
-defmodule ExshomeWebTest.DefaultDatatypeViewTest do
+defmodule ExshomeWebTest.DefaultDatatypeComponentTest do
   use ExshomeWebTest.ConnCase, async: true
 
   import ExshomeTest.Fixtures
 
   alias Exshome.Datatype
-  alias ExshomeWeb.DatatypeView
+  alias ExshomeWeb.DatatypeComponent
   alias Phoenix.Component
 
   describe "Boolean" do
@@ -56,7 +56,7 @@ defmodule ExshomeWebTest.DefaultDatatypeViewTest do
 
   defp datatype_value(datatype, value) do
     %{type: datatype, value: value}
-    |> DatatypeView.datatype_value()
+    |> DatatypeComponent.datatype_value()
     |> rendered_to_string()
   end
 
@@ -67,7 +67,7 @@ defmodule ExshomeWebTest.DefaultDatatypeViewTest do
 
     %{__changed__: %{}}
     |> Component.assign(assigns)
-    |> DatatypeView.datatype_input()
+    |> DatatypeComponent.datatype_input()
     |> rendered_to_string()
   end
 end

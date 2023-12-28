@@ -1,14 +1,14 @@
-defmodule ExshomeWeb.DefaultDatatypeView do
+defmodule ExshomeWeb.DefaultDatatypeComponent do
   @moduledoc """
   Renders default datatypes.
   """
   alias Exshome.Datatype.{Boolean, Integer, String, Unknown}
-  use ExshomeWeb.DatatypeView, [Boolean, Integer, String, Unknown]
+  use ExshomeWeb.DatatypeComponent, [Boolean, Integer, String, Unknown]
 
-  @impl DatatypeView
+  @impl DatatypeComponent
   def render_value(assigns), do: ~H"<%= @value %>"
 
-  @impl DatatypeView
+  @impl DatatypeComponent
   def render_input(%{type: Boolean} = assigns) do
     ~H"""
     <label class="relative inline-block w-[4em] h-[2em] text-xl text-green-500/70 dark:text-green-600 select-none">

@@ -1,4 +1,4 @@
-defmodule ExshomeWeb.DatatypeView do
+defmodule ExshomeWeb.DatatypeComponent do
   @moduledoc """
   Renders datatypes.
   """
@@ -34,16 +34,16 @@ defmodule ExshomeWeb.DatatypeView do
   defmacro __using__(datatypes) do
     quote do
       import Exshome.Tag, only: [add_tag: 2]
-      alias ExshomeWeb.DatatypeView
+      alias ExshomeWeb.DatatypeComponent
       import Phoenix.Component
 
       for type <- unquote(datatypes) do
-        add_tag(DatatypeView, key: type)
+        add_tag(DatatypeComponent, key: type)
       end
 
       use ExshomeWeb, :html
 
-      @behaviour DatatypeView
+      @behaviour DatatypeComponent
     end
   end
 end

@@ -1,4 +1,8 @@
-defmodule ExshomeWeb.ErrorView do
+defmodule ExshomeWeb.ErrorComponent do
+  @moduledoc """
+  Show application errors.
+  """
+
   use ExshomeWeb, :html
 
   # If you want to customize your error pages,
