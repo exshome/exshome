@@ -1,6 +1,6 @@
-defmodule ExshomeWeb.SvgCanvasView do
+defmodule ExshomeWeb.SvgCanvasComponent do
   @moduledoc """
-  View for rendering svg canvas.
+  Component for rendering svg canvas.
   """
 
   use ExshomeWeb, :html
