@@ -3,13 +3,36 @@ defmodule ExshomeAutomation.Router do
   Routes for automation application.
   """
 
-  use Exshome.Behaviours.RouterBehaviour, key: "automation"
+  alias ExshomeAutomation.Live
 
-  alias ExshomeAutomation.Web.Live
+  @key "automation"
+  @prefix "/app/#{@key}"
 
-  scope "/app/automation" do
-    live "/automations", Live.Automations
-    live "/automations/:id", Live.Automations
-    live "/variables", Live.Variables
+  use Exshome.Behaviours.RouterBehaviour,
+    app: ExshomeAutomation,
+    key: @key,
+    main_path: "#{@prefix}/automations",
+    navbar: [
+      [
+        path: "#{@prefix}/automations",
+        name: "automations",
+        icon: "hero-command-line-mini",
+        extra_views: [Live.AutomationEditor]
+      ],
+      [
+        path: "#{@prefix}/variables",
+        name: "variables",
+        icon: "hero-variable-mini"
+      ]
+    ],
+    preview: Live.Preview
+
+  scope @prefix do
+    live_session ExshomeAutomation, on_mount: [ExshomeWeb.Live.Navigation] do
+      live "/automations", Live.Automations
+      live "/automations/:id", Live.AutomationEditor
+      live "/variables", Live.Variables, :index
+      live "/variables/:id", Live.Variables, :show
+    end
   end
 end

@@ -9,7 +9,24 @@ defmodule Exshome.Behaviours.RouterBehaviour do
   def validate_module!(%Macro.Env{module: module}, _) do
     NimbleOptions.validate!(
       module.__router_config__(),
-      key: [type: :string, required: true]
+      key: [type: :string, required: true],
+      app: [type: :atom, required: true],
+      main_path: [type: :string, required: true],
+      navbar: [
+        type: {
+          :list,
+          {
+            :keyword_list,
+            [
+              path: [type: :string, required: true],
+              name: [type: :string, required: true],
+              icon: [type: :string, required: true],
+              extra_views: [type: {:list, :atom}]
+            ]
+          }
+        }
+      ],
+      preview: [type: :atom, required: true]
     )
   end
 

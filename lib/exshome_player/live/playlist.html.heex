@@ -1,0 +1,60 @@
+<.missing_deps_placeholder deps={@deps}>
+  <section class="max-h-full h-full flex flex-col">
+    <section class="flex items-center justify-center">
+      <.button phx-click="upload-file">
+        upload file
+      </.button>
+      <.button phx-click="add-link">
+        add a link
+      </.button>
+    </section>
+    <section class="flex-grow h-full overflow-auto flex items-center">
+      <div class="w-full max-h-full">
+        <.list :let={track} rows={@deps.playlist}>
+          <:row_before :let={track}>
+            <.button
+              phx-click="play"
+              phx-value-id={track.id}
+              class={"flex items-center #{if track.playing?, do: 'playing'}"}
+            >
+              <.icon
+                name={
+                  if track.playing?,
+                    do: "hero-musical-note",
+                    else: "hero-play"
+                }
+                class="p-4"
+              />
+            </.button>
+          </:row_before>
+          <:row_after :let={track}>
+            <%= if track.type == :url do %>
+              <.button phx-click="edit" phx-value-id={track.id}>
+                <.icon name="hero-pencil-square" />
+              </.button>
+            <% end %>
+            <.button
+              phx-click="delete"
+              phx-value-id={track.id}
+              data-confirm="Do you really want to delete this track?"
+            >
+              <.icon name="hero-trash-solid" />
+            </.button>
+          </:row_after>
+          <div class={if track.playing?, do: "font-bold dark:text-yellow-200"}>
+            <div class="text-xl">
+              <%= if String.trim(track.title) == "", do: "Unknown", else: track.title %>
+            </div>
+            <div class="text-xs">
+              <%= track.path %>
+            </div>
+          </div>
+        </.list>
+      </div>
+    </section>
+  </section>
+
+  <.modal :if={@modal} id="playlist-modal" show on_cancel={JS.patch(~p"/app/player/playlist")}>
+    <.live_component module={@modal.module} id={@live_action} params={@modal.params} />
+  </.modal>
+</.missing_deps_placeholder>

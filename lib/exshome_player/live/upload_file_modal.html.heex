@@ -1,0 +1,63 @@
+<form
+  id="upload_files"
+  phx-submit="save"
+  phx-change="validate"
+  phx-target={@myself}
+  class="h-full p-2 flex flex-col justify-between"
+>
+  <section class="flex flex-col items-center">
+    <label
+      for={@uploads.music.ref}
+      phx-drop-target={@uploads.music.ref}
+      class="flex flex-col justify-center items-center
+             w-full h-32 max-h-[20vmin] m-2
+             bg-gray-50 dark:bg-gray-800
+             border-2 border-dashed border-gray-300 dark:border-gray-700
+             hover:bg-gray-100 dark:hover:bg-gray-600
+             cursor-pointer rounded-lg
+             shadow-md shadow-gray-200 dark:shadow-gray-600"
+    >
+      <p class="text-center">Click to upload or drag and drop files.</p>
+      <p class="hidden">
+        <.live_file_input upload={@uploads.music} />
+      </p>
+    </label>
+    <.button phx-disable-with="Uploading..." type="submit">Upload</.button>
+  </section>
+  <section class="flex-grow overflow-hidden m-1">
+    <div class="h-full overflow-y-auto">
+      <%= for entry <- @uploads.music.entries do %>
+        <%= for err <- upload_errors(@uploads.music, entry) do %>
+          <p class="alert alert-danger"><%= error_to_string(err) %></p>
+        <% end %>
+        <article class="mb-4 p-1 rounded-md bg-gray-200 dark:bg-gray-700 shadow-md shadow-gray-400 dark:shadow-gray-600">
+          <div class="flex justify-between items-center">
+            <progress
+              class="flex-grow rounded-xl bg-gray-400 text-green-400/50"
+              value={entry.progress}
+              max="100"
+            >
+              <%= entry.progress %>%
+            </progress>
+            <button
+              phx-click="cancel-upload"
+              phx-value-ref={entry.ref}
+              type="button"
+              aria-label="cancel"
+              class="p-1"
+              phx-target={@myself}
+            >
+              ❌
+            </button>
+          </div>
+
+          <p class="overflow-x-auto text-center"><%= entry.client_name %></p>
+
+          <%= for err <- upload_errors(@uploads.music, entry) do %>
+            <p class="alert alert-danger"><%= error_to_string(err) %></p>
+          <% end %>
+        </article>
+      <% end %>
+    </div>
+  </section>
+</form>

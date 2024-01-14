@@ -3,12 +3,33 @@ defmodule ExshomeClock.Router do
   Routes for clock application.
   """
 
-  use Exshome.Behaviours.RouterBehaviour, key: "clock"
+  alias ExshomeClock.Live
 
-  alias ExshomeClock.Web.Live
+  @key "clock"
+  @prefix "/app/#{@key}"
 
-  scope "/app/clock" do
-    live "/clock", Live.Clock
-    live "/settings", Live.Settings
+  use Exshome.Behaviours.RouterBehaviour,
+    app: ExshomeClock,
+    key: @key,
+    main_path: "#{@prefix}/clock",
+    navbar: [
+      [
+        path: "#{@prefix}/clock",
+        name: "clock",
+        icon: "hero-clock-mini"
+      ],
+      [
+        path: "#{@prefix}/settings",
+        name: "settings",
+        icon: "hero-cog"
+      ]
+    ],
+    preview: Live.Preview
+
+  scope @prefix do
+    live_session ExshomeClock, on_mount: [ExshomeWeb.Live.Navigation] do
+      live "/clock", Live.Clock
+      live "/settings", Live.Settings
+    end
   end
 end

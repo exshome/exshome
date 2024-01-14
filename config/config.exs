@@ -23,7 +23,13 @@ config :exshome, :root_folder, Path.expand("../data/", __DIR__)
 config :exshome, ExshomeWeb.Endpoint,
   adapter: Bandit.PhoenixAdapter,
   url: [host: "localhost"],
-  render_errors: [view: ExshomeWeb.ErrorView, accepts: ~w(html json), layout: false],
+  render_errors: [
+    formats: [
+      html: ExshomeWeb.ErrorHTML,
+      json: ExshomeWeb.ErrorJSON
+    ],
+    layout: false
+  ],
   pubsub_server: Exshome.PubSub,
   live_view: [signing_salt: "zS+/EC9L"]
 

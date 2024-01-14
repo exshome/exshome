@@ -3,6 +3,7 @@ defmodule ExshomeWebTest.SvgCanvasTest do
 
   alias Exshome.DataStream.Operation
   alias Exshome.Dependency
+  alias ExshomeAutomation.Live.AutomationEditor
   alias ExshomeAutomation.Services.Workflow
   alias ExshomeAutomation.Streams.WorkflowStateStream
 
@@ -228,7 +229,9 @@ defmodule ExshomeWebTest.SvgCanvasTest do
       {WorkflowStateStream, %Operation.Insert{data: %Workflow{id: workflow_id}}}
     )
 
-    live_with_dependencies(conn, ExshomeAutomation, "automations", workflow_id)
+    start_app_page_dependencies(AutomationEditor)
+    {:ok, view, _html} = live(conn, "/app/automation/automations/#{workflow_id}")
+    view
   end
 
   defp select_background(view) do

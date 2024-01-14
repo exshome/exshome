@@ -9,9 +9,9 @@ const path = require("path");
 module.exports = {
   content: [
     "./js/**/*.js",
-    "../lib/*_web.ex",
     "../lib/*_web/**/*.*ex",
-    "../lib/**/web/**/*.*ex"
+    "../lib/**/live/**/*.*ex",
+    "../lib/**/router.ex"
   ],
   theme: {
     extend: {},

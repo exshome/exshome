@@ -49,9 +49,13 @@ defmodule ExshomeWeb.CoreComponents do
       phx-mounted={@show && show_modal(@id)}
       phx-remove={hide_modal(@id)}
       data-cancel={JS.exec(@on_cancel, "phx-remove")}
-      class="relative z-50 hidden"
+      class="fixed z-50 hidden"
     >
-      <div id={"#{@id}-bg"} class="bg-zinc-50/90 fixed inset-0 transition-opacity" aria-hidden="true" />
+      <div
+        id={"#{@id}-bg"}
+        class="fixed inset-0 transition-opacity bg-black/40 dark:bg-gray-600/80"
+        aria-hidden="true"
+      />
       <div
         class="fixed inset-0 overflow-y-auto"
         aria-labelledby={"#{@id}-title"}
@@ -61,22 +65,29 @@ defmodule ExshomeWeb.CoreComponents do
         tabindex="0"
       >
         <div class="flex min-h-full items-center justify-center">
-          <div class="w-full max-w-3xl p-4 sm:p-6 lg:py-8">
+          <div class={[
+            "w-full md:w-3/4 lg:w-1/2 max-h-full max-w-full",
+            "p-4 sm:p-6 lg:py-8"
+          ]}>
             <.focus_wrap
               id={"#{@id}-container"}
               phx-window-keydown={JS.exec("data-cancel", to: "##{@id}")}
               phx-key="escape"
               phx-click-away={JS.exec("data-cancel", to: "##{@id}")}
-              class="shadow-zinc-700/10 ring-zinc-700/10 relative hidden rounded-2xl bg-white p-14 shadow-lg ring-1 transition"
+              class={[
+                "bg-white dark:bg-gray-900 shadow-lg shadow-gray-700 dark:shadow-gray-400",
+                "m-4 p-[1em] pt-[3em] pb-[2em] overflow-hidden",
+                "relative hidden rounded-xl transition"
+              ]}
             >
               <div class="absolute top-6 right-5">
                 <button
                   phx-click={JS.exec("data-cancel", to: "##{@id}")}
                   type="button"
-                  class="-m-3 flex-none p-3 opacity-20 hover:opacity-40"
+                  class="-m-3 flex-none p-3 cursor-pointer opacity-20 hover:opacity-40"
                   aria-label={gettext("close")}
                 >
-                  <.icon name="hero-x-mark-solid" class="h-5 w-5" />
+                  <.icon name="hero-x-circle-solid" class="h-5 w-5 p-[1em]" />
                 </button>
               </div>
               <div id={"#{@id}-content"}>
@@ -87,6 +98,35 @@ defmodule ExshomeWeb.CoreComponents do
         </div>
       </div>
     </div>
+    """
+  end
+
+  @doc """
+  Render placeholder if any dependency missing.
+  """
+  attr :deps, :map, required: true, doc: "depencencies to check"
+  slot :inner_block, required: true, doc: "render this when all dependencies are ready"
+
+  def missing_deps_placeholder(assigns) do
+    missing =
+      assigns.deps
+      |> Map.filter(fn {_key, value} -> value == Exshome.Dependency.NotReady end)
+      |> Map.keys()
+
+    assigns
+    |> assign(:missing, missing)
+    |> render_missing_deps()
+  end
+
+  defp render_missing_deps(%{missing: []} = assigns) do
+    ~H"""
+    <%= render_slot(@inner_block) %>
+    """
+  end
+
+  defp render_missing_deps(assigns) do
+    ~H"""
+    Missing dependencies: <%= inspect(@missing) %>
     """
   end
 

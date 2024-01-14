@@ -3,7 +3,6 @@ defmodule ExshomeWeb.Live.Navigation do
   Adds navigation support for every live page.
   """
 
-  alias ExshomeWeb.Router.Helpers, as: Routes
   alias Phoenix.Component
   alias Phoenix.LiveView.Socket
 
@@ -16,36 +15,45 @@ defmodule ExshomeWeb.Live.Navigation do
           selected: boolean()
         }
 
-  def on_mount(:default, params, _session, %Socket{view: view} = socket) do
-    params = route_params(params)
-
-    navigation =
-      if function_exported?(view, :app_module, 0) && params do
-        app_navigation(socket, params)
-      else
-        []
-      end
-
+  def on_mount(:default, _params, _session, %Socket{} = socket) do
     socket =
-      Component.assign(
-        socket,
-        :__navigation__,
-        navigation
-      )
+      if function_exported?(socket.router, :__router_config__, 0) do
+        Phoenix.LiveView.attach_hook(
+          socket,
+          __MODULE__,
+          :handle_params,
+          &handle_params/3
+        )
+      else
+        socket
+      end
 
     {:cont, socket}
   end
 
-  defp app_navigation(%Socket{} = socket, %{action: action}) do
-    app_module = socket.view.app_module()
+  defp handle_params(_params, uri, %Socket{} = socket) do
+    path = URI.parse(uri).path
 
+    navigation =
+      socket.router.__router_config__()
+      |> Keyword.fetch!(:navbar)
+      |> app_navigation(path, socket.view)
+
+    {:cont, Component.assign(socket, __navigation__: navigation)}
+  end
+
+  defp app_navigation(navbar_items, path, view) do
     app_pages =
-      for {page, _} <- app_module.pages() do
+      for item <- navbar_items do
+        extra_views = Keyword.get(item, :extra_views, [])
+        item_path = Keyword.fetch!(item, :path)
+        selected = view in extra_views || item_path == path
+
         %__MODULE__{
-          icon: page.icon(),
-          name: page.action(),
-          selected: page.action() == action,
-          path: app_module.path(socket, page.action())
+          icon: Keyword.fetch!(item, :icon),
+          name: Keyword.fetch!(item, :name),
+          selected: selected,
+          path: item_path
         }
       end
 
@@ -54,19 +62,9 @@ defmodule ExshomeWeb.Live.Navigation do
         icon: "hero-home-mini",
         name: "home",
         selected: false,
-        path: Routes.home_path(socket, :index)
+        path: "/"
       }
       | app_pages
     ]
   end
-
-  defp route_params(%{"app" => app, "action" => action, "id" => id}) do
-    %{app: app, action: action, id: id}
-  end
-
-  defp route_params(%{"app" => app, "action" => action}) do
-    %{app: app, action: action}
-  end
-
-  defp route_params(_), do: nil
 end

@@ -14,4 +14,11 @@ defmodule ExshomeWeb.App do
       _ -> []
     end
   end
+
+  def router_config_by_app(app) do
+    Exshome.Behaviours.RouterBehaviour
+    |> Exshome.BehaviourMapping.behaviour_mapping!()
+    |> Enum.map(& &1.__router_config__())
+    |> Enum.find(&(&1[:app] == app))
+  end
 end

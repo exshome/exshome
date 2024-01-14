@@ -4,16 +4,8 @@ defmodule ExshomePlayer do
   """
 
   alias ExshomePlayer.Services.MpvServer
-  alias ExshomePlayer.Web.Live
 
-  use Exshome.Behaviours.AppBehaviour,
-    pages: [
-      {Live.Player, []},
-      {Live.Playlist, []}
-    ],
-    prefix: "player",
-    preview: Live.Preview,
-    template_root: "./exshome_player/web/templates"
+  use Exshome.Behaviours.AppBehaviour
 
   @impl AppBehaviour
   def can_start? do

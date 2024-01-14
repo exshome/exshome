@@ -8,14 +8,9 @@
     <.live_title suffix=" · Exshome">
       <%= assigns[:page_title] || "Exshome" %>
     </.live_title>
-    <link phx-track-static rel="stylesheet" href={Routes.static_path(@conn, "/assets/app.css")} />
+    <link phx-track-static rel="stylesheet" href={~p"/assets/app.css"} />
     <%= _theme_switch_script(@conn) %>
-    <script
-      defer
-      phx-track-static
-      type="text/javascript"
-      src={Routes.static_path(@conn, "/assets/app.js")}
-    >
+    <script defer phx-track-static type="text/javascript" src={~p"/assets/app.js"}>
     </script>
   </head>
   <body class="bg-white dark:bg-black overflow-hidden dark:text-gray-200 h-full">

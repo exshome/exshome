@@ -14,6 +14,6 @@
     </select>
   </div>
   <div class="hidden md:block whitespace-nowrap overflow-x-auto">
-    <._navigation socket={@socket} navigation={@navigation} />
+    <._navigation :if={@navigation} navigation={@navigation} />
   </div>
 </header>

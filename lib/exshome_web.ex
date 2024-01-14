@@ -25,19 +25,12 @@ defmodule ExshomeWeb do
 
       import Plug.Conn
       import ExshomeWeb.Gettext
-      alias ExshomeWeb.Router.Helpers, as: Routes
       unquote(verified_routes())
     end
   end
 
   def html do
     quote do
-      app_module =
-        __MODULE__
-        |> Module.split()
-        |> Enum.slice(0..0)
-        |> Module.safe_concat()
-
       use Phoenix.Component
 
       # Import convenience functions from controllers
@@ -46,8 +39,6 @@ defmodule ExshomeWeb do
 
       # Include shared imports and aliases for views
       unquote(html_helpers())
-
-      embed_templates "./templates/*"
     end
   end
 
@@ -55,16 +46,13 @@ defmodule ExshomeWeb do
     quote do
       use Phoenix.LiveView,
         container: {:div, [class: "h-full"]},
-        layout: {ExshomeWeb.Layouts, :live}
+        layout: {ExshomeWeb.Layouts, :app}
 
       extra_hooks = Application.compile_env(:exshome, :hooks, [])[:live_view] || []
 
-      for module <- extra_hooks ++ [ExshomeWeb.Live.Modal, ExshomeWeb.Live.Navigation] do
+      for module <- extra_hooks do
         on_mount module
       end
-
-      import ExshomeWeb.Live.Modal,
-        only: [open_modal: 3, open_modal: 2, close_modal: 1, send_js: 2]
 
       unquote(html_helpers())
     end
@@ -72,7 +60,8 @@ defmodule ExshomeWeb do
 
   def live_component do
     quote do
-      use Phoenix.LiveComponent
+      alias Phoenix.LiveComponent
+      use LiveComponent
 
       unquote(html_helpers())
     end
@@ -112,10 +101,12 @@ defmodule ExshomeWeb do
       # Import LiveView and .heex helpers (live_render, live_patch, <.form>, etc)
       use Phoenix.Component
 
+      # Shortcut to generate JS commands
+      alias Phoenix.LiveView.JS
+
       import ExshomeWeb.Gettext
       import ExshomeWeb.CoreComponents
       import ExshomeWeb.DatatypeComponent, only: [datatype_value: 1, datatype_input: 1]
-      alias ExshomeWeb.Router.Helpers, as: Routes
       unquote(verified_routes())
     end
   end

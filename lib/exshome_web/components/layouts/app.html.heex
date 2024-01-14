@@ -1,5 +1,11 @@
-<main>
-  <p class="alert alert-info" role="alert"><%= Phoenix.Flash.get(@flash, :info) %></p>
-  <p class="alert alert-danger" role="alert"><%= Phoenix.Flash.get(@flash, :error) %></p>
-  <%= @inner_content %>
+<main class="h-full flex flex-col justify-between">
+  <._header navigation={assigns[:__navigation__]} />
+
+  <.flash_group flash={@flash} />
+
+  <div class="grow overflow-y-auto">
+    <%= @inner_content %>
+  </div>
+
+  <._footer navigation={assigns[:__navigation__]} />
 </main>
