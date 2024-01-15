@@ -2,7 +2,8 @@ import Config
 
 # Configure your database
 config :exshome, Exshome.Repo,
-  pool_size: 5,
+  journal_mode: :off,
+  pool_size: 1,
   show_sensitive_data_on_connection_error: true,
   database_name: "exshome_test.db"
 

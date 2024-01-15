@@ -2,39 +2,44 @@ defmodule ExshomeTest.TestDbUtils do
   @moduledoc """
   Starts own database instance for each test.
   """
+  alias Exqlite.Sqlite3
 
   def start_test_db do
-    new_db_file = copy_database_to_test_folder()
+    {:ok, repo} =
+      Exshome.Repo.config()
+      |> Keyword.merge(database: ":memory:", name: nil)
+      |> Exshome.Repo.start_link()
 
-    db_config =
-      Application.get_env(:exshome, Exshome.Repo)
-      |> Keyword.merge(database: new_db_file, name: nil)
-
-    {:ok, repo} = Exshome.Repo.start_link(db_config)
+    load_schema(repo)
     Exshome.Repo.put_dynamic_repo(repo)
   end
 
-  @spec copy_database_to_test_folder() :: String.t()
-  defp copy_database_to_test_folder do
-    root_folder = Application.get_env(:exshome, :root_folder)
-    source_db = Application.get_env(:exshome, Exshome.Repo) |> Keyword.fetch!(:database)
+  defp load_schema(repo) do
+    %{pid: pool_pid} = Ecto.Repo.Registry.lookup(repo)
 
-    destination_db =
-      Path.join([
-        ExshomeTest.TestFileUtils.get_test_folder(),
-        Path.relative_to(source_db, root_folder)
-      ])
+    {:ok, pool_ref, _, _, %Exqlite.Connection{db: db}} =
+      DBConnection.Holder.checkout(pool_pid, [], [])
 
-    source_db_folder = Path.dirname(source_db)
-    destination_db_folder = Path.dirname(destination_db)
-    File.mkdir_p!(destination_db_folder)
+    :ok = Sqlite3.deserialize(db, db_binary())
+    :ok = DBConnection.Holder.checkin(pool_ref)
+  end
 
-    for file <- Path.wildcard("#{source_db}*") do
-      file_name = Path.relative_to(file, source_db_folder)
-      destination = Path.join(destination_db_folder, file_name)
-      File.copy!(file, destination)
+  defp db_binary do
+    case :persistent_term.get(__MODULE__, :empty) do
+      :empty ->
+        binary = extract_db_binary()
+        :persistent_term.put(__MODULE__, binary)
+        binary
+
+      binary when is_binary(binary) ->
+        binary
     end
+  end
 
-    destination_db
+  defp extract_db_binary do
+    {:ok, conn} = Sqlite3.open(Exshome.Repo.config()[:database])
+    {:ok, binary} = Sqlite3.serialize(conn)
+    Sqlite3.close(conn)
+    binary
   end
 end
