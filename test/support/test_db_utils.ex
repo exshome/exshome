@@ -7,7 +7,11 @@ defmodule ExshomeTest.TestDbUtils do
   def start_test_db do
     {:ok, repo} =
       Exshome.Repo.config()
-      |> Keyword.merge(database: ":memory:", name: nil)
+      |> Keyword.merge(
+        database: ":memory:",
+        name: nil,
+        pool_size: 1
+      )
       |> Exshome.Repo.start_link()
 
     load_schema(repo)
