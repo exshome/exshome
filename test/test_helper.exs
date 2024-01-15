@@ -1,3 +1,4 @@
+Exshome.BehaviourMapping.recompute_mapping()
 ExUnit.start()
 
 ExUnit.after_suite(fn _ ->
