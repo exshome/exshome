@@ -31,19 +31,18 @@ defmodule ExshomeTest.TestDbUtils do
   defp db_binary do
     case :persistent_term.get(__MODULE__, :empty) do
       :empty ->
-        binary = extract_db_binary()
-        :persistent_term.put(__MODULE__, binary)
-        binary
+        load_db_binary()
 
       binary when is_binary(binary) ->
         binary
     end
   end
 
-  defp extract_db_binary do
+  defp load_db_binary do
     {:ok, conn} = Sqlite3.open(Exshome.Repo.config()[:database])
     {:ok, binary} = Sqlite3.serialize(conn)
     Sqlite3.close(conn)
+    :persistent_term.put(__MODULE__, binary)
     binary
   end
 end
