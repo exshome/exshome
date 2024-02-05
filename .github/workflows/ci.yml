@@ -62,4 +62,4 @@ jobs:
       run: mix coveralls.multiple --type html --type json --warnings-as-errors
 
     - name: Upload coverage report to Codecov
-      uses: codecov/codecov-action@v3
+      uses: codecov/codecov-action@v4
