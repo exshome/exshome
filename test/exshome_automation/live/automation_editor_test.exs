@@ -5,8 +5,8 @@ defmodule ExshomeAutomationTest.Live.AutomationEditorTest do
   import ExshomeTest.SvgCanvasHelpers
   import ExshomeTest.WorkflowHelpers
 
+  alias Exshome.DataStream
   alias Exshome.DataStream.Operation
-  alias Exshome.Dependency
   alias Exshome.Dependency.NotReady
   alias ExshomeAutomation.Live.AutomationEditor
   alias ExshomeAutomation.Services.Workflow
@@ -109,7 +109,7 @@ defmodule ExshomeAutomationTest.Live.AutomationEditorTest do
   end
 
   defp create_workflow do
-    :ok = Dependency.subscribe(WorkflowStateStream)
+    :ok = DataStream.subscribe(WorkflowStateStream)
     start_workflow_supervisor()
     :ok = Workflow.create!()
     assert_receive_stream({WorkflowStateStream, %Operation.Insert{data: %Workflow{} = workflow}})

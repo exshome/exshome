@@ -3,5 +3,11 @@ defmodule Exshome.Variable.VariableStateStream do
   DataStream for variable state changes.
   """
 
-  use Exshome.DataStream, "variable_state"
+  alias Exshome.Behaviours.DataStreamBehaviour
+
+  @behaviour DataStreamBehaviour
+
+  @impl DataStreamBehaviour
+  def data_stream_topic({__MODULE__, id}), do: "variable_state:#{id}"
+  def data_stream_topic(__MODULE__), do: "variable_state"
 end

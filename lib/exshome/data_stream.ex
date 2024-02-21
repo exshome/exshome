@@ -1,14 +1,14 @@
 defmodule Exshome.DataStream do
   @moduledoc """
-  Contains all features related to DataStream.
-  """
-  alias Exshome.DataStream.Operation
-  alias Exshome.Dependency
-  alias Exshome.Dependency.NotReady
+  Data Stream allows to publish changes in some resources and subscribe to them.
+  Stream of changes contains one `t:Exshome.DataStream.Operation.t/0` operation.
 
-  @type stream() :: Dependency.dependency()
-  @type changes() :: Operation.t()
-  @type stream_event() :: NotReady | Operation.t()
+  If you want to create a new data stream, your module needs to implement `m:Exshome.Behaviours.DataStreamBehaviour` behaviour. Then you will be able to use it with `m:#{inspect(__MODULE__)}`.
+  """
+
+  alias Exshome.Behaviours.DataStreamBehaviour
+  alias Exshome.DataStream.Operation
+  alias Exshome.PubSub
 
   @available_batch_operations [
     Operation.Insert,
@@ -17,22 +17,50 @@ defmodule Exshome.DataStream do
     Operation.ReplaceAll
   ]
 
-  @spec broadcast(stream(), changes()) :: :ok
+  @doc """
+  Subscribes to a stream. Subscriber will receive every change to the mailbox.
+  For example, you can process it with `c:GenServer.handle_info/2` callback.
+
+  Message format is a tuple `{Exshome.DataStream, {stream, operation}}`, where:
+  - `stream` is the stream you have subscribed to;
+  - `operation` is one of `t:Exshome.DataStream.Operation.t/0`.
+  """
+  @spec subscribe(DataStreamBehaviour.stream()) :: :ok
+  def subscribe(stream), do: stream |> pub_sub_topic() |> PubSub.subscribe()
+
+  @doc """
+  Unsubscribes from the data stream.
+  Your process will no longer receive new updates, though it still may have some previous messages in the mailbox.
+  """
+  @spec unsubscribe(DataStreamBehaviour.stream()) :: :ok
+  def unsubscribe(stream), do: stream |> pub_sub_topic() |> PubSub.unsubscribe()
+
+  @doc """
+  Broadcast data stream changes.
+  """
+  @spec broadcast(DataStreamBehaviour.stream(), Operation.t()) :: :ok
   def broadcast(stream, changes) do
-    raise_if_invalid_stream!(stream)
-    raise_if_invalid_changes!(changes)
-    :ok = Dependency.broadcast_value(stream, changes)
+    raise_if_invalid_operation!(changes)
+
+    stream
+    |> pub_sub_topic()
+    |> PubSub.broadcast({__MODULE__, {stream, changes}})
   end
 
-  @spec raise_if_invalid_stream!(stream()) :: any()
-  defp raise_if_invalid_stream!(stream) do
-    Dependency.raise_if_not_dependency!(__MODULE__, stream)
+  @spec pub_sub_topic(DataStreamBehaviour.stream()) :: String.t()
+  defp pub_sub_topic(stream) do
+    module = stream_module(stream)
+    "data_stream:" <> module.data_stream_topic(stream)
   end
 
-  @spec raise_if_invalid_changes!(changes()) :: any()
-  defp raise_if_invalid_changes!(%module{}) when module in @available_batch_operations, do: :ok
+  @spec stream_module(DataStreamBehaviour.stream()) :: module()
+  defp stream_module({module, _id}), do: module
+  defp stream_module(module) when is_atom(module), do: module
 
-  defp raise_if_invalid_changes!(%Operation.Batch{operations: operations}) do
+  @spec raise_if_invalid_operation!(Operation.t()) :: any()
+  defp raise_if_invalid_operation!(%module{}) when module in @available_batch_operations, do: :ok
+
+  defp raise_if_invalid_operation!(%Operation.Batch{operations: operations}) do
     unsupported_operations =
       for operation <- operations,
           %module{} = operation,
@@ -44,21 +72,5 @@ defmodule Exshome.DataStream do
     end
 
     :ok
-  end
-
-  defmacro __using__(name) do
-    quote do
-      alias Exshome.DataStream
-      use Exshome.Named, "stream:#{unquote(name)}"
-      use Exshome.Dependency
-      import Exshome.Tag, only: [add_tag: 1]
-      add_tag(DataStream)
-
-      @impl Dependency
-      def type, do: DataStream
-
-      @impl Dependency
-      def get_value(stream), do: :ok
-    end
   end
 end

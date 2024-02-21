@@ -2,8 +2,8 @@ defmodule ExshomeAutomation.Live.Variables do
   @moduledoc """
   Variables page.
   """
+  alias Exshome.DataStream
   alias Exshome.DataStream.Operation
-  alias Exshome.Dependency
   alias Exshome.Variable
   alias Exshome.Variable.VariableStateStream
   alias ExshomeAutomation.Services.VariableRegistry
@@ -103,7 +103,7 @@ defmodule ExshomeAutomation.Live.Variables do
   @impl LiveView
   def handle_event("new-variable", %{"type" => type}, %Socket{} = socket) do
     type = Exshome.Datatype.get_by_name(type)
-    :ok = Dependency.subscribe(VariableStateStream)
+    :ok = DataStream.subscribe(VariableStateStream)
     :ok = DynamicVariable.create_variable!(type)
     {:noreply, socket}
   end
@@ -122,7 +122,7 @@ defmodule ExshomeAutomation.Live.Variables do
         {VariableStateStream, %Operation.Insert{data: %Variable{id: id}}},
         %Socket{} = socket
       ) do
-    Dependency.unsubscribe(VariableStateStream)
+    DataStream.unsubscribe(VariableStateStream)
     open_modal(socket, id)
   end
 

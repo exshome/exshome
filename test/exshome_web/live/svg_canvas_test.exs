@@ -1,8 +1,8 @@
 defmodule ExshomeWebTest.SvgCanvasTest do
   use ExshomeWebTest.ConnCase, async: true
 
+  alias Exshome.DataStream
   alias Exshome.DataStream.Operation
-  alias Exshome.Dependency
   alias ExshomeAutomation.Live.AutomationEditor
   alias ExshomeAutomation.Services.Workflow
   alias ExshomeAutomation.Streams.WorkflowStateStream
@@ -222,7 +222,7 @@ defmodule ExshomeWebTest.SvgCanvasTest do
 
   defp render_automation_editor(conn) do
     start_workflow_supervisor()
-    :ok = Dependency.subscribe(WorkflowStateStream)
+    :ok = DataStream.subscribe(WorkflowStateStream)
     :ok = Workflow.create!()
 
     assert_receive_stream(

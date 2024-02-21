@@ -109,7 +109,7 @@ defmodule Exshome.Dependency.GenServerDependency.Subscription do
 
   defp subscribe_to_streams(%DependencyState{} = state, streams) do
     for stream <- streams do
-      :ok = Dependency.subscribe(stream)
+      :ok = DataStream.subscribe(stream)
     end
 
     state

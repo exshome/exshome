@@ -3,5 +3,10 @@ defmodule ExshomeAutomation.Streams.EditorStream do
   DataStream for workflow editor.
   """
 
-  use Exshome.DataStream, "automation_editor"
+  alias Exshome.Behaviours.DataStreamBehaviour
+
+  @behaviour DataStreamBehaviour
+
+  @impl DataStreamBehaviour
+  def data_stream_topic({__MODULE__, id}), do: "editor_stream:#{id}"
 end
