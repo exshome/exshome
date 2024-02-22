@@ -1,39 +1,51 @@
 defmodule Exshome.DataStream do
   @moduledoc """
-  Data Stream allows to publish changes in some resources and subscribe to them.
+  An `m:Exshome.Emitter`, that allows to publish changes in some resources and subscribe to them.
   Stream of changes contains one `t:Exshome.DataStream.Operation.t/0` operation.
 
   If you want to create a new data stream, your module needs to implement `m:Exshome.Behaviours.DataStreamBehaviour` behaviour. Then you will be able to use it with `m:#{inspect(__MODULE__)}`.
   """
 
   alias Exshome.Behaviours.DataStreamBehaviour
+  alias Exshome.Behaviours.EmitterBehaviour
   alias Exshome.DataStream.Operation
-  alias Exshome.PubSub
+  alias Exshome.Emitter
 
-  @available_batch_operations [
-    Operation.Insert,
-    Operation.Update,
-    Operation.Delete,
-    Operation.ReplaceAll
-  ]
+  @behaviour EmitterBehaviour
+
+  @impl EmitterBehaviour
+  def child_behaviour, do: DataStreamBehaviour
+
+  @impl EmitterBehaviour
+  def child_module({module, _id}), do: module
+  def child_module(module) when is_atom(module), do: module
+
+  @impl EmitterBehaviour
+  def pub_sub_topic(stream) do
+    module = child_module(stream)
+    module.data_stream_topic(stream)
+  end
+
+  @impl EmitterBehaviour
+  def topic_prefix, do: "data_stream"
 
   @doc """
   Subscribes to a stream. Subscriber will receive every change to the mailbox.
   For example, you can process it with `c:GenServer.handle_info/2` callback.
 
-  Message format is a tuple `{Exshome.DataStream, {stream, operation}}`, where:
+  Message format is a tuple `{#{inspect(__MODULE__)}, {stream, operation}}`, where:
   - `stream` is the stream you have subscribed to;
   - `operation` is one of `t:Exshome.DataStream.Operation.t/0`.
   """
   @spec subscribe(DataStreamBehaviour.stream()) :: :ok
-  def subscribe(stream), do: stream |> pub_sub_topic() |> PubSub.subscribe()
+  def subscribe(stream), do: Emitter.subscribe(__MODULE__, stream)
 
   @doc """
   Unsubscribes from the data stream.
   Your process will no longer receive new updates, though it still may have some previous messages in the mailbox.
   """
   @spec unsubscribe(DataStreamBehaviour.stream()) :: :ok
-  def unsubscribe(stream), do: stream |> pub_sub_topic() |> PubSub.unsubscribe()
+  def unsubscribe(stream), do: Emitter.unsubscribe(__MODULE__, stream)
 
   @doc """
   Broadcast data stream changes.
@@ -42,20 +54,15 @@ defmodule Exshome.DataStream do
   def broadcast(stream, changes) do
     raise_if_invalid_operation!(changes)
 
-    stream
-    |> pub_sub_topic()
-    |> PubSub.broadcast({__MODULE__, {stream, changes}})
+    Emitter.broadcast(__MODULE__, stream, {stream, changes})
   end
 
-  @spec pub_sub_topic(DataStreamBehaviour.stream()) :: String.t()
-  defp pub_sub_topic(stream) do
-    module = stream_module(stream)
-    "data_stream:" <> module.data_stream_topic(stream)
-  end
-
-  @spec stream_module(DataStreamBehaviour.stream()) :: module()
-  defp stream_module({module, _id}), do: module
-  defp stream_module(module) when is_atom(module), do: module
+  @available_batch_operations [
+    Operation.Insert,
+    Operation.Update,
+    Operation.Delete,
+    Operation.ReplaceAll
+  ]
 
   @spec raise_if_invalid_operation!(Operation.t()) :: any()
   defp raise_if_invalid_operation!(%module{}) when module in @available_batch_operations, do: :ok
