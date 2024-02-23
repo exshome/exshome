@@ -6,24 +6,28 @@ defmodule Exshome.DataStream do
   If you want to create a new data stream, your module needs to implement `m:Exshome.Behaviours.DataStreamBehaviour` behaviour. Then you will be able to use it with `m:#{inspect(__MODULE__)}`.
   """
 
-  alias Exshome.Behaviours.DataStreamBehaviour
   alias Exshome.Behaviours.EmitterBehaviour
   alias Exshome.DataStream.Operation
   alias Exshome.Emitter
 
+  @type stream() :: module() | {module(), String.t()}
+
   @behaviour EmitterBehaviour
 
   @impl EmitterBehaviour
-  def child_behaviour, do: DataStreamBehaviour
+  def child_behaviour, do: Exshome.Behaviours.DataStreamBehaviour
 
   @impl EmitterBehaviour
   def child_module({module, _id}), do: module
   def child_module(module) when is_atom(module), do: module
 
   @impl EmitterBehaviour
-  def pub_sub_topic(stream) do
-    module = child_module(stream)
-    module.data_stream_topic(stream)
+  def pub_sub_topic({child_module, id}) when is_atom(child_module) and is_binary(id) do
+    Enum.join([pub_sub_topic(child_module), id], ":")
+  end
+
+  def pub_sub_topic(module) when is_atom(module) do
+    module.data_stream_topic()
   end
 
   @impl EmitterBehaviour
@@ -37,20 +41,20 @@ defmodule Exshome.DataStream do
   - `stream` is the stream you have subscribed to;
   - `operation` is one of `t:Exshome.DataStream.Operation.t/0`.
   """
-  @spec subscribe(DataStreamBehaviour.stream()) :: :ok
+  @spec subscribe(stream()) :: :ok
   def subscribe(stream), do: Emitter.subscribe(__MODULE__, stream)
 
   @doc """
   Unsubscribes from the data stream.
   Your process will no longer receive new updates, though it still may have some previous messages in the mailbox.
   """
-  @spec unsubscribe(DataStreamBehaviour.stream()) :: :ok
+  @spec unsubscribe(stream()) :: :ok
   def unsubscribe(stream), do: Emitter.unsubscribe(__MODULE__, stream)
 
   @doc """
   Broadcast data stream changes.
   """
-  @spec broadcast(DataStreamBehaviour.stream(), Operation.t()) :: :ok
+  @spec broadcast(stream(), Operation.t()) :: :ok
   def broadcast(stream, changes) do
     raise_if_invalid_operation!(changes)
 

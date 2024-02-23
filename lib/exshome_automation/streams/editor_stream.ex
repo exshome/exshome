@@ -8,5 +8,5 @@ defmodule ExshomeAutomation.Streams.EditorStream do
   @behaviour DataStreamBehaviour
 
   @impl DataStreamBehaviour
-  def data_stream_topic({__MODULE__, id}), do: "editor_stream:#{id}"
+  def data_stream_topic, do: "exshome_automation:editor_stream"
 end

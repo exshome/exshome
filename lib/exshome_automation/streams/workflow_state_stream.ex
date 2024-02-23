@@ -4,9 +4,9 @@ defmodule ExshomeAutomation.Streams.WorkflowStateStream do
   """
 
   alias Exshome.Behaviours.DataStreamBehaviour
+
   @behaviour DataStreamBehaviour
 
   @impl DataStreamBehaviour
-  def data_stream_topic({__MODULE__, id}), do: "automation_workflow_state:#{id}"
-  def data_stream_topic(__MODULE__), do: "automation_workflow_state"
+  def data_stream_topic, do: "exshome_automation:automation_workflow_state"
 end

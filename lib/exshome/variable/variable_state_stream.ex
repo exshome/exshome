@@ -8,6 +8,5 @@ defmodule Exshome.Variable.VariableStateStream do
   @behaviour DataStreamBehaviour
 
   @impl DataStreamBehaviour
-  def data_stream_topic({__MODULE__, id}), do: "variable_state:#{id}"
-  def data_stream_topic(__MODULE__), do: "variable_state"
+  def data_stream_topic, do: "exshome:variable_state"
 end
