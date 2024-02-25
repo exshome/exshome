@@ -75,9 +75,7 @@ defmodule Exshome.Datatype do
   end
 
   @spec available_types() :: MapSet.t(module())
-  def available_types do
-    BehaviourMapping.behaviour_mapping!(DatatypeBehaviour)
-  end
+  def available_types, do: BehaviourMapping.behaviour_implementations(DatatypeBehaviour)
 
   @spec get_by_name(String.t()) :: t()
   def get_by_name(name) when is_binary(name) do
@@ -99,9 +97,5 @@ defmodule Exshome.Datatype do
     end
   end
 
-  defp module_is_datatype?(module) do
-    DatatypeBehaviour
-    |> BehaviourMapping.behaviour_mapping!()
-    |> MapSet.member?(module)
-  end
+  defp module_is_datatype?(module), do: MapSet.member?(available_types(), module)
 end

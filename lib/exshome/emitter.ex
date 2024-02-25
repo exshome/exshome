@@ -84,7 +84,7 @@ defmodule Exshome.Emitter do
     child_module = emitter_module.child_module(identifier)
     behaviour = emitter_module.child_behaviour()
 
-    %{^behaviour => valid_children} = BehaviourMapping.behaviour_mapping()
+    valid_children = BehaviourMapping.behaviour_implementations(behaviour)
 
     if !MapSet.member?(valid_children, child_module) do
       raise """

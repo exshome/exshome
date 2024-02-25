@@ -1,6 +1,6 @@
 defmodule Exshome.Behaviours.EmitterBehaviour do
   @moduledoc """
-  Allows to create a module to use with `m:Exshome.EventEmitter`.
+  Allows to create a module to use with `m:Exshome.Emitter`.
   """
 
   @doc """
