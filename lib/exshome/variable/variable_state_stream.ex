@@ -2,11 +2,13 @@ defmodule Exshome.Variable.VariableStateStream do
   @moduledoc """
   DataStream for variable state changes.
   """
+  alias Exshome.Behaviours.EmitterBehaviour
 
-  alias Exshome.Behaviours.DataStreamBehaviour
+  @behaviour EmitterBehaviour
 
-  @behaviour DataStreamBehaviour
+  @impl EmitterBehaviour
+  def app, do: Exshome
 
-  @impl DataStreamBehaviour
-  def data_stream_topic, do: "exshome:variable_state"
+  @impl EmitterBehaviour
+  def type, do: Exshome.DataStream
 end

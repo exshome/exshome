@@ -2,12 +2,14 @@ defmodule Exshome.Dependency.GenServerDependency.Subscription do
   @moduledoc """
   Subsription workflow for GenServerDependency.
   """
+
   alias Exshome.DataStream
   alias Exshome.DataStream.Operation
   alias Exshome.Dependency
   alias Exshome.Dependency.GenServerDependency.DependencyState
   alias Exshome.Dependency.GenServerDependency.Lifecycle
   alias Exshome.Dependency.NotReady
+  alias Exshome.Emitter
   alias Exshome.Event
 
   use Lifecycle, key: :subscribe
@@ -109,7 +111,7 @@ defmodule Exshome.Dependency.GenServerDependency.Subscription do
 
   defp subscribe_to_streams(%DependencyState{} = state, streams) do
     for stream <- streams do
-      :ok = DataStream.subscribe(stream)
+      :ok = Emitter.subscribe(stream)
     end
 
     state

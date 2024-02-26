@@ -3,10 +3,13 @@ defmodule ExshomeAutomation.Streams.EditorStream do
   DataStream for workflow editor.
   """
 
-  alias Exshome.Behaviours.DataStreamBehaviour
+  alias Exshome.Behaviours.EmitterBehaviour
 
-  @behaviour DataStreamBehaviour
+  @behaviour EmitterBehaviour
 
-  @impl DataStreamBehaviour
-  def data_stream_topic, do: "exshome_automation:editor_stream"
+  @impl EmitterBehaviour
+  def app, do: ExshomeAutomation
+
+  @impl EmitterBehaviour
+  def type, do: Exshome.DataStream
 end

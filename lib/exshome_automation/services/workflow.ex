@@ -3,9 +3,9 @@ defmodule ExshomeAutomation.Services.Workflow do
   A module for automation workflows.
   """
 
-  alias Exshome.DataStream
   alias Exshome.DataStream.Operation
   alias Exshome.Dependency.NotReady
+  alias Exshome.Emitter
   alias Exshome.SystemRegistry
   alias ExshomeAutomation.Services.Workflow.Editor
   alias ExshomeAutomation.Services.Workflow.EditorItem
@@ -213,8 +213,8 @@ defmodule ExshomeAutomation.Services.Workflow do
   end
 
   defp broadcast_changes(%{data: %__MODULE__{}} = changes) do
-    :ok = DataStream.broadcast(WorkflowStateStream, changes)
-    :ok = DataStream.broadcast({WorkflowStateStream, changes.data.id}, changes)
+    :ok = Emitter.broadcast(WorkflowStateStream, changes)
+    :ok = Emitter.broadcast({WorkflowStateStream, changes.data.id}, changes)
   end
 
   @spec item_operation(

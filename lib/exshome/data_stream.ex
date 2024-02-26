@@ -1,65 +1,11 @@
 defmodule Exshome.DataStream do
   @moduledoc """
-  An `m:Exshome.Emitter`, that allows to publish changes in some resources and subscribe to them.
+  An `m:Exshome.EmitterType`, that allows to publish changes in some resources and subscribe to them.
   Stream of changes contains one `t:Exshome.DataStream.Operation.t/0` operation.
-
-  If you want to create a new data stream, your module needs to implement `m:Exshome.Behaviours.DataStreamBehaviour` behaviour. Then you will be able to use it with `m:#{inspect(__MODULE__)}`.
   """
 
-  alias Exshome.Behaviours.EmitterBehaviour
+  alias Exshome.Behaviours.EmitterTypeBehaviour
   alias Exshome.DataStream.Operation
-  alias Exshome.Emitter
-
-  @type stream() :: module() | {module(), String.t()}
-
-  @behaviour EmitterBehaviour
-
-  @impl EmitterBehaviour
-  def child_behaviour, do: Exshome.Behaviours.DataStreamBehaviour
-
-  @impl EmitterBehaviour
-  def child_module({module, _id}), do: module
-  def child_module(module) when is_atom(module), do: module
-
-  @impl EmitterBehaviour
-  def pub_sub_topic({child_module, id}) when is_atom(child_module) and is_binary(id) do
-    Enum.join([pub_sub_topic(child_module), id], ":")
-  end
-
-  def pub_sub_topic(module) when is_atom(module) do
-    module.data_stream_topic()
-  end
-
-  @impl EmitterBehaviour
-  def topic_prefix, do: "data_stream"
-
-  @doc """
-  Subscribes to a stream. Subscriber will receive every change to the mailbox.
-  For example, you can process it with `c:GenServer.handle_info/2` callback.
-
-  Message format is a tuple `{#{inspect(__MODULE__)}, {stream, operation}}`, where:
-  - `stream` is the stream you have subscribed to;
-  - `operation` is one of `t:Exshome.DataStream.Operation.t/0`.
-  """
-  @spec subscribe(stream()) :: :ok
-  def subscribe(stream), do: Emitter.subscribe(__MODULE__, stream)
-
-  @doc """
-  Unsubscribes from the data stream.
-  Your process will no longer receive new updates, though it still may have some previous messages in the mailbox.
-  """
-  @spec unsubscribe(stream()) :: :ok
-  def unsubscribe(stream), do: Emitter.unsubscribe(__MODULE__, stream)
-
-  @doc """
-  Broadcast data stream changes.
-  """
-  @spec broadcast(stream(), Operation.t()) :: :ok
-  def broadcast(stream, changes) do
-    raise_if_invalid_operation!(changes)
-
-    Emitter.broadcast(__MODULE__, stream, {stream, changes})
-  end
 
   @available_batch_operations [
     Operation.Insert,
@@ -68,10 +14,18 @@ defmodule Exshome.DataStream do
     Operation.ReplaceAll
   ]
 
-  @spec raise_if_invalid_operation!(Operation.t()) :: any()
-  defp raise_if_invalid_operation!(%module{}) when module in @available_batch_operations, do: :ok
+  @behaviour EmitterTypeBehaviour
 
-  defp raise_if_invalid_operation!(%Operation.Batch{operations: operations}) do
+  @impl EmitterTypeBehaviour
+  def required_behaviours, do: MapSet.new()
+
+  @impl EmitterTypeBehaviour
+  def topic_prefix, do: "data_stream"
+
+  @impl EmitterTypeBehaviour
+  def validate_message!(%module{}) when module in @available_batch_operations, do: :ok
+
+  def validate_message!(%Operation.Batch{operations: operations}) do
     unsupported_operations =
       for operation <- operations,
           %module{} = operation,

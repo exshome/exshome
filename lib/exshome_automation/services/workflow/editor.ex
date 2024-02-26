@@ -3,8 +3,8 @@ defmodule ExshomeAutomation.Services.Workflow.Editor do
   Editor logic for workflow.
   """
 
-  alias Exshome.DataStream
   alias Exshome.DataStream.Operation
+  alias Exshome.Emitter
   alias ExshomeAutomation.Services.Workflow.{EditorItem, ItemProperties, Schema}
   alias ExshomeAutomation.Streams.EditorStream
 
@@ -603,7 +603,7 @@ defmodule ExshomeAutomation.Services.Workflow.Editor do
   @spec broadcast_changes(t()) :: t()
   def broadcast_changes(%__MODULE__{id: id} = state) do
     changes = fetch_changes(state)
-    :ok = DataStream.broadcast({EditorStream, id}, changes)
+    :ok = Emitter.broadcast({EditorStream, id}, changes)
 
     %__MODULE__{state | changes: []}
   end

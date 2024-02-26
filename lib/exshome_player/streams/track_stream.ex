@@ -3,10 +3,13 @@ defmodule ExshomePlayer.Streams.TrackStream do
   DataStream for available tracks.
   """
 
-  alias Exshome.Behaviours.DataStreamBehaviour
+  alias Exshome.Behaviours.EmitterBehaviour
 
-  @behaviour DataStreamBehaviour
+  @behaviour EmitterBehaviour
 
-  @impl DataStreamBehaviour
-  def data_stream_topic, do: "exshome_player:tracks"
+  @impl EmitterBehaviour
+  def app, do: ExshomePlayer
+
+  @impl EmitterBehaviour
+  def type, do: Exshome.DataStream
 end

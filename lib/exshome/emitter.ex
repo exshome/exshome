@@ -5,7 +5,10 @@ defmodule Exshome.Emitter do
   """
 
   alias Exshome.BehaviourMapping
+  alias Exshome.Behaviours.EmitterBehaviour
   alias Exshome.PubSub
+
+  @type id() :: module() | {module(), String.t()}
 
   @doc """
   Subscribes to specific emitter. Subscriber will receive every change to the mailbox.
@@ -15,32 +18,36 @@ defmodule Exshome.Emitter do
   - `emitter_module` is the specific emitter you have subscribed to;
   - `message` - related event. Depends on the specific emitter.
   """
-  @spec subscribe(emitter_module :: module(), identifier :: term()) :: :ok
-  def subscribe(emitter_module, identifier) do
-    :ok = emitter_module |> pub_sub_topic(identifier) |> PubSub.subscribe()
+  @spec subscribe(id()) :: :ok
+  def subscribe(id) do
+    :ok = id |> pub_sub_topic() |> PubSub.subscribe()
 
-    add_subscription(emitter_module, identifier)
+    add_subscription(id)
   end
 
   @doc """
   Unsubscribe from specific emitter.
   Your process will no longer receive new updates, though it still may have some previous messages in the mailbox.
   """
-  @spec unsubscribe(emitter_module :: module(), identifier :: term()) :: :ok
-  def unsubscribe(emitter_module, identifier) do
-    :ok = emitter_module |> pub_sub_topic(identifier) |> PubSub.unsubscribe()
+  @spec unsubscribe(id()) :: :ok
+  def unsubscribe(id) do
+    :ok = id |> pub_sub_topic() |> PubSub.unsubscribe()
 
-    remove_subscription(emitter_module, identifier)
+    remove_subscription(id)
   end
 
   @doc """
   Broadcast changes for the emitter.
   """
-  @spec broadcast(emitter_module :: module(), identifier :: term(), message :: term()) :: :ok
-  def broadcast(emitter_module, identifier, message) do
-    emitter_module
-    |> pub_sub_topic(identifier)
-    |> PubSub.broadcast({emitter_module, message})
+  @spec broadcast(id(), message :: term()) :: :ok
+  def broadcast(id, message) do
+    type = identifier_type(id)
+
+    :ok = type.validate_message!(message)
+
+    id
+    |> pub_sub_topic()
+    |> PubSub.broadcast({type, {id, message}})
   end
 
   @doc """
@@ -49,14 +56,14 @@ defmodule Exshome.Emitter do
   @spec subscriptions() :: %{module() => MapSet.t()}
   def subscriptions, do: Process.get(__MODULE__, %{})
 
-  @spec add_subscription(module(), identifier :: term()) :: :ok
-  defp add_subscription(emitter_module, identifier) do
+  @spec add_subscription(id()) :: :ok
+  defp add_subscription(id) do
     updated_subscriptions =
       Map.update(
         subscriptions(),
-        emitter_module,
-        MapSet.new([identifier]),
-        &MapSet.put(&1, identifier)
+        identifier_type(id),
+        MapSet.new([id]),
+        &MapSet.put(&1, id)
       )
 
     Process.put(__MODULE__, updated_subscriptions)
@@ -64,14 +71,14 @@ defmodule Exshome.Emitter do
     :ok
   end
 
-  @spec remove_subscription(module(), identifier :: term()) :: :ok
-  def remove_subscription(emitter_module, identifier) do
+  @spec remove_subscription(id()) :: :ok
+  def remove_subscription(id) do
     updated_subsciptions =
       Map.update(
         subscriptions(),
-        emitter_module,
+        identifier_type(id),
         MapSet.new(),
-        &MapSet.delete(&1, identifier)
+        &MapSet.delete(&1, id)
       )
 
     Process.put(__MODULE__, updated_subsciptions)
@@ -79,26 +86,28 @@ defmodule Exshome.Emitter do
     :ok
   end
 
-  @spec pub_sub_topic(module(), term()) :: String.t()
-  defp pub_sub_topic(emitter_module, identifier) do
-    child_module = emitter_module.child_module(identifier)
-    behaviour = emitter_module.child_behaviour()
+  @spec identifier_type(id()) :: module()
+  defp identifier_type({module, _}), do: identifier_type(module)
+  defp identifier_type(module) when is_atom(module), do: module.type()
 
-    valid_children = BehaviourMapping.behaviour_implementations(behaviour)
+  @spec pub_sub_topic(id()) :: String.t()
+  defp pub_sub_topic({module, identifier}) when is_atom(module) and is_binary(identifier) do
+    Enum.join([pub_sub_topic(module), identifier], ":")
+  end
 
-    if !MapSet.member?(valid_children, child_module) do
+  defp pub_sub_topic(module) when is_atom(module) do
+    type = module.type()
+    required = type.required_behaviours() |> MapSet.put(EmitterBehaviour)
+    actual = BehaviourMapping.module_behaviours(module)
+    missing_behaviours = MapSet.difference(required, actual)
+
+    if Enum.any?(missing_behaviours) do
       raise """
-      #{inspect(child_module)} is not #{inspect(emitter_module)}.
-      Please, implement a #{inspect(behaviour)}.
+      Module #{inspect(module)} is not a #{inspect(type)}.
+      Please, implement a #{inspect(MapSet.to_list(missing_behaviours))}.
       """
     end
 
-    Enum.join(
-      [
-        emitter_module.topic_prefix(),
-        emitter_module.pub_sub_topic(identifier)
-      ],
-      ":"
-    )
+    Atom.to_string(module)
   end
 end

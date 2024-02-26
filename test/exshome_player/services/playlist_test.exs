@@ -4,10 +4,10 @@ defmodule ExshomePlayerTest.Services.PlaylistTest do
   import ExshomeTest.Fixtures
   import ExshomeTest.TestMpvServer
 
-  alias Exshome.DataStream
   alias Exshome.DataStream.Operation
   alias Exshome.Dependency
   alias Exshome.Dependency.NotReady
+  alias Exshome.Emitter
   alias Exshome.Event
   alias ExshomePlayer.Events.PlayerFileEnd
   alias ExshomePlayer.Schemas.Track
@@ -112,7 +112,7 @@ defmodule ExshomePlayerTest.Services.PlaylistTest do
 
     test "updates a track title", %{tracks: [%Track{id: id} | _]} do
       assert :ok = Playlist.play(id)
-      DataStream.subscribe(TrackStream)
+      Emitter.subscribe(TrackStream)
       new_title = "unique_title #{unique_integer()}"
       Dependency.broadcast_value(Title, new_title)
 

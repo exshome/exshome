@@ -6,9 +6,10 @@ defmodule ExshomePlayer.Schemas.Track do
   import Ecto.Query, only: [from: 2]
   import Ecto.Changeset
   use Exshome.Schema
+
   alias Ecto.Changeset
-  alias Exshome.DataStream
   alias Exshome.DataStream.Operation
+  alias Exshome.Emitter
   alias Exshome.Repo
   alias ExshomePlayer.Services.MpvServer
   alias ExshomePlayer.Streams.TrackStream
@@ -67,7 +68,7 @@ defmodule ExshomePlayer.Schemas.Track do
     |> Repo.insert()
     |> case do
       {:ok, result} ->
-        DataStream.broadcast(TrackStream, %Operation.Insert{data: result})
+        Emitter.broadcast(TrackStream, %Operation.Insert{data: result})
         {:ok, result}
 
       result ->
@@ -88,7 +89,7 @@ defmodule ExshomePlayer.Schemas.Track do
     |> Repo.update()
     |> case do
       {:ok, result} ->
-        DataStream.broadcast(TrackStream, %Operation.Update{data: result})
+        Emitter.broadcast(TrackStream, %Operation.Update{data: result})
         {:ok, result}
 
       result ->
@@ -99,7 +100,7 @@ defmodule ExshomePlayer.Schemas.Track do
   @spec delete!(t()) :: :ok
   def delete!(%__MODULE__{} = track) do
     Repo.delete!(track)
-    DataStream.broadcast(TrackStream, %Operation.Delete{data: track})
+    Emitter.broadcast(TrackStream, %Operation.Delete{data: track})
     on_delete(track)
   end
 

@@ -1,8 +1,8 @@
 defmodule ExshomeAutomationTest.Services.WorkflowTest do
   use ExshomeTest.DataCase, async: true
 
-  alias Exshome.DataStream
   alias Exshome.DataStream.Operation
+  alias Exshome.Emitter
   alias ExshomeAutomation.Services.Workflow
   alias ExshomeAutomation.Services.Workflow.EditorItem
   alias ExshomeAutomation.Streams.EditorStream
@@ -14,14 +14,14 @@ defmodule ExshomeAutomationTest.Services.WorkflowTest do
 
   setup do
     start_workflow_supervisor()
-    DataStream.subscribe(WorkflowStateStream)
+    Emitter.subscribe(WorkflowStateStream)
     :ok = Workflow.create!()
 
     assert_receive_stream(
       {WorkflowStateStream, %Operation.Insert{data: %Workflow{id: workflow_id}}}
     )
 
-    :ok = DataStream.subscribe({EditorStream, workflow_id})
+    :ok = Emitter.subscribe({EditorStream, workflow_id})
 
     %{workflow_id: workflow_id}
   end

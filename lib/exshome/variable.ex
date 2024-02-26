@@ -2,10 +2,11 @@ defmodule Exshome.Variable do
   @moduledoc """
   Variable-related logic.
   """
-  alias Exshome.DataStream
+
   alias Exshome.DataStream.Operation
   alias Exshome.Datatype
   alias Exshome.Dependency
+  alias Exshome.Emitter
   alias Exshome.SystemRegistry
   alias Exshome.Variable.VariableStateStream
 
@@ -116,8 +117,8 @@ defmodule Exshome.Variable do
 
   @spec broadcast_state(Operation.single_operation()) :: :ok
   defp broadcast_state(%{data: %__MODULE__{}} = operation) do
-    :ok = DataStream.broadcast(VariableStateStream, operation)
-    :ok = DataStream.broadcast({VariableStateStream, operation.data.id}, operation)
+    :ok = Emitter.broadcast(VariableStateStream, operation)
+    :ok = Emitter.broadcast({VariableStateStream, operation.data.id}, operation)
   end
 
   defmacro __using__(config) do
