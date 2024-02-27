@@ -3,6 +3,5 @@ defmodule Exshome.Behaviours.EmitterBehaviour do
   Allows to create implementations of specific emitter types.
   """
 
-  @callback type() :: module()
-  @callback app() :: module()
+  @callback emitter_type() :: module()
 end

@@ -8,8 +8,5 @@ defmodule ExshomePlayer.Streams.TrackStream do
   @behaviour EmitterBehaviour
 
   @impl EmitterBehaviour
-  def app, do: ExshomePlayer
-
-  @impl EmitterBehaviour
-  def type, do: Exshome.DataStream
+  def emitter_type, do: Exshome.DataStream
 end

@@ -88,7 +88,7 @@ defmodule Exshome.Emitter do
 
   @spec identifier_type(id()) :: module()
   defp identifier_type({module, _}), do: identifier_type(module)
-  defp identifier_type(module) when is_atom(module), do: module.type()
+  defp identifier_type(module) when is_atom(module), do: module.emitter_type()
 
   @spec pub_sub_topic(id()) :: String.t()
   defp pub_sub_topic({module, identifier}) when is_atom(module) and is_binary(identifier) do
@@ -96,7 +96,7 @@ defmodule Exshome.Emitter do
   end
 
   defp pub_sub_topic(module) when is_atom(module) do
-    type = module.type()
+    type = module.emitter_type()
     required = type.required_behaviours() |> MapSet.put(EmitterBehaviour)
     actual = BehaviourMapping.module_behaviours(module)
     missing_behaviours = MapSet.difference(required, actual)

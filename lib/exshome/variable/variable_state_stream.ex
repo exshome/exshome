@@ -7,8 +7,5 @@ defmodule Exshome.Variable.VariableStateStream do
   @behaviour EmitterBehaviour
 
   @impl EmitterBehaviour
-  def app, do: Exshome
-
-  @impl EmitterBehaviour
-  def type, do: Exshome.DataStream
+  def emitter_type, do: Exshome.DataStream
 end
