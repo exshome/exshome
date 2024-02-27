@@ -27,12 +27,12 @@ defmodule ExshomeAutomation.Router do
     ],
     preview: Live.Preview
 
-  scope @prefix do
+  scope @prefix, Live do
     live_session ExshomeAutomation, on_mount: [ExshomeWeb.Live.Navigation] do
-      live "/automations", Live.Automations
-      live "/automations/:id", Live.AutomationEditor
-      live "/variables", Live.Variables, :index
-      live "/variables/:id", Live.Variables, :show
+      live "/automations", Automations
+      live "/automations/:id", AutomationEditor
+      live "/variables", Variables, :index
+      live "/variables/:id", Variables, :show
     end
   end
 end

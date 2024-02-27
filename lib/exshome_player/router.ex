@@ -27,13 +27,13 @@ defmodule ExshomePlayer.Router do
     ],
     preview: Live.Preview
 
-  scope @prefix do
+  scope @prefix, Live do
     live_session ExshomePlayer, on_mount: [ExshomeWeb.Live.Navigation] do
-      live "/player", Live.Player
-      live "/playlist", Live.Playlist, :index
-      live "/playlist/upload-file", Live.Playlist, :upload_file
-      live "/playlist/add-link", Live.Playlist, :add_link
-      live "/playlist/edit-link/:id", Live.Playlist, :edit_link
+      live "/player", Player
+      live "/playlist", Playlist, :index
+      live "/playlist/upload-file", Playlist, :upload_file
+      live "/playlist/add-link", Playlist, :add_link
+      live "/playlist/edit-link/:id", Playlist, :edit_link
     end
   end
 end

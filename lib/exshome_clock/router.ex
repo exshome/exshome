@@ -26,10 +26,10 @@ defmodule ExshomeClock.Router do
     ],
     preview: Live.Preview
 
-  scope @prefix do
+  scope @prefix, Live do
     live_session ExshomeClock, on_mount: [ExshomeWeb.Live.Navigation] do
-      live "/clock", Live.Clock
-      live "/settings", Live.Settings
+      live "/clock", Clock
+      live "/settings", Settings
     end
   end
 end
