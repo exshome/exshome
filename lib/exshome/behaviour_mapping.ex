@@ -19,12 +19,12 @@ defmodule Exshome.BehaviourMapping do
 
   alias Exshome.Behaviours.CustomMappingBehaviour
 
-  @module_behaviours_key {__MODULE__, :module_behaviours}
-  @behaviour_implementations_key {__MODULE__, :behaviour_implementations}
-  @custom_mapping_key {__MODULE__, :custom_mapping}
-  @mapping_not_found :not_found
-
   @type mapping_t() :: %{module() => MapSet.t(module())}
+  @type general_mapping_t() :: %{
+          behaviours: mapping_t(),
+          implementations: mapping_t(),
+          custom: %{module() => MapSet.t()}
+        }
 
   @type custom_mapping_t() :: %{module() => term()}
 
@@ -37,11 +37,7 @@ defmodule Exshome.BehaviourMapping do
 
   The more code you have, the more time it will take to recompute mappings.
   """
-  @spec recompute_mapping() :: %{
-          module_behaviours: mapping_t(),
-          behaviour_implementations: mapping_t(),
-          custom_mapping: custom_mapping_t()
-        }
+  @spec recompute_mapping() :: general_mapping_t()
   def recompute_mapping do
     computed_module_behaviours = compute_module_behaviours()
 
@@ -60,31 +56,22 @@ defmodule Exshome.BehaviourMapping do
 
     computed_custom_mapping = compute_custom_mapping(computed_behaviour_implementations)
 
-    :persistent_term.put(@module_behaviours_key, computed_module_behaviours)
-    :persistent_term.put(@behaviour_implementations_key, computed_behaviour_implementations)
-    :persistent_term.put(@custom_mapping_key, computed_custom_mapping)
-
-    %{
-      module_behaviours: computed_module_behaviours,
-      behaviour_implementations: computed_behaviour_implementations,
-      custom_mapping: computed_custom_mapping
+    result = %{
+      behaviours: computed_module_behaviours,
+      implementations: computed_behaviour_implementations,
+      custom: computed_custom_mapping
     }
+
+    :persistent_term.put(__MODULE__, result)
+
+    result
   end
 
   @doc """
   Returns `%{module => MapSet.new([module_behaviours])}` mapping.
   """
   @spec module_behaviours() :: mapping_t()
-  def module_behaviours do
-    case :persistent_term.get(@module_behaviours_key, @mapping_not_found) do
-      @mapping_not_found ->
-        %{module_behaviours: mapping} = recompute_mapping()
-        mapping
-
-      result ->
-        result
-    end
-  end
+  def module_behaviours, do: mapping().behaviours
 
   @doc """
   Returns a set of behaviours a module implements.
@@ -96,16 +83,7 @@ defmodule Exshome.BehaviourMapping do
   Returns `%{behaviour_module => MapSet.new([implementations])}` mapping.
   """
   @spec behaviour_implementations() :: mapping_t()
-  def behaviour_implementations do
-    case :persistent_term.get(@behaviour_implementations_key, @mapping_not_found) do
-      @mapping_not_found ->
-        %{behaviour_implementations: mapping} = recompute_mapping()
-        mapping
-
-      result ->
-        result
-    end
-  end
+  def behaviour_implementations, do: mapping().implementations
 
   @doc """
   Returns a set of moudles, that implement specific behaviour.
@@ -122,22 +100,21 @@ defmodule Exshome.BehaviourMapping do
   You can register custom mapping by implementing a `m:Exshome.Behaviours.CustomMappingBehaviour`.
   """
   @spec custom_mapping() :: custom_mapping_t()
-  def custom_mapping do
-    case :persistent_term.get(@custom_mapping_key, @mapping_not_found) do
-      @mapping_not_found ->
-        %{custom_mapping: mapping} = recompute_mapping()
-        mapping
-
-      result ->
-        result
-    end
-  end
+  def custom_mapping, do: mapping().custom
 
   @doc """
   Returns a value for custom mapping.
   """
   @spec custom_mapping!(module()) :: term()
   def custom_mapping!(module), do: Map.fetch!(custom_mapping(), module)
+
+  @spec mapping() :: general_mapping_t()
+  defp mapping do
+    case :persistent_term.get(__MODULE__, :not_found) do
+      :not_found -> recompute_mapping()
+      result -> result
+    end
+  end
 
   @spec compute_module_behaviours() :: mapping_t()
   defp compute_module_behaviours do
