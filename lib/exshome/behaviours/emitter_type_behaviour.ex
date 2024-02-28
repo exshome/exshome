@@ -9,11 +9,6 @@ defmodule Exshome.Behaviours.EmitterTypeBehaviour do
   @callback required_behaviours() :: MapSet.t(module())
 
   @doc """
-  Prefix for each pub sub topic.
-  """
-  @callback topic_prefix() :: String.t()
-
-  @doc """
   Validates message to be sent.
   Raises error if message is invalid.
   """

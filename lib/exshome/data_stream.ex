@@ -20,9 +20,6 @@ defmodule Exshome.DataStream do
   def required_behaviours, do: MapSet.new()
 
   @impl EmitterTypeBehaviour
-  def topic_prefix, do: "data_stream"
-
-  @impl EmitterTypeBehaviour
   def validate_message!(%module{}) when module in @available_batch_operations, do: :ok
 
   def validate_message!(%Operation.Batch{operations: operations}) do
