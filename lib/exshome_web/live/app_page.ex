@@ -5,7 +5,6 @@ defmodule ExshomeWeb.Live.AppPage do
   alias Exshome.DataStream
   alias Exshome.DataStream.Operation
   alias Exshome.Dependency
-  alias Exshome.Event
   alias ExshomeWeb.Live.AppPage
   alias Phoenix.LiveView
   alias Phoenix.LiveView.Socket
@@ -16,8 +15,7 @@ defmodule ExshomeWeb.Live.AppPage do
 
   @callback dependencies() :: Keyword.t()
   @callback on_stream(stream_data(), Socket.t()) :: Socket.t()
-  @callback on_app_event(Event.event_message(), Socket.t()) :: Socket.t()
-  @optional_callbacks [on_app_event: 2, on_stream: 2]
+  @optional_callbacks [on_stream: 2]
 
   use ExshomeWeb, :live_view
 
@@ -55,11 +53,6 @@ defmodule ExshomeWeb.Live.AppPage do
     else
       {:cont, socket}
     end
-  end
-
-  def on_handle_info({Event, {_event_module, event_message}}, %Socket{} = socket) do
-    socket = socket.view.on_app_event(event_message, socket)
-    {:halt, socket}
   end
 
   def on_handle_info({DataStream, stream_data}, %Socket{} = socket) do

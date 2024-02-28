@@ -2,8 +2,8 @@ defmodule ExshomePlayerTest.Live.PlaylistTest do
   use ExshomeWebTest.ConnCase, async: true
 
   alias Exshome.Dependency
-  alias Exshome.Event
-  alias ExshomePlayer.Events.PlayerFileEnd
+  alias Exshome.Emitter
+  alias ExshomePlayer.Events.PlayerFileEndEvent
   alias ExshomePlayer.Live
   alias ExshomePlayer.Schemas.Track
   alias ExshomePlayer.Services.{MpvSocket, Playlist}
@@ -67,7 +67,7 @@ defmodule ExshomePlayerTest.Live.PlaylistTest do
     end
 
     defp file_ended do
-      Event.broadcast(%PlayerFileEnd{reason: "eof"})
+      Emitter.broadcast(PlayerFileEndEvent, "eof")
       assert_receive_app_page_dependency({Playlist, _})
     end
   end

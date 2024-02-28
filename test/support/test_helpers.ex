@@ -42,7 +42,7 @@ defmodule ExshomeTest.TestHelpers do
   defmacro assert_receive_event(event, timeout \\ nil) do
     quote do
       ExUnit.Assertions.assert_receive(
-        {Exshome.Event, {_event_module, unquote(event)}},
+        {Exshome.Event, unquote(event)},
         unquote(timeout)
       )
     end

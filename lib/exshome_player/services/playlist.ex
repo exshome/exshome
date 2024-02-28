@@ -3,7 +3,7 @@ defmodule ExshomePlayer.Services.Playlist do
   Module responsible for a playlist.
   """
 
-  alias ExshomePlayer.Events.PlayerFileEnd
+  alias ExshomePlayer.Events.PlayerFileEndEvent
   alias ExshomePlayer.Schemas.Track
   alias ExshomePlayer.Services.Playback
   alias ExshomePlayer.Streams.TrackStream
@@ -13,7 +13,7 @@ defmodule ExshomePlayer.Services.Playlist do
     name: "playlist",
     subscribe: [
       dependencies: [{Title, :title}],
-      events: [PlayerFileEnd],
+      events: [PlayerFileEndEvent],
       streams: [TrackStream]
     ]
 
@@ -82,14 +82,14 @@ defmodule ExshomePlayer.Services.Playlist do
   end
 
   @impl Subscription
-  def on_event(%DependencyState{} = state, %PlayerFileEnd{reason: reason})
+  def on_event(%DependencyState{} = state, {PlayerFileEndEvent, reason})
       when reason in ["eof", "error"] do
     state
     |> move_to_next_track()
     |> load_track()
   end
 
-  def on_event(%DependencyState{} = state, %PlayerFileEnd{}), do: state
+  def on_event(%DependencyState{} = state, {PlayerFileEndEvent, _}), do: state
 
   @impl Subscription
   def on_stream(

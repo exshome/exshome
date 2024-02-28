@@ -4,8 +4,8 @@ defmodule ExshomePlayer.Services.PlayerState do
   """
 
   alias __MODULE__
-  alias Exshome.Event
-  alias ExshomePlayer.Events.{MpvEvent, PlayerFileEnd, PlayerStateEvent}
+  alias Exshome.Emitter
+  alias ExshomePlayer.Events.{MpvEvent, PlayerFileEndEvent, PlayerStateEvent}
   alias ExshomePlayer.Services.MpvSocket
 
   use Exshome.Dependency.GenServerDependency,
@@ -48,7 +48,7 @@ defmodule ExshomePlayer.Services.PlayerState do
   @impl Subscription
   def on_event(
         %DependencyState{} = state,
-        %MpvEvent{type: "property-change", data: %{"name" => name} = event}
+        {MpvEvent, {"property-change", %{"name" => name} = event}}
       ) do
     update_value(
       state,
@@ -62,14 +62,14 @@ defmodule ExshomePlayer.Services.PlayerState do
 
   def on_event(
         %DependencyState{} = state,
-        %MpvEvent{type: "end-file", data: %{"reason" => reason}}
+        {MpvEvent, {"end-file", %{"reason" => reason}}}
       ) do
-    Event.broadcast(%PlayerFileEnd{reason: reason})
+    Emitter.broadcast(PlayerFileEndEvent, reason)
     state
   end
 
-  def on_event(%DependencyState{} = state, %MpvEvent{} = event) do
-    Event.broadcast(%PlayerStateEvent{data: event.data, type: event.type})
+  def on_event(%DependencyState{} = state, {MpvEvent, event}) do
+    Emitter.broadcast(PlayerStateEvent, event)
     state
   end
 

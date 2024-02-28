@@ -8,8 +8,7 @@ defmodule ExshomePlayerTest.Services.PlaylistTest do
   alias Exshome.Dependency
   alias Exshome.Dependency.NotReady
   alias Exshome.Emitter
-  alias Exshome.Event
-  alias ExshomePlayer.Events.PlayerFileEnd
+  alias ExshomePlayer.Events.PlayerFileEndEvent
   alias ExshomePlayer.Schemas.Track
   alias ExshomePlayer.Services.{MpvSocket, Playlist}
   alias ExshomePlayer.Streams.TrackStream
@@ -75,13 +74,13 @@ defmodule ExshomePlayerTest.Services.PlaylistTest do
       tracks: [%Track{id: first_id}, %Track{id: second_id} | _]
     } do
       assert :ok = Playlist.play(first_id)
-      Event.broadcast(%PlayerFileEnd{reason: "eof"})
+      Emitter.broadcast(PlayerFileEndEvent, "eof")
       assert %Track{id: ^second_id} = get_current_track()
     end
 
     test "playlist stays on unknown reason for file end", %{tracks: [%Track{id: id} | _]} do
       assert :ok = Playlist.play(id)
-      Event.broadcast(%PlayerFileEnd{reason: "reason #{unique_integer()}"})
+      Emitter.broadcast(PlayerFileEndEvent, "reason #{unique_integer()}")
       assert %Track{id: ^id} = get_current_track()
     end
 

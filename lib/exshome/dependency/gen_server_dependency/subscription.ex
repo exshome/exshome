@@ -15,10 +15,10 @@ defmodule Exshome.Dependency.GenServerDependency.Subscription do
   use Lifecycle, key: :subscribe
 
   @callback on_dependency_change(DependencyState.t()) :: DependencyState.t()
-  @callback on_event(DependencyState.t(), Event.event_message()) :: DependencyState.t()
+  @callback on_event(DependencyState.t(), {Emitter.id(), term()}) :: DependencyState.t()
   @callback on_stream(
               DependencyState.t(),
-              {Dependency.dependency(), Operation.single_operation()}
+              {Emitter.id(), Operation.single_operation()}
             ) ::
               DependencyState.t()
 
@@ -53,7 +53,7 @@ defmodule Exshome.Dependency.GenServerDependency.Subscription do
   end
 
   @impl Lifecycle
-  def handle_info({Event, {_event_module, event}}, %DependencyState{} = state) do
+  def handle_info({Event, event}, %DependencyState{} = state) do
     new_state = Dependency.get_module(state.dependency).on_event(state, event)
     {:stop, new_state}
   end
@@ -103,7 +103,7 @@ defmodule Exshome.Dependency.GenServerDependency.Subscription do
   @spec subscribe_to_events(DependencyState.t(), Enumerable.t()) :: DependencyState.t()
   defp subscribe_to_events(%DependencyState{} = state, events) do
     for event_module <- events do
-      :ok = Dependency.subscribe(event_module)
+      :ok = Emitter.subscribe(event_module)
     end
 
     state

@@ -6,7 +6,8 @@ defmodule ExshomePlayerTest.Services.PlayerStateTest do
 
   alias Exshome.Dependency
   alias Exshome.Dependency.NotReady
-  alias ExshomePlayer.Events.{PlayerFileEnd, PlayerStateEvent}
+  alias Exshome.Emitter
+  alias ExshomePlayer.Events.{PlayerFileEndEvent, PlayerStateEvent}
   alias ExshomePlayer.Services.{MpvSocket, PlayerState}
   alias ExshomeTest.TestRegistry
 
@@ -18,14 +19,14 @@ defmodule ExshomePlayerTest.Services.PlayerStateTest do
     test "client sends event on track end" do
       reason = "reason_#{unique_integer()}"
       send_event(%{"event" => "end-file", "reason" => reason})
-      assert_receive_event(%PlayerFileEnd{reason: ^reason})
+      assert_receive_event({PlayerFileEndEvent, ^reason})
     end
 
     test "client can handle unexpected event" do
       event_type = "unexpected_event_#{unique_integer()}"
       event = %{"event" => event_type}
       send_event(event)
-      assert_receive_event(%PlayerStateEvent{type: ^event_type, data: %{}})
+      assert_receive_event({PlayerStateEvent, {^event_type, %{}}})
     end
   end
 
@@ -56,8 +57,8 @@ defmodule ExshomePlayerTest.Services.PlayerStateTest do
     assert Dependency.subscribe(MpvSocket) == :connected
 
     TestRegistry.start_dependency(PlayerState)
-    Dependency.subscribe(PlayerFileEnd)
-    Dependency.subscribe(PlayerStateEvent)
+    Emitter.subscribe(PlayerFileEndEvent)
+    Emitter.subscribe(PlayerStateEvent)
 
     assert Dependency.subscribe(PlayerState) != NotReady
     %{}

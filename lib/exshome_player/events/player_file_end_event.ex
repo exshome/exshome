@@ -1,6 +1,6 @@
-defmodule ExshomePlayer.Events.MpvEvent do
+defmodule ExshomePlayer.Events.PlayerFileEndEvent do
   @moduledoc """
-  Mpv socket events.
+  Shows that file has ended.
   """
 
   use Exshome.Behaviours.EmitterBehaviour, type: Exshome.Event

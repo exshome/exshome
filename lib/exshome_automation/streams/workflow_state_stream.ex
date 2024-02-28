@@ -3,10 +3,5 @@ defmodule ExshomeAutomation.Streams.WorkflowStateStream do
   DataStream for workflow state.
   """
 
-  alias Exshome.Behaviours.EmitterBehaviour
-
-  @behaviour EmitterBehaviour
-
-  @impl EmitterBehaviour
-  def emitter_type, do: Exshome.DataStream
+  use Exshome.Behaviours.EmitterBehaviour, type: Exshome.DataStream
 end
