@@ -129,7 +129,7 @@ defmodule Exshome.BehaviourMapping do
               acc
 
             behaviours ->
-              behaviours = behaviours |> List.flatten() |> MapSet.new()
+              behaviours = behaviours |> :lists.append() |> MapSet.new()
               Map.put(acc, module, behaviours)
           end
 
@@ -143,7 +143,7 @@ defmodule Exshome.BehaviourMapping do
           behaviours =
             module.__info__(:attributes)
             |> Keyword.get_values(:behaviour)
-            |> List.flatten()
+            |> :lists.append()
             |> MapSet.new()
 
           {module, behaviours}
