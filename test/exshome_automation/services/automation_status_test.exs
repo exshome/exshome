@@ -2,6 +2,7 @@ defmodule ExshomeAutomationTest.Services.AutomationStatusTest do
   use ExshomeTest.DataCase, async: true
 
   alias Exshome.Dependency
+  alias Exshome.Emitter
   alias ExshomeAutomation.Services.AutomationStatus
   alias ExshomeAutomation.Services.VariableRegistry
   alias ExshomeAutomation.Services.WorkflowRegistry
@@ -10,7 +11,7 @@ defmodule ExshomeAutomationTest.Services.AutomationStatusTest do
   alias ExshomeTest.TestRegistry
 
   setup do
-    Dependency.subscribe(AutomationStatus)
+    Emitter.subscribe(AutomationStatus)
     TestRegistry.start_dependency(VariableRegistry)
     TestRegistry.start_dependency(WorkflowRegistry)
     TestRegistry.start_dependency(AutomationStatus)
@@ -56,7 +57,7 @@ defmodule ExshomeAutomationTest.Services.AutomationStatusTest do
   end
 
   defp make_variable_ready do
-    assert :ok = Dependency.broadcast_value(PlayerState, %PlayerState{})
+    assert :ok = Emitter.broadcast(PlayerState, %PlayerState{})
     assert_receive_dependency({AutomationStatus, _})
   end
 

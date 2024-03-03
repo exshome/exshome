@@ -5,6 +5,7 @@ defmodule ExshomeWeb.Live.AppPage do
   alias Exshome.DataStream
   alias Exshome.DataStream.Operation
   alias Exshome.Dependency
+  alias Exshome.Emitter
   alias ExshomeWeb.Live.AppPage
   alias Phoenix.LiveView
   alias Phoenix.LiveView.Socket
@@ -86,14 +87,14 @@ defmodule ExshomeWeb.Live.AppPage do
       | private: Map.put(socket.private, {__MODULE__, :deps}, mapping)
     }
     |> assign(deps: deps)
-    |> unsubscribe_depes_for_not_connected_socket()
+    |> unsubscribe_deps_for_not_connected_socket()
   end
 
-  @spec unsubscribe_depes_for_not_connected_socket(Socket.t()) :: Socket.t()
-  defp unsubscribe_depes_for_not_connected_socket(%Socket{} = socket) do
+  @spec unsubscribe_deps_for_not_connected_socket(Socket.t()) :: Socket.t()
+  defp unsubscribe_deps_for_not_connected_socket(%Socket{} = socket) do
     if not connected?(socket) do
       for dependency <- Dependency.subscriptions() do
-        Dependency.unsubscribe(dependency)
+        Emitter.unsubscribe(dependency)
       end
     end
 

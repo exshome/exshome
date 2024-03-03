@@ -113,7 +113,7 @@ defmodule ExshomePlayerTest.Services.PlaylistTest do
       assert :ok = Playlist.play(id)
       Emitter.subscribe(TrackStream)
       new_title = "unique_title #{unique_integer()}"
-      Dependency.broadcast_value(Title, new_title)
+      Emitter.broadcast(Title, new_title)
 
       assert_receive_stream(
         {TrackStream,

@@ -71,6 +71,13 @@ defmodule Exshome.Emitter do
     :ok
   end
 
+  @doc """
+  Extracts a module from emitter id.
+  """
+  @spec get_module(id()) :: module()
+  def get_module({module, _}) when is_atom(module), do: module
+  def get_module(module) when is_atom(module), do: module
+
   @spec remove_subscription(id()) :: :ok
   def remove_subscription(id) do
     updated_subsciptions =

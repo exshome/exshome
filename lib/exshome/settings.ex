@@ -26,7 +26,7 @@ defmodule Exshome.Settings do
           |> Schema.update!(data)
           |> from_map(module)
 
-        Exshome.Dependency.broadcast_value(module, result)
+        Exshome.Emitter.broadcast(module, result)
         result
 
       {:error, changeset} ->
@@ -148,14 +148,11 @@ defmodule Exshome.Settings do
 
       add_tag(Settings)
 
-      @impl Exshome.Dependency
+      @impl Exshome.Behaviours.GetValueBehaviour
       def get_value(_), do: Settings.get_settings(__MODULE__)
 
       @impl Settings
       def fields, do: unquote(fields)
-
-      @impl Exshome.Dependency
-      def type, do: Exshome.Dependency
     end
   end
 

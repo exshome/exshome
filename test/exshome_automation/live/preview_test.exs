@@ -1,7 +1,7 @@
 defmodule ExshomeAutomationTest.Live.PreviewTest do
   use ExshomeWebTest.ConnCase, async: true
 
-  alias Exshome.Dependency
+  alias Exshome.Emitter
   alias ExshomeAutomation.Live.Preview
   alias ExshomeAutomation.Services.AutomationStatus
   alias ExshomeAutomation.Services.VariableRegistry
@@ -62,7 +62,7 @@ defmodule ExshomeAutomationTest.Live.PreviewTest do
 
   defp make_variable_ready do
     flush_messages()
-    assert :ok = Dependency.broadcast_value(PlayerState, %PlayerState{})
+    assert :ok = Emitter.broadcast(PlayerState, %PlayerState{})
     assert_receive_app_page_dependency({AutomationStatus, _})
   end
 end

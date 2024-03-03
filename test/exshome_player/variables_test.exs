@@ -4,6 +4,7 @@ defmodule ExshomePlayerTest.VariablesTest do
   import ExshomeTest.Fixtures
 
   alias Exshome.Dependency
+  alias Exshome.Emitter
   alias Exshome.Variable
   alias ExshomePlayer.Services.PlayerState
   alias ExshomePlayer.Variables
@@ -15,13 +16,13 @@ defmodule ExshomePlayerTest.VariablesTest do
     end
 
     test "check default value" do
-      Dependency.broadcast_value(PlayerState, %PlayerState{})
+      Emitter.broadcast(PlayerState, %PlayerState{})
       assert Dependency.get_value(Variables.Duration) == 0
     end
 
     test "non-empty value" do
       duration = unique_integer()
-      Dependency.broadcast_value(PlayerState, %PlayerState{duration: duration})
+      Emitter.broadcast(PlayerState, %PlayerState{duration: duration})
       assert Dependency.get_value(Variables.Duration) == duration
     end
   end
@@ -32,17 +33,17 @@ defmodule ExshomePlayerTest.VariablesTest do
     end
 
     test "check default value" do
-      Dependency.broadcast_value(PlayerState, %PlayerState{})
+      Emitter.broadcast(PlayerState, %PlayerState{})
       assert Dependency.get_value(Variables.Pause)
     end
 
     test "non-empty value, no track is playing" do
-      Dependency.broadcast_value(PlayerState, %PlayerState{pause: false})
+      Emitter.broadcast(PlayerState, %PlayerState{pause: false})
       assert Dependency.get_value(Variables.Pause)
     end
 
     test "non-empty value, some track is playing" do
-      Dependency.broadcast_value(PlayerState, %PlayerState{pause: false, path: "some_path"})
+      Emitter.broadcast(PlayerState, %PlayerState{pause: false, path: "some_path"})
       refute Dependency.get_value(Variables.Pause)
     end
   end
@@ -53,13 +54,13 @@ defmodule ExshomePlayerTest.VariablesTest do
     end
 
     test "check default value" do
-      Dependency.broadcast_value(PlayerState, %PlayerState{})
+      Emitter.broadcast(PlayerState, %PlayerState{})
       assert Dependency.get_value(Variables.Position) == 0
     end
 
     test "non-empty value" do
       position = unique_integer()
-      Dependency.broadcast_value(PlayerState, %PlayerState{time_pos: position})
+      Emitter.broadcast(PlayerState, %PlayerState{time_pos: position})
       assert Dependency.get_value(Variables.Position) == position
     end
   end
@@ -70,7 +71,7 @@ defmodule ExshomePlayerTest.VariablesTest do
     end
 
     test "check default value" do
-      Dependency.broadcast_value(PlayerState, %PlayerState{})
+      Emitter.broadcast(PlayerState, %PlayerState{})
       assert Dependency.get_value(Variables.Title) == ""
     end
 
@@ -99,7 +100,7 @@ defmodule ExshomePlayerTest.VariablesTest do
     end
 
     def broadcast_metadata(%{} = metadata) do
-      Dependency.broadcast_value(PlayerState, %PlayerState{metadata: metadata})
+      Emitter.broadcast(PlayerState, %PlayerState{metadata: metadata})
     end
   end
 
@@ -109,13 +110,13 @@ defmodule ExshomePlayerTest.VariablesTest do
     end
 
     test "check default value" do
-      Dependency.broadcast_value(PlayerState, %PlayerState{})
+      Emitter.broadcast(PlayerState, %PlayerState{})
       assert Dependency.get_value(Variables.Volume) == 0
     end
 
     test "non-empty value" do
       volume = unique_integer()
-      Dependency.broadcast_value(PlayerState, %PlayerState{volume: volume})
+      Emitter.broadcast(PlayerState, %PlayerState{volume: volume})
       assert Dependency.get_value(Variables.Volume) == volume
     end
 

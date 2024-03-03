@@ -1,6 +1,7 @@
 defmodule ExshomeClockTest.LiveTest do
   use ExshomeWebTest.ConnCase, async: true
   alias Exshome.Dependency
+  alias Exshome.Emitter
   alias Exshome.Settings
   alias ExshomeClock.Live
   alias ExshomeClock.Services.LocalTime
@@ -15,7 +16,7 @@ defmodule ExshomeClockTest.LiveTest do
       start_app_page_dependencies(Live.Clock)
       {:ok, view, _html} = live(conn, "/app/clock/clock")
       current_time = DateTime.utc_now()
-      Dependency.broadcast_value(LocalTime, current_time)
+      Emitter.broadcast(LocalTime, current_time)
       assert render(view) =~ Live.Clock.format_date(current_time)
       assert render(view) =~ Live.Clock.format_time(current_time)
     end
@@ -78,7 +79,7 @@ defmodule ExshomeClockTest.LiveTest do
       start_app_page_dependencies(Live.Preview)
       {:ok, view, _html} = live_isolated(conn, Live.Preview, [])
       current_time = DateTime.utc_now()
-      Dependency.broadcast_value(LocalTime, current_time)
+      Emitter.broadcast(LocalTime, current_time)
 
       for clock_part <- ["hour", "minute", "second"] do
         assert has_element?(view, "#clock-#{clock_part}")

@@ -24,7 +24,7 @@ defmodule ExshomePlayerTest.Live.PlaylistTest do
       Track.refresh_tracklist()
       start_app_page_dependencies(Live.Playlist)
       {:ok, view, _html} = live(conn, "/app/player/playlist")
-      tracks = Dependency.subscribe(Playlist)
+      tracks = Dependency.get_and_subscribe(Playlist)
       %{view: view, tracks: tracks}
     end
 

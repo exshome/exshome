@@ -87,7 +87,7 @@ defmodule ExshomePlayerTest.Services.MpvSocketTest do
 
     ExshomeTest.TestRegistry.start_dependency(MpvSocket, opts)
 
-    assert Exshome.Dependency.subscribe(MpvSocket) == :connected
+    assert Exshome.Dependency.get_and_subscribe(MpvSocket) == :connected
     Exshome.Emitter.subscribe(MpvEvent)
 
     %{server: server}

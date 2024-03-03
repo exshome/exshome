@@ -12,11 +12,11 @@ defmodule ExshomePlayerTest.Services.MpvServerTest do
     end
 
     test "service has correct state" do
-      assert Dependency.subscribe(MpvServer) != NotReady
+      assert Dependency.get_and_subscribe(MpvServer) != NotReady
     end
 
     test "restarts a service" do
-      :started = Dependency.subscribe(MpvServer)
+      :started = Dependency.get_and_subscribe(MpvServer)
 
       MpvServer.restart()
       assert_receive_dependency({MpvServer, NotReady})
@@ -31,7 +31,7 @@ defmodule ExshomePlayerTest.Services.MpvServerTest do
     end
 
     test "server does not start" do
-      assert Dependency.subscribe(MpvServer) == NotReady
+      assert Dependency.get_and_subscribe(MpvServer) == NotReady
     end
   end
 end

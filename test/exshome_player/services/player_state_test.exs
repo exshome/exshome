@@ -54,13 +54,13 @@ defmodule ExshomePlayerTest.Services.PlayerStateTest do
 
     TestRegistry.start_dependency(MpvSocket, opts)
 
-    assert Dependency.subscribe(MpvSocket) == :connected
+    assert Dependency.get_and_subscribe(MpvSocket) == :connected
 
     TestRegistry.start_dependency(PlayerState)
     Emitter.subscribe(PlayerFileEndEvent)
     Emitter.subscribe(PlayerStateEvent)
 
-    assert Dependency.subscribe(PlayerState) != NotReady
+    assert Dependency.get_and_subscribe(PlayerState) != NotReady
     %{}
   end
 end

@@ -5,6 +5,7 @@ defmodule ExshomeAutomationTest.Live.ShowVariableModalTest do
   alias Exshome.Datatype
   alias Exshome.Dependency
   alias Exshome.Dependency.NotReady
+  alias Exshome.Emitter
   alias Exshome.Variable
   alias Exshome.Variable.VariableStateStream
   alias ExshomeAutomation.Live.Variables
@@ -45,10 +46,10 @@ defmodule ExshomeAutomationTest.Live.ShowVariableModalTest do
     test "refreshes variable config", %{view: view} do
       open_modal(view, Position)
       refute view |> find_update_value_form() |> has_element?()
-      Dependency.broadcast_value(PlayerState, %PlayerState{path: "some_path#{unique_integer()}"})
+      Emitter.broadcast(PlayerState, %PlayerState{path: "some_path#{unique_integer()}"})
       assert_variable_config_changed(Position)
       assert view |> find_update_value_form() |> has_element?()
-      Dependency.broadcast_value(PlayerState, NotReady)
+      Emitter.broadcast(PlayerState, NotReady)
       assert_variable_config_changed(Position)
       refute view |> find_update_value_form() |> has_element?()
     end

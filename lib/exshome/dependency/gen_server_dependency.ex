@@ -8,6 +8,7 @@ defmodule Exshome.Dependency.GenServerDependency do
   alias Exshome.Dependency.GenServerDependency.DependencyState
   alias Exshome.Dependency.GenServerDependency.Lifecycle
   alias Exshome.Dependency.NotReady
+  alias Exshome.Emitter
   alias Exshome.SystemRegistry
 
   @callback on_init(DependencyState.t()) :: DependencyState.t()
@@ -54,7 +55,7 @@ defmodule Exshome.Dependency.GenServerDependency do
 
   @impl GenServer
   def handle_continue(:on_init, %DependencyState{} = state) do
-    new_state = Dependency.get_module(state.dependency).on_init(state)
+    new_state = Emitter.get_module(state.dependency).on_init(state)
 
     {:noreply, new_state}
   end
@@ -66,7 +67,7 @@ defmodule Exshome.Dependency.GenServerDependency do
         {:reply, value, state}
 
       {:cont, state} ->
-        Dependency.get_module(state.dependency).handle_call(message, from, state)
+        Emitter.get_module(state.dependency).handle_call(message, from, state)
     end
   end
 
@@ -74,14 +75,14 @@ defmodule Exshome.Dependency.GenServerDependency do
   def handle_info(message, %DependencyState{} = state) do
     case Lifecycle.handle_info(message, state) do
       {:stop, state} -> {:noreply, state}
-      {:cont, state} -> Dependency.get_module(state.dependency).handle_info(message, state)
+      {:cont, state} -> Emitter.get_module(state.dependency).handle_info(message, state)
     end
   end
 
   @impl GenServer
   def terminate(reason, %DependencyState{} = state) do
     {_, state} = Lifecycle.handle_stop(reason, state)
-    Dependency.get_module(state.dependency).handle_stop(reason, state)
+    Emitter.get_module(state.dependency).handle_stop(reason, state)
   end
 
   @spec get_pid(Dependency.dependency()) :: pid() | nil
@@ -187,7 +188,7 @@ defmodule Exshome.Dependency.GenServerDependency do
         )
       end
 
-      @impl Exshome.Dependency
+      @impl Exshome.Behaviours.GetValueBehaviour
       def get_value(dependency), do: GenServerDependency.get_value(dependency)
 
       @impl GenServerDependency
@@ -202,9 +203,6 @@ defmodule Exshome.Dependency.GenServerDependency do
       defdelegate update_value(state, value_fn), to: Lifecycle
       @impl GenServerDependency
       defdelegate update_data(state, data_fn), to: Lifecycle
-
-      @impl Exshome.Dependency
-      def type, do: Exshome.Dependency
 
       def get_child_module, do: unquote(Keyword.get(config, :child_module, __CALLER__.module))
 

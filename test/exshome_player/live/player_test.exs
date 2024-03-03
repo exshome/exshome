@@ -3,6 +3,7 @@ defmodule ExshomePlayerTest.Live.PlayerTest do
 
   import ExshomeTest.Fixtures
   alias Exshome.Dependency
+  alias Exshome.Emitter
   alias ExshomePlayer.Live.Player
   alias ExshomePlayer.Schemas.Track
   alias ExshomePlayer.Services.{MpvSocket, Playback, PlayerState, Playlist}
@@ -36,7 +37,7 @@ defmodule ExshomePlayerTest.Live.PlayerTest do
 
     test "updates position", %{view: view} do
       duration = unique_integer()
-      Dependency.broadcast_value(PlayerState, %PlayerState{duration: duration})
+      Emitter.broadcast(PlayerState, %PlayerState{duration: duration})
       assert_receive_app_page_dependency({Variables.Duration, ^duration})
       position = Enum.random(0..duration)
       position_selector = "[name=position]"

@@ -4,8 +4,10 @@ defmodule ExshomeClockTest.Services.LocalTimeTest do
   """
 
   use ExshomeTest.DataCase, async: true
+
   alias Exshome.Dependency
   alias Exshome.Dependency.NotReady
+  alias Exshome.Emitter
   alias Exshome.Settings
   alias ExshomeClock.Services.{LocalTime, UtcTime}
   alias ExshomeClock.Settings.ClockSettings
@@ -28,7 +30,7 @@ defmodule ExshomeClockTest.Services.LocalTimeTest do
 
     test "works with dependencies" do
       current_time = DateTime.utc_now()
-      Dependency.broadcast_value(UtcTime, current_time)
+      Emitter.broadcast(UtcTime, current_time)
 
       refute Dependency.get_value(LocalTime) == NotReady
       assert Dependency.get_value(LocalTime) == current_time
@@ -36,7 +38,7 @@ defmodule ExshomeClockTest.Services.LocalTimeTest do
 
     test "syncs after timezone is updated" do
       current_time = DateTime.utc_now()
-      Dependency.broadcast_value(UtcTime, current_time)
+      Emitter.broadcast(UtcTime, current_time)
 
       assert Dependency.get_value(LocalTime).time_zone == current_time.time_zone
 

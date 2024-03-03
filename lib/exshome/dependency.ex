@@ -2,82 +2,39 @@ defmodule Exshome.Dependency do
   @moduledoc """
   Contains all dependency-related features.
   """
+  alias Exshome.Behaviours.EmitterTypeBehaviour
   alias Exshome.Dependency.NotReady
+  alias Exshome.Emitter
+
+  @behaviour EmitterTypeBehaviour
+
+  @impl EmitterTypeBehaviour
+  def required_behaviours, do: MapSet.new([Exshome.Behaviours.GetValueBehaviour])
+
+  @impl EmitterTypeBehaviour
+  def validate_message!(_), do: :ok
 
   @type dependency() :: atom() | {atom(), String.t()}
   @type value() :: term() | NotReady
   @type dependency_key() :: atom()
-  @type dependency_mapping() :: [{dependency(), dependency_key()}]
+  @type dependency_mapping() :: [{Emitter.id(), dependency_key()}]
   @type deps :: %{dependency_key() => value()}
-  @type dependency_type() :: module()
 
   @callback get_value(dependency()) :: value()
-  @callback type() :: dependency_type()
 
-  @spec get_value(dependency()) :: value()
-  def get_value(dependency) do
-    raise_if_not_dependency!(__MODULE__, dependency)
-    get_module(dependency).get_value(dependency)
-  end
+  @spec get_value(Emitter.id()) :: value()
+  def get_value(id), do: Emitter.get_module(id).get_value(id)
 
-  @spec get_type(dependency()) :: dependency_type()
-  def get_type(dependency) do
-    raise_if_not_dependency!(__MODULE__, dependency)
-    get_module(dependency).type()
-  end
+  @spec get_and_subscribe(Emitter.id()) :: value()
+  def get_and_subscribe(id) do
+    result = get_value(id)
 
-  @spec subscribe(dependency()) :: value()
-  def subscribe(dependency) do
-    result = get_value(dependency)
-
-    :ok =
-      dependency
-      |> dependency_id()
-      |> Exshome.PubSub.subscribe()
-
-    :ok = add_subscription(dependency)
+    :ok = Emitter.subscribe(id)
 
     case result do
-      NotReady -> get_value(dependency)
+      NotReady -> get_value(id)
       data -> data
     end
-  end
-
-  @spec unsubscribe(dependency()) :: :ok
-  def unsubscribe(dependency) do
-    dependency
-    |> dependency_id()
-    |> Exshome.PubSub.unsubscribe()
-
-    remove_subscription(dependency)
-  end
-
-  @spec broadcast_value(dependency(), value()) :: :ok
-  def broadcast_value(dependency, value) do
-    id = dependency_id(dependency)
-    type = get_type(dependency)
-    Exshome.PubSub.broadcast(id, {type, {dependency, value}})
-  end
-
-  @spec get_module(dependency()) :: module()
-  def get_module({module, id}) when is_binary(id), do: get_module(module)
-
-  def get_module(module) when is_atom(module), do: module
-
-  @spec dependency_id(dependency()) :: String.t()
-  def dependency_id({module, id}) when is_binary(id) do
-    Enum.join(
-      [
-        dependency_id(module),
-        id
-      ],
-      ":"
-    )
-  end
-
-  def dependency_id(dependency) do
-    raise_if_not_dependency!(__MODULE__, dependency)
-    get_module(dependency).name()
   end
 
   @spec change_mapping(
@@ -96,7 +53,7 @@ defmodule Exshome.Dependency do
           MapSet.member?(keys_to_unsubscribe, dependency),
           reduce: deps do
         acc ->
-          :ok = unsubscribe(dependency)
+          :ok = Emitter.unsubscribe(dependency)
           Map.delete(acc, mapping_key)
       end
 
@@ -106,57 +63,25 @@ defmodule Exshome.Dependency do
         MapSet.member?(keys_to_subscribe, dependency),
         reduce: deps do
       acc ->
-        value = subscribe(dependency)
+        value = get_and_subscribe(dependency)
         Map.put(acc, mapping_key, value)
     end
   end
 
-  @spec raise_if_not_dependency!(module(), dependency()) :: nil
-  def raise_if_not_dependency!(parent_module, dependency) do
-    module = get_module(dependency)
+  @spec dependency_id(Emitter.id()) :: String.t()
+  def dependency_id({module, id}) when is_atom(module) and is_binary(id),
+    do: "#{dependency_id(module)}:#{id}"
 
-    module_has_correct_behaviour =
-      Exshome.Tag.tag_mapping()
-      |> Map.fetch!(parent_module)
-      |> MapSet.member?(module)
+  def dependency_id(module) when is_atom(module), do: inspect(module)
 
-    module_has_name = function_exported?(module, :name, 0)
-    module_has_type = function_exported?(module, :type, 0)
-    module_is_dependency = module_has_correct_behaviour && module_has_name && module_has_type
-
-    if !module_is_dependency do
-      raise "#{inspect(module)} is not a #{inspect(parent_module)}!"
-    end
-  end
-
-  @spec subscriptions() :: MapSet.t(dependency)
-  def subscriptions, do: Process.get(__MODULE__, MapSet.new())
-
-  @spec add_subscription(dependency()) :: :ok
-  defp add_subscription(dependency) do
-    Process.put(
-      __MODULE__,
-      MapSet.put(subscriptions(), dependency)
-    )
-
-    :ok
-  end
-
-  @spec remove_subscription(dependency()) :: :ok
-  defp remove_subscription(dependency) do
-    Process.put(
-      __MODULE__,
-      MapSet.delete(subscriptions(), dependency)
-    )
-
-    :ok
-  end
+  @spec subscriptions() :: MapSet.t(Emitter.id())
+  def subscriptions, do: Emitter.subscriptions() |> Map.get(__MODULE__, MapSet.new())
 
   defmacro __using__(_) do
     quote do
-      import Exshome.Tag, only: [add_tag: 1]
-      add_tag(Exshome.Dependency)
-      @behaviour Exshome.Dependency
+      use Exshome.Behaviours.EmitterBehaviour, type: Exshome.Dependency
+      alias Exshome.Behaviours.GetValueBehaviour
+      @behaviour GetValueBehaviour
     end
   end
 end

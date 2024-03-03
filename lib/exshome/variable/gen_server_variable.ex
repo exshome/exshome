@@ -8,6 +8,7 @@ defmodule Exshome.Variable.GenServerVariable do
   alias Exshome.Dependency.GenServerDependency.DependencyState
   alias Exshome.Dependency.GenServerDependency.Lifecycle
   alias Exshome.Dependency.NotReady
+  alias Exshome.Emitter
   alias Exshome.Variable
 
   use Lifecycle, key: :variable
@@ -15,6 +16,8 @@ defmodule Exshome.Variable.GenServerVariable do
   @callback not_ready_reason(DependencyState.t()) :: String.t() | nil
   @callback handle_set_value(DependencyState.t(), any()) :: DependencyState.t()
   @callback variable_from_dependency_state(DependencyState.t()) :: Variable.t()
+
+  @optional_callbacks [handle_set_value: 2]
 
   @validations_key {__MODULE__, :validations}
 
@@ -34,7 +37,7 @@ defmodule Exshome.Variable.GenServerVariable do
 
   @impl Lifecycle
   def handle_call({:set_value, value}, _from, %DependencyState{} = state) do
-    state = Dependency.get_module(state.dependency).handle_set_value(state, value)
+    state = Emitter.get_module(state.dependency).handle_set_value(state, value)
     {:stop, {:ok, state}}
   end
 
@@ -81,7 +84,7 @@ defmodule Exshome.Variable.GenServerVariable do
   defp update_variable_info(%DependencyState{} = state) do
     %Variable{} =
       variable_data =
-      Dependency.get_module(state.dependency).variable_from_dependency_state(state)
+      Emitter.get_module(state.dependency).variable_from_dependency_state(state)
 
     old_data = Map.get(state.private, __MODULE__)
 
@@ -105,7 +108,7 @@ defmodule Exshome.Variable.GenServerVariable do
   defp get_variable_data(%DependencyState{private: private}), do: Map.fetch!(private, __MODULE__)
 
   def variable_from_dependency_state(%DependencyState{dependency: dependency} = state) do
-    module = Dependency.get_module(dependency)
+    module = Emitter.get_module(dependency)
     config = get_config(module)
 
     %Variable{
@@ -142,7 +145,7 @@ defmodule Exshome.Variable.GenServerVariable do
 
   defp load_default_validations(%DependencyState{dependency: dependency}) do
     dependency
-    |> Dependency.get_module()
+    |> Emitter.get_module()
     |> get_config()
     |> Keyword.get(:validate, [])
     |> Enum.into(%{})
@@ -159,7 +162,7 @@ defmodule Exshome.Variable.GenServerVariable do
   end
 
   defp not_ready_reason(%DependencyState{dependency: dependency} = state) do
-    Dependency.get_module(dependency).not_ready_reason(state)
+    Emitter.get_module(dependency).not_ready_reason(state)
   end
 
   defmacro __using__(_) do
@@ -174,16 +177,6 @@ defmodule Exshome.Variable.GenServerVariable do
 
       @impl GenServerVariable
       def not_ready_reason(_), do: nil
-
-      @impl GenServerVariable
-      def handle_set_value(%DependencyState{} = state, value) do
-        module = Exshome.Dependency.get_module(state.dependency)
-
-        raise """
-        Received unexpected handle_set_value #{inspect(value)},
-        Please implement handle_set_value/2 callback for #{module}
-        """
-      end
 
       @impl GenServerVariable
       defdelegate variable_from_dependency_state(state), to: GenServerVariable

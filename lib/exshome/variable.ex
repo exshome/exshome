@@ -44,15 +44,13 @@ defmodule Exshome.Variable do
   @spec set_value(Dependency.dependency(), any()) :: :ok | {:error, String.t()}
   def set_value(dependency, value) do
     case validate_value(dependency, value) do
-      {:ok, value} -> Dependency.get_module(dependency).set_value(dependency, value)
+      {:ok, value} -> Emitter.get_module(dependency).set_value(dependency, value)
       {:error, reason} -> {:error, reason}
     end
   end
 
   @spec validate_value(Dependency.dependency(), value :: any()) :: Datatype.parse_result()
   defp validate_value(variable, value) do
-    Dependency.raise_if_not_dependency!(__MODULE__, variable)
-
     {:ok, %__MODULE__{} = config} =
       variable
       |> Dependency.dependency_id()
@@ -81,7 +79,7 @@ defmodule Exshome.Variable do
 
     %__MODULE__{dependency: dependency} = variable
 
-    Dependency.get_module(dependency).delete(dependency)
+    Emitter.get_module(dependency).delete(dependency)
   end
 
   @spec rename_by_id!(id :: String.t(), name :: String.t()) :: :ok
@@ -94,7 +92,7 @@ defmodule Exshome.Variable do
 
     %__MODULE__{dependency: dependency} = variable
 
-    Dependency.get_module(dependency).rename(dependency, name)
+    Emitter.get_module(dependency).rename(dependency, name)
   end
 
   @spec register_variable_data(t()) :: :ok
@@ -124,9 +122,7 @@ defmodule Exshome.Variable do
   defmacro __using__(config) do
     quote do
       use Exshome.Dependency.GenServerDependency, unquote(config)
-      import Exshome.Tag, only: [add_tag: 1]
       alias Exshome.Variable
-      add_tag(Variable)
 
       @behaviour Variable
       use Variable.GenServerVariable
