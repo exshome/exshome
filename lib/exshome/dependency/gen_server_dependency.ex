@@ -166,8 +166,11 @@ defmodule Exshome.Dependency.GenServerDependency do
       alias Exshome.Dependency.NotReady
       use Exshome.Dependency.GenServerDependency.Subscription
       use Exshome.Dependency
-      use Exshome.Named, "dependency:#{unquote(config[:name])}"
       import Exshome.Tag, only: [add_tag: 1]
+
+      @behaviour Exshome.Behaviours.NamedBehaviour
+      @impl Exshome.Behaviours.NamedBehaviour
+      def get_name, do: "dependency:#{unquote(config[:name])}"
 
       app_module =
         __MODULE__

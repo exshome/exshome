@@ -37,7 +37,7 @@ defmodule Exshome.Settings do
   @spec get_module_name(module()) :: String.t()
   def get_module_name(module) do
     if module in available_modules() do
-      module.name()
+      module.get_name()
     else
       raise "#{inspect(module)} is not valid settings!"
     end
@@ -129,9 +129,12 @@ defmodule Exshome.Settings do
       alias Exshome.DataType
       alias Exshome.Settings
       use Exshome.Schema
-      use Exshome.Named, "settings:#{unquote(name)}"
       use Exshome.Dependency
       import Ecto.Changeset
+
+      @behaviour Exshome.Behaviours.NamedBehaviour
+      @impl Exshome.Behaviours.NamedBehaviour
+      def get_name, do: "settings:#{unquote(name)}"
 
       import Exshome.Tag, only: [add_tag: 1]
       @behaviour Settings
