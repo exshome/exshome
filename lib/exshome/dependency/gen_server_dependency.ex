@@ -85,7 +85,7 @@ defmodule Exshome.Dependency.GenServerDependency do
     Emitter.get_module(state.dependency).handle_stop(reason, state)
   end
 
-  @spec get_pid(Dependency.dependency()) :: pid() | nil
+  @spec get_pid(Emitter.id()) :: pid() | nil
   defp get_pid(dependency) do
     case SystemRegistry.get_by_id(__MODULE__, dependency) do
       {:ok, pid} -> pid
@@ -93,12 +93,12 @@ defmodule Exshome.Dependency.GenServerDependency do
     end
   end
 
-  @spec get_value(Dependency.dependency()) :: any()
+  @spec get_value(Emitter.id()) :: any()
   def get_value(dependency) do
     call(dependency, :get_value)
   end
 
-  @spec call(Dependency.dependency(), any()) :: any()
+  @spec call(Emitter.id(), any()) :: any()
   def call(dependency, message, timeout \\ default_timeout()) do
     case get_pid(dependency) do
       nil -> NotReady
@@ -147,7 +147,7 @@ defmodule Exshome.Dependency.GenServerDependency do
     )
   end
 
-  @spec modules(app :: atom()) :: MapSet.t(Dependency.dependency())
+  @spec modules(app :: atom()) :: MapSet.t(Emitter.id())
   def modules(app) when is_atom(app) do
     Map.get(
       Exshome.Tag.tag_mapping(),
@@ -165,12 +165,20 @@ defmodule Exshome.Dependency.GenServerDependency do
       alias Exshome.Dependency.GenServerDependency.Lifecycle
       alias Exshome.Dependency.NotReady
       use Exshome.Dependency.GenServerDependency.Subscription
-      use Exshome.Dependency
+
       import Exshome.Tag, only: [add_tag: 1]
 
       @behaviour Exshome.Behaviours.NamedBehaviour
       @impl Exshome.Behaviours.NamedBehaviour
       def get_name, do: "dependency:#{unquote(config[:name])}"
+
+      @behaviour Exshome.Behaviours.EmitterBehaviour
+      @impl Exshome.Behaviours.EmitterBehaviour
+      def emitter_type, do: Dependency
+
+      @behaviour Exshome.Behaviours.GetValueBehaviour
+      @impl Exshome.Behaviours.GetValueBehaviour
+      def get_value(dependency), do: GenServerDependency.get_value(dependency)
 
       app_module =
         __MODULE__
@@ -190,9 +198,6 @@ defmodule Exshome.Dependency.GenServerDependency do
           |> then(fn {root_config, hooks} -> Keyword.put(root_config, :hooks, hooks) end)
         )
       end
-
-      @impl Exshome.Behaviours.GetValueBehaviour
-      def get_value(dependency), do: GenServerDependency.get_value(dependency)
 
       @impl GenServerDependency
       def on_init(state), do: state

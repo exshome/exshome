@@ -24,7 +24,7 @@ defmodule Exshome.Variable do
   ]
 
   @type t() :: %__MODULE__{
-          dependency: Dependency.dependency(),
+          dependency: Emitter.id(),
           id: String.t(),
           name: String.t(),
           group: String.t(),
@@ -36,12 +36,12 @@ defmodule Exshome.Variable do
           validations: %{atom() => any()}
         }
 
-  @callback set_value(Dependency.dependency(), any()) :: :ok | {:error, String.t()}
-  @callback rename(Dependency.dependency(), name :: String.t()) :: :ok
-  @callback delete(Dependency.dependency()) :: :ok
+  @callback set_value(Emitter.id(), any()) :: :ok | {:error, String.t()}
+  @callback rename(Emitter.id(), name :: String.t()) :: :ok
+  @callback delete(Emitter.id()) :: :ok
   @optional_callbacks [delete: 1, rename: 2]
 
-  @spec set_value(Dependency.dependency(), any()) :: :ok | {:error, String.t()}
+  @spec set_value(Emitter.id(), any()) :: :ok | {:error, String.t()}
   def set_value(dependency, value) do
     case validate_value(dependency, value) do
       {:ok, value} -> Emitter.get_module(dependency).set_value(dependency, value)
@@ -49,7 +49,7 @@ defmodule Exshome.Variable do
     end
   end
 
-  @spec validate_value(Dependency.dependency(), value :: any()) :: Datatype.parse_result()
+  @spec validate_value(Emitter.id(), value :: any()) :: Datatype.parse_result()
   defp validate_value(variable, value) do
     {:ok, %__MODULE__{} = config} =
       variable

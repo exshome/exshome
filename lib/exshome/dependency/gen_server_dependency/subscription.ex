@@ -117,8 +117,7 @@ defmodule Exshome.Dependency.GenServerDependency.Subscription do
     state
   end
 
-  @spec handle_stream(DependencyState.t(), Dependency.dependency(), Operation.t()) ::
-          DependencyState.t()
+  @spec handle_stream(DependencyState.t(), Emitter.id(), Operation.t()) :: DependencyState.t()
   defp handle_stream(%DependencyState{} = state, stream, %Operation.Batch{
          operations: operations
        }) do

@@ -129,12 +129,19 @@ defmodule Exshome.Settings do
       alias Exshome.DataType
       alias Exshome.Settings
       use Exshome.Schema
-      use Exshome.Dependency
       import Ecto.Changeset
 
       @behaviour Exshome.Behaviours.NamedBehaviour
       @impl Exshome.Behaviours.NamedBehaviour
       def get_name, do: "settings:#{unquote(name)}"
+
+      @behaviour Exshome.Behaviours.EmitterBehaviour
+      @impl Exshome.Behaviours.EmitterBehaviour
+      def emitter_type, do: Exshome.Dependency
+
+      @behaviour Exshome.Behaviours.GetValueBehaviour
+      @impl Exshome.Behaviours.GetValueBehaviour
+      def get_value(_), do: Settings.get_settings(__MODULE__)
 
       import Exshome.Tag, only: [add_tag: 1]
       @behaviour Settings
@@ -150,9 +157,6 @@ defmodule Exshome.Settings do
       @type t() :: %__MODULE__{unquote_splicing(database_fields)}
 
       add_tag(Settings)
-
-      @impl Exshome.Behaviours.GetValueBehaviour
-      def get_value(_), do: Settings.get_settings(__MODULE__)
 
       @impl Settings
       def fields, do: unquote(fields)

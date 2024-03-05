@@ -21,7 +21,7 @@ defmodule Exshome.Variable.GenServerVariable do
 
   @validations_key {__MODULE__, :validations}
 
-  @spec set_value(Dependency.dependency(), any()) :: :ok | {:error, String.t()}
+  @spec set_value(Emitter.id(), any()) :: :ok | {:error, String.t()}
   def set_value(dependency, value) do
     GenServerDependency.call(dependency, {:set_value, value})
   end

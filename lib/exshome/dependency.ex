@@ -9,18 +9,22 @@ defmodule Exshome.Dependency do
   @behaviour EmitterTypeBehaviour
 
   @impl EmitterTypeBehaviour
-  def required_behaviours, do: MapSet.new([Exshome.Behaviours.GetValueBehaviour])
+  def required_behaviours do
+    MapSet.new([
+      Exshome.Behaviours.GetValueBehaviour,
+      Exshome.Behaviours.NamedBehaviour
+    ])
+  end
 
   @impl EmitterTypeBehaviour
   def validate_message!(_), do: :ok
 
-  @type dependency() :: atom() | {atom(), String.t()}
   @type value() :: term() | NotReady
   @type dependency_key() :: atom()
   @type dependency_mapping() :: [{Emitter.id(), dependency_key()}]
   @type deps :: %{dependency_key() => value()}
 
-  @callback get_value(dependency()) :: value()
+  @callback get_value(Emitter.id()) :: value()
 
   @spec get_value(Emitter.id()) :: value()
   def get_value(id), do: Emitter.get_module(id).get_value(id)
@@ -72,16 +76,8 @@ defmodule Exshome.Dependency do
   def dependency_id({module, id}) when is_atom(module) and is_binary(id),
     do: "#{dependency_id(module)}:#{id}"
 
-  def dependency_id(module) when is_atom(module), do: inspect(module)
+  def dependency_id(module) when is_atom(module), do: module.get_name()
 
   @spec subscriptions() :: MapSet.t(Emitter.id())
   def subscriptions, do: Emitter.subscriptions() |> Map.get(__MODULE__, MapSet.new())
-
-  defmacro __using__(_) do
-    quote do
-      use Exshome.Behaviours.EmitterBehaviour, type: Exshome.Dependency
-      alias Exshome.Behaviours.GetValueBehaviour
-      @behaviour GetValueBehaviour
-    end
-  end
 end

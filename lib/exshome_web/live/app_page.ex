@@ -11,8 +11,8 @@ defmodule ExshomeWeb.Live.AppPage do
   alias Phoenix.LiveView.Socket
   import Phoenix.Component
 
-  @type stream_event() :: {Dependency.dependency(), Operation.t()}
-  @type stream_data() :: {Dependency.dependency(), Operation.single_operation()}
+  @type stream_event() :: {Emitter.id(), Operation.t()}
+  @type stream_data() :: {Emitter.id(), Operation.single_operation()}
 
   @callback dependencies() :: Keyword.t()
   @callback on_stream(stream_data(), Socket.t()) :: Socket.t()
