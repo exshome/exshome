@@ -1,4 +1,4 @@
-defmodule Exshome.Mappings.ModuleByName do
+defmodule Exshome.Mappings.ModuleByNameMapping do
   @moduledoc """
   Allows to find modules by their name.
   """
@@ -16,6 +16,6 @@ defmodule Exshome.Mappings.ModuleByName do
 
     Enum.any?(conflicts) && raise("Duplicate names: #{inspect(conflicts)}")
 
-    for {name, [module]} <- groups, into: %{}, do: {name, module}
+    Map.new(groups, fn {k, [v]} -> {k, v} end)
   end
 end

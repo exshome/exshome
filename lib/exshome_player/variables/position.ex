@@ -7,6 +7,7 @@ defmodule ExshomePlayer.Variables.Position do
   alias ExshomePlayer.Services.PlayerState
 
   use Exshome.Variable,
+    app: ExshomePlayer,
     name: "player_position",
     subscribe: [
       dependencies: [{PlayerState, :player}]

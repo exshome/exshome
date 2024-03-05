@@ -8,12 +8,13 @@ defmodule ExshomeAutomation.Services.WorkflowRegistry do
   alias ExshomeAutomation.Streams.WorkflowStateStream
 
   use Exshome.Dependency.GenServerDependency,
+    app: ExshomeAutomation,
     name: "automation_workflow_registry",
     subscribe: [
       streams: [WorkflowStateStream]
     ]
 
-  @impl GenServerDependency
+  @impl GenServerDependencyBehaviour
   def on_init(%DependencyState{} = state) do
     workflows =
       for %Workflow{} = workflow <- Workflow.list(), into: %{} do

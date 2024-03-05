@@ -3,6 +3,7 @@ defmodule ExshomeWeb.App do
   Generic module for live applications.
   """
 
+  alias Exshome.BehaviourMapping
   alias Exshome.SystemRegistry
 
   @apps Application.compile_env(:exshome, Exshome.Application, [])[:apps] || []
@@ -16,9 +17,19 @@ defmodule ExshomeWeb.App do
   end
 
   def router_config_by_app(app) do
-    Exshome.Behaviours.RouterBehaviour
-    |> Exshome.BehaviourMapping.behaviour_implementations()
-    |> Enum.map(& &1.__router_config__())
-    |> Enum.find(&(&1[:app] == app))
+    app_modules =
+      Exshome.Mappings.ModuleByAppMapping
+      |> BehaviourMapping.custom_mapping!()
+      |> Map.fetch!(app)
+
+    routers =
+      Exshome.Behaviours.RouterBehaviour
+      |> BehaviourMapping.behaviour_implementations()
+
+    [router] =
+      MapSet.intersection(app_modules, routers)
+      |> MapSet.to_list()
+
+    router.__router_config__()
   end
 end

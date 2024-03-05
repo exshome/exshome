@@ -2,14 +2,14 @@ defmodule ExshomeClock.Services.UtcTime do
   @moduledoc """
   UTC time dependency.
   """
-  use Exshome.Dependency.GenServerDependency, name: "utc_time"
+  use Exshome.Dependency.GenServerDependency, app: ExshomeClock, name: "utc_time"
 
-  @impl GenServerDependency
+  @impl GenServerDependencyBehaviour
   def on_init(state) do
     schedule_next_tick(state)
   end
 
-  @impl GenServerDependency
+  @impl GenServerDependencyBehaviour
   def handle_info(:tick, state) do
     new_state = schedule_next_tick(state)
     {:noreply, new_state}

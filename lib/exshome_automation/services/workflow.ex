@@ -24,10 +24,11 @@ defmodule ExshomeAutomation.Services.Workflow do
   @type editor_item_response() :: :ok | {:error, reason :: String.t()}
 
   use Exshome.Dependency.GenServerDependency,
+    app: ExshomeAutomation,
     name: "automation_workflow",
     child_module: WorkflowSupervisor
 
-  @impl GenServerDependency
+  @impl GenServerDependencyBehaviour
   def on_init(%DependencyState{} = state) do
     {__MODULE__, id} = state.dependency
 
@@ -42,7 +43,7 @@ defmodule ExshomeAutomation.Services.Workflow do
     |> update_editor(nil, &Editor.load_editor(&1, schema))
   end
 
-  @impl GenServerDependency
+  @impl GenServerDependencyBehaviour
   def handle_stop(_reason, %DependencyState{} = state) do
     :ok = remove_workflow_data(state.value)
     state
@@ -114,7 +115,7 @@ defmodule ExshomeAutomation.Services.Workflow do
   @spec rename(String.t(), String.t()) :: :ok
   def rename(id, name), do: call(id, {:rename, name})
 
-  @impl GenServerDependency
+  @impl GenServerDependencyBehaviour
   def handle_call(:list_items, _, %DependencyState{} = state) do
     {:reply, Editor.list_items(state.data), state}
   end
@@ -180,7 +181,7 @@ defmodule ExshomeAutomation.Services.Workflow do
     {:reply, :ok, state}
   end
 
-  @impl GenServerDependency
+  @impl GenServerDependencyBehaviour
   def handle_info({:EXIT, pid, _reason}, %DependencyState{} = state) do
     state = update_editor(state, pid, &Editor.clear_process_data(&1, pid))
     {:noreply, state}

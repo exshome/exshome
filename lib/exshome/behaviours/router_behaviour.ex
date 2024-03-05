@@ -35,6 +35,10 @@ defmodule Exshome.Behaviours.RouterBehaviour do
       use Phoenix.Router, helpers: false
       import Phoenix.LiveView.Router
 
+      @behaviour Exshome.Behaviours.BelongsToAppBehaviour
+      @impl Exshome.Behaviours.BelongsToAppBehaviour
+      def app, do: unquote(opts[:app])
+
       alias Exshome.Behaviours.RouterBehaviour
       @behaviour RouterBehaviour
 

@@ -2,13 +2,20 @@ defmodule ExshomeWeb.DefaultDatatypeComponent do
   @moduledoc """
   Renders default datatypes.
   """
-  alias Exshome.Datatype.{Boolean, Integer, String, Unknown}
-  use ExshomeWeb.DatatypeComponent, [Boolean, Integer, String, Unknown]
 
-  @impl DatatypeComponent
+  alias Exshome.Behaviours.DatatypeComponentBehaviour
+  alias Exshome.Datatype.{Boolean, Integer, String, Unknown}
+  import Phoenix.Component
+
+  @behaviour DatatypeComponentBehaviour
+
+  @impl DatatypeComponentBehaviour
+  def datatypes, do: MapSet.new([Boolean, Integer, String, Unknown])
+
+  @impl DatatypeComponentBehaviour
   def render_value(assigns), do: ~H"<%= @value %>"
 
-  @impl DatatypeComponent
+  @impl DatatypeComponentBehaviour
   def render_input(%{type: Boolean} = assigns) do
     ~H"""
     <label class="relative inline-block w-[4em] h-[2em] text-xl text-green-500/70 dark:text-green-600 select-none">

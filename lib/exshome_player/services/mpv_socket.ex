@@ -2,7 +2,7 @@ defmodule ExshomePlayer.Services.MpvSocket do
   @moduledoc """
   Implementation for MPV socket. It allows to send you some commands to the MPV server.
   """
-  use Exshome.Dependency.GenServerDependency, name: "mpv_socket"
+  use Exshome.Dependency.GenServerDependency, app: ExshomePlayer, name: "mpv_socket"
   alias Exshome.Emitter
   alias ExshomePlayer.Events.MpvEvent
   alias ExshomePlayer.Services.MpvServer
@@ -36,10 +36,10 @@ defmodule ExshomePlayer.Services.MpvSocket do
           }
   end
 
-  @impl GenServerDependency
+  @impl GenServerDependencyBehaviour
   def on_init(%DependencyState{} = state), do: connect_to_socket(state)
 
-  @impl GenServerDependency
+  @impl GenServerDependencyBehaviour
   def handle_call(
         {:send_command, _data},
         _from,
@@ -48,7 +48,7 @@ defmodule ExshomePlayer.Services.MpvSocket do
     {:reply, not_connected_error(), state}
   end
 
-  @impl GenServerDependency
+  @impl GenServerDependencyBehaviour
   def handle_call({:send_command, data}, from, %DependencyState{} = state) do
     string_data =
       data
@@ -69,7 +69,7 @@ defmodule ExshomePlayer.Services.MpvSocket do
     {:noreply, new_state}
   end
 
-  @impl GenServerDependency
+  @impl GenServerDependencyBehaviour
   def handle_info({:tcp_closed, _socket}, %DependencyState{} = state) do
     for pending_request <- Map.values(state.data.requests) do
       GenServer.reply(pending_request, not_connected_error())
@@ -83,12 +83,12 @@ defmodule ExshomePlayer.Services.MpvSocket do
     {:noreply, schedule_reconnect(new_state)}
   end
 
-  @impl GenServerDependency
+  @impl GenServerDependencyBehaviour
   def handle_info(:reconnect, %DependencyState{} = state) do
     {:noreply, connect_to_socket(state)}
   end
 
-  @impl GenServerDependency
+  @impl GenServerDependencyBehaviour
   def handle_info({:tcp, _socket, message}, %DependencyState{} = state) do
     new_state =
       message

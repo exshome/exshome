@@ -20,13 +20,12 @@ defmodule Exshome.BehaviourMapping do
   alias Exshome.Behaviours.CustomMappingBehaviour
 
   @type mapping_t() :: %{module() => MapSet.t(module())}
+  @type custom_mapping_t() :: %{module() => term()}
   @type general_mapping_t() :: %{
           behaviours: mapping_t(),
           implementations: mapping_t(),
-          custom: %{module() => MapSet.t()}
+          custom: custom_mapping_t()
         }
-
-  @type custom_mapping_t() :: %{module() => term()}
 
   @doc """
   Recomputes all mappings and updates caches.

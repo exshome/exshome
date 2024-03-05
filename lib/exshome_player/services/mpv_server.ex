@@ -2,7 +2,7 @@ defmodule ExshomePlayer.Services.MpvServer do
   @moduledoc """
   Starts MPV server.
   """
-  use Exshome.Dependency.GenServerDependency, name: "mpv_server"
+  use Exshome.Dependency.GenServerDependency, app: ExshomePlayer, name: "mpv_server"
 
   @player_folder "player"
   @music_folder Path.join(@player_folder, "music")
@@ -11,17 +11,17 @@ defmodule ExshomePlayer.Services.MpvServer do
     call(:restart)
   end
 
-  @impl GenServerDependency
+  @impl GenServerDependencyBehaviour
   def on_init(%DependencyState{} = state) do
     start_mpv_server(state)
   end
 
-  @impl GenServerDependency
+  @impl GenServerDependencyBehaviour
   def handle_call(:restart, _from, %DependencyState{} = state) do
     {:reply, :exec.kill(state.data.server_pid, 9), state}
   end
 
-  @impl GenServerDependency
+  @impl GenServerDependencyBehaviour
   def handle_info(
         {:EXIT, server_pid, _reason},
         %DependencyState{data: %{server_pid: server_pid}} = state

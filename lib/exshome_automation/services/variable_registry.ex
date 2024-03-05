@@ -7,12 +7,13 @@ defmodule ExshomeAutomation.Services.VariableRegistry do
   alias Exshome.Variable.VariableStateStream
 
   use Exshome.Dependency.GenServerDependency,
+    app: ExshomeAutomation,
     name: "variable_registry",
     subscribe: [
       streams: [VariableStateStream]
     ]
 
-  @impl GenServerDependency
+  @impl GenServerDependencyBehaviour
   def on_init(%DependencyState{} = state) do
     variables =
       for %Variable{} = variable <- Variable.list(), into: %{} do

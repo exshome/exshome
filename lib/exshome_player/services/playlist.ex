@@ -10,6 +10,7 @@ defmodule ExshomePlayer.Services.Playlist do
   alias ExshomePlayer.Variables.Title
 
   use Exshome.Dependency.GenServerDependency,
+    app: ExshomePlayer,
     name: "playlist",
     subscribe: [
       dependencies: [{Title, :title}],
@@ -28,7 +29,7 @@ defmodule ExshomePlayer.Services.Playlist do
   @spec previous() :: :ok
   def previous, do: call(:previous)
 
-  @impl GenServerDependency
+  @impl GenServerDependencyBehaviour
   def on_init(%DependencyState{} = state) do
     Track.refresh_tracklist()
 
@@ -51,7 +52,7 @@ defmodule ExshomePlayer.Services.Playlist do
 
   def on_dependency_change(%DependencyState{} = state), do: state
 
-  @impl GenServerDependency
+  @impl GenServerDependencyBehaviour
   def handle_call({:play, id}, _from, %DependencyState{} = state) when is_binary(id) do
     track = Enum.find(state.value, fn %Track{id: track_id} -> track_id == id end)
 

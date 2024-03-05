@@ -5,8 +5,6 @@ defmodule Exshome.Settings do
   import Ecto.Changeset
   alias Exshome.Settings.Schema
 
-  @callback fields() :: term()
-
   @spec get_settings(arg :: module()) :: Ecto.Schema.t()
   def get_settings(module) when is_atom(module) do
     module
@@ -96,7 +94,7 @@ defmodule Exshome.Settings do
 
   @spec available_modules() :: MapSet.t(atom())
   def available_modules do
-    Exshome.Tag.tag_mapping() |> Map.fetch!(__MODULE__)
+    Exshome.BehaviourMapping.behaviour_implementations(Exshome.Behaviours.SettingsBehaviour)
   end
 
   @spec default_values(module()) :: map()
@@ -127,7 +125,6 @@ defmodule Exshome.Settings do
 
     quote do
       alias Exshome.DataType
-      alias Exshome.Settings
       use Exshome.Schema
       import Ecto.Changeset
 
@@ -141,10 +138,11 @@ defmodule Exshome.Settings do
 
       @behaviour Exshome.Behaviours.GetValueBehaviour
       @impl Exshome.Behaviours.GetValueBehaviour
-      def get_value(_), do: Settings.get_settings(__MODULE__)
+      def get_value(_), do: Exshome.Settings.get_settings(__MODULE__)
 
-      import Exshome.Tag, only: [add_tag: 1]
-      @behaviour Settings
+      @behaviour Exshome.Behaviours.SettingsBehaviour
+      @impl Exshome.Behaviours.SettingsBehaviour
+      def fields, do: unquote(fields)
 
       @primary_key false
       embedded_schema do
@@ -155,11 +153,6 @@ defmodule Exshome.Settings do
       end
 
       @type t() :: %__MODULE__{unquote_splicing(database_fields)}
-
-      add_tag(Settings)
-
-      @impl Settings
-      def fields, do: unquote(fields)
     end
   end
 

@@ -7,16 +7,14 @@ defmodule ExshomeWeb.DatatypeComponent do
   alias Exshome.Datatype
   alias Phoenix.LiveView.Rendered
 
-  @callback render_value(assigns :: map()) :: Rendered.t()
-  @callback render_input(assigns :: map()) :: Rendered.t()
-
   @spec available_renderers() :: %{Datatype.t() => module()}
-  def available_renderers, do: Map.fetch!(Exshome.Tag.tag_mapping(), __MODULE__)
+  def available_renderers do
+    Exshome.BehaviourMapping.custom_mapping!(Exshome.Mappings.DatatypeComponentsMapping)
+  end
 
   @spec datatype_value(assigns :: map()) :: Rendered.t()
   def datatype_value(%{type: type} = assigns) when is_atom(type) do
-    renderer = Map.fetch!(available_renderers(), type)
-    renderer.render_value(assigns)
+    get_renderer!(type).render_value(assigns)
   end
 
   attr :class, :string, default: "", doc: "extra component classes"
@@ -26,24 +24,9 @@ defmodule ExshomeWeb.DatatypeComponent do
   attr :validations, :any, default: %{}, doc: "validate input value"
 
   def datatype_input(%{type: type} = assigns) when is_atom(type) do
-    renderer = Map.fetch!(available_renderers(), type)
-
-    renderer.render_input(assigns)
+    get_renderer!(type).render_input(assigns)
   end
 
-  defmacro __using__(datatypes) do
-    quote do
-      import Exshome.Tag, only: [add_tag: 2]
-      alias ExshomeWeb.DatatypeComponent
-      import Phoenix.Component
-
-      for type <- unquote(datatypes) do
-        add_tag(DatatypeComponent, key: type)
-      end
-
-      use ExshomeWeb, :html
-
-      @behaviour DatatypeComponent
-    end
-  end
+  @spec get_renderer!(Datatype.t()) :: module()
+  defp get_renderer!(type), do: Map.fetch!(available_renderers(), type)
 end

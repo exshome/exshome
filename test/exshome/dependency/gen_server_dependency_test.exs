@@ -19,7 +19,7 @@ defmodule ExshomeTest.Dependency.GenServerDependencyTest do
 
   describe "validate_dependency_config!/1" do
     test "works fine with correct data" do
-      GenServerDependency.validate_dependency_config!(name: "some_name")
+      GenServerDependency.validate_dependency_config!(name: "some_name", app: :some_app)
     end
 
     test "raises for incorrect data" do

@@ -17,7 +17,6 @@ defmodule Exshome.Behaviours.AppBehaviour do
   def init_app(module, child_opts) when is_map(child_opts) do
     module
     |> GenServerDependency.modules()
-    |> MapSet.to_list()
     |> Enum.map(&{&1.get_child_module(), child_opts})
     |> Supervisor.init(strategy: :one_for_one)
   end

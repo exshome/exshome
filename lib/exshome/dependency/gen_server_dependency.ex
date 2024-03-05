@@ -4,32 +4,13 @@ defmodule Exshome.Dependency.GenServerDependency do
   """
   use GenServer
 
+  alias Exshome.BehaviourMapping
   alias Exshome.Dependency
   alias Exshome.Dependency.GenServerDependency.DependencyState
   alias Exshome.Dependency.GenServerDependency.Lifecycle
   alias Exshome.Dependency.NotReady
   alias Exshome.Emitter
   alias Exshome.SystemRegistry
-
-  @callback on_init(DependencyState.t()) :: DependencyState.t()
-  @callback update_data(DependencyState.t(), update_fn :: (any() -> any())) :: DependencyState.t()
-  @callback update_value(DependencyState.t(), update_fn :: (any() -> any())) ::
-              DependencyState.t()
-  @callback handle_info(message :: any(), DependencyState.t()) ::
-              {:noreply, new_state}
-              | {:noreply, new_state, timeout() | :hibernate | {:continue, term()}}
-              | {:stop, reason :: term(), new_state}
-            when new_state: DependencyState.t()
-  @callback handle_call(request :: term(), GenServer.from(), state :: DependencyState.t()) ::
-              {:reply, reply, new_state}
-              | {:reply, reply, new_state, timeout() | :hibernate | {:continue, term()}}
-              | {:noreply, new_state}
-              | {:noreply, new_state, timeout() | :hibernate | {:continue, term()}}
-              | {:stop, reason, reply, new_state}
-              | {:stop, reason, new_state}
-            when reply: term(), new_state: DependencyState.t(), reason: term()
-  @callback handle_stop(reason :: term(), state :: DependencyState.t()) :: DependencyState.t()
-  @optional_callbacks handle_info: 2, handle_call: 3
 
   @spec start_link(map()) :: GenServer.on_start()
   def start_link(%{dependency: dependency} = opts) do
@@ -134,6 +115,10 @@ defmodule Exshome.Dependency.GenServerDependency do
   def validate_dependency_config!(config) do
     NimbleOptions.validate!(
       config,
+      app: [
+        type: :atom,
+        required: true
+      ],
       name: [
         type: :string,
         required: true
@@ -149,24 +134,28 @@ defmodule Exshome.Dependency.GenServerDependency do
 
   @spec modules(app :: atom()) :: MapSet.t(Emitter.id())
   def modules(app) when is_atom(app) do
-    Map.get(
-      Exshome.Tag.tag_mapping(),
-      {__MODULE__, app},
-      MapSet.new()
-    )
+    gen_server_dependencies =
+      BehaviourMapping.behaviour_implementations(Exshome.Behaviours.GenServerDependencyBehaviour)
+
+    app_modules =
+      Exshome.Mappings.ModuleByAppMapping
+      |> BehaviourMapping.custom_mapping!()
+      |> Map.fetch!(app)
+
+    MapSet.intersection(gen_server_dependencies, app_modules)
   end
 
   defmacro __using__(config) do
     quote do
       require Logger
+      alias Exshome.Behaviours.GenServerDependencyBehaviour
       alias Exshome.DataStream.Operation
       alias Exshome.Dependency.GenServerDependency
       alias Exshome.Dependency.GenServerDependency.DependencyState
       alias Exshome.Dependency.GenServerDependency.Lifecycle
       alias Exshome.Dependency.NotReady
-      use Exshome.Dependency.GenServerDependency.Subscription
 
-      import Exshome.Tag, only: [add_tag: 1]
+      use Exshome.Dependency.GenServerDependency.Subscription
 
       @behaviour Exshome.Behaviours.NamedBehaviour
       @impl Exshome.Behaviours.NamedBehaviour
@@ -180,36 +169,33 @@ defmodule Exshome.Dependency.GenServerDependency do
       @impl Exshome.Behaviours.GetValueBehaviour
       def get_value(dependency), do: GenServerDependency.get_value(dependency)
 
-      app_module =
-        __MODULE__
-        |> Module.split()
-        |> Enum.slice(0..0)
-        |> Module.safe_concat()
-
-      add_tag({GenServerDependency, app_module})
+      @behaviour Exshome.Behaviours.BelongsToAppBehaviour
+      @impl Exshome.Behaviours.BelongsToAppBehaviour
+      def app, do: unquote(config[:app])
 
       @after_compile {GenServerDependency, :validate_module!}
-      @behaviour GenServerDependency
 
       def __config__ do
         unquote(
           config
-          |> Keyword.split([:name, :child_module])
+          |> Keyword.split([:app, :name, :child_module])
           |> then(fn {root_config, hooks} -> Keyword.put(root_config, :hooks, hooks) end)
         )
       end
 
-      @impl GenServerDependency
+      @behaviour GenServerDependencyBehaviour
+
+      @impl GenServerDependencyBehaviour
       def on_init(state), do: state
 
-      @impl GenServerDependency
+      @impl GenServerDependencyBehaviour
       def handle_stop(_reason, state), do: state
 
       defoverridable(on_init: 1, handle_stop: 2, get_value: 1)
 
-      @impl GenServerDependency
+      @impl GenServerDependencyBehaviour
       defdelegate update_value(state, value_fn), to: Lifecycle
-      @impl GenServerDependency
+      @impl GenServerDependencyBehaviour
       defdelegate update_data(state, data_fn), to: Lifecycle
 
       def get_child_module, do: unquote(Keyword.get(config, :child_module, __CALLER__.module))

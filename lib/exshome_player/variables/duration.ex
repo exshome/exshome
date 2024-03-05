@@ -6,6 +6,7 @@ defmodule ExshomePlayer.Variables.Duration do
   alias ExshomePlayer.Services.PlayerState
 
   use Exshome.Variable,
+    app: ExshomePlayer,
     name: "player_duration",
     subscribe: [
       dependencies: [{PlayerState, :player}]

@@ -4,6 +4,7 @@ defmodule ExshomeClock.Services.LocalTime do
   It subscribes to the changes in clock settings and current time.
   """
   use Exshome.Dependency.GenServerDependency,
+    app: ExshomeClock,
     name: "local_time",
     subscribe: [
       dependencies: [

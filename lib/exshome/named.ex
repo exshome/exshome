@@ -7,7 +7,7 @@ defmodule Exshome.Named do
   def get_module_by_name(name) when is_binary(name) do
     module =
       Exshome.BehaviourMapping.custom_mapping()
-      |> Map.fetch!(Exshome.Mappings.ModuleByName)
+      |> Map.fetch!(Exshome.Mappings.ModuleByNameMapping)
       |> Map.get(name)
 
     if module do

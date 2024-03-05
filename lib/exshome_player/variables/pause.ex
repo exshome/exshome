@@ -7,6 +7,7 @@ defmodule ExshomePlayer.Variables.Pause do
   alias ExshomePlayer.Services.PlayerState
 
   use Exshome.Variable,
+    app: ExshomePlayer,
     name: "player_pause",
     subscribe: [
       dependencies: [{PlayerState, :player}]

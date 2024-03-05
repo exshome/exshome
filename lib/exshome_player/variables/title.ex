@@ -6,6 +6,7 @@ defmodule ExshomePlayer.Variables.Title do
   alias ExshomePlayer.Services.PlayerState
 
   use Exshome.Variable,
+    app: ExshomePlayer,
     name: "player_title",
     subscribe: [
       dependencies: [{PlayerState, :player}]

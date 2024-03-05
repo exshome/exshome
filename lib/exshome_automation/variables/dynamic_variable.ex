@@ -10,6 +10,7 @@ defmodule ExshomeAutomation.Variables.DynamicVariable do
   @group "automation"
 
   use Exshome.Variable,
+    app: ExshomeAutomation,
     name: "dynamic_variable",
     child_module: VariableSupervisor,
     variable: [
@@ -18,7 +19,7 @@ defmodule ExshomeAutomation.Variables.DynamicVariable do
       type: Datatype.Unknown
     ]
 
-  @impl GenServerDependency
+  @impl GenServerDependencyBehaviour
   def on_init(%DependencyState{dependency: {__MODULE__, id}} = state) when is_binary(id) do
     id
     |> Schema.get!()
@@ -48,7 +49,7 @@ defmodule ExshomeAutomation.Variables.DynamicVariable do
 
   def variable_from_dependency_state(state), do: super(state)
 
-  @impl GenServerDependency
+  @impl GenServerDependencyBehaviour
   def handle_call({:rename, name}, _, %DependencyState{} = state) do
     state =
       state.data

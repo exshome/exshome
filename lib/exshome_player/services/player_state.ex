@@ -9,6 +9,7 @@ defmodule ExshomePlayer.Services.PlayerState do
   alias ExshomePlayer.Services.MpvSocket
 
   use Exshome.Dependency.GenServerDependency,
+    app: ExshomePlayer,
     name: "mpv_client",
     subscribe: [
       dependencies: [{MpvSocket, :socket}],
