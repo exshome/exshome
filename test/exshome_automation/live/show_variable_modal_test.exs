@@ -7,6 +7,7 @@ defmodule ExshomeAutomationTest.Live.ShowVariableModalTest do
   alias Exshome.Dependency.NotReady
   alias Exshome.Emitter
   alias Exshome.Variable
+  alias Exshome.Variable.VariableConfig
   alias Exshome.Variable.VariableStateStream
   alias ExshomeAutomation.Live.Variables
   alias ExshomeAutomation.Services.VariableRegistry
@@ -65,10 +66,10 @@ defmodule ExshomeAutomationTest.Live.ShowVariableModalTest do
 
     test "renames variable", %{view: view} do
       create_new_variable(view, Enum.random(Datatype.available_types()))
-      assert [%Variable{} = variable] = Variable.list()
+      assert [%VariableConfig{} = variable] = Variable.list()
       new_name = "some_name#{unique_integer()}"
       rename(view, new_name)
-      assert {:ok, %Variable{name: ^new_name}} = Variable.get_by_id(variable.id)
+      assert {:ok, %VariableConfig{name: ^new_name}} = Variable.get_by_id(variable.id)
       toggle_rename_input(view)
       assert view |> find_rename_form() |> render() =~ new_name
     end
@@ -78,7 +79,7 @@ defmodule ExshomeAutomationTest.Live.ShowVariableModalTest do
 
       assert_receive_app_page_stream(
         {VariableStateStream,
-         %Operation.Insert{data: %Variable{id: variable_id, dependency: dependency}}}
+         %Operation.Insert{data: %VariableConfig{id: variable_id, dependency: dependency}}}
       )
 
       open_modal(view, dependency)

@@ -4,6 +4,7 @@ defmodule ExshomeAutomation.Services.VariableRegistry do
   """
   alias Exshome.DataStream.Operation
   alias Exshome.Variable
+  alias Exshome.Variable.VariableConfig
   alias Exshome.Variable.VariableStateStream
 
   use Exshome.Dependency.GenServerDependency,
@@ -16,7 +17,7 @@ defmodule ExshomeAutomation.Services.VariableRegistry do
   @impl GenServerDependencyBehaviour
   def on_init(%DependencyState{} = state) do
     variables =
-      for %Variable{} = variable <- Variable.list(), into: %{} do
+      for %VariableConfig{} = variable <- Variable.list(), into: %{} do
         {variable.id, variable}
       end
 
@@ -26,14 +27,14 @@ defmodule ExshomeAutomation.Services.VariableRegistry do
   @impl Subscription
   def on_stream(
         %DependencyState{} = state,
-        {VariableStateStream, %Operation.Delete{data: %Variable{id: id}}}
+        {VariableStateStream, %Operation.Delete{data: %VariableConfig{id: id}}}
       ) do
     update_value(state, &Map.delete(&1, id))
   end
 
   def on_stream(
         %DependencyState{} = state,
-        {VariableStateStream, %operation{data: %Variable{} = variable}}
+        {VariableStateStream, %operation{data: %VariableConfig{} = variable}}
       )
       when operation in [Operation.Insert, Operation.Update] do
     update_value(state, &Map.put(&1, variable.id, variable))

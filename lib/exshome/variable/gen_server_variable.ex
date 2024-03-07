@@ -10,12 +10,13 @@ defmodule Exshome.Variable.GenServerVariable do
   alias Exshome.Dependency.NotReady
   alias Exshome.Emitter
   alias Exshome.Variable
+  alias Exshome.Variable.VariableConfig
 
   use Lifecycle, key: :variable
 
   @callback not_ready_reason(DependencyState.t()) :: String.t() | nil
   @callback handle_set_value(DependencyState.t(), any()) :: DependencyState.t()
-  @callback variable_from_dependency_state(DependencyState.t()) :: Variable.t()
+  @callback variable_from_dependency_state(DependencyState.t()) :: VariableConfig.t()
 
   @optional_callbacks [handle_set_value: 2]
 
@@ -82,7 +83,7 @@ defmodule Exshome.Variable.GenServerVariable do
 
   @spec update_variable_info(DependencyState.t()) :: DependencyState.t()
   defp update_variable_info(%DependencyState{} = state) do
-    %Variable{} =
+    %VariableConfig{} =
       variable_data =
       Emitter.get_module(state.dependency).variable_from_dependency_state(state)
 
@@ -111,7 +112,7 @@ defmodule Exshome.Variable.GenServerVariable do
     module = Emitter.get_module(dependency)
     config = get_config(module)
 
-    %Variable{
+    %VariableConfig{
       dependency: dependency,
       id: Dependency.dependency_id(dependency),
       name: module.__config__[:name],
@@ -165,8 +166,13 @@ defmodule Exshome.Variable.GenServerVariable do
     Emitter.get_module(dependency).not_ready_reason(state)
   end
 
-  defmacro __using__(_) do
+  defmacro __using__(config) do
     quote do
+      use Exshome.Dependency.GenServerDependency, unquote(config)
+      alias Exshome.Behaviours.VariableBehaviour
+
+      @behaviour VariableBehaviour
+
       alias Exshome.Variable.GenServerVariable
       import Exshome.Dependency.GenServerDependency.Lifecycle, only: [register_hook_module: 1]
       register_hook_module(GenServerVariable)
@@ -185,7 +191,7 @@ defmodule Exshome.Variable.GenServerVariable do
 
       defdelegate update_validations(state, update_fn), to: GenServerVariable
 
-      @impl Variable
+      @impl VariableBehaviour
       defdelegate set_value(dependency, value), to: GenServerVariable
     end
   end

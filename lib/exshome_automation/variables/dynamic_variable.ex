@@ -2,14 +2,16 @@ defmodule ExshomeAutomation.Variables.DynamicVariable do
   @moduledoc """
   A module for user-defined variables.
   """
+  alias Exshome.Behaviours.VariableBehaviour
   alias Exshome.Datatype
   alias Exshome.Dependency
+  alias Exshome.Variable.VariableConfig
   alias ExshomeAutomation.Variables.DynamicVariable.Schema
   alias ExshomeAutomation.Variables.DynamicVariable.VariableSupervisor
 
   @group "automation"
 
-  use Exshome.Variable,
+  use Exshome.Variable.GenServerVariable,
     app: ExshomeAutomation,
     name: "dynamic_variable",
     child_module: VariableSupervisor,
@@ -33,7 +35,7 @@ defmodule ExshomeAutomation.Variables.DynamicVariable do
       }) do
     type = Datatype.get_by_name(schema.type)
 
-    %Variable{
+    %VariableConfig{
       dependency: dependency,
       id: Dependency.dependency_id(dependency),
       name: schema.name,
@@ -93,7 +95,7 @@ defmodule ExshomeAutomation.Variables.DynamicVariable do
     update_value(state, fn _ -> value end)
   end
 
-  @impl Variable
+  @impl VariableBehaviour
   def delete({__MODULE__, id}) when is_binary(id) do
     id
     |> Schema.get!()
@@ -102,7 +104,7 @@ defmodule ExshomeAutomation.Variables.DynamicVariable do
     :ok = VariableSupervisor.terminate_child_with_id(id)
   end
 
-  @impl Variable
+  @impl VariableBehaviour
   def rename(dependency, name) when is_binary(name) do
     GenServerDependency.call(dependency, {:rename, name})
   end

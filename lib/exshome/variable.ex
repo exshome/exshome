@@ -8,38 +8,8 @@ defmodule Exshome.Variable do
   alias Exshome.Dependency
   alias Exshome.Emitter
   alias Exshome.SystemRegistry
+  alias Exshome.Variable.VariableConfig
   alias Exshome.Variable.VariableStateStream
-
-  defstruct [
-    :dependency,
-    :id,
-    :name,
-    :group,
-    :not_ready_reason,
-    :readonly?,
-    :can_delete?,
-    :can_rename?,
-    :type,
-    :validations
-  ]
-
-  @type t() :: %__MODULE__{
-          dependency: Emitter.id(),
-          id: String.t(),
-          name: String.t(),
-          group: String.t(),
-          not_ready_reason: String.t() | nil,
-          readonly?: boolean(),
-          can_delete?: boolean(),
-          can_rename?: boolean(),
-          type: Datatype.t(),
-          validations: %{atom() => any()}
-        }
-
-  @callback set_value(Emitter.id(), any()) :: :ok | {:error, String.t()}
-  @callback rename(Emitter.id(), name :: String.t()) :: :ok
-  @callback delete(Emitter.id()) :: :ok
-  @optional_callbacks [delete: 1, rename: 2]
 
   @spec set_value(Emitter.id(), any()) :: :ok | {:error, String.t()}
   def set_value(dependency, value) do
@@ -51,7 +21,7 @@ defmodule Exshome.Variable do
 
   @spec validate_value(Emitter.id(), value :: any()) :: Datatype.parse_result()
   defp validate_value(variable, value) do
-    {:ok, %__MODULE__{} = config} =
+    {:ok, %VariableConfig{} = config} =
       variable
       |> Dependency.dependency_id()
       |> get_by_id()
@@ -63,69 +33,61 @@ defmodule Exshome.Variable do
     end
   end
 
-  @spec list() :: [t()]
-  def list, do: SystemRegistry.list(__MODULE__)
+  @spec list() :: [VariableConfig.t()]
+  def list, do: SystemRegistry.list(VariableConfig)
 
-  @spec get_by_id(String.t()) :: {:ok, t()} | {:error, String.t()}
-  def get_by_id(variable_id), do: SystemRegistry.get_by_id(__MODULE__, variable_id)
+  @spec get_by_id(String.t()) :: {:ok, VariableConfig.t()} | {:error, String.t()}
+  def get_by_id(variable_id), do: SystemRegistry.get_by_id(VariableConfig, variable_id)
 
   @spec delete_by_id!(String.t()) :: :ok
   def delete_by_id!(id) do
-    {:ok, %__MODULE__{} = variable} = get_by_id(id)
+    {:ok, %VariableConfig{} = variable} = get_by_id(id)
 
     unless variable.can_delete? do
       raise "Unable to delete #{variable.name}"
     end
 
-    %__MODULE__{dependency: dependency} = variable
+    %VariableConfig{dependency: dependency} = variable
 
     Emitter.get_module(dependency).delete(dependency)
   end
 
   @spec rename_by_id!(id :: String.t(), name :: String.t()) :: :ok
   def rename_by_id!(id, name) when is_binary(name) do
-    {:ok, %__MODULE__{} = variable} = get_by_id(id)
+    {:ok, %VariableConfig{} = variable} = get_by_id(id)
 
     unless variable.can_rename? do
       raise "Unable to rename #{variable.name}"
     end
 
-    %__MODULE__{dependency: dependency} = variable
+    %VariableConfig{dependency: dependency} = variable
 
     Emitter.get_module(dependency).rename(dependency, name)
   end
 
-  @spec register_variable_data(t()) :: :ok
-  def register_variable_data(%__MODULE__{} = variable_data) do
-    :ok = SystemRegistry.register!(__MODULE__, variable_data.id, variable_data)
+  @spec register_variable_data(VariableConfig.t()) :: :ok
+  def register_variable_data(%VariableConfig{} = variable_data) do
+    :ok = SystemRegistry.register!(VariableConfig, variable_data.id, variable_data)
     broadcast_state(%Operation.Insert{data: variable_data})
   end
 
-  @spec update_variable_data(t()) :: :ok
-  def update_variable_data(%__MODULE__{} = variable_data) do
-    :ok = SystemRegistry.update_value!(__MODULE__, variable_data.id, fn _ -> variable_data end)
+  @spec update_variable_data(VariableConfig.t()) :: :ok
+  def update_variable_data(%VariableConfig{} = variable_data) do
+    :ok =
+      SystemRegistry.update_value!(VariableConfig, variable_data.id, fn _ -> variable_data end)
+
     broadcast_state(%Operation.Update{data: variable_data})
   end
 
-  @spec remove_variable_data(t()) :: :ok
-  def remove_variable_data(%__MODULE__{} = variable_data) do
-    :ok = SystemRegistry.remove!(__MODULE__, variable_data.id)
+  @spec remove_variable_data(VariableConfig.t()) :: :ok
+  def remove_variable_data(%VariableConfig{} = variable_data) do
+    :ok = SystemRegistry.remove!(VariableConfig, variable_data.id)
     broadcast_state(%Operation.Delete{data: variable_data})
   end
 
   @spec broadcast_state(Operation.single_operation()) :: :ok
-  defp broadcast_state(%{data: %__MODULE__{}} = operation) do
+  defp broadcast_state(%{data: %VariableConfig{}} = operation) do
     :ok = Emitter.broadcast(VariableStateStream, operation)
     :ok = Emitter.broadcast({VariableStateStream, operation.data.id}, operation)
-  end
-
-  defmacro __using__(config) do
-    quote do
-      use Exshome.Dependency.GenServerDependency, unquote(config)
-      alias Exshome.Variable
-
-      @behaviour Variable
-      use Variable.GenServerVariable
-    end
   end
 end

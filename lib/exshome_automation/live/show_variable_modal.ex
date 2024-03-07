@@ -7,6 +7,7 @@ defmodule ExshomeAutomation.Live.ShowVariableModal do
   alias Exshome.Dependency.NotReady
   alias Exshome.Emitter
   alias Exshome.Variable
+  alias Exshome.Variable.VariableConfig
   alias Exshome.Variable.VariableStateStream
   use ExshomeWeb.Live.AppPage, dependencies: []
 
@@ -82,7 +83,7 @@ defmodule ExshomeAutomation.Live.ShowVariableModal do
   def handle_event(
         "rename_variable",
         %{"new_name" => name},
-        %Socket{assigns: %{config: %Variable{can_rename?: true}}} = socket
+        %Socket{assigns: %{config: %VariableConfig{can_rename?: true}}} = socket
       ) do
     :ok = Variable.rename_by_id!(socket.assigns.config.id, name)
     {:noreply, socket}

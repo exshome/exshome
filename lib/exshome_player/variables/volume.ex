@@ -6,7 +6,7 @@ defmodule ExshomePlayer.Variables.Volume do
   alias ExshomePlayer.Services.Playback
   alias ExshomePlayer.Services.PlayerState
 
-  use Exshome.Variable,
+  use Exshome.Variable.GenServerVariable,
     app: ExshomePlayer,
     name: "player_volume",
     subscribe: [

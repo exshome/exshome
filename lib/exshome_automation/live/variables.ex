@@ -6,6 +6,7 @@ defmodule ExshomeAutomation.Live.Variables do
   alias Exshome.DataStream.Operation
   alias Exshome.Emitter
   alias Exshome.Variable
+  alias Exshome.Variable.VariableConfig
   alias Exshome.Variable.VariableStateStream
   alias ExshomeAutomation.Services.VariableRegistry
   alias ExshomeAutomation.Variables.DynamicVariable
@@ -120,7 +121,7 @@ defmodule ExshomeAutomation.Live.Variables do
 
   @impl AppPage
   def on_stream(
-        {VariableStateStream, %Operation.Insert{data: %Variable{id: id}}},
+        {VariableStateStream, %Operation.Insert{data: %VariableConfig{id: id}}},
         %Socket{} = socket
       ) do
     Emitter.unsubscribe(VariableStateStream)
