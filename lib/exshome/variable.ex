@@ -7,19 +7,20 @@ defmodule Exshome.Variable do
   alias Exshome.Datatype
   alias Exshome.Dependency
   alias Exshome.Emitter
+  alias Exshome.Id
   alias Exshome.SystemRegistry
   alias Exshome.Variable.VariableConfig
   alias Exshome.Variable.VariableStateStream
 
-  @spec set_value(Emitter.id(), any()) :: :ok | {:error, String.t()}
+  @spec set_value(Id.t(), any()) :: :ok | {:error, String.t()}
   def set_value(dependency, value) do
     case validate_value(dependency, value) do
-      {:ok, value} -> Emitter.get_module(dependency).set_value(dependency, value)
+      {:ok, value} -> Id.get_module(dependency).set_value(dependency, value)
       {:error, reason} -> {:error, reason}
     end
   end
 
-  @spec validate_value(Emitter.id(), value :: any()) :: Datatype.parse_result()
+  @spec validate_value(Id.t(), value :: any()) :: Datatype.parse_result()
   defp validate_value(variable, value) do
     {:ok, %VariableConfig{} = config} =
       variable
@@ -49,7 +50,7 @@ defmodule Exshome.Variable do
 
     %VariableConfig{dependency: dependency} = variable
 
-    Emitter.get_module(dependency).delete(dependency)
+    Id.get_module(dependency).delete(dependency)
   end
 
   @spec rename_by_id!(id :: String.t(), name :: String.t()) :: :ok
@@ -62,7 +63,7 @@ defmodule Exshome.Variable do
 
     %VariableConfig{dependency: dependency} = variable
 
-    Emitter.get_module(dependency).rename(dependency, name)
+    Id.get_module(dependency).rename(dependency, name)
   end
 
   @spec register_variable_data(VariableConfig.t()) :: :ok

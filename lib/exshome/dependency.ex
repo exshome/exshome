@@ -5,6 +5,7 @@ defmodule Exshome.Dependency do
   alias Exshome.Behaviours.EmitterTypeBehaviour
   alias Exshome.Dependency.NotReady
   alias Exshome.Emitter
+  alias Exshome.Id
 
   @behaviour EmitterTypeBehaviour
 
@@ -21,15 +22,15 @@ defmodule Exshome.Dependency do
 
   @type value() :: term() | NotReady
   @type dependency_key() :: atom()
-  @type dependency_mapping() :: [{Emitter.id(), dependency_key()}]
+  @type dependency_mapping() :: [{Id.t(), dependency_key()}]
   @type deps :: %{dependency_key() => value()}
 
-  @callback get_value(Emitter.id()) :: value()
+  @callback get_value(Id.t()) :: value()
 
-  @spec get_value(Emitter.id()) :: value()
-  def get_value(id), do: Emitter.get_module(id).get_value(id)
+  @spec get_value(Id.t()) :: value()
+  def get_value(id), do: Id.get_module(id).get_value(id)
 
-  @spec get_and_subscribe(Emitter.id()) :: value()
+  @spec get_and_subscribe(Id.t()) :: value()
   def get_and_subscribe(id) do
     result = get_value(id)
 
@@ -72,12 +73,12 @@ defmodule Exshome.Dependency do
     end
   end
 
-  @spec dependency_id(Emitter.id()) :: String.t()
+  @spec dependency_id(Id.t()) :: String.t()
   def dependency_id({module, id}) when is_atom(module) and is_binary(id),
     do: "#{dependency_id(module)}:#{id}"
 
   def dependency_id(module) when is_atom(module), do: module.get_name()
 
-  @spec subscriptions() :: MapSet.t(Emitter.id())
+  @spec subscriptions() :: MapSet.t(Id.t())
   def subscriptions, do: Emitter.subscriptions() |> Map.get(__MODULE__, MapSet.new())
 end

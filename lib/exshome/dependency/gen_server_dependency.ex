@@ -9,7 +9,7 @@ defmodule Exshome.Dependency.GenServerDependency do
   alias Exshome.Dependency.GenServerDependency.DependencyState
   alias Exshome.Dependency.GenServerDependency.Lifecycle
   alias Exshome.Dependency.NotReady
-  alias Exshome.Emitter
+  alias Exshome.Id
   alias Exshome.SystemRegistry
 
   @spec start_link(map()) :: GenServer.on_start()
@@ -36,7 +36,7 @@ defmodule Exshome.Dependency.GenServerDependency do
 
   @impl GenServer
   def handle_continue(:on_init, %DependencyState{} = state) do
-    new_state = Emitter.get_module(state.dependency).on_init(state)
+    new_state = Id.get_module(state.dependency).on_init(state)
 
     {:noreply, new_state}
   end
@@ -48,7 +48,7 @@ defmodule Exshome.Dependency.GenServerDependency do
         {:reply, value, state}
 
       {:cont, state} ->
-        Emitter.get_module(state.dependency).handle_call(message, from, state)
+        Id.get_module(state.dependency).handle_call(message, from, state)
     end
   end
 
@@ -56,17 +56,17 @@ defmodule Exshome.Dependency.GenServerDependency do
   def handle_info(message, %DependencyState{} = state) do
     case Lifecycle.handle_info(message, state) do
       {:stop, state} -> {:noreply, state}
-      {:cont, state} -> Emitter.get_module(state.dependency).handle_info(message, state)
+      {:cont, state} -> Id.get_module(state.dependency).handle_info(message, state)
     end
   end
 
   @impl GenServer
   def terminate(reason, %DependencyState{} = state) do
     {_, state} = Lifecycle.handle_stop(reason, state)
-    Emitter.get_module(state.dependency).handle_stop(reason, state)
+    Id.get_module(state.dependency).handle_stop(reason, state)
   end
 
-  @spec get_pid(Emitter.id()) :: pid() | nil
+  @spec get_pid(Id.t()) :: pid() | nil
   defp get_pid(dependency) do
     case SystemRegistry.get_by_id(__MODULE__, dependency) do
       {:ok, pid} -> pid
@@ -74,12 +74,12 @@ defmodule Exshome.Dependency.GenServerDependency do
     end
   end
 
-  @spec get_value(Emitter.id()) :: any()
+  @spec get_value(Id.t()) :: any()
   def get_value(dependency) do
     call(dependency, :get_value)
   end
 
-  @spec call(Emitter.id(), any()) :: any()
+  @spec call(Id.t(), any()) :: any()
   def call(dependency, message, timeout \\ default_timeout()) do
     case get_pid(dependency) do
       nil -> NotReady
@@ -132,7 +132,7 @@ defmodule Exshome.Dependency.GenServerDependency do
     )
   end
 
-  @spec modules(app :: atom()) :: MapSet.t(Emitter.id())
+  @spec modules(app :: atom()) :: MapSet.t(Id.t())
   def modules(app) when is_atom(app) do
     gen_server_dependencies =
       BehaviourMapping.behaviour_implementations(Exshome.Behaviours.GenServerDependencyBehaviour)

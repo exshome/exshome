@@ -3,7 +3,6 @@ defmodule Exshome.Dependency.GenServerDependency.Lifecycle do
   GenServerDependency lifecycle hooks.
   """
   alias Exshome.Dependency.GenServerDependency.DependencyState
-  alias Exshome.Emitter
 
   @type default_response :: {:cont, DependencyState.t()} | {:stop, DependencyState.t()}
   @type handle_call_response ::
@@ -98,7 +97,7 @@ defmodule Exshome.Dependency.GenServerDependency.Lifecycle do
   end
 
   defp hook_modules(%DependencyState{dependency: dependency}) do
-    module = Emitter.get_module(dependency)
+    module = Exshome.Id.get_module(dependency)
 
     :attributes
     |> module.__info__()

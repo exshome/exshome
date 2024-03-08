@@ -3,7 +3,6 @@ defmodule Exshome.Dependency.GenServerDependency.DependencyState do
   Inner state for each dependency.
   """
   alias Exshome.Dependency
-  alias Exshome.Emitter
 
   defstruct [
     :data,
@@ -16,7 +15,7 @@ defmodule Exshome.Dependency.GenServerDependency.DependencyState do
 
   @type t() :: %__MODULE__{
           data: any(),
-          dependency: Emitter.id(),
+          dependency: Exshome.Id.t(),
           deps: map(),
           opts: any(),
           private: map(),

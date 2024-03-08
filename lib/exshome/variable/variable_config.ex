@@ -17,7 +17,7 @@ defmodule Exshome.Variable.VariableConfig do
   ]
 
   @type t() :: %__MODULE__{
-          dependency: Exshome.Emitter.id(),
+          dependency: Exshome.Id.t(),
           id: String.t(),
           name: String.t(),
           group: String.t(),

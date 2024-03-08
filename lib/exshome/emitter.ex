@@ -6,9 +6,8 @@ defmodule Exshome.Emitter do
 
   alias Exshome.BehaviourMapping
   alias Exshome.Behaviours.EmitterBehaviour
+  alias Exshome.Id
   alias Exshome.PubSub
-
-  @type id() :: module() | {module(), String.t()}
 
   @doc """
   Subscribes to specific emitter. Subscriber will receive every change to the mailbox.
@@ -18,7 +17,7 @@ defmodule Exshome.Emitter do
   - `emitter_module` is the specific emitter you have subscribed to;
   - `message` - related event. Depends on the specific emitter.
   """
-  @spec subscribe(id()) :: :ok
+  @spec subscribe(Id.t()) :: :ok
   def subscribe(id) do
     :ok = id |> pub_sub_topic() |> PubSub.subscribe()
 
@@ -29,7 +28,7 @@ defmodule Exshome.Emitter do
   Unsubscribe from specific emitter.
   Your process will no longer receive new updates, though it still may have some previous messages in the mailbox.
   """
-  @spec unsubscribe(id()) :: :ok
+  @spec unsubscribe(Id.t()) :: :ok
   def unsubscribe(id) do
     :ok = id |> pub_sub_topic() |> PubSub.unsubscribe()
 
@@ -39,7 +38,7 @@ defmodule Exshome.Emitter do
   @doc """
   Broadcast changes for the emitter.
   """
-  @spec broadcast(id(), message :: term()) :: :ok
+  @spec broadcast(Id.t(), message :: term()) :: :ok
   def broadcast(id, message) do
     type = identifier_type(id)
 
@@ -56,7 +55,7 @@ defmodule Exshome.Emitter do
   @spec subscriptions() :: %{module() => MapSet.t()}
   def subscriptions, do: Process.get(__MODULE__, %{})
 
-  @spec add_subscription(id()) :: :ok
+  @spec add_subscription(Id.t()) :: :ok
   defp add_subscription(id) do
     updated_subscriptions =
       Map.update(
@@ -71,14 +70,7 @@ defmodule Exshome.Emitter do
     :ok
   end
 
-  @doc """
-  Extracts a module from emitter id.
-  """
-  @spec get_module(id()) :: module()
-  def get_module({module, _}) when is_atom(module), do: module
-  def get_module(module) when is_atom(module), do: module
-
-  @spec remove_subscription(id()) :: :ok
+  @spec remove_subscription(Id.t()) :: :ok
   def remove_subscription(id) do
     updated_subsciptions =
       Map.update(
@@ -93,11 +85,11 @@ defmodule Exshome.Emitter do
     :ok
   end
 
-  @spec identifier_type(id()) :: module()
+  @spec identifier_type(Id.t()) :: module()
   defp identifier_type({module, _}), do: identifier_type(module)
   defp identifier_type(module) when is_atom(module), do: module.emitter_type()
 
-  @spec pub_sub_topic(id()) :: String.t()
+  @spec pub_sub_topic(Id.t()) :: String.t()
   defp pub_sub_topic({module, identifier}) when is_atom(module) and is_binary(identifier) do
     Enum.join([pub_sub_topic(module), identifier], ":")
   end

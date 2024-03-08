@@ -8,7 +8,7 @@ defmodule Exshome.Variable.GenServerVariable do
   alias Exshome.Dependency.GenServerDependency.DependencyState
   alias Exshome.Dependency.GenServerDependency.Lifecycle
   alias Exshome.Dependency.NotReady
-  alias Exshome.Emitter
+  alias Exshome.Id
   alias Exshome.Variable
   alias Exshome.Variable.VariableConfig
 
@@ -22,7 +22,7 @@ defmodule Exshome.Variable.GenServerVariable do
 
   @validations_key {__MODULE__, :validations}
 
-  @spec set_value(Emitter.id(), any()) :: :ok | {:error, String.t()}
+  @spec set_value(Id.t(), any()) :: :ok | {:error, String.t()}
   def set_value(dependency, value) do
     GenServerDependency.call(dependency, {:set_value, value})
   end
@@ -38,7 +38,7 @@ defmodule Exshome.Variable.GenServerVariable do
 
   @impl Lifecycle
   def handle_call({:set_value, value}, _from, %DependencyState{} = state) do
-    state = Emitter.get_module(state.dependency).handle_set_value(state, value)
+    state = Id.get_module(state.dependency).handle_set_value(state, value)
     {:stop, {:ok, state}}
   end
 
@@ -85,7 +85,7 @@ defmodule Exshome.Variable.GenServerVariable do
   defp update_variable_info(%DependencyState{} = state) do
     %VariableConfig{} =
       variable_data =
-      Emitter.get_module(state.dependency).variable_from_dependency_state(state)
+      Id.get_module(state.dependency).variable_from_dependency_state(state)
 
     old_data = Map.get(state.private, __MODULE__)
 
@@ -109,7 +109,7 @@ defmodule Exshome.Variable.GenServerVariable do
   defp get_variable_data(%DependencyState{private: private}), do: Map.fetch!(private, __MODULE__)
 
   def variable_from_dependency_state(%DependencyState{dependency: dependency} = state) do
-    module = Emitter.get_module(dependency)
+    module = Id.get_module(dependency)
     config = get_config(module)
 
     %VariableConfig{
@@ -146,7 +146,7 @@ defmodule Exshome.Variable.GenServerVariable do
 
   defp load_default_validations(%DependencyState{dependency: dependency}) do
     dependency
-    |> Emitter.get_module()
+    |> Id.get_module()
     |> get_config()
     |> Keyword.get(:validate, [])
     |> Enum.into(%{})
@@ -163,7 +163,7 @@ defmodule Exshome.Variable.GenServerVariable do
   end
 
   defp not_ready_reason(%DependencyState{dependency: dependency} = state) do
-    Emitter.get_module(dependency).not_ready_reason(state)
+    Id.get_module(dependency).not_ready_reason(state)
   end
 
   defmacro __using__(config) do
