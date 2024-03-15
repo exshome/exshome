@@ -73,6 +73,37 @@ defmodule Exshome.Dependency do
     end
   end
 
+  @spec change_deps(
+          old_mapping :: [{atom(), Id.t()}],
+          new_mapping :: [{atom(), Id.t()}],
+          old_deps :: deps()
+        ) :: deps()
+  def change_deps(old_mapping, new_mapping, deps) do
+    old_deps = for {_, d} <- old_mapping, into: MapSet.new(), do: d
+    new_deps = for {_, d} <- new_mapping, into: MapSet.new(), do: d
+
+    deps_to_unsubscribe = MapSet.difference(old_deps, new_deps)
+
+    deps =
+      for {mapping_key, dependency} <- old_mapping,
+          MapSet.member?(deps_to_unsubscribe, dependency),
+          reduce: deps do
+        acc ->
+          :ok = Emitter.unsubscribe(dependency)
+          Map.delete(acc, mapping_key)
+      end
+
+    deps_to_subscribe = MapSet.difference(new_deps, old_deps)
+
+    for {mapping_key, dependency} <- new_mapping,
+        MapSet.member?(deps_to_subscribe, dependency),
+        reduce: deps do
+      acc ->
+        value = get_and_subscribe(dependency)
+        Map.put(acc, mapping_key, value)
+    end
+  end
+
   @spec dependency_id(Id.t()) :: String.t()
   def dependency_id({module, id}) when is_atom(module) and is_binary(id),
     do: "#{dependency_id(module)}:#{id}"

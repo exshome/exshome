@@ -3,18 +3,16 @@ defmodule ExshomeClock.Services.LocalTime do
   Provides a value for local time.
   It subscribes to the changes in clock settings and current time.
   """
-  use Exshome.Dependency.GenServerDependency,
+  use Exshome.Service.DependencyService,
     app: ExshomeClock,
     name: "local_time",
-    subscribe: [
-      dependencies: [
-        {ExshomeClock.Services.UtcTime, :utc_time},
-        {ExshomeClock.Settings.ClockSettings, :settings}
-      ]
+    dependencies: [
+      utc_time: ExshomeClock.Services.UtcTime,
+      settings: ExshomeClock.Settings.ClockSettings
     ]
 
-  @impl Subscription
-  def on_dependency_change(%DependencyState{deps: deps} = state) do
+  @impl DependencyServiceBehaviour
+  def handle_dependency_change(deps, %ServiceState{} = state) do
     value =
       DateTime.shift_zone!(
         deps.utc_time,

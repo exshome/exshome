@@ -19,6 +19,7 @@ config :exshome, :environment, :test
 config :exshome,
   hooks: [
     {Exshome.Dependency.GenServerDependency, ExshomeTest.Hooks.Dependency},
+    {Exshome.Service, ExshomeTest.Hooks.Dependency},
     {Exshome.Dependency.DynamicDependencySupervisor,
      ExshomeTest.Hooks.DynamicDependencySupervisor},
     {Exshome.FileUtils, ExshomeTest.Hooks.FileUtils},
