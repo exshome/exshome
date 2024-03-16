@@ -374,15 +374,12 @@ defmodule Exshome.Service do
   end
 
   @spec call(id :: Id.t(), message :: term()) :: term()
-  def call(id, message, timeout \\ default_timeout()) do
+  def call(id, message, timeout \\ Exshome.Config.default_timeout()) do
     case get_pid(id) do
       nil -> Id.get_module(id).not_ready_value()
       pid -> GenServer.call(pid, message, timeout)
     end
   end
-
-  @spec default_timeout() :: integer()
-  defp default_timeout, do: 5000
 
   @spec get_pid(Id.t()) :: pid() | nil
   defp get_pid(id) do
@@ -437,8 +434,7 @@ defmodule Exshome.Service do
 
   @hook_module Application.compile_env(:exshome, :hooks, [])[__MODULE__]
   if @hook_module do
-    defoverridable(init: 1, default_timeout: 0)
-    defdelegate default_timeout(), to: @hook_module
+    defoverridable(init: 1)
 
     def init(opts) do
       @hook_module.init(opts)

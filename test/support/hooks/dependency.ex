@@ -3,10 +3,6 @@ defmodule ExshomeTest.Hooks.Dependency do
   Custom hooks for dependencies.
   """
 
-  def default_timeout do
-    if ExUnit.configuration()[:trace], do: :infinity, else: 5000
-  end
-
   def init(opts) do
     custom_init_hook = opts[:custom_init_hook]
     custom_init_hook && custom_init_hook.()
