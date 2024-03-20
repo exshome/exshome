@@ -3,6 +3,7 @@ defmodule ExshomeTest.TestRegistry do
   Registry for async tests.
   """
   alias Exshome.SystemRegistry
+  import ExUnit.Assertions
 
   @spec started?() :: boolean()
   def started?, do: !!Process.whereis(SystemRegistry)
@@ -43,6 +44,14 @@ defmodule ExshomeTest.TestRegistry do
     put({:dependency, module}, pid)
   end
 
+  @spec start_service(module :: module(), opts :: map()) :: :ok
+  def start_service(module, opts \\ %{}) do
+    opts = prepare_child_service_opts(opts)
+    pid = ExUnit.Callbacks.start_supervised!({module, opts})
+    assert_receive({__MODULE__, :ready, ^pid})
+    put({:service, module}, pid)
+  end
+
   @spec stop_dependency(module :: module()) :: :ok
   def stop_dependency(module) do
     :ok = ExUnit.Callbacks.stop_supervised!(module)
@@ -73,6 +82,19 @@ defmodule ExshomeTest.TestRegistry do
       :custom_init_hook,
       fn -> allow(current_pid, self()) end
     )
+    |> Map.put_new(:name, nil)
+  end
+
+  def notify_ready do
+    parent_pid = get_parent()
+    send(parent_pid, {__MODULE__, :ready, self()})
+  end
+
+  defp prepare_child_service_opts(opts) do
+    parent_pid = get_parent()
+
+    opts
+    |> Map.put(__MODULE__, parent_pid)
     |> Map.put_new(:name, nil)
   end
 

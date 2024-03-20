@@ -20,7 +20,7 @@ config :exshome,
   hooks: [
     {Exshome.Dependency.GenServerDependency, ExshomeTest.Hooks.Dependency},
     {Exshome.Config, ExshomeTest.Hooks.Config},
-    {Exshome.Service, ExshomeTest.Hooks.Dependency},
+    {Exshome.Service, [{ExshomeTest.Hooks.Service, []}]},
     {Exshome.Dependency.DynamicDependencySupervisor,
      ExshomeTest.Hooks.DynamicDependencySupervisor},
     {Exshome.FileUtils, ExshomeTest.Hooks.FileUtils},

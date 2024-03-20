@@ -21,7 +21,7 @@ defmodule ExshomeClockTest.Services.LocalTimeTest do
 
   describe "LocalTime" do
     setup do
-      TestRegistry.start_dependency(LocalTime)
+      TestRegistry.start_service(LocalTime)
     end
 
     test "returns NotReady without dependencies" do

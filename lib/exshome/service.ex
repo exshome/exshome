@@ -62,15 +62,9 @@ defmodule Exshome.Service do
     @type response() :: default_response() | call_response()
 
     @doc """
-    Configures extension. You can validate settings here.
-    This function runs in the `GenServer.init/1`, so it is better to return fast from it.
-    """
-    @callback configure_extension!(ServiceState.t(), ServiceBehaviour.settings_t()) :: term()
-
-    @doc """
     Runs after the service has already started, but the module was not inited yet.
     """
-    @callback before_init(ServiceState.t()) :: ServiceState.t()
+    @callback init(ServiceState.t(), ServiceBehaviour.settings_t()) :: ServiceState.t()
     @doc """
     Runs after the service has already started, and the module is already initiated itself.
     """
@@ -82,7 +76,6 @@ defmodule Exshome.Service do
     @callback handle_stop(message :: term(), state :: ServiceState.t()) :: default_response()
 
     @optional_callbacks [
-      before_init: 1,
       after_init: 1,
       handle_call: 3,
       handle_info: 2,
@@ -127,22 +120,17 @@ defmodule Exshome.Service do
     @behaviour ServiceExtensionBehaviour
 
     @impl ServiceExtensionBehaviour
-    def configure_extension!(%ServiceState{}, config) do
-      %__MODULE__{
+    def init(%ServiceState{} = state, config) do
+      deps = Dependency.change_deps([], config, %{})
+
+      settings = %__MODULE__{
         config: config,
-        deps: %{},
+        deps: deps,
         dependency_mapping: Enum.group_by(config, &elem(&1, 1), &elem(&1, 0)),
         value: Dependency.NotReady
       }
-    end
 
-    @impl ServiceExtensionBehaviour
-    def before_init(%ServiceState{} = state) do
-      %__MODULE__{} = settings = Service.get_private(state, __MODULE__)
-
-      deps = Dependency.change_deps([], settings.config, settings.deps)
-
-      Service.update_private(state, __MODULE__, &%__MODULE__{&1 | deps: deps})
+      Service.update_private(state, __MODULE__, fn _ -> settings end)
     end
 
     @impl ServiceExtensionBehaviour
@@ -309,34 +297,32 @@ defmodule Exshome.Service do
 
     {id, opts} = Map.pop!(opts, :id)
 
-    :ok = SystemRegistry.register!(__MODULE__, id, self())
-
     module = Id.get_module(id)
 
-    state = prepare_lifecycle(%ServiceState{id: id, module: module, opts: opts})
+    state =
+      %ServiceState{id: id, module: module, opts: opts}
+      |> update_private(__MODULE__, fn _ -> [] end)
 
     {:ok, state, {:continue, :on_init}}
   end
 
   @impl GenServer
-  def handle_continue(:on_init, %ServiceState{module: module} = state) do
-    extensions = get_private(state, __MODULE__)
+  def handle_continue(:on_init, %ServiceState{} = state) do
+    state =
+      state
+      |> init_extensions()
+      |> state.module.init()
 
-    state_before_init =
-      for ext <- extensions, function_exported?(ext, :before_init, 1), reduce: state do
-        old_state -> ext.before_init(old_state)
-      end
+    :ok = SystemRegistry.register!(__MODULE__, state.id, self())
 
-    state_after_module_init = module.init(state_before_init)
-
-    state_after_init =
-      for ext <- extensions,
+    state =
+      for ext <- get_private(state, __MODULE__),
           function_exported?(ext, :after_init, 1),
-          reduce: state_after_module_init do
+          reduce: state do
         old_state -> ext.after_init(old_state)
       end
 
-    {:noreply, state_after_init}
+    {:noreply, state}
   end
 
   @impl GenServer
@@ -389,15 +375,16 @@ defmodule Exshome.Service do
     end
   end
 
-  @spec prepare_lifecycle(ServiceState.t()) :: ServiceState.t()
-  defp prepare_lifecycle(%ServiceState{} = state) do
-    settings = state.module.service_settings(state.id)
+  @default_settings Application.compile_env(:exshome, [:hooks, __MODULE__], [])
+  @spec init_extensions(ServiceState.t()) :: ServiceState.t()
+  defp init_extensions(%ServiceState{} = state) do
+    settings =
+      @default_settings ++
+        state.module.service_settings(state.id)
 
     state =
-      for {extension, config} <- settings, reduce: state do
-        state ->
-          extension_data = extension.configure_extension!(state, config)
-          update_private(state, extension, fn _ -> extension_data end)
+      for {ext, config} <- settings, reduce: state do
+        old_state -> ext.init(old_state, config)
       end
 
     extensions = Keyword.keys(settings)
@@ -429,17 +416,6 @@ defmodule Exshome.Service do
     case fun.(state, extension) do
       {:cont, state} -> reduce_hooks(extensions, state, fun)
       {:stop, _response} = result -> result
-    end
-  end
-
-  @hook_module Application.compile_env(:exshome, :hooks, [])[__MODULE__]
-  if @hook_module do
-    defoverridable(init: 1)
-
-    def init(opts) do
-      @hook_module.init(opts)
-      result = super(opts)
-      result
     end
   end
 end
