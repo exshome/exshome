@@ -1,6 +1,6 @@
 // We import the CSS which is extracted to its own file by esbuild.
 // Remove this line if you add a your own CSS build pipeline (e.g postcss).
-// 
+//
 // If you want to use Phoenix channels, run `mix help phx.gen.channel`
 // to get started and then uncomment the line below.
 // import "./user_socket.js"
@@ -43,22 +43,27 @@ let liveSocket = new LiveSocket("/live", Socket, {params: {_csrf_token: csrfToke
 
 // Show progress bar on live navigation and form submits
 topbar.config({barColors: {0: "#29d"}, shadowColor: "rgba(0, 0, 0, .3)"});
-window.addEventListener("phx:page-loading-start", (info) => {
+window.addEventListener("phx:page-loading-start", () => {
   if (!topBarScheduled) {
     topBarScheduled = setTimeout(() => topbar.show(), 500);
   }
 });
-window.addEventListener("phx:page-loading-stop", (info) => {
+window.addEventListener("phx:page-loading-stop", () => {
   clearInterval(topBarScheduled);
   topBarScheduled = undefined;
   topbar.hide();
 });
 
-// Listening to the js events
+// Listen to the js events
 window.addEventListener("phx:js-event", ({detail: {data}}) => {
   liveSocket.execJS(document.documentElement, data);
 });
 
+// Listen to server logs
+window.addEventListener("phx:live_reload:attached", ({detail: reloader}) => {
+  reloader.enableServerLogs();
+  window.liveReloader = reloader;
+});
 
 // connect if there are any LiveViews on the page
 liveSocket.connect();
