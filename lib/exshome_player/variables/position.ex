@@ -6,12 +6,10 @@ defmodule ExshomePlayer.Variables.Position do
   alias ExshomePlayer.Services.Playback
   alias ExshomePlayer.Services.PlayerState
 
-  use Exshome.Variable.GenServerVariable,
+  use Exshome.Service.VariableService,
     app: ExshomePlayer,
     name: "player_position",
-    subscribe: [
-      dependencies: [{PlayerState, :player}]
-    ],
+    dependencies: [player: PlayerState],
     variable: [
       group: "player",
       type: Exshome.Datatype.Integer,
@@ -20,8 +18,8 @@ defmodule ExshomePlayer.Variables.Position do
       ]
     ]
 
-  @impl Subscription
-  def on_dependency_change(%DependencyState{deps: %{player: %PlayerState{} = player}} = state) do
+  @impl DependencyServiceBehaviour
+  def handle_dependency_change(%ServiceState{deps: %{player: %PlayerState{} = player}} = state) do
     position = round(player.time_pos || 0)
     duration = round(player.duration || 0)
 
@@ -30,14 +28,14 @@ defmodule ExshomePlayer.Variables.Position do
     |> update_validations(&Map.put(&1, :max, duration))
   end
 
-  @impl GenServerVariable
-  def handle_set_value(%DependencyState{} = state, value) when is_integer(value) do
+  @impl VariableServiceBehaviour
+  def handle_set_value(value, %ServiceState{} = state) when is_integer(value) do
     Playback.seek(value)
     state
   end
 
-  @impl GenServerVariable
-  def not_ready_reason(%DependencyState{deps: %{player: %PlayerState{path: nil}}}) do
+  @impl VariableServiceBehaviour
+  def not_ready_reason(%ServiceState{deps: %{player: %PlayerState{path: nil}}}) do
     "No track is playing"
   end
 

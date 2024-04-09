@@ -4,18 +4,18 @@ defmodule ExshomeAutomation.Services.WorkflowRegistry do
   """
 
   alias Exshome.DataStream.Operation
+  alias Exshome.Emitter
   alias ExshomeAutomation.Services.Workflow
   alias ExshomeAutomation.Streams.WorkflowStateStream
 
-  use Exshome.Dependency.GenServerDependency,
+  use Exshome.Service.DependencyService,
     app: ExshomeAutomation,
-    name: "automation_workflow_registry",
-    subscribe: [
-      streams: [WorkflowStateStream]
-    ]
+    name: "automation_workflow_registry"
 
-  @impl GenServerDependencyBehaviour
-  def on_init(%DependencyState{} = state) do
+  @impl ServiceBehaviour
+  def init(%ServiceState{} = state) do
+    :ok = Emitter.subscribe(WorkflowStateStream)
+
     workflows =
       for %Workflow{} = workflow <- Workflow.list(), into: %{} do
         {workflow.id, workflow}
@@ -24,18 +24,17 @@ defmodule ExshomeAutomation.Services.WorkflowRegistry do
     update_value(state, fn _ -> workflows end)
   end
 
-  @impl Subscription
-  def on_stream(
-        %DependencyState{} = state,
-        {WorkflowStateStream, %Operation.Delete{data: %Workflow{id: id}}}
+  @impl DependencyServiceBehaviour
+  def handle_stream(
+        {WorkflowStateStream, %Operation.Delete{data: %Workflow{id: id}}},
+        %ServiceState{} = state
       ) do
     update_value(state, &Map.delete(&1, id))
   end
 
-  @impl Subscription
-  def on_stream(
-        %DependencyState{} = state,
-        {WorkflowStateStream, %operation{data: %Workflow{} = workflow}}
+  def handle_stream(
+        {WorkflowStateStream, %operation{data: %Workflow{} = workflow}},
+        %ServiceState{} = state
       )
       when operation in [Operation.Insert, Operation.Update] do
     update_value(state, &Map.put(&1, workflow.id, workflow))

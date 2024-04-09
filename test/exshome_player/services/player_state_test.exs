@@ -52,11 +52,11 @@ defmodule ExshomePlayerTest.Services.PlayerStateTest do
   defp setup_with_opts(opts) do
     server_fixture()
 
-    TestRegistry.start_dependency(MpvSocket, opts)
+    TestRegistry.start_service(MpvSocket, opts)
 
     assert Dependency.get_and_subscribe(MpvSocket) == :connected
 
-    TestRegistry.start_dependency(PlayerState)
+    TestRegistry.start_service(PlayerState)
     Emitter.subscribe(PlayerFileEndEvent)
     Emitter.subscribe(PlayerStateEvent)
 

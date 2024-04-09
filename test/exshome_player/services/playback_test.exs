@@ -8,8 +8,9 @@ defmodule ExshomePlayerTest.Services.PlaybackTest do
 
   setup do
     server_fixture()
-    ExshomeTest.TestRegistry.start_dependency(MpvSocket)
-    ExshomeTest.TestRegistry.start_dependency(PlayerState)
+    ExshomeTest.TestRegistry.start_service(MpvSocket)
+    ExshomeTest.TestRegistry.start_service(PlayerState)
+    assert Dependency.get_value(PlayerState) != Dependency.NotReady
 
     %{}
   end

@@ -2,7 +2,7 @@ defmodule ExshomePlayer.Services.MpvSocket do
   @moduledoc """
   Implementation for MPV socket. It allows to send you some commands to the MPV server.
   """
-  use Exshome.Dependency.GenServerDependency, app: ExshomePlayer, name: "mpv_socket"
+  use Exshome.Service.DependencyService, app: ExshomePlayer, name: "mpv_socket"
   alias Exshome.Emitter
   alias ExshomePlayer.Events.MpvEvent
   alias ExshomePlayer.Services.MpvServer
@@ -20,7 +20,7 @@ defmodule ExshomePlayer.Services.MpvSocket do
   end
 
   def request(data) when is_map(data) do
-    call({:send_command, data})
+    Exshome.Service.call(__MODULE__, {:send_command, data})
   end
 
   defmodule Data do
@@ -36,20 +36,20 @@ defmodule ExshomePlayer.Services.MpvSocket do
           }
   end
 
-  @impl GenServerDependencyBehaviour
-  def on_init(%DependencyState{} = state), do: connect_to_socket(state)
+  @impl ServiceBehaviour
+  def init(%ServiceState{} = state), do: connect_to_socket(state)
 
-  @impl GenServerDependencyBehaviour
+  @impl ServiceBehaviour
   def handle_call(
         {:send_command, _data},
         _from,
-        %DependencyState{data: %Data{socket: nil}} = state
+        %ServiceState{data: %Data{socket: nil}} = state
       ) do
     {:reply, not_connected_error(), state}
   end
 
-  @impl GenServerDependencyBehaviour
-  def handle_call({:send_command, data}, from, %DependencyState{} = state) do
+  @impl ServiceBehaviour
+  def handle_call({:send_command, data}, from, %ServiceState{} = state) do
     string_data =
       data
       |> Map.put(:request_id, state.data.counter)
@@ -69,8 +69,8 @@ defmodule ExshomePlayer.Services.MpvSocket do
     {:noreply, new_state}
   end
 
-  @impl GenServerDependencyBehaviour
-  def handle_info({:tcp_closed, _socket}, %DependencyState{} = state) do
+  @impl ServiceBehaviour
+  def handle_info({:tcp_closed, _socket}, %ServiceState{} = state) do
     for pending_request <- Map.values(state.data.requests) do
       GenServer.reply(pending_request, not_connected_error())
     end
@@ -83,13 +83,13 @@ defmodule ExshomePlayer.Services.MpvSocket do
     {:noreply, schedule_reconnect(new_state)}
   end
 
-  @impl GenServerDependencyBehaviour
-  def handle_info(:reconnect, %DependencyState{} = state) do
+  @impl ServiceBehaviour
+  def handle_info(:reconnect, %ServiceState{} = state) do
     {:noreply, connect_to_socket(state)}
   end
 
-  @impl GenServerDependencyBehaviour
-  def handle_info({:tcp, _socket, message}, %DependencyState{} = state) do
+  @impl ServiceBehaviour
+  def handle_info({:tcp, _socket, message}, %ServiceState{} = state) do
     new_state =
       message
       |> Jason.decode!()
@@ -98,14 +98,14 @@ defmodule ExshomePlayer.Services.MpvSocket do
     {:noreply, new_state}
   end
 
-  def handle_message(%{"event" => _event} = message, %DependencyState{} = state) do
+  def handle_message(%{"event" => _event} = message, %ServiceState{} = state) do
     {type, data} = Map.pop!(message, "event")
 
     Emitter.broadcast(MpvEvent, {type, data})
     state
   end
 
-  def handle_message(message, %DependencyState{data: %Data{requests: requests}} = state) do
+  def handle_message(message, %ServiceState{data: %Data{requests: requests}} = state) do
     {request_id, response} = Map.pop!(message, "request_id")
 
     :ok =
@@ -130,8 +130,8 @@ defmodule ExshomePlayer.Services.MpvSocket do
 
   defp not_connected_error, do: {:error, :not_connected}
 
-  @spec connect_to_socket(DependencyState.t()) :: DependencyState.t()
-  defp connect_to_socket(%DependencyState{} = state) do
+  @spec connect_to_socket(ServiceState.t()) :: ServiceState.t()
+  defp connect_to_socket(%ServiceState{} = state) do
     connect_result =
       :gen_tcp.connect(
         {:local, MpvServer.socket_path()},
@@ -150,8 +150,8 @@ defmodule ExshomePlayer.Services.MpvSocket do
     end
   end
 
-  @spec schedule_reconnect(DependencyState.t()) :: DependencyState.t()
-  defp schedule_reconnect(%DependencyState{} = state) do
+  @spec schedule_reconnect(ServiceState.t()) :: ServiceState.t()
+  defp schedule_reconnect(%ServiceState{} = state) do
     Process.send_after(
       self(),
       :reconnect,

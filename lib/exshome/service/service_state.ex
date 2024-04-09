@@ -1,12 +1,13 @@
-defmodule Exshome.Dependency.GenServerDependency.DependencyState do
+defmodule Exshome.Service.ServiceState do
   @moduledoc """
-  Inner state for each dependency.
+  Inner state of each service.
   """
   alias Exshome.Dependency
 
   defstruct [
+    :id,
     :data,
-    :dependency,
+    :module,
     :opts,
     deps: %{},
     private: %{},
@@ -14,10 +15,11 @@ defmodule Exshome.Dependency.GenServerDependency.DependencyState do
   ]
 
   @type t() :: %__MODULE__{
-          data: any(),
-          dependency: Exshome.Id.t(),
+          id: Exshome.Id.t(),
+          data: term(),
           deps: map(),
-          opts: any(),
+          module: module(),
+          opts: term(),
           private: map(),
           value: Dependency.value()
         }

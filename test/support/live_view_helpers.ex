@@ -23,7 +23,7 @@ defmodule ExshomeTest.LiveViewHelpers do
       |> Enum.filter(&function_exported?(&1, :child_spec, 1))
 
     for dependency <- supervised_dependencies do
-      ExshomeTest.TestRegistry.start_dependency(dependency)
+      ExshomeTest.TestRegistry.start_service(dependency)
     end
 
     :ok

@@ -23,7 +23,7 @@ defmodule Exshome.Dependency.DynamicDependencySupervisor do
     child_module = module.child_module()
 
     child_opts
-    |> Map.merge(%{dependency: {child_module, id}, name: nil})
+    |> Map.merge(%{id: {child_module, id}, name: nil})
     |> child_module.child_spec()
   end
 

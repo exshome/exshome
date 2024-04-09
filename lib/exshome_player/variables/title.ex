@@ -5,20 +5,18 @@ defmodule ExshomePlayer.Variables.Title do
 
   alias ExshomePlayer.Services.PlayerState
 
-  use Exshome.Variable.GenServerVariable,
+  use Exshome.Service.VariableService,
     app: ExshomePlayer,
     name: "player_title",
-    subscribe: [
-      dependencies: [{PlayerState, :player}]
-    ],
+    dependencies: [player: PlayerState],
     variable: [
       group: "player",
       readonly?: true,
       type: Exshome.Datatype.String
     ]
 
-  @impl Subscription
-  def on_dependency_change(%DependencyState{deps: %{player: %PlayerState{} = player}} = state) do
+  @impl DependencyServiceBehaviour
+  def handle_dependency_change(%ServiceState{deps: %{player: %PlayerState{} = player}} = state) do
     title = extract_title(player.metadata)
     update_value(state, fn _ -> title end)
   end
@@ -30,8 +28,8 @@ defmodule ExshomePlayer.Variables.Title do
   defp extract_title(%{"title" => title}), do: title
   defp extract_title(_), do: "Unknown title"
 
-  @impl GenServerVariable
-  def not_ready_reason(%DependencyState{deps: %{player: %PlayerState{path: nil}}}) do
+  @impl VariableServiceBehaviour
+  def not_ready_reason(%ServiceState{deps: %{player: %PlayerState{path: nil}}}) do
     "No track is playing"
   end
 

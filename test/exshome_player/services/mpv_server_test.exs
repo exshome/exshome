@@ -8,7 +8,7 @@ defmodule ExshomePlayerTest.Services.MpvServerTest do
 
   describe "MPV is installed" do
     setup do
-      TestRegistry.start_dependency(MpvServer, %{})
+      TestRegistry.start_service(MpvServer, %{})
     end
 
     test "service has correct state" do
@@ -27,7 +27,7 @@ defmodule ExshomePlayerTest.Services.MpvServerTest do
   describe "MPV is not installed" do
     setup do
       ExshomeTest.Hooks.MpvServer.set_mpv_executable_response({:error, :not_found})
-      TestRegistry.start_dependency(MpvServer, %{})
+      TestRegistry.start_service(MpvServer, %{})
     end
 
     test "server does not start" do

@@ -4,11 +4,13 @@ defmodule ExshomeAutomationTest.Variables.DynamicVariable.VariableSupervisorTest
   alias Exshome.Datatype
   alias Exshome.Dependency.NotReady
   alias ExshomeAutomation.Variables.DynamicVariable.Schema
+  alias ExshomeAutomation.Variables.DynamicVariable.VariableSupervisor
+  alias ExshomeTest.TestRegistry
 
   import ExshomeTest.DynamicVariableHelpers
 
   test "no dynamic variables" do
-    start_dynamic_variable_supervisor()
+    TestRegistry.start_dynamic_supervisor(VariableSupervisor)
   end
 
   test "starts with valid datatype" do
@@ -18,13 +20,13 @@ defmodule ExshomeAutomationTest.Variables.DynamicVariable.VariableSupervisorTest
       |> Datatype.name()
 
     %Schema{id: id} = Schema.create!(datatype_name)
-    start_dynamic_variable_supervisor()
+    TestRegistry.start_dynamic_supervisor(VariableSupervisor)
     assert get_dynamic_variable_value(id) != NotReady
   end
 
   test "starts with invalid datatype" do
     %Schema{id: id} = create_dynamic_variable_with_unknown_type()
-    start_dynamic_variable_supervisor()
+    TestRegistry.start_dynamic_supervisor(VariableSupervisor)
     assert get_dynamic_variable_value(id) != NotReady
   end
 end

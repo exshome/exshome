@@ -20,8 +20,8 @@ defmodule ExshomePlayerTest.Live.PlayerTest do
   describe "render with dependencies" do
     setup %{conn: conn} do
       TestMpvServer.server_fixture()
-      TestRegistry.start_dependency(MpvSocket, %{})
-      TestRegistry.start_dependency(PlayerState, %{})
+      TestRegistry.start_service(MpvSocket)
+      TestRegistry.start_service(PlayerState)
       start_app_page_dependencies(Player)
       {:ok, view, _html} = live(conn, "/app/player/player")
       %{view: view}
@@ -61,7 +61,7 @@ defmodule ExshomePlayerTest.Live.PlayerTest do
 
     test "navigates through playlist", %{view: view} do
       TestMpvServer.generate_random_tracks(2..10)
-      TestRegistry.start_dependency(Playlist)
+      TestRegistry.start_service(Playlist)
 
       [%Track{id: first_id}, %Track{id: second_id} | _] = Dependency.get_value(Playlist)
 

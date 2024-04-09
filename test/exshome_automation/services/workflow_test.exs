@@ -10,10 +10,9 @@ defmodule ExshomeAutomationTest.Services.WorkflowTest do
   alias ExshomeTest.TestRegistry
 
   import ExshomeTest.Fixtures
-  import ExshomeTest.WorkflowHelpers
 
   setup do
-    start_workflow_supervisor()
+    TestRegistry.start_dynamic_supervisor(Workflow.WorkflowSupervisor)
     Emitter.subscribe(WorkflowStateStream)
     :ok = Workflow.create!()
 

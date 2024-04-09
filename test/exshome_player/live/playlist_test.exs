@@ -6,7 +6,8 @@ defmodule ExshomePlayerTest.Live.PlaylistTest do
   alias ExshomePlayer.Events.PlayerFileEndEvent
   alias ExshomePlayer.Live
   alias ExshomePlayer.Schemas.Track
-  alias ExshomePlayer.Services.{MpvSocket, Playlist}
+  alias ExshomePlayer.Services.MpvSocket
+  alias ExshomePlayer.Services.Playlist
   alias ExshomeTest.TestMpvServer
   alias ExshomeTest.TestRegistry
 
@@ -19,7 +20,7 @@ defmodule ExshomePlayerTest.Live.PlaylistTest do
   describe "render with dependencies" do
     setup %{conn: conn} do
       TestMpvServer.server_fixture()
-      TestRegistry.start_dependency(MpvSocket, %{})
+      TestRegistry.start_service(MpvSocket)
       TestMpvServer.generate_random_tracks(3..10)
       Track.refresh_tracklist()
       start_app_page_dependencies(Live.Playlist)

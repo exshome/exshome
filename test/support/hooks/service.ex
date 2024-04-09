@@ -3,23 +3,22 @@ defmodule ExshomeTest.Hooks.Service do
   Adds common service operations for tests.
   """
 
-  alias Exshome.Service.ServiceExtensionBehaviour
-  alias Exshome.Service.ServiceState
+  alias Exshome.Behaviours.ServiceExtensionBehaviour
   alias ExshomeTest.TestRegistry
 
   @behaviour ServiceExtensionBehaviour
 
   @impl ServiceExtensionBehaviour
-  def init(%ServiceState{opts: %{TestRegistry => parent_pid}} = state, _) do
-    :ok = TestRegistry.allow(parent_pid, self())
-    state
-  end
-
-  def init(state, _), do: state
+  def validate_config!(_), do: :ok
 
   @impl ServiceExtensionBehaviour
-  def after_init(%ServiceState{} = state) do
-    TestRegistry.notify_ready()
+  def init(state, _) do
+    :ok =
+      :"$ancestors"
+      |> Process.get()
+      |> List.last()
+      |> TestRegistry.allow(self())
+
     state
   end
 end

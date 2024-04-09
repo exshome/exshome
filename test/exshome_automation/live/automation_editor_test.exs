@@ -3,7 +3,6 @@ defmodule ExshomeAutomationTest.Live.AutomationEditorTest do
 
   import ExshomeTest.Fixtures
   import ExshomeTest.SvgCanvasHelpers
-  import ExshomeTest.WorkflowHelpers
 
   alias Exshome.DataStream.Operation
   alias Exshome.Dependency.NotReady
@@ -12,6 +11,7 @@ defmodule ExshomeAutomationTest.Live.AutomationEditorTest do
   alias ExshomeAutomation.Services.Workflow
   alias ExshomeAutomation.Services.Workflow.WorkflowSupervisor
   alias ExshomeAutomation.Streams.{EditorStream, WorkflowStateStream}
+  alias ExshomeTest.TestRegistry
 
   @default_height 1000
   @default_width 2000
@@ -110,7 +110,7 @@ defmodule ExshomeAutomationTest.Live.AutomationEditorTest do
 
   defp create_workflow do
     :ok = Emitter.subscribe(WorkflowStateStream)
-    start_workflow_supervisor()
+    TestRegistry.start_dynamic_supervisor(WorkflowSupervisor)
     :ok = Workflow.create!()
     assert_receive_stream({WorkflowStateStream, %Operation.Insert{data: %Workflow{} = workflow}})
     workflow

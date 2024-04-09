@@ -11,7 +11,7 @@ defmodule ExshomePlayerTest.Live.UploadFileModalTest do
 
   setup %{conn: conn} do
     TestMpvServer.server_fixture()
-    TestRegistry.start_dependency(MpvSocket, %{})
+    TestRegistry.start_service(MpvSocket)
     TestMpvServer.generate_random_tracks(2..10)
     start_app_page_dependencies(Playlist)
     {:ok, view, _html} = live(conn, @playlist_page_link)

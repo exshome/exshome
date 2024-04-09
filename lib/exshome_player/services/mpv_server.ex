@@ -2,29 +2,32 @@ defmodule ExshomePlayer.Services.MpvServer do
   @moduledoc """
   Starts MPV server.
   """
-  use Exshome.Dependency.GenServerDependency, app: ExshomePlayer, name: "mpv_server"
+
+  alias Exshome.Dependency.NotReady
+
+  use Exshome.Service.DependencyService, app: ExshomePlayer, name: "mpv_server"
 
   @player_folder "player"
   @music_folder Path.join(@player_folder, "music")
 
   def restart do
-    call(:restart)
+    Exshome.Service.call(__MODULE__, :restart)
   end
 
-  @impl GenServerDependencyBehaviour
-  def on_init(%DependencyState{} = state) do
+  @impl ServiceBehaviour
+  def init(%ServiceState{} = state) do
     start_mpv_server(state)
   end
 
-  @impl GenServerDependencyBehaviour
-  def handle_call(:restart, _from, %DependencyState{} = state) do
+  @impl ServiceBehaviour
+  def handle_call(:restart, _from, %ServiceState{} = state) do
     {:reply, :exec.kill(state.data.server_pid, 9), state}
   end
 
-  @impl GenServerDependencyBehaviour
+  @impl ServiceBehaviour
   def handle_info(
         {:EXIT, server_pid, _reason},
-        %DependencyState{data: %{server_pid: server_pid}} = state
+        %ServiceState{data: %{server_pid: server_pid}} = state
       ) do
     state =
       state
@@ -34,8 +37,8 @@ defmodule ExshomePlayer.Services.MpvServer do
     {:noreply, state}
   end
 
-  @spec start_mpv_server(DependencyState.t()) :: DependencyState.t()
-  defp start_mpv_server(%DependencyState{} = state) do
+  @spec start_mpv_server(ServiceState.t()) :: ServiceState.t()
+  defp start_mpv_server(%ServiceState{} = state) do
     case find_mpv_executable() do
       {:ok, program} ->
         {:ok, pid, _ospid} =

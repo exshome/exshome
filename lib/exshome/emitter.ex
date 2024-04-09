@@ -19,9 +19,17 @@ defmodule Exshome.Emitter do
   """
   @spec subscribe(Id.t()) :: :ok
   def subscribe(id) do
-    :ok = id |> pub_sub_topic() |> PubSub.subscribe()
+    existing_subscription =
+      subscriptions()
+      |> Map.get(identifier_type(id), MapSet.new())
+      |> MapSet.member?(id)
 
-    add_subscription(id)
+    if existing_subscription do
+      :ok
+    else
+      :ok = id |> pub_sub_topic() |> PubSub.subscribe()
+      add_subscription(id)
+    end
   end
 
   @doc """

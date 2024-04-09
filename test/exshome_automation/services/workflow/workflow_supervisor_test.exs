@@ -2,10 +2,11 @@ defmodule ExshomeAutomationTest.Services.Workflow.WorkflowSupervisorTest do
   use ExshomeTest.DataCase, async: true
 
   alias ExshomeAutomation.Services.Workflow.Schema
-  import ExshomeTest.WorkflowHelpers
+  alias ExshomeAutomation.Services.Workflow.WorkflowSupervisor
+  alias ExshomeTest.TestRegistry
 
   test "no workflows" do
-    start_workflow_supervisor()
+    TestRegistry.start_dynamic_supervisor(WorkflowSupervisor)
   end
 
   test "starts multiple workflows" do
@@ -15,7 +16,7 @@ defmodule ExshomeAutomationTest.Services.Workflow.WorkflowSupervisorTest do
       %Schema{} = Schema.create!()
     end
 
-    pid = start_workflow_supervisor()
+    pid = TestRegistry.start_dynamic_supervisor(WorkflowSupervisor)
     assert %{active: ^amount, workers: ^amount} = Supervisor.count_children(pid)
     Supervisor.stop(pid)
   end

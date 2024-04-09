@@ -11,6 +11,7 @@ defmodule ExshomeAutomationTest.Live.ShowVariableModalTest do
   alias Exshome.Variable.VariableStateStream
   alias ExshomeAutomation.Live.Variables
   alias ExshomeAutomation.Services.VariableRegistry
+  alias ExshomeAutomation.Variables.DynamicVariable.VariableSupervisor
   alias ExshomePlayer.Services.MpvSocket
   alias ExshomePlayer.Services.PlayerState
   alias ExshomePlayer.Variables.Position
@@ -18,15 +19,14 @@ defmodule ExshomeAutomationTest.Live.ShowVariableModalTest do
   alias ExshomeTest.TestMpvServer
   alias ExshomeTest.TestRegistry
   import ExshomeTest.Fixtures
-  import ExshomeTest.DynamicVariableHelpers
 
   describe "built-in variables" do
     setup %{conn: conn} do
       TestMpvServer.server_fixture()
-      TestRegistry.start_dependency(MpvSocket)
-      TestRegistry.start_dependency(PlayerState)
-      TestRegistry.start_dependency(Position)
-      TestRegistry.start_dependency(Volume)
+      TestRegistry.start_service(MpvSocket)
+      TestRegistry.start_service(PlayerState)
+      TestRegistry.start_service(Position)
+      TestRegistry.start_service(Volume)
       start_app_page_dependencies(Variables)
       {:ok, view, _html} = live(conn, "/app/automation/variables")
       %{view: view}
@@ -58,7 +58,7 @@ defmodule ExshomeAutomationTest.Live.ShowVariableModalTest do
 
   describe "custom variables" do
     setup %{conn: conn} do
-      start_dynamic_variable_supervisor()
+      TestRegistry.start_dynamic_supervisor(VariableSupervisor)
       start_app_page_dependencies(Variables)
       {:ok, view, _html} = live(conn, "/app/automation/variables")
       %{view: view}
@@ -75,12 +75,8 @@ defmodule ExshomeAutomationTest.Live.ShowVariableModalTest do
     end
 
     test "deletes a variable when modal is open", %{view: view} do
-      create_new_variable(view, Enum.random(Datatype.available_types()))
-
-      assert_receive_app_page_stream(
-        {VariableStateStream,
-         %Operation.Insert{data: %VariableConfig{id: variable_id, dependency: dependency}}}
-      )
+      %VariableConfig{id: variable_id, dependency: dependency} =
+        create_new_variable(view, Enum.random(Datatype.available_types()))
 
       open_modal(view, dependency)
       :ok = Variable.delete_by_id!(variable_id)
@@ -94,6 +90,12 @@ defmodule ExshomeAutomationTest.Live.ShowVariableModalTest do
       view
       |> form("form[phx-submit='new-variable']")
       |> render_submit(%{type: datatype_name})
+
+      assert_receive_app_page_stream(
+        {VariableStateStream, %Operation.Insert{data: %VariableConfig{} = config}}
+      )
+
+      config
     end
   end
 

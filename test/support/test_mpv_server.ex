@@ -79,12 +79,12 @@ defmodule ExshomeTest.TestMpvServer do
 
   @spec test_server() :: pid()
   defp test_server do
-    Process.get(TestMpvServer) || raise "Test server not found"
+    Process.get(__MODULE__) || raise "Test server not found"
   end
 
   @spec set_test_server(pid()) :: term()
   defp set_test_server(server) do
-    Process.put(TestMpvServer, server)
+    Process.put(__MODULE__, server)
   end
 
   @spec set_events([%{}]) :: term()
@@ -127,7 +127,7 @@ defmodule ExshomeTest.TestMpvServer do
 
   @spec stop_server() :: :ok
   def stop_server do
-    :ok = Callbacks.stop_supervised!(ExshomeTest.TestMpvServer)
+    :ok = Callbacks.stop_supervised!(__MODULE__)
   end
 
   @spec start_link(Arguments.t()) :: GenServer.on_start()

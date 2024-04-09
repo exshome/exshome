@@ -12,7 +12,7 @@ defmodule ExshomeClock.Services.LocalTime do
     ]
 
   @impl DependencyServiceBehaviour
-  def handle_dependency_change(deps, %ServiceState{} = state) do
+  def handle_dependency_change(%ServiceState{deps: deps} = state) do
     value =
       DateTime.shift_zone!(
         deps.utc_time,

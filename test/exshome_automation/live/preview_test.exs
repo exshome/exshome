@@ -18,8 +18,8 @@ defmodule ExshomeAutomationTest.Live.PreviewTest do
 
   describe "render with dependencies" do
     setup do
-      TestRegistry.start_dependency(VariableRegistry)
-      TestRegistry.start_dependency(WorkflowRegistry)
+      TestRegistry.start_service(VariableRegistry)
+      TestRegistry.start_service(WorkflowRegistry)
     end
 
     test "works fine", %{conn: conn} do
@@ -42,13 +42,13 @@ defmodule ExshomeAutomationTest.Live.PreviewTest do
 
   defp start_variable do
     flush_messages()
-    TestRegistry.start_dependency(Volume)
+    TestRegistry.start_service(Volume)
     assert_receive_app_page_dependency({AutomationStatus, _})
   end
 
   defp stop_variable do
     flush_messages()
-    TestRegistry.stop_dependency(Volume)
+    TestRegistry.stop_service(Volume)
     assert_receive_app_page_dependency({AutomationStatus, _})
   end
 

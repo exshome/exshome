@@ -1,6 +1,6 @@
 defmodule ExshomeWebTest.App.AppSupervisorTest do
   use ExshomeTest.DataCase, async: true
-  alias Exshome.Dependency.GenServerDependency
+  alias Exshome.Service
   alias ExshomeWeb.App
   alias ExshomeWeb.App.AppSupervisor
 
@@ -49,9 +49,9 @@ defmodule ExshomeWebTest.App.AppSupervisorTest do
 
   defp get_child_modules_for_apps(apps) do
     apps
-    |> Enum.map(&GenServerDependency.modules/1)
+    |> Enum.map(&Service.app_modules/1)
     |> Enum.flat_map(&MapSet.to_list/1)
-    |> Enum.map(& &1.get_child_module())
+    |> Enum.map(& &1.get_parent_module())
     |> Enum.into(MapSet.new())
   end
 end

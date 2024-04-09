@@ -1,8 +1,9 @@
 defmodule ExshomeAutomationTest.Live.AutomationsTest do
   use ExshomeWebTest.ConnCase, async: true
   alias ExshomeAutomation.Live.Automations
+  alias ExshomeAutomation.Services.Workflow.WorkflowSupervisor
   alias ExshomeAutomation.Services.WorkflowRegistry
-  import ExshomeTest.WorkflowHelpers
+  alias ExshomeTest.TestRegistry
 
   describe "render without dependencies" do
     test "works fine", %{conn: conn} do
@@ -12,7 +13,7 @@ defmodule ExshomeAutomationTest.Live.AutomationsTest do
 
   describe "render with dependencies" do
     setup %{conn: conn} do
-      start_workflow_supervisor()
+      TestRegistry.start_dynamic_supervisor(WorkflowSupervisor)
       view = render_workflows(conn)
       %{view: view}
     end

@@ -3,7 +3,7 @@ defmodule Exshome.Behaviours.AppBehaviour do
   Behaviour for exshome applications.
   """
 
-  alias Exshome.Dependency.GenServerDependency
+  alias Exshome.Service
 
   @callback can_start?() :: bool()
 
@@ -16,8 +16,8 @@ defmodule Exshome.Behaviours.AppBehaviour do
   @spec init_app(module(), map()) :: {:ok, tuple()}
   def init_app(module, child_opts) when is_map(child_opts) do
     module
-    |> GenServerDependency.modules()
-    |> Enum.map(&{&1.get_child_module(), child_opts})
+    |> Service.app_modules()
+    |> Enum.map(&{&1.get_parent_module(), child_opts})
     |> Supervisor.init(strategy: :one_for_one)
   end
 

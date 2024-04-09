@@ -2,7 +2,11 @@ defmodule ExshomeTest.TestRegistry do
   @moduledoc """
   Registry for async tests.
   """
+  alias Exshome.Emitter
+  alias Exshome.Service.ServiceStateEvent
   alias Exshome.SystemRegistry
+  alias ExshomeTest.Hooks.DynamicDependencySupervisor
+
   import ExUnit.Assertions
 
   @spec started?() :: boolean()
@@ -37,23 +41,47 @@ defmodule ExshomeTest.TestRegistry do
     SystemRegistry.get({__MODULE__, :value, get_parent(), key})
   end
 
-  @spec start_dependency(module :: module(), opts :: map()) :: :ok
-  def start_dependency(module, opts \\ %{}) do
-    opts = prepare_child_opts(opts)
-    pid = ExUnit.Callbacks.start_supervised!({module, opts})
-    put({:dependency, module}, pid)
+  @spec start_dynamic_supervisor(module) :: pid()
+  def start_dynamic_supervisor(module) do
+    :ok = Emitter.subscribe(ServiceStateEvent)
+
+    pid =
+      %{}
+      |> prepare_child_opts()
+      |> Map.put(:supervisor_opts, name: nil)
+      |> module.child_spec()
+      |> ExUnit.Callbacks.start_supervised!()
+
+    for {_id, child_pid, :worker, _args} <- Supervisor.which_children(pid) do
+      assert_receive({
+        Exshome.Event,
+        {ServiceStateEvent, %ServiceStateEvent{pid: ^child_pid}}
+      })
+    end
+
+    :ok = DynamicDependencySupervisor.put_supervisor_pid(module, pid)
+
+    pid
   end
 
   @spec start_service(module :: module(), opts :: map()) :: :ok
   def start_service(module, opts \\ %{}) do
-    opts = prepare_child_service_opts(opts)
+    :ok = Emitter.subscribe(ServiceStateEvent)
     pid = ExUnit.Callbacks.start_supervised!({module, opts})
-    assert_receive({__MODULE__, :ready, ^pid})
+
+    assert_receive(
+      {Exshome.Event,
+       {
+         ServiceStateEvent,
+         %ServiceStateEvent{id: ^module, state: :ready, pid: ^pid}
+       }}
+    )
+
     put({:service, module}, pid)
   end
 
-  @spec stop_dependency(module :: module()) :: :ok
-  def stop_dependency(module) do
+  @spec stop_service(module :: module()) :: :ok
+  def stop_service(module) do
     :ok = ExUnit.Callbacks.stop_supervised!(module)
   end
 
@@ -88,14 +116,6 @@ defmodule ExshomeTest.TestRegistry do
   def notify_ready do
     parent_pid = get_parent()
     send(parent_pid, {__MODULE__, :ready, self()})
-  end
-
-  defp prepare_child_service_opts(opts) do
-    parent_pid = get_parent()
-
-    opts
-    |> Map.put(__MODULE__, parent_pid)
-    |> Map.put_new(:name, nil)
   end
 
   @spec get_parent() :: pid()

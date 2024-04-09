@@ -8,22 +8,6 @@ defmodule ExshomeTest.DynamicVariableHelpers do
   alias Exshome.Repo
   alias ExshomeAutomation.Variables.DynamicVariable
   alias ExshomeAutomation.Variables.DynamicVariable.Schema
-  alias ExshomeAutomation.Variables.DynamicVariable.VariableSupervisor
-  alias ExshomeTest.Hooks.DynamicDependencySupervisor
-  alias ExshomeTest.TestRegistry
-
-  @spec start_dynamic_variable_supervisor() :: pid()
-  def start_dynamic_variable_supervisor do
-    pid =
-      %{}
-      |> TestRegistry.prepare_child_opts()
-      |> Map.put(:supervisor_opts, name: nil)
-      |> VariableSupervisor.child_spec()
-      |> ExUnit.Callbacks.start_supervised!()
-
-    :ok = DynamicDependencySupervisor.put_supervisor_pid(VariableSupervisor, pid)
-    pid
-  end
 
   @spec get_dynamic_variable_value(String.t()) :: Dependency.value()
   def get_dynamic_variable_value(id) when is_binary(id) do

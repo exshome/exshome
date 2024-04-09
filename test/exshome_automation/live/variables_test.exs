@@ -7,6 +7,7 @@ defmodule ExshomeAutomationTest.Live.VariablesTest do
   alias ExshomeAutomation.Live.Variables
   alias ExshomeAutomation.Services.VariableRegistry
   alias ExshomeAutomation.Variables.DynamicVariable.Schema
+  alias ExshomeAutomation.Variables.DynamicVariable.VariableSupervisor
   alias ExshomePlayer.Variables.Pause
   alias ExshomeTest.TestRegistry
 
@@ -34,7 +35,7 @@ defmodule ExshomeAutomationTest.Live.VariablesTest do
   describe "invalid dynamic variable" do
     test "renders fine", %{conn: conn} do
       %Schema{id: id} = create_dynamic_variable_with_unknown_type()
-      start_dynamic_variable_supervisor()
+      TestRegistry.start_dynamic_supervisor(VariableSupervisor)
       assert get_dynamic_variable_value(id) != NotReady
       view = render_variables_list(conn)
       assert count_variables(view) == 1
@@ -45,7 +46,7 @@ defmodule ExshomeAutomationTest.Live.VariablesTest do
 
   describe "creates dynamic variable" do
     setup %{conn: conn} do
-      start_dynamic_variable_supervisor()
+      TestRegistry.start_dynamic_supervisor(VariableSupervisor)
       view = render_variables_list(conn)
       %{view: view}
     end
@@ -79,13 +80,13 @@ defmodule ExshomeAutomationTest.Live.VariablesTest do
 
   defp start_variable do
     flush_messages()
-    TestRegistry.start_dependency(Pause)
+    TestRegistry.start_service(Pause)
     assert_receive_app_page_dependency({VariableRegistry, _})
   end
 
   defp stop_variable do
     flush_messages()
-    TestRegistry.stop_dependency(Pause)
+    TestRegistry.stop_service(Pause)
     assert_receive_app_page_dependency({VariableRegistry, _})
   end
 

@@ -5,14 +5,12 @@ defmodule ExshomeAutomation.Services.AutomationStatus do
   alias ExshomeAutomation.Services.VariableRegistry
   alias ExshomeAutomation.Services.WorkflowRegistry
 
-  use Exshome.Dependency.GenServerDependency,
+  use Exshome.Service.DependencyService,
     app: ExshomeAutomation,
     name: "automation_status",
-    subscribe: [
-      dependencies: [
-        {VariableRegistry, :variables},
-        {WorkflowRegistry, :workflows}
-      ]
+    dependencies: [
+      variables: VariableRegistry,
+      workflows: WorkflowRegistry
     ]
 
   defstruct [
@@ -29,15 +27,15 @@ defmodule ExshomeAutomation.Services.AutomationStatus do
           not_ready_workflows: integer()
         }
 
-  @impl Subscription
-  def on_dependency_change(%DependencyState{} = state) do
+  @impl DependencyServiceBehaviour
+  def handle_dependency_change(%ServiceState{deps: deps} = state) do
     {ready_variables, not_ready_variables} =
-      state.deps.variables
+      deps.variables
       |> Map.values()
       |> Enum.split_with(&(!&1.not_ready_reason))
 
     {ready_workflows, not_ready_workflows} =
-      state.deps.workflows
+      deps.workflows
       |> Map.values()
       |> Enum.split_with(& &1.active)
 

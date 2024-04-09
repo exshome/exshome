@@ -6,32 +6,30 @@ defmodule ExshomePlayer.Variables.Pause do
   alias ExshomePlayer.Services.Playback
   alias ExshomePlayer.Services.PlayerState
 
-  use Exshome.Variable.GenServerVariable,
+  use Exshome.Service.VariableService,
     app: ExshomePlayer,
     name: "player_pause",
-    subscribe: [
-      dependencies: [{PlayerState, :player}]
-    ],
+    dependencies: [player: PlayerState],
     variable: [
       group: "player",
       type: Exshome.Datatype.Boolean
     ]
 
-  @impl Subscription
-  def on_dependency_change(%DependencyState{deps: %{player: %PlayerState{} = player}} = state) do
+  @impl DependencyServiceBehaviour
+  def handle_dependency_change(%ServiceState{deps: %{player: %PlayerState{} = player}} = state) do
     player_has_track = !player.path
     track_is_paused = player_has_track || player.pause
     update_value(state, fn _ -> track_is_paused end)
   end
 
-  @impl GenServerVariable
-  def handle_set_value(%DependencyState{} = state, value) when is_boolean(value) do
+  @impl VariableServiceBehaviour
+  def handle_set_value(value, %ServiceState{} = state) when is_boolean(value) do
     if value, do: Playback.pause(), else: Playback.play()
     state
   end
 
-  @impl GenServerVariable
-  def not_ready_reason(%DependencyState{deps: %{player: %PlayerState{path: nil}}}) do
+  @impl VariableServiceBehaviour
+  def not_ready_reason(%ServiceState{deps: %{player: %PlayerState{path: nil}}}) do
     "No track is playing"
   end
 

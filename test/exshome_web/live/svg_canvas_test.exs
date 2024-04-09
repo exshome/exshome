@@ -6,9 +6,9 @@ defmodule ExshomeWebTest.SvgCanvasTest do
   alias ExshomeAutomation.Live.AutomationEditor
   alias ExshomeAutomation.Services.Workflow
   alias ExshomeAutomation.Streams.WorkflowStateStream
+  alias ExshomeTest.TestRegistry
 
   import ExshomeTest.SvgCanvasHelpers
-  import ExshomeTest.WorkflowHelpers
 
   @default_width 1000
   @default_height 2000
@@ -221,7 +221,7 @@ defmodule ExshomeWebTest.SvgCanvasTest do
   end
 
   defp render_automation_editor(conn) do
-    start_workflow_supervisor()
+    TestRegistry.start_dynamic_supervisor(Workflow.WorkflowSupervisor)
     :ok = Emitter.subscribe(WorkflowStateStream)
     :ok = Workflow.create!()
 

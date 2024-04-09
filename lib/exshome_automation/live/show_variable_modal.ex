@@ -12,6 +12,8 @@ defmodule ExshomeAutomation.Live.ShowVariableModal do
   use ExshomeWeb.Live.AppPage, dependencies: []
 
   @impl LiveView
+  def render(%{config: NotReady} = assigns), do: ~H"There is no such variable"
+
   def render(assigns) do
     ~H"""
     <.missing_deps_placeholder deps={@deps}>
@@ -72,7 +74,7 @@ defmodule ExshomeAutomation.Live.ShowVariableModal do
       |> put_error_message(nil)
       |> put_dependencies([{config.dependency, :variable}])
 
-    {:ok, assign(socket, :config, config)}
+    {:ok, socket}
   end
 
   @impl LiveView

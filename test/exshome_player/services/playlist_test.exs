@@ -10,9 +10,11 @@ defmodule ExshomePlayerTest.Services.PlaylistTest do
   alias Exshome.Emitter
   alias ExshomePlayer.Events.PlayerFileEndEvent
   alias ExshomePlayer.Schemas.Track
-  alias ExshomePlayer.Services.{MpvSocket, Playlist}
+  alias ExshomePlayer.Services.MpvSocket
+  alias ExshomePlayer.Services.Playlist
   alias ExshomePlayer.Streams.TrackStream
   alias ExshomePlayer.Variables.Title
+  alias ExshomeTest.TestRegistry
 
   describe "Playlist not started" do
     test "returns NotReady" do
@@ -22,7 +24,7 @@ defmodule ExshomePlayerTest.Services.PlaylistTest do
 
   describe "empty tracklist/0" do
     setup do
-      ExshomeTest.TestRegistry.start_dependency(Playlist)
+      TestRegistry.start_service(Playlist)
     end
 
     test "shows an empty tracklist" do
@@ -33,7 +35,7 @@ defmodule ExshomePlayerTest.Services.PlaylistTest do
   describe "tracklist/0 with tracks" do
     setup do
       generate_random_tracks()
-      ExshomeTest.TestRegistry.start_dependency(Playlist)
+      TestRegistry.start_service(Playlist)
     end
 
     test "shows non-empty tracklist" do
@@ -46,8 +48,8 @@ defmodule ExshomePlayerTest.Services.PlaylistTest do
     setup do
       server_fixture()
       generate_random_tracks(2..10)
-      ExshomeTest.TestRegistry.start_dependency(MpvSocket)
-      ExshomeTest.TestRegistry.start_dependency(Playlist)
+      TestRegistry.start_service(MpvSocket)
+      TestRegistry.start_service(Playlist)
       tracks = Dependency.get_value(Playlist)
       %{tracks: tracks}
     end

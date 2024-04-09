@@ -12,9 +12,9 @@ defmodule ExshomeAutomationTest.Services.AutomationStatusTest do
 
   setup do
     Emitter.subscribe(AutomationStatus)
-    TestRegistry.start_dependency(VariableRegistry)
-    TestRegistry.start_dependency(WorkflowRegistry)
-    TestRegistry.start_dependency(AutomationStatus)
+    TestRegistry.start_service(VariableRegistry)
+    TestRegistry.start_service(WorkflowRegistry)
+    TestRegistry.start_service(AutomationStatus)
   end
 
   test "shows empty data" do
@@ -52,7 +52,7 @@ defmodule ExshomeAutomationTest.Services.AutomationStatusTest do
 
   defp start_variable do
     flush_messages()
-    TestRegistry.start_dependency(Volume)
+    TestRegistry.start_service(Volume)
     assert_receive_dependency({AutomationStatus, _})
   end
 
@@ -63,7 +63,7 @@ defmodule ExshomeAutomationTest.Services.AutomationStatusTest do
 
   defp stop_variable do
     flush_messages()
-    TestRegistry.stop_dependency(Volume)
+    TestRegistry.stop_service(Volume)
     assert_receive_dependency({AutomationStatus, _})
   end
 end

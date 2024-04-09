@@ -8,7 +8,7 @@ defmodule ExshomeClockTest.Services.UtcTimeTest do
   alias ExshomeTest.TestRegistry
 
   setup do
-    TestRegistry.start_dependency(UtcTime, %{refresh_interval: 1, precision: :microsecond})
+    TestRegistry.start_service(UtcTime, %{refresh_interval: 1, precision: :microsecond})
   end
 
   test "clock works" do

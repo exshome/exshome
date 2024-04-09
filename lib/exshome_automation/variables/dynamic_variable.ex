@@ -11,33 +11,30 @@ defmodule ExshomeAutomation.Variables.DynamicVariable do
 
   @group "automation"
 
-  use Exshome.Variable.GenServerVariable,
+  use Exshome.Service.VariableService,
     app: ExshomeAutomation,
     name: "dynamic_variable",
-    child_module: VariableSupervisor,
+    parent_module: VariableSupervisor,
     variable: [
       group: @group,
       readonly?: true,
       type: Datatype.Unknown
     ]
 
-  @impl GenServerDependencyBehaviour
-  def on_init(%DependencyState{dependency: {__MODULE__, id}} = state) when is_binary(id) do
+  @impl ServiceBehaviour
+  def init(%ServiceState{id: {__MODULE__, id}} = state) when is_binary(id) do
     id
     |> Schema.get!()
     |> set_state_from_schema(state)
   end
 
-  @impl GenServerVariable
-  def variable_from_dependency_state(%DependencyState{
-        data: %Schema{} = schema,
-        dependency: dependency
-      }) do
+  @impl VariableServiceBehaviour
+  def variable_from_state(%ServiceState{data: %Schema{} = schema, id: id}) do
     type = Datatype.get_by_name(schema.type)
 
     %VariableConfig{
-      dependency: dependency,
-      id: Dependency.dependency_id(dependency),
+      dependency: id,
+      id: Dependency.dependency_id(id),
       name: schema.name,
       group: @group,
       not_ready_reason: nil,
@@ -49,10 +46,8 @@ defmodule ExshomeAutomation.Variables.DynamicVariable do
     }
   end
 
-  def variable_from_dependency_state(state), do: super(state)
-
-  @impl GenServerDependencyBehaviour
-  def handle_call({:rename, name}, _, %DependencyState{} = state) do
+  @impl ServiceBehaviour
+  def handle_call({:rename, name}, _, %ServiceState{} = state) do
     state =
       state.data
       |> Schema.rename!(name)
@@ -61,8 +56,8 @@ defmodule ExshomeAutomation.Variables.DynamicVariable do
     {:reply, :ok, state}
   end
 
-  @impl GenServerVariable
-  def handle_set_value(%DependencyState{data: %Schema{}} = state, value) do
+  @impl VariableServiceBehaviour
+  def handle_set_value(value, %ServiceState{data: %Schema{}} = state) do
     state.data
     |> Schema.update_value!(value)
     |> set_state_from_schema(state)
@@ -80,13 +75,13 @@ defmodule ExshomeAutomation.Variables.DynamicVariable do
     VariableSupervisor.start_child_with_id(id)
   end
 
-  defp set_state_from_schema(%Schema{} = data, %DependencyState{} = state) do
+  defp set_state_from_schema(%Schema{} = data, %ServiceState{} = state) do
     state
     |> update_data(fn _ -> data end)
     |> update_value_from_schema()
   end
 
-  defp update_value_from_schema(%DependencyState{data: %Schema{} = schema} = state) do
+  defp update_value_from_schema(%ServiceState{data: %Schema{} = schema} = state) do
     {:ok, value} =
       schema.type
       |> Datatype.get_by_name()
@@ -105,7 +100,7 @@ defmodule ExshomeAutomation.Variables.DynamicVariable do
   end
 
   @impl VariableBehaviour
-  def rename(dependency, name) when is_binary(name) do
-    GenServerDependency.call(dependency, {:rename, name})
+  def rename(id, name) when is_binary(name) do
+    Exshome.Service.call(id, {:rename, name})
   end
 end

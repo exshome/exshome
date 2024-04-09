@@ -3,19 +3,19 @@ defmodule ExshomeAutomation.Services.VariableRegistry do
   Lists available variables.
   """
   alias Exshome.DataStream.Operation
+  alias Exshome.Emitter
   alias Exshome.Variable
   alias Exshome.Variable.VariableConfig
   alias Exshome.Variable.VariableStateStream
 
-  use Exshome.Dependency.GenServerDependency,
+  use Exshome.Service.DependencyService,
     app: ExshomeAutomation,
-    name: "variable_registry",
-    subscribe: [
-      streams: [VariableStateStream]
-    ]
+    name: "variable_registry"
 
-  @impl GenServerDependencyBehaviour
-  def on_init(%DependencyState{} = state) do
+  @impl ServiceBehaviour
+  def init(%ServiceState{} = state) do
+    :ok = Emitter.subscribe(VariableStateStream)
+
     variables =
       for %VariableConfig{} = variable <- Variable.list(), into: %{} do
         {variable.id, variable}
@@ -24,17 +24,17 @@ defmodule ExshomeAutomation.Services.VariableRegistry do
     update_value(state, fn _ -> variables end)
   end
 
-  @impl Subscription
-  def on_stream(
-        %DependencyState{} = state,
-        {VariableStateStream, %Operation.Delete{data: %VariableConfig{id: id}}}
+  @impl DependencyServiceBehaviour
+  def handle_stream(
+        {VariableStateStream, %Operation.Delete{data: %VariableConfig{id: id}}},
+        %ServiceState{} = state
       ) do
     update_value(state, &Map.delete(&1, id))
   end
 
-  def on_stream(
-        %DependencyState{} = state,
-        {VariableStateStream, %operation{data: %VariableConfig{} = variable}}
+  def handle_stream(
+        {VariableStateStream, %operation{data: %VariableConfig{} = variable}},
+        %ServiceState{} = state
       )
       when operation in [Operation.Insert, Operation.Update] do
     update_value(state, &Map.put(&1, variable.id, variable))

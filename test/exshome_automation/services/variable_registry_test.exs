@@ -8,7 +8,7 @@ defmodule ExshomeAutomationTest.Services.VariableRegistryTest do
 
   describe "without started variables" do
     setup do
-      TestRegistry.start_dependency(VariableRegistry)
+      TestRegistry.start_service(VariableRegistry)
     end
 
     test "shows empty data" do
@@ -29,11 +29,11 @@ defmodule ExshomeAutomationTest.Services.VariableRegistryTest do
   end
 
   defp start_variable do
-    TestRegistry.start_dependency(Pause)
+    TestRegistry.start_service(Pause)
   end
 
   defp stop_variable do
-    TestRegistry.stop_dependency(Pause)
+    TestRegistry.stop_service(Pause)
   end
 
   defp count_variables do

@@ -6,7 +6,8 @@ defmodule ExshomePlayerTest.Live.EditLinkModalTest do
   alias Exshome.Dependency.NotReady
   alias ExshomePlayer.Live
   alias ExshomePlayer.Schemas.Track
-  alias ExshomePlayer.Services.{MpvSocket, Playlist}
+  alias ExshomePlayer.Services.MpvSocket
+  alias ExshomePlayer.Services.Playlist
   alias ExshomeTest.TestMpvServer
   alias ExshomeTest.TestRegistry
 
@@ -14,7 +15,7 @@ defmodule ExshomePlayerTest.Live.EditLinkModalTest do
 
   setup %{conn: conn} do
     TestMpvServer.server_fixture()
-    TestRegistry.start_dependency(MpvSocket, %{})
+    TestRegistry.start_service(MpvSocket)
     start_app_page_dependencies(Live.Playlist)
     {:ok, view, _html} = live(conn, @playlist_page_link)
     assert Dependency.get_value(Playlist) != NotReady

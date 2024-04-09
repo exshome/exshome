@@ -6,6 +6,7 @@ defmodule ExshomeAutomation.Services.Workflow do
   alias Exshome.DataStream.Operation
   alias Exshome.Dependency.NotReady
   alias Exshome.Emitter
+  alias Exshome.Service
   alias Exshome.SystemRegistry
   alias ExshomeAutomation.Services.Workflow.Editor
   alias ExshomeAutomation.Services.Workflow.EditorItem
@@ -23,14 +24,14 @@ defmodule ExshomeAutomation.Services.Workflow do
 
   @type editor_item_response() :: :ok | {:error, reason :: String.t()}
 
-  use Exshome.Dependency.GenServerDependency,
+  use Exshome.Service.DependencyService,
     app: ExshomeAutomation,
     name: "automation_workflow",
-    child_module: WorkflowSupervisor
+    parent_module: WorkflowSupervisor
 
-  @impl GenServerDependencyBehaviour
-  def on_init(%DependencyState{} = state) do
-    {__MODULE__, id} = state.dependency
+  @impl ServiceBehaviour
+  def init(%ServiceState{} = state) do
+    {__MODULE__, id} = state.id
 
     schema = Schema.get!(id)
     value = schema_to_workflow_data(schema)
@@ -43,9 +44,9 @@ defmodule ExshomeAutomation.Services.Workflow do
     |> update_editor(nil, &Editor.load_editor(&1, schema))
   end
 
-  @impl GenServerDependencyBehaviour
-  def handle_stop(_reason, %DependencyState{} = state) do
-    :ok = remove_workflow_data(state.value)
+  @impl ServiceBehaviour
+  def handle_stop(_reason, %ServiceState{value: value} = state) do
+    :ok = remove_workflow_data(value)
     state
   end
 
@@ -115,21 +116,21 @@ defmodule ExshomeAutomation.Services.Workflow do
   @spec rename(String.t(), String.t()) :: :ok
   def rename(id, name), do: call(id, {:rename, name})
 
-  @impl GenServerDependencyBehaviour
-  def handle_call(:list_items, _, %DependencyState{} = state) do
+  @impl ServiceBehaviour
+  def handle_call(:list_items, _, %ServiceState{} = state) do
     {:reply, Editor.list_items(state.data), state}
   end
 
-  def handle_call({:get_item, item_id}, _, %DependencyState{} = state) do
+  def handle_call({:get_item, item_id}, _, %ServiceState{} = state) do
     {:reply, Editor.get_item(state.data, item_id), state}
   end
 
-  def handle_call({:create_item, type, position}, {request_pid, _}, %DependencyState{} = state) do
+  def handle_call({:create_item, type, position}, {request_pid, _}, %ServiceState{} = state) do
     state = update_editor(state, request_pid, &Editor.create_item(&1, type, position))
     {:reply, :ok, state}
   end
 
-  def handle_call({:select_item, item_id}, {request_pid, _}, %DependencyState{} = state) do
+  def handle_call({:select_item, item_id}, {request_pid, _}, %ServiceState{} = state) do
     item_operation(
       state,
       request_pid,
@@ -138,7 +139,7 @@ defmodule ExshomeAutomation.Services.Workflow do
     )
   end
 
-  def handle_call({{:move_item, item_id}, position}, {request_pid, _}, %DependencyState{} = state) do
+  def handle_call({{:move_item, item_id}, position}, {request_pid, _}, %ServiceState{} = state) do
     item_operation(
       state,
       request_pid,
@@ -150,7 +151,7 @@ defmodule ExshomeAutomation.Services.Workflow do
   def handle_call(
         {{:stop_dragging, item_id}, position},
         {request_pid, _},
-        %DependencyState{} = state
+        %ServiceState{} = state
       ) do
     item_operation(
       state,
@@ -160,7 +161,7 @@ defmodule ExshomeAutomation.Services.Workflow do
     )
   end
 
-  def handle_call({:delete_item, item_id}, {request_pid, _}, %DependencyState{} = state) do
+  def handle_call({:delete_item, item_id}, {request_pid, _}, %ServiceState{} = state) do
     item_operation(
       state,
       request_pid,
@@ -169,7 +170,7 @@ defmodule ExshomeAutomation.Services.Workflow do
     )
   end
 
-  def handle_call({:rename, name}, _, %DependencyState{} = state) do
+  def handle_call({:rename, name}, _, %ServiceState{} = state) do
     value =
       state.value.id
       |> Schema.get!()
@@ -181,14 +182,14 @@ defmodule ExshomeAutomation.Services.Workflow do
     {:reply, :ok, state}
   end
 
-  @impl GenServerDependencyBehaviour
-  def handle_info({:EXIT, pid, _reason}, %DependencyState{} = state) do
+  @impl ServiceBehaviour
+  def handle_info({:EXIT, pid, _reason}, %ServiceState{} = state) do
     state = update_editor(state, pid, &Editor.clear_process_data(&1, pid))
     {:noreply, state}
   end
 
   defp call(id, message) when is_binary(id) do
-    GenServerDependency.call({__MODULE__, id}, message)
+    Service.call({__MODULE__, id}, message)
   end
 
   defp schema_to_workflow_data(%Schema{id: id, name: name}) do
@@ -219,11 +220,11 @@ defmodule ExshomeAutomation.Services.Workflow do
   end
 
   @spec item_operation(
-          DependencyState.t(),
+          ServiceState.t(),
           Operation.key(),
           item_id :: String.t(),
           (Editor.t() -> Editor.t())
-        ) :: {:reply, editor_item_response(), DependencyState.t()}
+        ) :: {:reply, editor_item_response(), ServiceState.t()}
   def item_operation(state, pid, item_id, update_fn) do
     case Editor.get_item(state.data, item_id) do
       %EditorItem{} ->
@@ -235,9 +236,9 @@ defmodule ExshomeAutomation.Services.Workflow do
     end
   end
 
-  @spec update_editor(DependencyState.t(), Operation.key(), (Editor.t() -> Editor.t())) ::
-          DependencyState.t()
-  defp update_editor(%DependencyState{} = state, pid, update_fn) do
+  @spec update_editor(ServiceState.t(), Operation.key(), (Editor.t() -> Editor.t())) ::
+          ServiceState.t()
+  defp update_editor(%ServiceState{} = state, pid, update_fn) do
     operation_timestamp = DateTime.now!("Etc/UTC")
 
     update_data(state, fn editor ->

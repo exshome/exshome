@@ -12,7 +12,7 @@ defmodule ExshomePlayerTest.VariablesTest do
 
   describe "Variables.Duration" do
     setup do
-      TestRegistry.start_dependency(Variables.Duration)
+      TestRegistry.start_service(Variables.Duration)
     end
 
     test "check default value" do
@@ -29,7 +29,7 @@ defmodule ExshomePlayerTest.VariablesTest do
 
   describe "Variables.Pause" do
     setup do
-      TestRegistry.start_dependency(Variables.Pause)
+      TestRegistry.start_service(Variables.Pause)
     end
 
     test "check default value" do
@@ -50,7 +50,7 @@ defmodule ExshomePlayerTest.VariablesTest do
 
   describe "Variables.Position" do
     setup do
-      TestRegistry.start_dependency(Variables.Position)
+      TestRegistry.start_service(Variables.Position)
     end
 
     test "check default value" do
@@ -67,7 +67,7 @@ defmodule ExshomePlayerTest.VariablesTest do
 
   describe "Variables.Title" do
     setup do
-      TestRegistry.start_dependency(Variables.Title)
+      TestRegistry.start_service(Variables.Title)
     end
 
     test "check default value" do
@@ -106,7 +106,7 @@ defmodule ExshomePlayerTest.VariablesTest do
 
   describe "Variables.Volume" do
     setup do
-      TestRegistry.start_dependency(Variables.Volume)
+      TestRegistry.start_service(Variables.Volume)
     end
 
     test "check default value" do

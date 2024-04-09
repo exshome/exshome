@@ -3,17 +3,16 @@ defmodule ExshomePlayer.Services.PlayerState do
   A module for storing a playback state for the MPV client.
   """
 
-  alias __MODULE__
+  alias Exshome.Dependency.NotReady
   alias Exshome.Emitter
   alias ExshomePlayer.Events.{MpvEvent, PlayerFileEndEvent, PlayerStateEvent}
   alias ExshomePlayer.Services.MpvSocket
 
-  use Exshome.Dependency.GenServerDependency,
+  use Exshome.Service.DependencyService,
     app: ExshomePlayer,
     name: "mpv_client",
-    subscribe: [
-      dependencies: [{MpvSocket, :socket}],
-      events: [MpvEvent]
+    dependencies: [
+      socket: MpvSocket
     ]
 
   @keys [
@@ -36,20 +35,26 @@ defmodule ExshomePlayer.Services.PlayerState do
           metadata: map() | nil
         }
 
-  @impl Subscription
-  def on_dependency_change(%DependencyState{} = state) do
-    if state.deps.socket == :connected do
+  @impl ServiceBehaviour
+  def init(%ServiceState{} = state) do
+    :ok = Emitter.subscribe(MpvEvent)
+    state
+  end
+
+  @impl DependencyServiceBehaviour
+  def handle_dependency_change(%ServiceState{deps: deps} = state) do
+    if deps.socket == :connected do
       subscribe_to_player_state()
-      update_value(state, fn _ -> %PlayerState{} end)
+      update_value(state, fn _ -> %__MODULE__{} end)
     else
       update_value(state, fn _ -> NotReady end)
     end
   end
 
-  @impl Subscription
-  def on_event(
-        %DependencyState{} = state,
-        {MpvEvent, {"property-change", %{"name" => name} = event}}
+  @impl DependencyServiceBehaviour
+  def handle_event(
+        {MpvEvent, {"property-change", %{"name" => name} = event}},
+        %ServiceState{} = state
       ) do
     update_value(
       state,
@@ -61,15 +66,15 @@ defmodule ExshomePlayer.Services.PlayerState do
     )
   end
 
-  def on_event(
-        %DependencyState{} = state,
-        {MpvEvent, {"end-file", %{"reason" => reason}}}
+  def handle_event(
+        {MpvEvent, {"end-file", %{"reason" => reason}}},
+        %ServiceState{} = state
       ) do
     Emitter.broadcast(PlayerFileEndEvent, reason)
     state
   end
 
-  def on_event(%DependencyState{} = state, {MpvEvent, event}) do
+  def handle_event({MpvEvent, event}, %ServiceState{} = state) do
     Emitter.broadcast(PlayerStateEvent, event)
     state
   end
