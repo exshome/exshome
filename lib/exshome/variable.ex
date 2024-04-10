@@ -48,9 +48,9 @@ defmodule Exshome.Variable do
       raise "Unable to delete #{variable.name}"
     end
 
-    %VariableConfig{dependency: dependency} = variable
+    %VariableConfig{service_id: service_id} = variable
 
-    Id.get_module(dependency).delete(dependency)
+    Id.get_module(service_id).delete(service_id)
   end
 
   @spec rename_by_id!(id :: String.t(), name :: String.t()) :: :ok
@@ -61,9 +61,9 @@ defmodule Exshome.Variable do
       raise "Unable to rename #{variable.name}"
     end
 
-    %VariableConfig{dependency: dependency} = variable
+    %VariableConfig{service_id: service_id} = variable
 
-    Id.get_module(dependency).rename(dependency, name)
+    Id.get_module(service_id).rename(service_id, name)
   end
 
   @spec register_variable_data(VariableConfig.t()) :: :ok

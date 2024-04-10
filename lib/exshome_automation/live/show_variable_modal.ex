@@ -72,7 +72,7 @@ defmodule ExshomeAutomation.Live.ShowVariableModal do
       socket
       |> assign(:config, config)
       |> put_error_message(nil)
-      |> put_dependencies([{config.dependency, :variable}])
+      |> put_dependencies([{config.service_id, :variable}])
 
     {:ok, socket}
   end
@@ -92,7 +92,7 @@ defmodule ExshomeAutomation.Live.ShowVariableModal do
   end
 
   defp set_value(%Socket{} = socket, value) do
-    case Variable.set_value(socket.assigns.config.dependency, value) do
+    case Variable.set_value(socket.assigns.config.service_id, value) do
       :ok -> put_error_message(socket, nil)
       {:error, error} -> put_error_message(socket, error)
     end

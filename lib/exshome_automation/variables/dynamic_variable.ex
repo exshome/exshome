@@ -33,7 +33,7 @@ defmodule ExshomeAutomation.Variables.DynamicVariable do
     type = Datatype.get_by_name(schema.type)
 
     %VariableConfig{
-      dependency: id,
+      service_id: id,
       id: Dependency.dependency_id(id),
       name: schema.name,
       group: @group,

@@ -75,10 +75,10 @@ defmodule ExshomeAutomationTest.Live.ShowVariableModalTest do
     end
 
     test "deletes a variable when modal is open", %{view: view} do
-      %VariableConfig{id: variable_id, dependency: dependency} =
+      %VariableConfig{id: variable_id, service_id: service_id} =
         create_new_variable(view, Enum.random(Datatype.available_types()))
 
-      open_modal(view, dependency)
+      open_modal(view, service_id)
       :ok = Variable.delete_by_id!(variable_id)
       assert_receive_app_page_dependency({VariableRegistry, _})
       refute render(view) =~ variable_id

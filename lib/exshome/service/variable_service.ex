@@ -36,7 +36,7 @@ defmodule Exshome.Service.VariableService do
     %__MODULE__{config: config} = Service.get_private(state, __MODULE__)
 
     %VariableConfig{
-      dependency: state.id,
+      service_id: state.id,
       id: Dependency.dependency_id(state.id),
       name: Keyword.fetch!(config, :name),
       group: Keyword.fetch!(config, :group),

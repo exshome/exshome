@@ -35,7 +35,7 @@ defmodule ExshomeAutomation.Live.Variables do
           <div class="w-full max-h-full">
             <%= for {group, variables} <- @deps.variables |> Map.values() |> Enum.group_by(& &1.group) |> Enum.sort_by(&elem(&1, 0)) do %>
               <h2 class="text-4xl text-center mt-5 first:mt-0"><%= group %></h2>
-              <.list :let={variable} rows={Enum.sort_by(variables, & &1.dependency)}>
+              <.list :let={variable} rows={Enum.sort_by(variables, & &1.service_id)}>
                 <:row_before :let={variable}>
                   <%= if variable.not_ready_reason do %>
                     <.icon name="hero-exclamation-triangle-solid" class="text-orange-400 p-3" />

@@ -4,7 +4,7 @@ defmodule Exshome.Variable.VariableConfig do
   """
 
   defstruct [
-    :dependency,
+    :service_id,
     :id,
     :name,
     :group,
@@ -17,7 +17,7 @@ defmodule Exshome.Variable.VariableConfig do
   ]
 
   @type t() :: %__MODULE__{
-          dependency: Exshome.Id.t(),
+          service_id: Exshome.Id.t(),
           id: String.t(),
           name: String.t(),
           group: String.t(),
