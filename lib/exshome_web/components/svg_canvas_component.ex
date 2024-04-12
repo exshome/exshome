@@ -4,13 +4,13 @@ defmodule ExshomeWeb.SvgCanvasComponent do
   """
 
   use ExshomeWeb, :html
-  alias ExshomeWeb.Live.SvgCanvas
+  alias ExshomeWeb.Live.SvgCanvas.CanvasSettings
 
   embed_templates("svg_canvas/*")
 
   attr :components, :list, required: true, doc: "components to render"
   attr :menu_items, :list, required: true, doc: "canvas menu items"
-  attr :meta, SvgCanvas, required: true, doc: "canvas metadata"
+  attr :meta, CanvasSettings, required: true, doc: "canvas metadata"
   slot :header, doc: "canvas header"
 
   def render_svg_canvas(assigns) do
