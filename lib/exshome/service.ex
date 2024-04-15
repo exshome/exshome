@@ -7,6 +7,7 @@ defmodule Exshome.Service do
   use GenServer
 
   alias Exshome.BehaviourMapping
+  alias Exshome.Behaviours.ServiceBehaviour
   alias Exshome.Behaviours.ServiceExtensionBehaviour
   alias Exshome.Emitter
   alias Exshome.Id
