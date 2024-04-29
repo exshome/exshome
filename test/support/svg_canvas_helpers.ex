@@ -54,7 +54,7 @@ defmodule ExshomeTest.SvgCanvasHelpers do
 
   @spec get_body_viewbox(live_view_t()) :: viewbox_t()
   def get_body_viewbox(view) do
-    get_viewbox(view, "#default-body")
+    get_viewbox(view, "#canvas-body")
   end
 
   @spec get_viewbox(live_view_t(), String.t()) :: viewbox_t()
@@ -72,31 +72,38 @@ defmodule ExshomeTest.SvgCanvasHelpers do
 
   defp get_zoom_rate(view) do
     %{height: body_height, width: body_width} = get_body_viewbox(view)
-    %{height: canvas_height, width: canvas_width} = get_viewbox(view, "#default-screen")
+    %{height: canvas_height, width: canvas_width} = get_viewbox(view, "#canvas-screen")
     %{x: canvas_width / body_width, y: canvas_height / body_height}
   end
 
   @spec render_create_element(live_view_t(), String.t(), position_t()) :: any()
   def render_create_element(view, component, position) do
     select_element(view, component)
-    render_hook(view, "create", %{pointer: position})
+    render_hook(view, "canvas-create", %{pointer: position, name: "canvas"})
   end
 
   @spec render_dragend(live_view_t(), position :: position_t()) :: String.t()
   def render_dragend(view, position) do
-    assert render_hook(view, "dragend", %{pointer: compute_pointer_position(view, position)})
+    assert render_hook(view, "canvas-dragend", %{
+             pointer: compute_pointer_position(view, position),
+             name: "canvas"
+           })
   end
 
   @spec render_move(live_view_t(), String.t(), position_t()) :: any()
   def render_move(view, component, position) do
     select_element(view, component)
     assert_push_event(view, "move-to-foreground", %{component: ^component})
-    render_hook(view, "move", %{pointer: compute_pointer_position(view, position)})
+
+    render_hook(view, "canvas-move", %{
+      pointer: compute_pointer_position(view, position),
+      name: "canvas"
+    })
   end
 
   @spec resize(live_view_t(), %{height: number(), width: number()}) :: String.t()
   def resize(view, %{height: height, width: width}) do
-    assert render_hook(view, "resize", %{height: height, width: width})
+    assert render_hook(view, "canvas-resize", %{height: height, width: width, name: "canvas"})
   end
 
   @spec select_element(live_view_t(), String.t()) :: String.t()
@@ -105,11 +112,12 @@ defmodule ExshomeTest.SvgCanvasHelpers do
 
     position = %{x: x, y: y}
 
-    render_hook(view, "select", %{
+    render_hook(view, "canvas-select", %{
       component: component,
       offset: %{x: 0, y: 0},
       position: position,
-      pointer: compute_pointer_position(view, position)
+      pointer: compute_pointer_position(view, position),
+      name: "canvas"
     })
   end
 
@@ -132,7 +140,7 @@ defmodule ExshomeTest.SvgCanvasHelpers do
   @spec toggle_menu(live_view_t()) :: :ok
   def toggle_menu(view) do
     view
-    |> element("[phx-click^='menu-toggle-']")
+    |> element("[phx-click^='canvas-menu-toggle']")
     |> render_click()
 
     :ok
@@ -158,15 +166,15 @@ defmodule ExshomeTest.SvgCanvasHelpers do
   @spec get_zoom_value(live_view_t()) :: number()
   def get_zoom_value(view) do
     view
-    |> get_value("[phx-change^='set-zoom-'] input")
+    |> get_value("[phx-change^='canvas-set-zoom'] input")
     |> String.to_integer()
   end
 
   @spec set_zoom_value(live_view_t(), number()) :: String.t()
   def set_zoom_value(view, value) do
     view
-    |> element("[phx-change^='set-zoom-']")
-    |> render_change(%{zoom: value})
+    |> element("[phx-change^='canvas-set-zoom']")
+    |> render_change(%{zoom: value, name: "canvas"})
   end
 
   @spec create_component(live_view_t(), String.t(), position_t()) :: any()

@@ -2,7 +2,8 @@
   <section
     id={"menu-overlay-#{@name}"}
     class="bg-gray-200/20 dark:bg-gray-700/20 h-full w-full"
-    phx-click={"menu-close-#{@name}"}
+    phx-click="canvas-menu-close"
+    phx-value-name={@name}
     phx-hook="StopEvents"
     data-stop-events="mousewheel, DOMMouseScroll"
   >
@@ -23,7 +24,7 @@
             <.render_component
               id={menu_item.id}
               component={menu_item}
-              context={%{name: @name, drag: "create", role: "menu-item"}}
+              context={%{name: @name, drag: "canvas-create", role: "menu-item"}}
             />
           </svg>
         <% end %>
@@ -37,7 +38,8 @@
     width="70"
     viewbox="-30 10 154 124"
     class="fill-gray-200/80 hover:fill-gray-200 dark:fill-gray-700/80 dark:hover:fill-gray-700"
-    phx-click={"menu-toggle-#{@name}"}
+    phx-click="canvas-menu-toggle"
+    phx-value-name={@name}
   >
     <%= if @open? do %>
       <path d="

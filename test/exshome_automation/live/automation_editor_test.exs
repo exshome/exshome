@@ -64,12 +64,12 @@ defmodule ExshomeAutomationTest.Live.AutomationEditorTest do
     test "deletes element", %{view: view} do
       assert count_components(view) == 5
       component = get_random_component(view)
-      [trashbin] = find_elements(view, "#default-trashbin[data-open='false']")
+      [trashbin] = find_elements(view, "#canvas-trashbin[data-open='false']")
       %{x: x, y: y} = translate_screen_to_canvas(view, trashbin)
       render_move(view, component, %{x: x, y: y})
-      assert [] == find_elements(view, "#default-trashbin[data-open='true']")
+      assert [] == find_elements(view, "#canvas-trashbin[data-open='true']")
       render_move(view, component, %{x: x + 1, y: y + 1})
-      assert [_] = find_elements(view, "#default-trashbin[data-open='true']")
+      assert [_] = find_elements(view, "#canvas-trashbin[data-open='true']")
       render_dragend(view, %{x: x + 1, y: y + 1})
       assert count_components(view) == 4
     end
@@ -90,7 +90,7 @@ defmodule ExshomeAutomationTest.Live.AutomationEditorTest do
   end
 
   defp list_components(view) do
-    find_elements(view, "[data-component^='component-default-'")
+    find_elements(view, "[data-component^='component-canvas-'")
   end
 
   defp count_components(view) do

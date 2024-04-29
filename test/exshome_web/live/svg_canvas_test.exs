@@ -39,45 +39,45 @@ defmodule ExshomeWebTest.SvgCanvasTest do
 
     test "background", %{view: view} do
       select_background(view)
-      render_hook(view, "move-background", %{pointer: %{x: -100, y: -100}})
+      render_hook(view, "canvas-move-background", %{pointer: %{x: -100, y: -100}, name: "canvas"})
       assert match?(%{x: 20.0, y: 20.0}, get_body_viewbox(view))
-      render_hook(view, "move-background", %{pointer: %{x: -50, y: -50}})
+      render_hook(view, "canvas-move-background", %{pointer: %{x: -50, y: -50}, name: "canvas"})
       assert match?(%{x: 10.0, y: 10.0}, get_body_viewbox(view))
       render_dragend(view, %{x: 10, y: 10})
 
       select_background(view)
-      render_hook(view, "move-background", %{pointer: %{x: -100, y: -100}})
+      render_hook(view, "canvas-move-background", %{pointer: %{x: -100, y: -100}, name: "canvas"})
       render_dragend(view, %{x: 10, y: 10})
       assert match?(%{x: 40.0, y: 40.0}, get_body_viewbox(view))
     end
 
     test "scroll-x", %{view: view} do
-      select_element(view, "scroll-body-x-default")
-      render_hook(view, "scroll-body-x", %{pointer: %{x: 60}})
+      select_element(view, "scroll-body-x")
+      render_hook(view, "canvas-scroll-body-x", %{pointer: %{x: 60}, name: "canvas"})
       %{x: x, y: y} = get_body_viewbox(view)
       assert_in_delta(y, 0.0, 0.1)
       assert_in_delta(x, 75.4, 0.1)
     end
 
     test "max scroll-x fits a page", %{view: view} do
-      select_element(view, "scroll-body-x-default")
-      render_hook(view, "scroll-body-x", %{pointer: %{x: @default_width}})
-      [%{x: x, width: width}] = find_elements(view, "[data-drag='scroll-body-x']")
+      select_element(view, "scroll-body-x")
+      render_hook(view, "canvas-scroll-body-x", %{pointer: %{x: @default_width}, name: "canvas"})
+      [%{x: x, width: width}] = find_elements(view, "[data-drag='canvas-scroll-body-x']")
       assert width + x < @default_width
     end
 
     test "scroll-y", %{view: view} do
-      select_element(view, "scroll-body-y-default")
-      render_hook(view, "scroll-body-y", %{pointer: %{y: 60}})
+      select_element(view, "scroll-body-y")
+      render_hook(view, "canvas-scroll-body-y", %{pointer: %{y: 60}, name: "canvas"})
       %{x: x, y: y} = get_body_viewbox(view)
       assert_in_delta(x, 0.0, 0.1)
       assert_in_delta(y, 73.6, 0.1)
     end
 
     test "max scroll-y fits a page", %{view: view} do
-      select_element(view, "scroll-body-y-default")
-      render_hook(view, "scroll-body-y", %{pointer: %{y: @default_height}})
-      [%{y: y, height: height}] = find_elements(view, "[data-drag='scroll-body-y']")
+      select_element(view, "scroll-body-y")
+      render_hook(view, "canvas-scroll-body-y", %{pointer: %{y: @default_height}, name: "canvas"})
+      [%{y: y, height: height}] = find_elements(view, "[data-drag='canvas-scroll-body-y']")
       assert height + y < @default_height
     end
 
@@ -93,11 +93,27 @@ defmodule ExshomeWebTest.SvgCanvasTest do
     end
 
     test "desktop", %{view: view} do
-      render_hook(view, "zoom-desktop", %{pointer: %{x: 0, y: 0}, delta: -1})
+      render_hook(view, "canvas-zoom-desktop", %{
+        pointer: %{x: 0, y: 0},
+        delta: -1,
+        name: "canvas"
+      })
+
       assert %{x: 0.0, y: 0.0, height: 500.0, width: 250.0} == get_body_viewbox(view)
-      render_hook(view, "zoom-desktop", %{pointer: %{x: 50, y: 50}, delta: 1})
+
+      render_hook(view, "canvas-zoom-desktop", %{
+        pointer: %{x: 50, y: 50},
+        delta: 1,
+        name: "canvas"
+      })
+
       assert %{x: 2.5, y: 2.5, height: 400, width: 200} == get_body_viewbox(view)
-      render_hook(view, "zoom-desktop", %{pointer: %{x: 0, y: 0}, delta: -100})
+
+      render_hook(view, "canvas-zoom-desktop", %{
+        pointer: %{x: 0, y: 0},
+        delta: -100,
+        name: "canvas"
+      })
 
       assert %{x: 0, y: 0, height: @default_height, width: @default_width} ==
                get_body_viewbox(view)
@@ -157,7 +173,7 @@ defmodule ExshomeWebTest.SvgCanvasTest do
       initial_zoom = get_zoom_value(view)
 
       view
-      |> element("[phx-click^='zoom-in-']")
+      |> element("[phx-click^='canvas-zoom-in']")
       |> render_click()
 
       assert initial_zoom < get_zoom_value(view)
@@ -167,7 +183,7 @@ defmodule ExshomeWebTest.SvgCanvasTest do
       initial_zoom = get_zoom_value(view)
 
       view
-      |> element("[phx-click^='zoom-out-']")
+      |> element("[phx-click^='canvas-zoom-out']")
       |> render_click()
 
       assert initial_zoom > get_zoom_value(view)
@@ -192,19 +208,19 @@ defmodule ExshomeWebTest.SvgCanvasTest do
     end
 
     test "close", %{view: view} do
-      assert view |> element("#menu-data-default.hidden") |> has_element?()
+      assert view |> element("#menu-data-canvas.hidden") |> has_element?()
       toggle_menu(view)
-      refute view |> element("#menu-data-default.hidden") |> has_element?()
-      view |> element("#menu-overlay-default") |> render_click()
-      assert view |> element("#menu-data-default.hidden") |> has_element?()
+      refute view |> element("#menu-data-canvas.hidden") |> has_element?()
+      view |> element("#menu-overlay-canvas") |> render_click()
+      assert view |> element("#menu-data-canvas.hidden") |> has_element?()
     end
 
     test "toggle", %{view: view} do
-      assert view |> element("#menu-data-default.hidden") |> has_element?()
+      assert view |> element("#menu-data-canvas.hidden") |> has_element?()
       toggle_menu(view)
-      refute view |> element("#menu-data-default.hidden") |> has_element?()
+      refute view |> element("#menu-data-canvas.hidden") |> has_element?()
       toggle_menu(view)
-      assert view |> element("#menu-data-default.hidden") |> has_element?()
+      assert view |> element("#menu-data-canvas.hidden") |> has_element?()
     end
 
     test "create item", %{view: view} do
@@ -216,7 +232,7 @@ defmodule ExshomeWebTest.SvgCanvasTest do
 
   defp count_elements(view) do
     view
-    |> find_elements("[data-component^='component-default-']")
+    |> find_elements("[data-component^='component-canvas-']")
     |> length()
   end
 
@@ -235,7 +251,7 @@ defmodule ExshomeWebTest.SvgCanvasTest do
   end
 
   defp select_background(view) do
-    select_element(view, "canvas-background-default")
+    select_element(view, "canvas-background")
   end
 
   defp setup_page(conn) do
@@ -245,9 +261,10 @@ defmodule ExshomeWebTest.SvgCanvasTest do
   end
 
   defp zoom_mobile(view, original, current_touches) do
-    render_hook(view, "zoom-mobile", %{
+    render_hook(view, "canvas-zoom-mobile", %{
       original: original,
-      current: current_touches
+      current: current_touches,
+      name: "canvas"
     })
   end
 end

@@ -11,18 +11,20 @@ defmodule ExshomeAutomation.Live.AutomationEditor do
   alias ExshomeAutomation.Services.Workflow.EditorItem
   alias ExshomeAutomation.Streams.EditorStream
 
+  @canvas_name :canvas
+
   use ExshomeWeb.Live.AppPage
 
-  use ExshomeWeb.Live.SvgCanvas
+  use ExshomeWeb.Live.SvgCanvas, [@canvas_name]
 
   @impl LiveView
   def render(assigns) do
     ~H"""
     <.missing_deps_placeholder deps={@deps}>
       <ExshomeWeb.SvgCanvasComponent.render_svg_canvas
-        meta={@__svg_meta__}
-        components={@streams.__components__}
-        menu_items={@__menu_items__}
+        meta={@canvas}
+        components={@streams.canvas}
+        menu_items={@__menu_items__.canvas}
       >
         <:header>
           <.live_component
@@ -66,8 +68,8 @@ defmodule ExshomeAutomation.Live.AutomationEditor do
 
     socket =
       socket
-      |> SvgCanvas.replace_components(components)
-      |> SvgCanvas.render_menu_items(menu_items)
+      |> SvgCanvas.replace_components(@canvas_name, components)
+      |> SvgCanvas.render_menu_items(@canvas_name, menu_items)
 
     {:ok, socket}
   end
@@ -115,7 +117,7 @@ defmodule ExshomeAutomation.Live.AutomationEditor do
         %Socket{assigns: %{workflow_id: workflow_id}} = socket
       ) do
     components = Enum.map(items, &generate_component/1)
-    SvgCanvas.replace_components(socket, components)
+    SvgCanvas.replace_components(socket, @canvas_name, components)
   end
 
   def on_stream(
@@ -128,12 +130,12 @@ defmodule ExshomeAutomation.Live.AutomationEditor do
     component = generate_component(item)
 
     if key != self() do
-      SvgCanvas.insert_component(socket, component)
+      SvgCanvas.insert_component(socket, @canvas_name, component)
     else
       socket
-      |> SvgCanvas.insert_component(component)
+      |> SvgCanvas.insert_component(@canvas_name, component)
       |> handle_select(%{id: item.id})
-      |> SvgCanvas.select_item(item.id)
+      |> SvgCanvas.select_item(@canvas_name, item.id)
     end
   end
 
@@ -142,7 +144,7 @@ defmodule ExshomeAutomation.Live.AutomationEditor do
         %Socket{assigns: %{workflow_id: workflow_id}} = socket
       ) do
     component = generate_component(item)
-    SvgCanvas.remove_component(socket, component)
+    SvgCanvas.remove_component(socket, @canvas_name, component)
   end
 
   def on_stream(
@@ -150,7 +152,7 @@ defmodule ExshomeAutomation.Live.AutomationEditor do
         %Socket{assigns: %{workflow_id: workflow_id}} = socket
       ) do
     component = generate_component(item)
-    SvgCanvas.insert_component(socket, component)
+    SvgCanvas.insert_component(socket, @canvas_name, component)
   end
 
   defp generate_component(%EditorItem{} = item) do

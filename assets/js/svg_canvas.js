@@ -110,7 +110,7 @@ export const SvgCanvas = {
 
     this.selectedElement = this.el.querySelector(`[data-component=${component}]`)
     if (this.selectedElement) {
-      this.queueEvent("select", {
+      this.queueEvent("canvas-select", {
         component: this.selectedElement.dataset.component,
         pointer: this.pointerPosition,
         offset: this.getSelectedElementOffset(),
@@ -132,7 +132,7 @@ export const SvgCanvas = {
   onDragEnd() {
     if (this.selectedElement) {
       this.queueEvent(
-        "dragend",
+        "canvas-dragend",
         {
           pointer: this.pointerPosition
         }
@@ -166,7 +166,7 @@ export const SvgCanvas = {
   },
 
   onResize() {
-    this.queueEvent("resize", {height: this.el.clientHeight, width: this.el.clientWidth});
+    this.queueEvent("canvas-resize", {height: this.el.clientHeight, width: this.el.clientWidth});
   },
 
   onScrollDesktop(e) {
@@ -176,7 +176,7 @@ export const SvgCanvas = {
         -1,
         Math.min(1, e.wheelDelta || -e.detail)
       );
-      this.queueEvent("zoom-desktop", {pointer: this.pointerPosition, delta});
+      this.queueEvent("canvas-zoom-desktop", {pointer: this.pointerPosition, delta});
     }
   },
 
@@ -188,16 +188,22 @@ export const SvgCanvas = {
     const event = this.eventQueue.shift();
     if (event) {
       this.sending = true;
-      this.pushEvent(event.name, event.payload, () => {
+      this.pushEvent(event.type, event.payload, () => {
         this.sending = false;
         this.processEventQueue();
       })
     }
   },
 
-  queueEvent(name, payload) {
-    const event = {name, payload};
-    while (this.eventQueue[this.eventQueue.length - 1]?.name === name) {
+  queueEvent(type, payload) {
+    const event = {
+      type,
+      payload: {
+        ...payload,
+        name: this.el.dataset.name
+      }
+    }
+    while (this.eventQueue[this.eventQueue.length - 1]?.type === type) {
       this.eventQueue.pop();
     }
     this.eventQueue.push(event);
@@ -246,7 +252,7 @@ export const SvgCanvas = {
 
   zoomMobile(touches) {
     if (this.originalTouches) {
-      this.queueEvent("zoom-mobile", {original: this.originalTouches, current: touches});
+      this.queueEvent("canvas-zoom-mobile", {original: this.originalTouches, current: touches});
     }
   },
 }

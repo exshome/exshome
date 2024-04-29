@@ -2,10 +2,10 @@
   <section class="flex flex-col sm:flex-row sm:justify-between items-center p-2">
     <%= render_slot(@header) %>
     <div class="w-full max-w-[20em] flex items-center">
-      <.button class="cursor-pointer" phx-click={"zoom-out-#{@meta.name}"}>
+      <.button class="cursor-pointer" phx-click="canvas-zoom-out" phx-value-name={@meta.name}>
         <.icon name="hero-magnifying-glass-minus" />
       </.button>
-      <form class="w-full" phx-change={"set-zoom-#{@meta.name}"}>
+      <form class="w-full" phx-change="canvas-set-zoom" phx-value-name={@meta.name}>
         <.datatype_input
           class="md:ml-8"
           type={Exshome.Datatype.Integer}
@@ -19,7 +19,7 @@
           name="zoom"
         />
       </form>
-      <.button class="cursor-pointer" phx-click={"zoom-in-#{@meta.name}"}>
+      <.button class="cursor-pointer" phx-click="canvas-zoom-in" phx-value-name={@meta.name}>
         <.icon name="hero-magnifying-glass-plus" />
       </.button>
     </div>
@@ -29,6 +29,7 @@
     class="flex-grow h-screen select-none relative"
     data-viewbox-x={@meta.viewbox.x}
     data-viewbox-y={@meta.viewbox.y}
+    data-name={@meta.name}
     phx-hook="SvgCanvas"
   >
     <svg
@@ -44,12 +45,12 @@
         xmlns="http://www.w3.org/2000/svg"
       >
         <rect
-          data-component={"canvas-background-#{@meta.name}"}
+          data-component="canvas-background"
           x={@meta.viewbox.x}
           y={@meta.viewbox.y}
           height={@meta.viewbox.height}
           width={@meta.viewbox.width}
-          data-drag="move-background"
+          data-drag="canvas-move-background"
           class="fill-transparent"
         />
         <g phx-update="stream" id={"#{@meta.name}-content"} class="h-full w-full">
@@ -57,7 +58,7 @@
             <.render_component
               id={id}
               component={component}
-              context={%{name: @meta.name, drag: "move"}}
+              context={%{name: @meta.name, drag: "canvas-move"}}
             />
           <% end %>
         </g>
@@ -71,8 +72,8 @@
         y={@meta.screen.height - @meta.scroll.height}
         height={@meta.scroll.height}
         width={@meta.scroll.size_x}
-        data-drag="scroll-body-x"
-        data-component={"scroll-body-x-#{@meta.name}"}
+        data-drag="canvas-scroll-body-x"
+        data-component="scroll-body-x"
       />
       <rect
         :if={@meta.viewbox.height < @meta.canvas.height}
@@ -83,8 +84,8 @@
         y={@meta.scroll.y}
         height={@meta.scroll.size_y}
         width={@meta.scroll.height}
-        data-drag="scroll-body-y"
-        data-component={"scroll-body-y-#{@meta.name}"}
+        data-drag="canvas-scroll-body-y"
+        data-component="scroll-body-y"
       />
       <.render_trashbin id={"#{@meta.name}-trashbin"} trashbin={@meta.trashbin} />
     </svg>
