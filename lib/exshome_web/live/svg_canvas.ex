@@ -19,8 +19,8 @@ defmodule ExshomeWeb.Live.SvgCanvas do
   @menu_items_key :__menu_items__
 
   @spec get_svg_meta(Socket.t(), binary()) :: CanvasSettings.t()
-  defp get_svg_meta(%Socket{private: %{__MODULE__ => mapping}} = socket, binary_name) do
-    key = Map.fetch!(mapping, binary_name)
+  defp get_svg_meta(%Socket{} = socket, binary_name) do
+    key = get_name_from_mapping!(socket, binary_name)
     Map.fetch!(socket.assigns, key)
   end
 
@@ -55,159 +55,59 @@ defmodule ExshomeWeb.Live.SvgCanvas do
     {:cont, socket}
   end
 
-  def handle_event("canvas-create", %{"name" => binary_name}, %Socket{} = socket) do
-    name = get_name_from_mapping!(socket, binary_name)
-
-    %CanvasSettings{selected: selected, viewbox: viewbox, zoom: %{value: zoom}} =
-      get_svg_meta(socket, binary_name)
-
-    case selected do
-      nil ->
-        {:halt, socket}
-
-      %{
-        offset: %{x: offset_x, y: offset_y},
-        pointer: %{x: pointer_x, y: pointer_y},
-        component: component
-      } ->
-        prefix = "menu-item-#{name}-"
-        component_type = String.replace(component, prefix, "")
-        component_x = viewbox.x + pointer_x / zoom - offset_x
-        component_y = viewbox.y + pointer_y / zoom - offset_y
-
-        socket
-        |> socket.view.handle_create(%{
-          type: component_type,
-          position: %{
-            x: component_x,
-            y: component_y
-          }
-        })
-        |> update_svg_meta_response(name, &CanvasSettings.on_create/1)
-    end
+  def handle_event("canvas-" <> event, %{"name" => binary_name} = params, %Socket{} = socket) do
+    %CanvasSettings{} = settings = get_svg_meta(socket, binary_name)
+    on_canvas_event(event, params, settings, socket)
   end
 
-  def handle_event(
-        "canvas-dragend",
-        %{"pointer" => %{"x" => x, "y" => y}, "name" => binary_name},
-        %Socket{} = socket
-      )
-      when is_number(x) and is_number(y) do
-    name = get_name_from_mapping!(socket, binary_name)
-    %CanvasSettings{trashbin: trashbin} = get_svg_meta(socket, binary_name)
+  def handle_event(_event, _params, %Socket{} = socket) do
+    {:cont, socket}
+  end
+
+  @spec on_canvas_event(String.t(), map(), CanvasSettings.t(), Socket.t()) ::
+          {:cont, Socket.t()} | {:halt, Socket.t()}
+
+  defp on_canvas_event(
+         "resize",
+         %{"height" => height, "width" => width},
+         %CanvasSettings{} = settings,
+         %Socket{} = socket
+       )
+       when is_number(height) and is_number(width) do
+    settings
+    |> CanvasSettings.on_resize(height, width)
+    |> update_canvas_settings_response(socket)
+  end
+
+  defp on_canvas_event("menu-toggle", _, %CanvasSettings{} = settings, %Socket{} = socket) do
+    settings
+    |> CanvasSettings.on_menu_toggle()
+    |> update_canvas_settings_response(socket)
+  end
+
+  defp on_canvas_event("menu-close", _, %CanvasSettings{} = settings, %Socket{} = socket) do
+    settings
+    |> CanvasSettings.on_menu_close()
+    |> update_canvas_settings_response(socket)
+  end
+
+  defp on_canvas_event("select", event, %CanvasSettings{} = settings, %Socket{} = socket) do
+    settings = CanvasSettings.on_select(settings, event)
+
+    socket = update_canvas_settings(settings, socket)
 
     socket =
-      case {component_type(socket, binary_name), trashbin.open?} do
-        {:component, true} ->
-          id = extract_component_id(socket, binary_name)
-
-          socket.view.handle_delete(socket, id)
-
-        {:component, false} ->
-          socket.view.handle_dragend(
-            socket,
-            %{
-              id: extract_component_id(socket, binary_name),
-              position: compute_element_position(socket, binary_name, x, y)
-            }
-          )
-
-        _ ->
-          socket
-      end
-
-    update_svg_meta_response(socket, name, &CanvasSettings.on_dragend/1)
-  end
-
-  def handle_event("canvas-menu-close", %{"name" => name}, %Socket{} = socket) do
-    name = get_name_from_mapping!(socket, name)
-    update_svg_meta_response(socket, name, &CanvasSettings.on_menu_close(&1))
-  end
-
-  def handle_event("canvas-menu-toggle", %{"name" => name}, %Socket{} = socket) do
-    name = get_name_from_mapping!(socket, name)
-    update_svg_meta_response(socket, name, &CanvasSettings.on_menu_toggle(&1))
-  end
-
-  def handle_event(
-        "canvas-move",
-        %{"pointer" => %{"x" => x, "y" => y}, "name" => binary_name},
-        %Socket{} = socket
-      )
-      when is_number(x) and is_number(y) do
-    name = get_name_from_mapping!(socket, binary_name)
-    socket = update_svg_meta(socket, name, &CanvasSettings.on_drag(&1, %{x: x, y: y}))
-    new_position = compute_element_position(socket, binary_name, x, y)
-
-    id = extract_component_id(socket, binary_name)
-    {:halt, socket.view.handle_move(socket, %{id: id, position: new_position})}
-  end
-
-  def handle_event(
-        "canvas-move-background",
-        %{"pointer" => %{"x" => x, "y" => y}, "name" => binary_name},
-        %Socket{} = socket
-      )
-      when is_number(x) and is_number(y) do
-    name = get_name_from_mapping!(socket, binary_name)
-
-    %CanvasSettings{
-      selected: %{position: %{x: original_x, y: original_y}}
-    } = get_svg_meta(socket, binary_name)
-
-    %{x: new_x, y: new_y} = compute_element_position(socket, binary_name, x, y)
-    delta = %{x: 2 * original_x - new_x, y: 2 * original_y - new_y}
-    update_svg_meta_response(socket, name, &CanvasSettings.set_viewbox_position(&1, delta))
-  end
-
-  def handle_event(
-        "canvas-resize",
-        %{"height" => height, "width" => width, "name" => name},
-        %Socket{} = socket
-      )
-      when is_number(height) and is_number(width) do
-    name = get_name_from_mapping!(socket, name)
-    update_svg_meta_response(socket, name, &CanvasSettings.on_resize(&1, height, width))
-  end
-
-  def handle_event(
-        "canvas-scroll-body-x",
-        %{"pointer" => %{"x" => x}, "name" => name},
-        %Socket{} = socket
-      )
-      when is_number(x) do
-    name = get_name_from_mapping!(socket, name)
-    update_svg_meta_response(socket, name, &CanvasSettings.on_body_scroll_x(&1, x))
-  end
-
-  def handle_event(
-        "canvas-scroll-body-y",
-        %{"pointer" => %{"y" => y}, "name" => name},
-        %Socket{} = socket
-      )
-      when is_number(y) do
-    name = get_name_from_mapping!(socket, name)
-    update_svg_meta_response(socket, name, &CanvasSettings.on_body_scroll_y(&1, y))
-  end
-
-  def handle_event("canvas-select", %{"name" => binary_name} = event, %Socket{} = socket) do
-    name = get_name_from_mapping!(socket, binary_name)
-    socket = update_svg_meta(socket, name, &CanvasSettings.on_select(&1, event))
-    %CanvasSettings{selected: selected} = get_svg_meta(socket, binary_name)
-
-    socket =
-      case component_type(selected.component) do
+      case component_type(settings) do
         :component ->
           socket.view.handle_select(
             socket,
             %{
-              id: extract_component_id(socket, binary_name),
+              id: extract_component_id(settings),
               position:
                 compute_element_position(
-                  socket,
-                  binary_name,
-                  selected.pointer.x,
-                  selected.pointer.y
+                  settings,
+                  settings.selected.pointer.x,
+                  settings.selected.pointer.y
                 )
             }
           )
@@ -219,52 +119,185 @@ defmodule ExshomeWeb.Live.SvgCanvas do
     {:halt, socket}
   end
 
-  def handle_event(
-        "canvas-zoom-desktop",
-        %{"delta" => delta, "pointer" => %{"x" => x, "y" => y}, "name" => name},
-        %Socket{} = socket
-      )
-      when is_number(delta) and is_number(x) and is_number(y) do
-    name = get_name_from_mapping!(socket, name)
-    update_svg_meta_response(socket, name, &CanvasSettings.on_zoom_desktop(&1, delta, x, y))
+  defp on_canvas_event("create", _, %CanvasSettings{selected: nil}, %Socket{} = socket),
+    do: {:halt, socket}
+
+  defp on_canvas_event("create", _, %CanvasSettings{} = settings, %Socket{} = socket) do
+    %CanvasSettings{
+      selected: %{
+        offset: offset,
+        pointer: pointer,
+        component: component
+      },
+      viewbox: viewbox,
+      zoom: %{value: zoom}
+    } = settings
+
+    prefix = "menu-item-#{settings.name}-"
+    component_type = String.replace(component, prefix, "")
+    component_x = viewbox.x + pointer.x / zoom - offset.x
+    component_y = viewbox.y + pointer.y / zoom - offset.y
+
+    socket =
+      settings
+      |> CanvasSettings.on_create()
+      |> update_canvas_settings(socket)
+      |> socket.view.handle_create(%{
+        type: component_type,
+        position: %{
+          x: component_x,
+          y: component_y
+        }
+      })
+
+    {:halt, socket}
   end
 
-  def handle_event(
-        "canvas-zoom-mobile",
-        %{
-          "original" => %{"position" => original_position, "touches" => original_touches},
-          "current" => current_touches,
-          "name" => name
-        },
-        %Socket{} = socket
-      ) do
-    name = get_name_from_mapping!(socket, name)
+  defp on_canvas_event(
+         "move",
+         %{"pointer" => %{"x" => x, "y" => y}},
+         %CanvasSettings{} = settings,
+         %Socket{} = socket
+       )
+       when is_number(x) and is_number(y) do
+    settings = CanvasSettings.on_drag(settings, %{x: x, y: y})
+    new_position = compute_element_position(settings, x, y)
+    socket = update_canvas_settings(settings, socket)
+
+    id = extract_component_id(settings)
+    {:halt, socket.view.handle_move(socket, %{id: id, position: new_position})}
+  end
+
+  defp on_canvas_event(
+         "move-background",
+         %{"pointer" => %{"x" => x, "y" => y}},
+         %CanvasSettings{} = settings,
+         %Socket{} = socket
+       )
+       when is_number(x) and is_number(y) do
+    %CanvasSettings{
+      selected: %{position: %{x: original_x, y: original_y}}
+    } = settings
+
+    %{x: new_x, y: new_y} = compute_element_position(settings, x, y)
+    delta = %{x: 2 * original_x - new_x, y: 2 * original_y - new_y}
+
+    settings
+    |> CanvasSettings.set_viewbox_position(delta)
+    |> update_canvas_settings_response(socket)
+  end
+
+  defp on_canvas_event(
+         "dragend",
+         %{"pointer" => %{"x" => x, "y" => y}},
+         %CanvasSettings{} = settings,
+         %Socket{} = socket
+       )
+       when is_number(x) and is_number(y) do
+    socket =
+      case {component_type(settings), settings.trashbin.open?} do
+        {:component, true} ->
+          id = extract_component_id(settings)
+
+          socket.view.handle_delete(socket, id)
+
+        {:component, false} ->
+          socket.view.handle_dragend(
+            socket,
+            %{
+              id: extract_component_id(settings),
+              position: compute_element_position(settings, x, y)
+            }
+          )
+
+        _ ->
+          socket
+      end
+
+    settings
+    |> CanvasSettings.on_dragend()
+    |> update_canvas_settings_response(socket)
+  end
+
+  defp on_canvas_event(
+         "scroll-body-x",
+         %{"pointer" => %{"x" => x}},
+         %CanvasSettings{} = settings,
+         %Socket{} = socket
+       )
+       when is_number(x) do
+    settings
+    |> CanvasSettings.on_body_scroll_x(x)
+    |> update_canvas_settings_response(socket)
+  end
+
+  defp on_canvas_event(
+         "scroll-body-y",
+         %{"pointer" => %{"y" => y}},
+         %CanvasSettings{} = settings,
+         %Socket{} = socket
+       )
+       when is_number(y) do
+    settings
+    |> CanvasSettings.on_body_scroll_y(y)
+    |> update_canvas_settings_response(socket)
+  end
+
+  defp on_canvas_event("zoom-in", _, %CanvasSettings{} = settings, %Socket{} = socket) do
+    on_update_zoom(socket, settings, &(&1 + 1))
+  end
+
+  defp on_canvas_event("zoom-out", _, %CanvasSettings{} = settings, %Socket{} = socket) do
+    on_update_zoom(socket, settings, &(&1 - 1))
+  end
+
+  defp on_canvas_event(
+         "set-zoom",
+         %{"zoom" => value},
+         %CanvasSettings{} = settings,
+         %Socket{} = socket
+       ) do
+    new_zoom = String.to_integer(value)
+    on_update_zoom(socket, settings, fn _ -> new_zoom end)
+  end
+
+  defp on_canvas_event(
+         "zoom-desktop",
+         %{"delta" => delta, "pointer" => %{"x" => x, "y" => y}},
+         %CanvasSettings{} = settings,
+         %Socket{} = socket
+       )
+       when is_number(delta) and is_number(x) and is_number(y) do
+    settings
+    |> CanvasSettings.on_zoom_desktop(delta, x, y)
+    |> update_canvas_settings_response(socket)
+  end
+
+  defp on_canvas_event(
+         "zoom-mobile",
+         %{
+           "original" => %{"position" => original_position, "touches" => original_touches},
+           "current" => current_touches
+         },
+         %CanvasSettings{} = settings,
+         %Socket{} = socket
+       ) do
     original_position = to_point(original_position)
     original_touches = Enum.map(original_touches, &to_point/1)
     current_touches = Enum.map(current_touches, &to_point/1)
 
-    update_svg_meta_response(
-      socket,
-      name,
-      &CanvasSettings.on_zoom_mobile(&1, original_position, original_touches, current_touches)
-    )
+    settings
+    |> CanvasSettings.on_zoom_mobile(original_position, original_touches, current_touches)
+    |> update_canvas_settings_response(socket)
   end
 
-  def handle_event("canvas-zoom-in", %{"name" => name}, %Socket{} = socket) do
-    on_update_zoom(socket, name, &(&1 + 1))
+  defp update_canvas_settings_response(%CanvasSettings{} = settings, %Socket{} = socket) do
+    {:halt, update_canvas_settings(settings, socket)}
   end
 
-  def handle_event("canvas-zoom-out", %{"name" => name}, %Socket{} = socket) do
-    on_update_zoom(socket, name, &(&1 - 1))
-  end
-
-  def handle_event("canvas-set-zoom", %{"zoom" => value, "name" => name}, %Socket{} = socket) do
-    new_zoom = String.to_integer(value)
-    on_update_zoom(socket, name, fn _ -> new_zoom end)
-  end
-
-  def handle_event(_event, _params, %Socket{} = socket) do
-    {:cont, socket}
+  defp update_canvas_settings(%CanvasSettings{name: name} = settings, %Socket{} = socket) do
+    name = get_name_from_mapping!(socket, name)
+    assign(socket, name, settings)
   end
 
   @spec replace_components(Socket.t(), atom(), list()) :: Socket.t()
@@ -303,12 +336,11 @@ defmodule ExshomeWeb.Live.SvgCanvas do
     })
   end
 
-  def on_update_zoom(%Socket{} = socket, name, update_fn) when is_function(update_fn, 1) do
-    name = get_name_from_mapping!(socket, name)
-
-    update_svg_meta_response(socket, name, fn %CanvasSettings{} = meta ->
-      CanvasSettings.update_zoom(meta, update_fn)
-    end)
+  def on_update_zoom(%Socket{} = socket, %CanvasSettings{} = settings, update_fn)
+      when is_function(update_fn, 1) do
+    settings
+    |> CanvasSettings.update_zoom(update_fn)
+    |> update_canvas_settings_response(socket)
   end
 
   defp component_type("canvas-background"), do: :background
@@ -321,23 +353,19 @@ defmodule ExshomeWeb.Live.SvgCanvas do
 
   defp component_type("scroll-body-y"), do: :scroll_body_y
 
-  defp component_type(%Socket{} = socket, name) do
-    %CanvasSettings{selected: selected} = get_svg_meta(socket, name)
+  defp component_type(%CanvasSettings{selected: nil}), do: :unknown
 
-    case selected do
-      %{component: component} -> component_type(component)
-      _ -> :unknown
-    end
-  end
+  defp component_type(%CanvasSettings{selected: %{component: component}}),
+    do: component_type(component)
 
-  defp compute_element_position(%Socket{} = socket, name, x, y) do
+  defp compute_element_position(%CanvasSettings{} = settings, x, y) do
     %CanvasSettings{
       selected: %{
         position: %{x: original_x, y: original_y},
         pointer: pointer
       },
       zoom: %{value: zoom}
-    } = get_svg_meta(socket, name)
+    } = settings
 
     delta_x = (x - pointer.x) / zoom
     delta_y = (y - pointer.y) / zoom
@@ -352,21 +380,14 @@ defmodule ExshomeWeb.Live.SvgCanvas do
     "component-#{get_svg_meta(socket, name).name}-#{id}"
   end
 
-  defp extract_component_id(%Socket{} = socket, name) do
-    %CanvasSettings{selected: %{component: component}} = get_svg_meta(socket, name)
-    prefix = "component-#{name}-"
-    String.replace(component, prefix, "")
+  defp extract_component_id(%CanvasSettings{} = settings) do
+    prefix = "component-#{settings.name}-"
+    String.replace(settings.selected.component, prefix, "")
   end
 
   defp to_point(%{"x" => x, "y" => y}) when is_number(x) and is_number(y) do
     %{x: x, y: y}
   end
-
-  defp update_svg_meta_response(%Socket{} = socket, name, fun) do
-    {:halt, update_svg_meta(socket, name, fun)}
-  end
-
-  defp update_svg_meta(%Socket{} = socket, name, fun), do: update(socket, name, fun)
 
   defmacro __using__(config) do
     quote do
