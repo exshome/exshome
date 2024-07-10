@@ -95,7 +95,7 @@ export const SvgCanvas = {
   },
 
   handleMoveToForeground({component}) {
-     const childComponent = this.el.querySelector(`[data-component=${component}]`);
+     const childComponent = this.el.querySelector(`[data-svg-component=${component}]`);
      const parentComponent = childComponent?.parentElement;
      const canvasComponent = parentComponent?.parentElement;
      if (parentComponent && canvasComponent) {
@@ -108,10 +108,12 @@ export const SvgCanvas = {
       this.onDragEnd();
     }
 
-    this.selectedElement = this.el.querySelector(`[data-component=${component}]`)
+    this.selectedElement = this.el.querySelector(`[data-svg-component=${component}]`)
     if (this.selectedElement) {
       this.queueEvent("canvas-select", {
-        component: this.selectedElement.dataset.component,
+        id: this.selectedElement.dataset.svgId,
+        name: this.selectedElement.dataset.svgName,
+        type: this.selectedElement.dataset.svgType,
         pointer: this.pointerPosition,
         offset: this.getSelectedElementOffset(),
         position: this.getSelectedElementPosition()
@@ -158,9 +160,9 @@ export const SvgCanvas = {
   },
 
   onDragStart(e) {
-    if (e.target.dataset["drag"]) {
+    if (e.target.dataset["svgType"]) {
       e.preventDefault();
-      this.handleSelectItem({component: e.target.dataset.component});
+      this.handleSelectItem({component: e.target.dataset.svgComponent});
       this.setMobileTouches(e);
     }
   },
@@ -196,6 +198,11 @@ export const SvgCanvas = {
   },
 
   queueEvent(type, payload) {
+    if (!type) {
+      console.error("Invalid type received, skipping payload", payload)
+      return;
+    }
+
     const event = {
       type,
       payload: {
@@ -216,7 +223,7 @@ export const SvgCanvas = {
 
   sendDragEvent(e) {
     this.queueEvent(
-      this.selectedElement.dataset["drag"],
+      "canvas-move",
       {
         pointer: this.pointerPosition
       }

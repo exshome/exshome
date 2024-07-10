@@ -57,7 +57,8 @@ defmodule ExshomeWeb.Live.SvgCanvas.CanvasSettings do
           selected:
             nil
             | %{
-                component: String.t(),
+                id: String.t(),
+                type: String.t(),
                 pointer: %{x: number(), y: number()},
                 offset: %{x: number(), y: number()},
                 position: %{x: number(), y: number()}
@@ -154,12 +155,13 @@ defmodule ExshomeWeb.Live.SvgCanvas.CanvasSettings do
   end
 
   def on_select(%__MODULE__{} = data, %{
-        "component" => component,
+        "id" => id,
+        "type" => type,
         "pointer" => %{"x" => pointer_x, "y" => pointer_y},
         "offset" => %{"x" => offset_x, "y" => offset_y},
         "position" => %{"x" => x, "y" => y}
       })
-      when is_binary(component) and
+      when is_binary(id) and
              is_number(x) and
              is_number(y) and
              is_number(offset_x) and
@@ -169,7 +171,8 @@ defmodule ExshomeWeb.Live.SvgCanvas.CanvasSettings do
     %__MODULE__{
       data
       | selected: %{
-          component: component,
+          id: id,
+          type: type,
           pointer: %{x: pointer_x, y: pointer_y},
           offset: %{x: offset_x, y: offset_y},
           position: %{x: x, y: y}

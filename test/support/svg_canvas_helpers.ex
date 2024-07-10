@@ -15,9 +15,12 @@ defmodule ExshomeTest.SvgCanvasHelpers do
     Struct for svg elements.
     """
 
-    defstruct [:component, :height, :width, :x, :y]
+    defstruct [:id, :canvas_name, :type, :component, :height, :width, :x, :y]
 
     @type t() :: %__MODULE__{
+            id: String.t(),
+            canvas_name: String.t(),
+            type: String.t(),
             component: String.t(),
             height: number(),
             width: number(),
@@ -39,7 +42,7 @@ defmodule ExshomeTest.SvgCanvasHelpers do
   @spec find_component(live_view_t(), String.t()) :: Element.t()
   def find_component(view, component) do
     [%Element{component: ^component} = svg_element] =
-      find_elements(view, "[data-component=#{component}]")
+      find_elements(view, "[data-svg-component=#{component}]")
 
     svg_element
   end
@@ -78,8 +81,9 @@ defmodule ExshomeTest.SvgCanvasHelpers do
 
   @spec render_create_element(live_view_t(), String.t(), position_t()) :: any()
   def render_create_element(view, component, position) do
-    select_element(view, component)
-    render_hook(view, "canvas-create", %{pointer: position, name: "canvas"})
+    %Element{} = element = find_component(view, component)
+    select_element(view, element)
+    move_pointer(view, position, element.canvas_name)
   end
 
   @spec render_dragend(live_view_t(), position :: position_t()) :: String.t()
@@ -92,13 +96,10 @@ defmodule ExshomeTest.SvgCanvasHelpers do
 
   @spec render_move(live_view_t(), String.t(), position_t()) :: any()
   def render_move(view, component, position) do
-    select_element(view, component)
+    select_component(view, component)
     assert_push_event(view, "move-to-foreground", %{component: ^component})
 
-    render_hook(view, "canvas-move", %{
-      pointer: compute_pointer_position(view, position),
-      name: "canvas"
-    })
+    move_pointer(view, compute_pointer_position(view, position), "canvas")
   end
 
   @spec resize(live_view_t(), %{height: number(), width: number()}) :: String.t()
@@ -106,30 +107,38 @@ defmodule ExshomeTest.SvgCanvasHelpers do
     assert render_hook(view, "canvas-resize", %{height: height, width: width, name: "canvas"})
   end
 
-  @spec select_element(live_view_t(), String.t()) :: String.t()
-  def select_element(view, component) do
-    %Element{x: x, y: y} = find_component(view, component)
-
-    position = %{x: x, y: y}
+  @spec select_element(live_view_t(), Element.t()) :: String.t()
+  def select_element(view, %Element{} = element) do
+    position = %{x: element.x, y: element.y}
 
     render_hook(view, "canvas-select", %{
-      component: component,
+      id: element.id,
+      type: element.type,
       offset: %{x: 0, y: 0},
       position: position,
       pointer: compute_pointer_position(view, position),
-      name: "canvas"
+      name: element.canvas_name
     })
+  end
+
+  @spec select_component(live_view_t(), String.t()) :: String.t()
+  def select_component(view, component) do
+    %Element{} = element = find_component(view, component)
+    select_element(view, element)
+  end
+
+  @spec move_pointer(live_view_t(), position_t(), canvas_name :: String.t()) :: any()
+  def move_pointer(view, position, canvas_name) do
+    render_hook(view, "canvas-move", %{pointer: position, name: canvas_name})
   end
 
   @spec to_element(Floki.html_tree()) :: Element.t()
   defp to_element(svg_element) do
-    component =
-      svg_element
-      |> Floki.attribute("data-component")
-      |> List.first()
-
     %Element{
-      component: component,
+      id: string_attribute(svg_element, "data-svg-id"),
+      component: string_attribute(svg_element, "data-svg-component"),
+      canvas_name: string_attribute(svg_element, "data-svg-name"),
+      type: string_attribute(svg_element, "data-svg-type"),
       height: float_attribute(svg_element, "height"),
       width: float_attribute(svg_element, "width"),
       x: float_attribute(svg_element, "x"),
@@ -156,11 +165,17 @@ defmodule ExshomeTest.SvgCanvasHelpers do
   defp float_attribute(svg_element, name) do
     {value, ""} =
       svg_element
-      |> Floki.attribute(name)
-      |> List.first()
+      |> string_attribute(name)
       |> Float.parse()
 
     value
+  end
+
+  @spec string_attribute(Floki.html_tree(), String.t()) :: String.t()
+  defp string_attribute(svg_element, name) do
+    svg_element
+    |> Floki.attribute(name)
+    |> List.first()
   end
 
   @spec get_zoom_value(live_view_t()) :: number()
@@ -186,7 +201,10 @@ defmodule ExshomeTest.SvgCanvasHelpers do
   @spec generate_random_components(live_view_t(), number()) :: :ok
   def generate_random_components(view, amount) do
     :ok = toggle_menu(view)
-    components = view |> find_elements("[data-component^=menu-item-]") |> Enum.map(& &1.component)
+
+    components =
+      view |> find_elements("[data-svg-component^=canvas-menu-item-]") |> Enum.map(& &1.component)
+
     :ok = toggle_menu(view)
 
     for _ <- 1..amount do

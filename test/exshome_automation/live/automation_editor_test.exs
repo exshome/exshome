@@ -90,7 +90,7 @@ defmodule ExshomeAutomationTest.Live.AutomationEditorTest do
   end
 
   defp list_components(view) do
-    find_elements(view, "[data-component^='component-canvas-'")
+    find_elements(view, "[data-svg-component^='canvas-component-'")
   end
 
   defp count_components(view) do

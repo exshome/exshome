@@ -39,45 +39,45 @@ defmodule ExshomeWebTest.SvgCanvasTest do
 
     test "background", %{view: view} do
       select_background(view)
-      render_hook(view, "canvas-move-background", %{pointer: %{x: -100, y: -100}, name: "canvas"})
+      move_pointer(view, %{x: -100, y: -100}, "canvas")
       assert match?(%{x: 20.0, y: 20.0}, get_body_viewbox(view))
-      render_hook(view, "canvas-move-background", %{pointer: %{x: -50, y: -50}, name: "canvas"})
+      move_pointer(view, %{x: -50, y: -50}, "canvas")
       assert match?(%{x: 10.0, y: 10.0}, get_body_viewbox(view))
       render_dragend(view, %{x: 10, y: 10})
 
       select_background(view)
-      render_hook(view, "canvas-move-background", %{pointer: %{x: -100, y: -100}, name: "canvas"})
+      move_pointer(view, %{x: -100, y: -100}, "canvas")
       render_dragend(view, %{x: 10, y: 10})
       assert match?(%{x: 40.0, y: 40.0}, get_body_viewbox(view))
     end
 
     test "scroll-x", %{view: view} do
-      select_element(view, "scroll-body-x")
-      render_hook(view, "canvas-scroll-body-x", %{pointer: %{x: 60}, name: "canvas"})
+      select_component(view, "canvas-scroll-x")
+      move_pointer(view, %{x: 60}, "canvas")
       %{x: x, y: y} = get_body_viewbox(view)
       assert_in_delta(y, 0.0, 0.1)
       assert_in_delta(x, 75.4, 0.1)
     end
 
     test "max scroll-x fits a page", %{view: view} do
-      select_element(view, "scroll-body-x")
-      render_hook(view, "canvas-scroll-body-x", %{pointer: %{x: @default_width}, name: "canvas"})
-      [%{x: x, width: width}] = find_elements(view, "[data-drag='canvas-scroll-body-x']")
+      select_component(view, "canvas-scroll-x")
+      move_pointer(view, %{x: @default_width}, "canvas")
+      %{x: x, width: width} = find_component(view, "canvas-scroll-x")
       assert width + x < @default_width
     end
 
     test "scroll-y", %{view: view} do
-      select_element(view, "scroll-body-y")
-      render_hook(view, "canvas-scroll-body-y", %{pointer: %{y: 60}, name: "canvas"})
+      select_component(view, "canvas-scroll-y")
+      move_pointer(view, %{y: 60}, "canvas")
       %{x: x, y: y} = get_body_viewbox(view)
       assert_in_delta(x, 0.0, 0.1)
       assert_in_delta(y, 73.6, 0.1)
     end
 
     test "max scroll-y fits a page", %{view: view} do
-      select_element(view, "scroll-body-y")
-      render_hook(view, "canvas-scroll-body-y", %{pointer: %{y: @default_height}, name: "canvas"})
-      [%{y: y, height: height}] = find_elements(view, "[data-drag='canvas-scroll-body-y']")
+      select_component(view, "canvas-scroll-y")
+      move_pointer(view, %{y: @default_height}, "canvas")
+      %{y: y, height: height} = find_component(view, "canvas-scroll-y")
       assert height + y < @default_height
     end
 
@@ -232,7 +232,7 @@ defmodule ExshomeWebTest.SvgCanvasTest do
 
   defp count_elements(view) do
     view
-    |> find_elements("[data-component^='component-canvas-']")
+    |> find_elements("[data-svg-component^='canvas-component-']")
     |> length()
   end
 
@@ -251,7 +251,7 @@ defmodule ExshomeWebTest.SvgCanvasTest do
   end
 
   defp select_background(view) do
-    select_element(view, "canvas-background")
+    select_component(view, "canvas-background-canvas-background")
   end
 
   defp setup_page(conn) do

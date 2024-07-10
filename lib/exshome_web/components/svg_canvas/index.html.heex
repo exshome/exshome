@@ -44,51 +44,204 @@
         viewBox={"#{@meta.viewbox.x} #{@meta.viewbox.y} #{@meta.viewbox.width} #{@meta.viewbox.height}"}
         xmlns="http://www.w3.org/2000/svg"
       >
-        <rect
-          data-component="canvas-background"
-          x={@meta.viewbox.x}
-          y={@meta.viewbox.y}
-          height={@meta.viewbox.height}
-          width={@meta.viewbox.width}
-          data-drag="canvas-move-background"
-          class="fill-transparent"
-        />
-        <g phx-update="stream" id={"#{@meta.name}-content"} class="h-full w-full">
-          <%= for {id, component} <- @components do %>
-            <.render_component
-              id={id}
-              component={component}
-              context={%{name: @meta.name, drag: "canvas-move"}}
-            />
-          <% end %>
-        </g>
+        <.component
+          :let={background_drag_attrs}
+          meta={
+            %ComponentMeta{
+              id: "canvas-background",
+              type: "background",
+              canvas_name: @meta.name
+            }
+          }
+        >
+          <rect
+            x={@meta.viewbox.x}
+            y={@meta.viewbox.y}
+            height={@meta.viewbox.height}
+            width={@meta.viewbox.width}
+            class="fill-transparent"
+            {background_drag_attrs}
+          />
+          <g id={"#{@meta.name}-content"} class="h-full w-full">
+            <%= render_slot(@body) %>
+          </g>
+        </.component>
       </svg>
-      <rect
-        :if={@meta.viewbox.width < @meta.canvas.width}
+      <.component
+        :let={scroll_x_drag_attrs}
+        meta={
+          %ComponentMeta{
+            id: "x",
+            type: "scroll",
+            canvas_name: @meta.name
+          }
+        }
+      >
+        <rect
+          :if={@meta.viewbox.width < @meta.canvas.width}
+          class="fill-gray-200/80 hover:fill-gray-200 dark:fill-gray-700/80 dark:hover:fill-gray-700"
+          rx="10"
+          ry="10"
+          x={@meta.scroll.x}
+          y={@meta.screen.height - @meta.scroll.height}
+          height={@meta.scroll.height}
+          width={@meta.scroll.size_x}
+          {scroll_x_drag_attrs}
+        />
+      </.component>
+      <.component
+        :let={scroll_y_drag_attrs}
+        meta={
+          %ComponentMeta{
+            id: "y",
+            type: "scroll",
+            canvas_name: @meta.name
+          }
+        }
+      >
+        <rect
+          :if={@meta.viewbox.height < @meta.canvas.height}
+          class="fill-gray-200/80 hover:fill-gray-200 dark:fill-gray-700/80 dark:hover:fill-gray-700"
+          rx="10"
+          ry="10"
+          x={@meta.screen.width - @meta.scroll.height}
+          y={@meta.scroll.y}
+          height={@meta.scroll.size_y}
+          width={@meta.scroll.height}
+          {scroll_y_drag_attrs}
+        />
+      </.component>
+      <svg
+        id={"#{@meta.name}-trashbin"}
+        data-open={"#{inspect(@meta.trashbin.open?)}"}
+        height={@meta.trashbin.size}
+        width={@meta.trashbin.size}
+        x={@meta.trashbin.x}
+        y={@meta.trashbin.y}
+        viewbox="160 -100 80 600"
         class="fill-gray-200/80 hover:fill-gray-200 dark:fill-gray-700/80 dark:hover:fill-gray-700"
-        rx="10"
-        ry="10"
-        x={@meta.scroll.x}
-        y={@meta.screen.height - @meta.scroll.height}
-        height={@meta.scroll.height}
-        width={@meta.scroll.size_x}
-        data-drag="canvas-scroll-body-x"
-        data-component="scroll-body-x"
-      />
-      <rect
-        :if={@meta.viewbox.height < @meta.canvas.height}
-        class="fill-gray-200/80 hover:fill-gray-200 dark:fill-gray-700/80 dark:hover:fill-gray-700"
-        rx="10"
-        ry="10"
-        x={@meta.screen.width - @meta.scroll.height}
-        y={@meta.scroll.y}
-        height={@meta.scroll.size_y}
-        width={@meta.scroll.height}
-        data-drag="canvas-scroll-body-y"
-        data-component="scroll-body-y"
-      />
-      <.render_trashbin id={"#{@meta.name}-trashbin"} trashbin={@meta.trashbin} />
+      >
+        <path
+          d="M 343.567, 21.043
+          h -88.535
+          V 4.305
+          c 0, -2.377, -1.927, -4.305, -4.305, -4.305
+          h -92.971
+          c -2.377, 0, -4.304, 1.928, -4.304, 4.305
+          v 16.737
+          H 64.916
+          c -7.125, 0, -12.9, 5.776, -12.9, 12.901
+          V 74.47
+          h 304.451
+          V 33.944
+          C 356.467, 26.819, 350.692, 21.043, 343.567, 21.043
+          z
+          "
+          transform={"rotate(#{if @meta.trashbin.open?, do: 20, else: 0}, 300, 50)"}
+        />
+        <path d="M 87.748, 388.784
+          c 0.461, 11.01, 9.521, 19.699, 20.539, 19.699
+          h 191.911
+          c 11.018, 0, 20.078, -8.689, 20.539, -19.699
+          l 13.705, -289.316
+          H 74.043
+          L 87.748, 388.784
+          z
+          " />
+      </svg>
     </svg>
-    <.render_menu name={@meta.name} open?={@meta.menu.open?} menu_items={@menu_items} />
+    <section
+      id={"menu-data-#{@meta.name}"}
+      class={if @meta.menu.open?, do: "absolute inset-0", else: "hidden"}
+    >
+      <section
+        id={"menu-overlay-#{@meta.name}"}
+        class="bg-gray-200/20 dark:bg-gray-700/20 h-full w-full"
+        phx-click="canvas-menu-close"
+        phx-value-name={@meta.name}
+        phx-hook="StopEvents"
+        data-stop-events="mousewheel, DOMMouseScroll"
+      >
+        <section
+          id={"menu-background-#{@meta.name}"}
+          class="
+             flex justify-center
+             h-full w-full md:w-1/2 lg:w-2/6
+             bg-gray-500/80 rounded-r-lg overflow-hidden
+          "
+          phx-hook="StopEvents"
+          data-stop-events="click, touchend"
+        >
+          <section class="w-1/2 overflow-y-auto">
+            <%= render_slot(@menu) %>
+          </section>
+        </section>
+      </section>
+    </section>
+    <section class="absolute bottom-[30px]">
+      <svg
+        height="70"
+        width="70"
+        viewbox="-30 10 154 124"
+        class="fill-gray-200/80 hover:fill-gray-200 dark:fill-gray-700/80 dark:hover:fill-gray-700"
+        phx-click="canvas-menu-toggle"
+        phx-value-name={@meta.name}
+      >
+        <%= if @meta.menu.open? do %>
+          <path d="
+           M 10,30
+           L 30,50
+           Q 40,60 30,70
+           L 10,90
+           Q 0,120 30,110
+           L 50,90
+           Q 60,80 70,90
+           L 90,110
+           Q 120,120 110,90
+           L 90,70
+           Q 80,60 90,50
+           L 110,30
+           Q 120,0 90,10
+           L 70,30
+           Q 60,40 50,30
+           L 30,10
+           Q 0,0 10,30
+           Z
+           " />
+        <% else %>
+          <path d="
+           M 112, 6
+           H 12
+           C 5.4, 6, 0, 11.4, 0, 18
+           s 5.4, 12, 12, 12
+           h 100
+           c 6.6, 0, 12, -5.4, 12, -12
+           S 118.6, 6, 112, 6
+           z
+           " />
+          <path d="
+           M 112, 50
+           H 12
+           C 5.4, 50, 0, 55.4, 0, 62
+           c 0, 6.6, 5.4, 12, 12, 12
+           h 100
+           c 6.6, 0, 12, -5.4, 12, -12
+           C 124, 55.4, 118.6, 50, 112, 50
+           z
+           " />
+          <path d="
+           M 112, 94
+           H 12
+           c -6.6, 0, -12, 5.4, -12, 12
+           s 5.4, 12, 12, 12
+           h 100
+           c 6.6, 0, 12, -5.4, 12, -12
+           S 118.6, 94, 112, 94
+           z
+           " />
+        <% end %>
+        <rect x="0" y="0" height="100%" width="100%" class="fill-transparent" />
+      </svg>
+    </section>
   </section>
 </section>
