@@ -22,6 +22,6 @@ defmodule Exshome.Release do
   end
 
   defp create_db_if_not_exists(repo) do
-    true = repo.__adapter__.storage_up(repo.config) in [:ok, {:error, :already_up}]
+    true = repo.__adapter__().storage_up(repo.config()) in [:ok, {:error, :already_up}]
   end
 end

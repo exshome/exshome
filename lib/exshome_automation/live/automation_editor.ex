@@ -226,7 +226,13 @@ defmodule ExshomeAutomation.Live.AutomationEditor do
     >
       <%= for {connector_id, connector} <- @component.item.connectors do %>
         <rect
-          class={"fill-red-300 dark:fill-red-400 #{if match?(%{type: :hover}, @component.item.connected_items[connector_id]), do: 'opacity-70', else: 'opacity-0'}"}
+          class={[
+            "fill-red-300 dark:fill-red-400",
+            if(match?(%{type: :hover}, @component.item.connected_items[connector_id]),
+              do: "opacity-70",
+              else: "opacity-0"
+            )
+          ]}
           x={connector.x}
           y={connector.y}
           width={connector.width}

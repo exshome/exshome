@@ -37,9 +37,10 @@ defmodule ExshomeWeb.Live.RenameComponent do
           name="new_name"
         />
       <% else %>
-        <h2 class={
-          "text-lg inline md:text-3xl font-black [word-break:break-word] text-center #{if @can_rename?, do: 'pl-8'}"
-        }>
+        <h2 class={[
+          "text-lg inline md:text-3xl font-black [word-break:break-word] text-center",
+          if(@can_rename?, do: "pl-8")
+        ]}>
           <%= @value %>
         </h2>
       <% end %>
