@@ -7,7 +7,7 @@ defmodule ExshomeClock.Settings.ClockSettings do
     name: "clock_settings",
     fields: [
       timezone: [
-        allowed_values: &TzExtra.time_zone_identifiers/0,
+        allowed_values: &TzExtra.time_zone_ids/0,
         default: "Etc/UTC",
         required: true,
         type: Exshome.Datatype.String
