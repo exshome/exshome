@@ -41,6 +41,7 @@ defmodule ExshomeWeb.Router do
       pipe_through :browser
 
       live_dashboard "/dashboard", metrics: ExshomeWeb.Telemetry
+      live "/canvas-playground", ExshomeWeb.Live.SvgCanvas.Playground
     end
   end
 end
