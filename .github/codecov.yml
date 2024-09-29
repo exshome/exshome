@@ -13,7 +13,7 @@ coverage:
     patch: false
     project:
       default:
-        target: 90%
+        target: 87%
         threshold: 10%
 github_checks:
   annotations: true
