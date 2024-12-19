@@ -43,10 +43,10 @@
           </:row_after>
           <div class={if track.playing?, do: "font-bold dark:text-yellow-200"}>
             <div class="text-xl">
-              <%= if String.trim(track.title) == "", do: "Unknown", else: track.title %>
+              {if String.trim(track.title) == "", do: "Unknown", else: track.title}
             </div>
             <div class="text-xs">
-              <%= track.path %>
+              {track.path}
             </div>
           </div>
         </.list>

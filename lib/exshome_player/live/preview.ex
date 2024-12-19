@@ -16,7 +16,7 @@ defmodule ExshomePlayer.Live.Preview do
     <.missing_deps_placeholder deps={@deps}>
       <div class="h-full w-full flex items-center justify-center flex-col p-3">
         <marquee class="text-2xl font-black w-full">
-          <%= @deps.title %>
+          {@deps.title}
         </marquee>
         <div class="m-2 h-[45%] w-[45%] rounded-lg
               bg-gray-300 dark:bg-gray-800

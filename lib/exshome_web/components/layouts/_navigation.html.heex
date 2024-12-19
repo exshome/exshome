@@ -9,7 +9,7 @@
           #{if item.selected, do: "bg-gray-300 dark:bg-gray-500", else: "bg-gray-50 dark:bg-gray-800"} /
     }>
       <.icon name={item.icon} />
-      <span class="hidden md:inline"><%= item.name %></span>
+      <span class="hidden md:inline">{item.name}</span>
     </div>
   </.link>
 </div>

@@ -10,7 +10,7 @@ defmodule ExshomePlayer.Live.EditLinkModal do
     ~H"""
     <section id="edit_link_modal" class="h-full flex flex-col justify-center items-center">
       <%= if @error do %>
-        <h2 class="text-4xl text-center"><%= @error %></h2>
+        <h2 class="text-4xl text-center">{@error}</h2>
       <% else %>
         <.live_form changeset={@changeset} as={:data} fields={@fields} phx-target={@myself} />
       <% end %>

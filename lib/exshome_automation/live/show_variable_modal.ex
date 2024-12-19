@@ -26,8 +26,8 @@ defmodule ExshomeAutomation.Live.ShowVariableModal do
         />
         <div class="text-xs mb-5">
           <.chip>
-            <%= Exshome.Datatype.icon(@config.type) %>
-            <%= Exshome.Datatype.name(@config.type) %>
+            {Exshome.Datatype.icon(@config.type)}
+            {Exshome.Datatype.name(@config.type)}
           </.chip>
           <%= if @config.readonly? do %>
             <.chip>
@@ -38,7 +38,7 @@ defmodule ExshomeAutomation.Live.ShowVariableModal do
 
         <%= if @config.not_ready_reason do %>
           <div class="text-md text-red-400/80">
-            <%= @config.not_ready_reason %>
+            {@config.not_ready_reason}
           </div>
         <% else %>
           <%= if !@config.readonly? do %>
@@ -50,7 +50,7 @@ defmodule ExshomeAutomation.Live.ShowVariableModal do
                 name="variable"
               />
               <%= if @error_message do %>
-                <div type="error" class="text-red-300"><%= @error_message %></div>
+                <div type="error" class="text-red-300">{@error_message}</div>
               <% end %>
             </form>
           <% end %>

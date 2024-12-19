@@ -36,12 +36,12 @@ defmodule ExshomeWeb.Live.HomePage do
           shadow-2xl dark:shadow-gray-600
       ">
           <div class="absolute inset-0"></div>
-          <%= live_render(
+          {live_render(
             @socket,
             app.preview,
             id: app.id,
             container: {:div, class: "w-full h-full"}
-          ) %>
+          )}
         </div>
       </.link>
     </div>

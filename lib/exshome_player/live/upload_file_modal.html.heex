@@ -28,7 +28,7 @@
     <div class="h-full overflow-y-auto">
       <%= for entry <- @uploads.music.entries do %>
         <%= for err <- upload_errors(@uploads.music, entry) do %>
-          <p class="alert alert-danger"><%= error_to_string(err) %></p>
+          <p class="alert alert-danger">{error_to_string(err)}</p>
         <% end %>
         <article class="mb-4 p-1 rounded-md bg-gray-200 dark:bg-gray-700 shadow-md shadow-gray-400 dark:shadow-gray-600">
           <div class="flex justify-between items-center">
@@ -37,7 +37,7 @@
               value={entry.progress}
               max="100"
             >
-              <%= entry.progress %>%
+              {entry.progress}%
             </progress>
             <button
               phx-click="cancel-upload"
@@ -51,10 +51,10 @@
             </button>
           </div>
 
-          <p class="overflow-x-auto text-center"><%= entry.client_name %></p>
+          <p class="overflow-x-auto text-center">{entry.client_name}</p>
 
           <%= for err <- upload_errors(@uploads.music, entry) do %>
-            <p class="alert alert-danger"><%= error_to_string(err) %></p>
+            <p class="alert alert-danger">{error_to_string(err)}</p>
           <% end %>
         </article>
       <% end %>

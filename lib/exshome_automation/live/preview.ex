@@ -20,13 +20,13 @@ defmodule ExshomeAutomation.Live.Preview do
           </thead>
           <tr>
             <td><span class="hero-variable-mini" /></td>
-            <td type="ready_variables"><%= @deps.status.ready_variables %></td>
-            <td type="not_ready_variables"><%= @deps.status.not_ready_variables %></td>
+            <td type="ready_variables">{@deps.status.ready_variables}</td>
+            <td type="not_ready_variables">{@deps.status.not_ready_variables}</td>
           </tr>
           <tr>
             <td><span class="hero-command-line-mini" /></td>
-            <td type="ready_workflows"><%= @deps.status.ready_workflows %></td>
-            <td type="not_ready_workflows"><%= @deps.status.not_ready_workflows %></td>
+            <td type="ready_workflows">{@deps.status.ready_workflows}</td>
+            <td type="not_ready_workflows">{@deps.status.not_ready_workflows}</td>
           </tr>
         </table>
         <p class="text-xl md:text-2xl lg:text-3xl">Automation</p>

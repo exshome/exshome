@@ -48,7 +48,7 @@ defmodule ExshomeAutomation.Live.Automations do
                 </.button>
               </:row_after>
               <div class="whitespace-nowrap text-xl">
-                <%= workflow.name %>
+                {workflow.name}
               </div>
             </.list>
           </div>

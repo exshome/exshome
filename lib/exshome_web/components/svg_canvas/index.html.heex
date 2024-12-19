@@ -1,6 +1,6 @@
 <section class="relative h-full w-full flex flex-col">
   <section class="flex flex-col sm:flex-row sm:justify-between items-center p-2">
-    <%= render_slot(@header) %>
+    {render_slot(@header)}
     <div class="w-full max-w-[20em] flex items-center">
       <.button class="cursor-pointer" phx-click="canvas-zoom-out" phx-value-name={@meta.name}>
         <.icon name="hero-magnifying-glass-minus" />
@@ -63,7 +63,7 @@
             {background_drag_attrs}
           />
           <g id={"#{@meta.name}-content"} class="h-full w-full">
-            <%= render_slot(@body) %>
+            {render_slot(@body)}
           </g>
         </.component>
       </svg>
@@ -173,7 +173,7 @@
           data-stop-events="click, touchend"
         >
           <section class="w-1/2 overflow-y-auto">
-            <%= render_slot(@menu) %>
+            {render_slot(@menu)}
           </section>
         </section>
       </section>

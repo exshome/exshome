@@ -250,7 +250,7 @@ defmodule ExshomeAutomation.Live.AutomationEditor do
       />
       <%= for label <- @component.item.labels do %>
         <text x={label.x} y={label.y} class="text-[3px] font-bold font-mono pointer-events-none">
-          <%= label.text %>
+          {label.text}
         </text>
       <% end %>
     </svg>

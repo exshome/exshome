@@ -33,7 +33,7 @@ defmodule ExshomeWeb.SvgCanvasComponent do
       width={@width}
       height={@height}
     >
-      <%= render_slot(@inner_block) %>
+      {render_slot(@inner_block)}
     </svg>
     """
   end
@@ -45,7 +45,7 @@ defmodule ExshomeWeb.SvgCanvasComponent do
     assigns = assign(assigns, :drag_attrs, ComponentMeta.to_component_args(assigns.meta))
 
     ~H"""
-    <%= render_slot(@inner_block, @drag_attrs) %>
+    {render_slot(@inner_block, @drag_attrs)}
     """
   end
 

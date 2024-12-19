@@ -21,10 +21,10 @@ defmodule ExshomeAutomation.Live.Variables do
       <section class="h-full max-h-full w-full p-4 flex flex-col overflow-hidden">
         <form class="mb-3 w-full flex items-center justify-center" phx-submit="new-variable">
           <.custom_select name="type" values={Enum.sort(Exshome.Datatype.available_types())}>
-            <:value :let={type}><%= Exshome.Datatype.name(type) %></:value>
+            <:value :let={type}>{Exshome.Datatype.name(type)}</:value>
             <:label :let={type}>
-              <%= Exshome.Datatype.icon(type) %>
-              <%= Exshome.Datatype.name(type) %>
+              {Exshome.Datatype.icon(type)}
+              {Exshome.Datatype.name(type)}
             </:label>
           </.custom_select>
           <.button type="submit" phx-disable-with="Creating..." class="whitespace-nowrap">
@@ -34,7 +34,7 @@ defmodule ExshomeAutomation.Live.Variables do
         <section class="flex-grow h-full flex items-center overflow-auto">
           <div class="w-full max-h-full">
             <%= for {group, variables} <- @deps.variables |> Map.values() |> Enum.group_by(& &1.group) |> Enum.sort_by(&elem(&1, 0)) do %>
-              <h2 class="text-4xl text-center mt-5 first:mt-0"><%= group %></h2>
+              <h2 class="text-4xl text-center mt-5 first:mt-0">{group}</h2>
               <.list :let={variable} rows={Enum.sort_by(variables, & &1.service_id)}>
                 <:row_before :let={variable}>
                   <%= if variable.not_ready_reason do %>
@@ -58,12 +58,12 @@ defmodule ExshomeAutomation.Live.Variables do
                   <% end %>
                 </:row_after>
                 <div class="whitespace-nowrap text-xl">
-                  <%= variable.name %>
+                  {variable.name}
                 </div>
                 <div class="text-xs whitespace-nowrap">
                   <.chip>
-                    <%= Exshome.Datatype.icon(variable.type) %>
-                    <%= Exshome.Datatype.name(variable.type) %>
+                    {Exshome.Datatype.icon(variable.type)}
+                    {Exshome.Datatype.name(variable.type)}
                   </.chip>
                   <%= if variable.readonly? do %>
                     <.chip>
@@ -72,7 +72,7 @@ defmodule ExshomeAutomation.Live.Variables do
                   <% end %>
                 </div>
                 <div class="whitespace-nowrap text-red-400/80">
-                  <%= variable.not_ready_reason %>
+                  {variable.not_ready_reason}
                 </div>
               </.list>
             <% end %>
@@ -86,10 +86,10 @@ defmodule ExshomeAutomation.Live.Variables do
         show
         on_cancel={JS.patch(~p"/app/automation/variables")}
       >
-        <%= live_render(@socket, ExshomeAutomation.Live.ShowVariableModal,
+        {live_render(@socket, ExshomeAutomation.Live.ShowVariableModal,
           id: "modal-data",
           session: @modal_params
-        ) %>
+        )}
       </.modal>
     </.missing_deps_placeholder>
     """

@@ -13,7 +13,7 @@ defmodule ExshomeWeb.DefaultDatatypeComponent do
   def datatypes, do: MapSet.new([Boolean, Integer, String, Unknown])
 
   @impl DatatypeComponentBehaviour
-  def render_value(assigns), do: ~H"<%= @value %>"
+  def render_value(assigns), do: ~H"{@value}"
 
   @impl DatatypeComponentBehaviour
   def render_input(%{type: Boolean} = assigns) do
