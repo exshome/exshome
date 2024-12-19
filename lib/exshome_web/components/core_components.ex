@@ -15,10 +15,10 @@ defmodule ExshomeWeb.CoreComponents do
   Icons are provided by [heroicons](https://heroicons.com). See `icon/1` for usage.
   """
   use Phoenix.Component
+  use Gettext, backend: ExshomeWeb.Gettext
 
   alias Phoenix.HTML.Form
   alias Phoenix.LiveView.JS
-  import ExshomeWeb.Gettext
 
   @doc """
   Renders a modal.

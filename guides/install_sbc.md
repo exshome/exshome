@@ -18,8 +18,8 @@ If your SBC has enough resources (at least 1 GB of RAM), you can try compiling E
 Make sure that you have installed [all dependencies for building erlang](https://github.com/asdf-vm/asdf-erlang#before-asdf-install).
 ```
 asdf plugin add erlang
-asdf install erlang 27.0.1
-asdf global erlang 27.0.1
+asdf install erlang 27.2
+asdf global erlang 27.2
 ```
 
 Otherwise you can install Erlang with your package manager. It may be not the latest version, but it should work.
@@ -30,8 +30,8 @@ sudo apt install erlang
 We can install the latest Elixir version with [asdf](https://asdf-vm.com/guide/getting-started.html):
 ```
 asdf plugin add elixir
-asdf install elixir 1.17.2-otp-27
-asdf global elixir 1.17.2-otp-27
+asdf install elixir 1.18.0-otp-27
+asdf global elixir 1.18.0-otp-27
 ```
 
 ## Installing Exshome

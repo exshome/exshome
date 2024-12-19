@@ -5,7 +5,7 @@ defmodule ExshomeTest.TestMpvServer do
   use GenServer
 
   alias ExUnit.Callbacks
-  import ExUnit.Assertions
+  require ExUnit.Assertions
   alias ExshomeTest.Fixtures
   import ExshomeTest.TestHelpers, only: [assert_receive_dependency: 1]
   alias ExshomePlayer.Services.{MpvServer, MpvSocket}

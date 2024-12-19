@@ -24,7 +24,7 @@ defmodule ExshomeWeb do
       use Phoenix.Controller, namespace: ExshomeWeb
 
       import Plug.Conn
-      import ExshomeWeb.Gettext
+      use Gettext, backend: ExshomeWeb.Gettext
       unquote(verified_routes())
     end
   end
@@ -88,7 +88,7 @@ defmodule ExshomeWeb do
   def channel do
     quote do
       use Phoenix.Channel
-      import ExshomeWeb.Gettext
+      use Gettext, backend: ExshomeWeb.Gettext
     end
   end
 
@@ -104,7 +104,7 @@ defmodule ExshomeWeb do
       # Shortcut to generate JS commands
       alias Phoenix.LiveView.JS
 
-      import ExshomeWeb.Gettext
+      use Gettext, backend: ExshomeWeb.Gettext
       import ExshomeWeb.CoreComponents
       import ExshomeWeb.DatatypeComponent, only: [datatype_value: 1, datatype_input: 1]
       unquote(verified_routes())
