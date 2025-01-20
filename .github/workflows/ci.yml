@@ -61,8 +61,8 @@ jobs:
     - name: Elixir run tests
       run: mix coveralls.multiple --type html --type json --warnings-as-errors
 
-    - name: Upload coverage report to Codecov
-      uses: codecov/codecov-action@v5
-      with:
-        fail_ci_if_error: true
-        token: ${{ secrets.CODECOV_TOKEN }}
+#    - name: Upload coverage report to Codecov
+#      uses: codecov/codecov-action@v5
+#      with:
+#        fail_ci_if_error: true
+#        token: ${{ secrets.CODECOV_TOKEN }}
