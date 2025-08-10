@@ -9,7 +9,7 @@ defmodule ExshomeTest.LiveViewHelpers do
   Extracts value from input element by selector.
   """
   def get_value(view, selector) do
-    [value] = view |> render() |> Floki.attribute(selector, "value")
+    [value] = view |> render() |> Floki.parse_fragment!() |> Floki.attribute(selector, "value")
     value
   end
 

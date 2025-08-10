@@ -55,6 +55,7 @@ defmodule ExshomeAutomationTest.Live.PreviewTest do
   defp count_variables(view, type) do
     view
     |> render()
+    |> Floki.parse_fragment!()
     |> Floki.find("[type='#{type}']")
     |> Floki.text()
     |> String.to_integer()

@@ -51,6 +51,7 @@ defmodule ExshomeTest.SvgCanvasHelpers do
   def find_elements(view, selector) do
     view
     |> render()
+    |> Floki.parse_fragment!()
     |> Floki.find(selector)
     |> Enum.map(&to_element/1)
   end
@@ -65,6 +66,7 @@ defmodule ExshomeTest.SvgCanvasHelpers do
     [{x, ""}, {y, ""}, {width, ""}, {height, ""}] =
       view
       |> render()
+      |> Floki.parse_fragment!()
       |> Floki.attribute(id, "viewbox")
       |> List.first()
       |> String.split(~r/\s+/)

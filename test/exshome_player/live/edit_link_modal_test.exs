@@ -36,6 +36,7 @@ defmodule ExshomePlayerTest.Live.EditLinkModalTest do
     [cancel_code] =
       view
       |> render()
+      |> Floki.parse_fragment!()
       |> Floki.attribute("#playlist-modal", "data-cancel")
 
     assert String.contains?(cancel_code, @playlist_page_link)
@@ -104,6 +105,7 @@ defmodule ExshomePlayerTest.Live.EditLinkModalTest do
   defp count_playlist_items(view) do
     view
     |> render()
+    |> Floki.parse_fragment!()
     |> Floki.find("[phx-click=play]")
     |> length()
   end

@@ -93,6 +93,7 @@ defmodule ExshomeAutomationTest.Live.VariablesTest do
   defp count_variables(view) do
     view
     |> render()
+    |> Floki.parse_fragment!()
     |> Floki.find("li")
     |> length()
   end

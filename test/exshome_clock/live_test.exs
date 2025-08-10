@@ -64,6 +64,7 @@ defmodule ExshomeClockTest.LiveTest do
       [timezone] =
         view
         |> render()
+        |> Floki.parse_fragment!()
         |> Floki.attribute("#settings_timezone [selected]", "value")
 
       assert timezone == expected_timezone

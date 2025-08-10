@@ -45,6 +45,7 @@ defmodule ExshomeAutomationTest.Live.AutomationsTest do
   defp workflow_ids(view) do
     view
     |> render()
+    |> Floki.parse_fragment!()
     |> Floki.attribute("button[phx-click=delete_workflow]", "phx-value-id")
   end
 
