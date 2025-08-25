@@ -18,7 +18,7 @@ jobs:
       run: if [[ -z "${{ secrets.HEX_API_KEY }}" ]]; then echo "HEX_API_KEY is not set" && exit 1; fi
 
     - name: Checkout sources
-      uses: actions/checkout@v4
+      uses: actions/checkout@v5
       with:
         fetch-depth: 1
 
