@@ -68,7 +68,7 @@ defmodule Exshome.MixProject do
       {:excoveralls, "~> 0.10", only: :test},
       {:ex_doc, "~> 0.27", only: :test, runtime: false},
       {:floki, ">= 0.30.0", only: :test},
-      {:gettext, "~> 0.18"},
+      {:gettext, "~> 1.0"},
       {:jason, "~> 1.2"},
       {:mix_audit, "~> 2.0", only: [:dev, :test], runtime: false},
       {:nimble_options, "~> 1.0"},
